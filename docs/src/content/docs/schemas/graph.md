@@ -100,7 +100,7 @@ A Graph using all metadata fields, defaults, and multiple nodes:
 
 ```json
 {
-  "$schema": "https://fireside.dev/schemas/0.5/Graph.json",
+  "$schema": "https://fireside.dev/schemas/0.1.0/Graph.json",
   "title": "An Introduction to Fireside",
   "author": "Dana",
   "date": "2026-02-15",

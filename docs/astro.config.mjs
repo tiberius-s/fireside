@@ -52,8 +52,8 @@ export default defineConfig({
           autogenerate: { directory: 'guides' },
         },
         {
-          label: 'Decisions',
-          autogenerate: { directory: 'decisions' },
+          label: 'Explanation',
+          autogenerate: { directory: 'explanation' },
         },
       ],
     }),

@@ -9,36 +9,39 @@ Fireside is a portable, implementation-independent format for branching
 presentations and lessons. Documents are directed graphs of nodes containing
 content blocks and traversal metadata.
 
-## Core Concepts
+## Choose by Goal
 
-| Technical Term | Conversational Term | Meaning                                   |
-| -------------- | ------------------- | ----------------------------------------- |
-| Graph          | Session             | Complete presentation or lesson document. |
-| Node           | Moment              | One visited unit of content in traversal. |
-| ContentBlock   | Block               | Renderable content element inside a node. |
-| BranchPoint    | Question            | A decision point with choices.            |
-| BranchOption   | Answer              | One selectable branch target.             |
-| Traversal      | Flow                | Movement rules between nodes.             |
+### Tutorial
 
-## Specification Order
-
-The specification is ordered as:
-
-1. §1 Introduction
-2. §2 Data Model
-3. §3 Traversal
-4. §4 Validation
-5. §5 Extensibility
-6. §6 Serialization
-7. Appendix A–C
-
-## Getting Started
+Learn by building a complete session:
 
 - [Your First Fireside Session](guides/getting-started/)
+
+### How-to Guides
+
+Solve specific authoring problems:
+
 - [Branching Adventures](guides/branching-adventures/)
 - [For Designers](guides/for-designers/)
 
-## Quick Reference
+### Reference
+
+Look up protocol definitions and schema details:
+
+- [Specification](spec/introduction/)
+- [Graph schema](schemas/graph/)
+- [Node schema](schemas/node/)
+- [Content blocks schema](schemas/content-blocks/)
+- [Domain vocabulary](reference/domain-vocabulary/)
+- [Data model quick reference](reference/data-model-quick-reference/)
+
+### Explanation
+
+Understand design rationale and tradeoffs:
+
+- [Design Decisions](explanation/design-decisions/)
+
+## Protocol Snapshot
 
 - Wire format: kebab-case JSON properties
 - Block discriminator: `kind`
