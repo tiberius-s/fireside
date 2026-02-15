@@ -1,0 +1,19 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "DividerBlock.json",
+    "type": "object",
+    "properties": {
+        "kind": {
+            "type": "string",
+            "const": "divider"
+        },
+        "style": {
+            "type": "string",
+            "description": "Optional style variant for the divider."
+        }
+    },
+    "required": [
+        "kind"
+    ],
+    "description": "A horizontal rule separating content sections."
+}

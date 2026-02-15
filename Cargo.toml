@@ -1,0 +1,53 @@
+[package]
+name = "fireside"
+version = "0.1.0"
+edition = "2024"
+description = "A portable format for branching presentations and lessons — reference implementation"
+license = "MIT"
+repository = "https://github.com/tiberius/fireside"
+keywords = ["terminal", "presentation", "tui", "branching", "ratatui"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+# TUI framework
+ratatui = "0.30"
+crossterm = "0.29"
+
+# Syntax highlighting (pure Rust via fancy-regex)
+syntect = { version = "5.3", default-features = false, features = [
+  "default-fancy",
+] }
+two-face = { version = "0.5", default-features = false, features = [
+  "syntect-fancy",
+] }
+
+# Serialization & config
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+toml = "0.8"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Text layout
+unicode-width = "0.2"
+textwrap = "0.16"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+plist = "1.8.0"
+font-kit = "0.14.3"
+serde_json = "1.0.149"
+
+[dev-dependencies]
+pretty_assertions = "1"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

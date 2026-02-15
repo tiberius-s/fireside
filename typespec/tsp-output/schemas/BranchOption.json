@@ -1,0 +1,29 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "BranchOption.json",
+    "type": "object",
+    "properties": {
+        "label": {
+            "type": "string",
+            "description": "Display label for this option (e.g., \"Fight the dragon\")."
+        },
+        "key": {
+            "type": "string",
+            "description": "Keyboard shortcut to select this option (e.g., \"a\", \"1\")."
+        },
+        "target": {
+            "$ref": "NodeId.json",
+            "minLength": 1,
+            "description": "The NodeId this option leads to."
+        },
+        "description": {
+            "type": "string",
+            "description": "Optional description providing more detail about this choice."
+        }
+    },
+    "required": [
+        "label",
+        "target"
+    ],
+    "description": "A BranchOption is a single choice available at a BranchPoint.\nIt has a display label, an optional hotkey, and a target node."
+}

@@ -1,0 +1,34 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "ExtensionBlock.json",
+    "type": "object",
+    "properties": {
+        "kind": {
+            "type": "string",
+            "const": "extension",
+            "description": "Extension discriminator for all non-core content."
+        },
+        "type": {
+            "type": "string",
+            "description": "Extension type identifier (e.g., \"acme.table\", \"org.video\")."
+        },
+        "fallback": {
+            "description": "Fallback content for engines that do not support this extension.",
+            "$ref": "ContentBlock.json"
+        },
+        "publisher": {
+            "type": "string",
+            "description": "Optional publisher/namespace for discovery and registry matching."
+        },
+        "schema-version": {
+            "type": "string",
+            "description": "Optional extension schema or contract version."
+        }
+    },
+    "required": [
+        "kind",
+        "type"
+    ],
+    "unevaluatedProperties": {},
+    "description": "An extension content block using a typed extension identifier.\n\nExtension blocks allow protocol consumers to define custom content types\n(e.g., `acme.table`, `org.video`, `edu.poll`) without modifying the core spec.\n\n## Conformance\n- `kind` MUST be `\"extension\"`\n- `type` MUST uniquely identify the extension payload contract\n- Engines MUST render unsupported extensions using the `fallback` property\n- If no `fallback` is provided, engines SHOULD display a placeholder\n\n## Extension Properties\nExtension blocks MAY include arbitrary additional properties using the\nspread record pattern. These properties are opaque to the core protocol."
+}

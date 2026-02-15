@@ -1,0 +1,39 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "Node.json",
+    "type": "object",
+    "properties": {
+        "id": {
+            "$ref": "NodeId.json",
+            "minLength": 1,
+            "description": "Unique identifier for this node. Required for traversal targets."
+        },
+        "layout": {
+            "$ref": "Layout.json",
+            "description": "Spatial arrangement strategy for this node's content blocks."
+        },
+        "transition": {
+            "$ref": "Transition.json",
+            "description": "Animation effect when entering this node."
+        },
+        "speaker-notes": {
+            "type": "string",
+            "description": "Hidden notes visible only to the presenter, not the audience.\nPresenter notes, GM tips, teaching hints."
+        },
+        "traversal": {
+            "$ref": "Traversal.json",
+            "description": "Traversal overrides for leaving this node."
+        },
+        "content": {
+            "type": "array",
+            "items": {
+                "$ref": "ContentBlock.json"
+            },
+            "description": "The content blocks displayed at this node."
+        }
+    },
+    "required": [
+        "content"
+    ],
+    "description": "A Node is a vertex in the graph — a discrete unit of content\nthat a presenter visits. Each node has an optional identity, spatial\nlayout, transition effect, traversal rules, and zero or more\ncontent blocks.\n\n## Resolution Order\nProperties use a cascading resolution:\n1. Node-level value (explicit)\n2. Graph-level defaults\n3. Built-in default"
+}

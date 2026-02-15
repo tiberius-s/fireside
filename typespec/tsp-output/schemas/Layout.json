@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "Layout.json",
+    "type": "string",
+    "enum": [
+        "default",
+        "center",
+        "split-horizontal",
+        "split-vertical",
+        "fullscreen",
+        "align-left",
+        "align-right",
+        "focus-code",
+        "agenda",
+        "compare",
+        "image-left",
+        "image-right"
+    ],
+    "description": "Spatial arrangement strategy for content blocks within a node.\n\nThe engine resolves the effective layout by checking:\n1. Node-level layout (explicit)\n2. Graph-level defaults\n3. Built-in default (\"default\")"
+}

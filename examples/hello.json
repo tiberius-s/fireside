@@ -1,0 +1,166 @@
+{
+  "$schema": "../typespec/tsp-output/schemas/Graph.json",
+  "title": "Hello, Fireside!",
+  "author": "Jane Developer",
+  "date": "2026-02-15",
+  "description": "A quick tour of Fireside — a portable format for branching presentations.",
+  "version": "1.0",
+  "tags": ["intro", "demo", "fireside"],
+  "theme": "default",
+  "font": "JetBrains Mono",
+  "defaults": {
+    "layout": "default",
+    "transition": "fade"
+  },
+  "nodes": [
+    {
+      "id": "title",
+      "layout": "center",
+      "content": [
+        { "kind": "heading", "level": 1, "text": "Hello, Fireside!" },
+        { "kind": "text", "body": "A portable format for branching presentations and lessons." },
+        { "kind": "text", "body": "Press **→** or **l** to advance" }
+      ]
+    },
+    {
+      "id": "what-is",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "What is Fireside?" },
+        {
+          "kind": "list",
+          "items": [
+            "JSON-native presentations with schema validation",
+            "Branching, non-linear traversal",
+            "7 core content blocks + extensible with x- prefix",
+            "Syntax-highlighted code blocks",
+            "Terminal-first — runs everywhere you have a shell"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code-demo",
+      "layout": "fullscreen",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Code Highlight" },
+        {
+          "kind": "code",
+          "language": "rust",
+          "source": "fn main() {\n    let message = \"Hello from Fireside!\";\n    println!(\"{message}\");\n}",
+          "highlight-lines": [2],
+          "show-line-numbers": true
+        }
+      ]
+    },
+    {
+      "id": "layouts",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Layout Options" },
+        {
+          "kind": "group",
+          "layout": "columns",
+          "children": [
+            {
+              "kind": "list",
+              "items": [
+                "**default** — Standard stacking",
+                "**center** — Centered content",
+                "**fullscreen** — No chrome"
+              ]
+            },
+            {
+              "kind": "list",
+              "items": [
+                "**split-horizontal** — Two columns",
+                "**split-vertical** — Two rows",
+                "**align-left** / **align-right**"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "branch-demo",
+      "layout": "center",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Choose Your Path" },
+        {
+          "kind": "text",
+          "body": "Fireside supports **branching presentations** with traversal overrides."
+        }
+      ],
+      "traversal": {
+        "branch-point": {
+          "id": "topic-choice",
+          "prompt": "What would you like to explore?",
+          "options": [
+            { "label": "Themes & Colors", "key": "a", "target": "themes" },
+            { "label": "Content Blocks", "key": "b", "target": "blocks" },
+            { "label": "Skip to end", "key": "c", "target": "thanks" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "themes",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Themes" },
+        {
+          "kind": "text",
+          "body": "Fireside engines can import color schemes and map them to semantic design tokens."
+        },
+        {
+          "kind": "list",
+          "items": [
+            "**surface-primary** — Main background color",
+            "**text-primary** — Default text color",
+            "**accent-primary** — Highlight and link color"
+          ]
+        },
+        {
+          "kind": "text",
+          "body": "See Appendix A in the spec for the full token architecture."
+        }
+      ],
+      "traversal": { "next": "thanks" }
+    },
+    {
+      "id": "blocks",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Content Blocks" },
+        { "kind": "text", "body": "Every node is built from typed content blocks:" },
+        {
+          "kind": "list",
+          "ordered": true,
+          "items": [
+            "**heading** — H1 through H6",
+            "**text** — prose with inline Markdown",
+            "**code** — syntax-highlighted source code",
+            "**list** — ordered or unordered",
+            "**image** — visual with alt text and caption",
+            "**divider** — horizontal rule",
+            "**group** — container for nested blocks"
+          ]
+        },
+        { "kind": "divider" },
+        {
+          "kind": "text",
+          "body": "Need more? Use the **x-** prefix for extensions like `x-table` or `x-video`."
+        }
+      ],
+      "traversal": { "next": "thanks" }
+    },
+    {
+      "id": "thanks",
+      "layout": "center",
+      "transition": "dissolve",
+      "content": [
+        { "kind": "heading", "level": 1, "text": "Thank You!" },
+        { "kind": "text", "body": "Start building your own Fireside sessions." },
+        { "kind": "text", "body": "github.com/tiberius/fireside" }
+      ],
+      "speaker-notes": "Remind audience about the GitHub repo and invite contributions."
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "ListBlock.json",
+    "type": "object",
+    "properties": {
+        "kind": {
+            "type": "string",
+            "const": "list"
+        },
+        "ordered": {
+            "type": "boolean",
+            "description": "Whether the list is ordered (numbered) or unordered (bulleted)."
+        },
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1,
+            "description": "The list items as strings."
+        }
+    },
+    "required": [
+        "kind",
+        "items"
+    ],
+    "description": "An ordered or unordered list of items."
+}

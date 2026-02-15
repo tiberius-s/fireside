@@ -1,0 +1,32 @@
+# Build artifacts
+/target/
+**/*.rs.bk
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Fireside cache
+.fireside-cache/
+
+# Docs build artifacts
+docs/node_modules/
+docs/dist/
+docs/.astro/
+docs/playwright-report/
+docs/test-results/
+docs/.vite/
+
+# TypeSpec build artifacts
+typespec/node_modules/
+
+# Root frontend artifacts (accidental local generation)
+.astro/
+node_modules/

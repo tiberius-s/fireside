@@ -1,0 +1,27 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "HeadingBlock.json",
+    "type": "object",
+    "properties": {
+        "kind": {
+            "type": "string",
+            "const": "heading"
+        },
+        "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 6,
+            "description": "Heading level from 1 (largest) to 6 (smallest)."
+        },
+        "text": {
+            "type": "string",
+            "description": "The heading text content."
+        }
+    },
+    "required": [
+        "kind",
+        "level",
+        "text"
+    ],
+    "description": "A heading with a level (1–6) and text content."
+}

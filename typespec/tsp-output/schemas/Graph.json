@@ -1,0 +1,62 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "Graph.json",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "JSON Schema URI for self-describing documents."
+        },
+        "title": {
+            "type": "string",
+            "description": "The graph's display name."
+        },
+        "author": {
+            "type": "string",
+            "description": "The graph creator's name."
+        },
+        "date": {
+            "type": "string",
+            "description": "Creation or presentation date (ISO 8601 recommended)."
+        },
+        "description": {
+            "type": "string",
+            "description": "A brief summary of the graph's purpose."
+        },
+        "version": {
+            "type": "string",
+            "description": "Semantic version of this graph document."
+        },
+        "tags": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Categorization tags for organization and filtering."
+        },
+        "theme": {
+            "type": "string",
+            "description": "Default theme name for the engine to use."
+        },
+        "font": {
+            "type": "string",
+            "description": "Preferred monospace font family."
+        },
+        "defaults": {
+            "$ref": "NodeDefaults.json",
+            "description": "Default values applied to all nodes unless overridden."
+        },
+        "nodes": {
+            "type": "array",
+            "items": {
+                "$ref": "Node.json"
+            },
+            "minItems": 1,
+            "description": "The ordered array of nodes forming the graph. MUST contain at least one node."
+        }
+    },
+    "required": [
+        "nodes"
+    ],
+    "description": "A Graph is the top-level document — a self-contained directed graph\nof nodes forming traversable content with metadata.\n\n## Structure\nA Graph is a JSON document with two sections:\n1. **Metadata** — Title, author, theme, and descriptive fields\n2. **Nodes** — An ordered array of node objects\n\n## Graph Semantics\n- The node array defines an implicit linear sequence (Next edges)\n- Traversal overrides on each node define explicit graph edges\n- The first node (index 0) is the graph's entry point\n- All nodes SHOULD be reachable from the entry point\n\n## Validation\n- All Node IDs MUST be unique within the graph\n- All traversal targets MUST reference valid Node IDs\n- BranchPoints MUST contain at least one option"
+}

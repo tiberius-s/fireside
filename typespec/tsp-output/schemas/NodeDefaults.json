@@ -1,0 +1,16 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "NodeDefaults.json",
+    "type": "object",
+    "properties": {
+        "layout": {
+            "$ref": "Layout.json",
+            "description": "Default layout for all nodes."
+        },
+        "transition": {
+            "$ref": "Transition.json",
+            "description": "Default transition for all nodes."
+        }
+    },
+    "description": "Default values applied to all nodes in a graph unless\noverridden at the node level."
+}

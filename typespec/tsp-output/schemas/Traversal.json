@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "Traversal.json",
+    "type": "object",
+    "properties": {
+        "next": {
+            "$ref": "NodeId.json",
+            "description": "Override the Next target. Instead of advancing to nodes[i+1],\nNext will navigate to this node ID."
+        },
+        "after": {
+            "$ref": "NodeId.json",
+            "description": "Define a return point after completing a branch.\nWhen the branch path reaches its end, the engine returns here."
+        },
+        "branch-point": {
+            "$ref": "BranchPoint.json",
+            "description": "Present a BranchPoint with multiple options.\nThe presenter must Choose before continuing."
+        }
+    },
+    "description": "Traversal defines how a presenter moves away from the current node.\nIt contains optional overrides for traversal operations.\n\nIf no traversal is specified, the default behavior is Next (advance\nto the next node in array order)."
+}

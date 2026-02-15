@@ -1,0 +1,16 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "Transition.json",
+    "type": "string",
+    "enum": [
+        "none",
+        "fade",
+        "slide-left",
+        "slide-right",
+        "slide-up",
+        "slide-down",
+        "dissolve",
+        "matrix"
+    ],
+    "description": "Animation effect applied when transitioning between nodes.\n\nTransitions control the visual effect when moving from one node\nto another. Engines MAY implement a subset; unsupported transitions\nSHOULD fall back to \"none\"."
+}

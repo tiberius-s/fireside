@@ -1,0 +1,27 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "BranchPoint.json",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "Optional identifier for this branch point."
+        },
+        "prompt": {
+            "type": "string",
+            "description": "The prompt displayed to the presenter (e.g., \"What do you do?\")."
+        },
+        "options": {
+            "type": "array",
+            "items": {
+                "$ref": "BranchOption.json"
+            },
+            "minItems": 1,
+            "description": "The available options. MUST contain at least one option."
+        }
+    },
+    "required": [
+        "options"
+    ],
+    "description": "A BranchPoint is a decision point at a node where the presenter\nmust choose between multiple options.\n\nWhen the engine encounters a BranchPoint, it MUST display the prompt\nand options, then wait for the presenter to Choose."
+}

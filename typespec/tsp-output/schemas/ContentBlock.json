@@ -1,0 +1,31 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "ContentBlock.json",
+    "anyOf": [
+        {
+            "$ref": "HeadingBlock.json"
+        },
+        {
+            "$ref": "TextBlock.json"
+        },
+        {
+            "$ref": "CodeBlock.json"
+        },
+        {
+            "$ref": "ListBlock.json"
+        },
+        {
+            "$ref": "ImageBlock.json"
+        },
+        {
+            "$ref": "DividerBlock.json"
+        },
+        {
+            "$ref": "ContainerBlock.json"
+        },
+        {
+            "$ref": "ExtensionBlock.json"
+        }
+    ],
+    "description": "A ContentBlock is an atomic content element within a Node.\n\nContent blocks use a tagged discriminated union keyed by the `kind` field.\nEach variant represents a distinct type of content.\n\n## Core Blocks (7)\nConforming engines MUST support all 7 core block kinds:\nheading, text, code, list, image, divider, container.\n\n## Extension Blocks\nExtensions use the explicit `extension` block kind with a required\n`type` identifier (e.g., `acme.table`, `org.video`).\nEngines MUST render unsupported extensions using their `fallback` property."
+}

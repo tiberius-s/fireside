@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "TextBlock.json",
+    "type": "object",
+    "properties": {
+        "kind": {
+            "type": "string",
+            "const": "text"
+        },
+        "body": {
+            "type": "string",
+            "description": "The text content. May contain inline Markdown formatting."
+        }
+    },
+    "required": [
+        "kind",
+        "body"
+    ],
+    "description": "A block of prose text, optionally with inline Markdown formatting."
+}

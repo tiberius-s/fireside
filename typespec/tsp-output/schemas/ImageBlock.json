@@ -1,0 +1,40 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "ImageBlock.json",
+    "type": "object",
+    "properties": {
+        "kind": {
+            "type": "string",
+            "const": "image"
+        },
+        "src": {
+            "type": "string",
+            "description": "URI or file path to the image source."
+        },
+        "alt": {
+            "type": "string",
+            "description": "Alternative text for accessibility. SHOULD be provided for all images."
+        },
+        "caption": {
+            "type": "string",
+            "description": "Optional caption displayed below the image."
+        },
+        "width": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647,
+            "description": "Desired display width (columns or percentage)."
+        },
+        "height": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647,
+            "description": "Desired display height (rows)."
+        }
+    },
+    "required": [
+        "kind",
+        "src"
+    ],
+    "description": "A visual element with source URI and accessibility metadata."
+}
