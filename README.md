@@ -74,6 +74,8 @@ cd docs && npm install && npm run dev
 
 Visit `http://localhost:4321/fireside/`
 
+Hosted docs: [tiberius-s.github.io/fireside](https://tiberius-s.github.io/fireside/)
+
 ## Reference Implementation (Rust)
 
 The Rust codebase is a terminal presentation engine using the TEA (The Elm Architecture)
