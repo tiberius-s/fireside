@@ -609,12 +609,53 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9844ddc3a6e533d62bba727eb6c28b5d360921d5175e9ff0f1e621a5c590a4d5"
 
 [[package]]
-name = "fireside"
+name = "fireside-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
  "crossterm",
+ "fireside-engine",
+ "fireside-tui",
+ "ratatui",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "time",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "fireside-core"
+version = "0.1.0"
+dependencies = [
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "fireside-engine"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "fireside-core",
+ "pretty_assertions",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
+name = "fireside-tui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossterm",
+ "fireside-core",
+ "fireside-engine",
  "font-kit",
  "plist",
  "pretty_assertions",
@@ -627,7 +668,6 @@ dependencies = [
  "thiserror 2.0.18",
  "toml",
  "tracing",
- "tracing-subscriber",
  "two-face",
  "unicode-width",
 ]

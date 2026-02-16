@@ -1,0 +1,18 @@
+[package]
+name = "fireside-core"
+description = "Fireside protocol model — types, serialization, and wire-format invariants"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+
+[lints]
+workspace = true

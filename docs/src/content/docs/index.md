@@ -51,3 +51,5 @@ Understand design rationale and tradeoffs:
 - Traversal operations: Next, Choose, Goto, Back
 - Media type: `application/json`
 - Schema dialect: JSON Schema 2020-12
+
+Now that we have a specification, we can define and design engines that implement it. The next chapter defines normative traversal algorithms and state rules for Next, Choose, Goto, and Back operations.

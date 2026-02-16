@@ -1,0 +1,32 @@
+[package]
+name = "fireside-tui"
+description = "Fireside TUI — Ratatui-based terminal presentation and editing engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+fireside-core = { workspace = true }
+fireside-engine = { workspace = true }
+ratatui = { workspace = true }
+crossterm = { workspace = true }
+syntect = { workspace = true }
+two-face = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+toml = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+unicode-width = { workspace = true }
+textwrap = { workspace = true }
+plist = { workspace = true }
+font-kit = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+
+[lints]
+workspace = true

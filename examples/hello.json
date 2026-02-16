@@ -57,7 +57,7 @@
       "content": [
         { "kind": "heading", "level": 2, "text": "Layout Options" },
         {
-          "kind": "group",
+          "kind": "container",
           "layout": "columns",
           "children": [
             {

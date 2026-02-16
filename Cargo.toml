@@ -1,19 +1,41 @@
-[package]
-name = "fireside"
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+default-members = ["crates/fireside-cli"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
-description = "A portable format for branching presentations and lessons — reference implementation"
 license = "MIT"
-repository = "https://github.com/tiberius/fireside"
-keywords = ["terminal", "presentation", "tui", "branching", "ratatui"]
-categories = ["command-line-utilities"]
+repository = "https://github.com/tiberius-s/fireside"
+rust-version = "1.85"
 
-[dependencies]
+[workspace.dependencies]
+# Internal crates
+fireside-core = { path = "crates/fireside-core" }
+fireside-engine = { path = "crates/fireside-engine" }
+fireside-tui = { path = "crates/fireside-tui" }
+
+# Protocol / serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
 # TUI framework
 ratatui = "0.30"
 crossterm = "0.29"
 
-# Syntax highlighting (pure Rust via fancy-regex)
+# Syntax highlighting
 syntect = { version = "5.3", default-features = false, features = [
   "default-fancy",
 ] }
@@ -21,31 +43,23 @@ two-face = { version = "0.5", default-features = false, features = [
   "syntect-fancy",
 ] }
 
-# Serialization & config
-serde = { version = "1", features = ["derive"] }
+# Config / serialization
 serde_yaml = "0.9"
 toml = "0.8"
-
-# Error handling
-thiserror = "2"
-anyhow = "1"
-
-# CLI
-clap = { version = "4", features = ["derive"] }
 
 # Text layout
 unicode-width = "0.2"
 textwrap = "0.16"
 
-# Logging
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-plist = "1.8.0"
-font-kit = "0.14.3"
-serde_json = "1.0.149"
+# System
+plist = "1.8"
+font-kit = "0.14"
 
-[dev-dependencies]
+# Dev
 pretty_assertions = "1"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
 
 [profile.release]
 lto = true
