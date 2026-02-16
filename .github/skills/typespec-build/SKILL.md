@@ -5,15 +5,15 @@ description: 'Automated workflow for compiling TypeSpec to JSON Schema and updat
 
 # TypeSpec Build Pipeline Skill
 
-When changes are detected in the `typespec/` directory (especially `main.tsp`), follow this automated pipeline:
+When changes are detected in the `models/` directory (especially `main.tsp`), follow this automated pipeline:
 
 ## Step 1: Compile TypeSpec
 
 ```bash
-cd typespec && npm run build
+cd models && npm run build
 ```
 
-This generates JSON Schema 2020-12 files in `typespec/tsp-output/schemas/`.
+This generates JSON Schema 2020-12 files in `models/tsp-output/schemas/`.
 
 Expected output: 18 schema files:
 
@@ -57,7 +57,7 @@ Ensure the docs build cleanly with no errors.
 
 ## Step 5: Update Example Files
 
-If schema changes affect the wire format, update example files in `examples/` to match.
+If schema changes affect the wire format, update example files in `docs/examples/` to match.
 
 ## Key Conventions
 

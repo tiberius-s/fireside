@@ -25,7 +25,7 @@ docs/test-results/
 docs/.vite/
 
 # TypeSpec build artifacts
-typespec/node_modules/
+models/node_modules/
 
 # Root frontend artifacts (accidental local generation)
 .astro/

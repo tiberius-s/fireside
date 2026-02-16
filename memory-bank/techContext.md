@@ -9,7 +9,7 @@
 
 ## Build/Validation Commands
 
-- TypeSpec compile: `cd typespec && npm run build`
+- TypeSpec compile: `cd models && npm run build`
 - Docs build: `cd docs && npm run build`
 - Rust build: `cargo build`
 - Rust tests: `cargo test`

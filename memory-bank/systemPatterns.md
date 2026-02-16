@@ -2,8 +2,8 @@
 
 ## Protocol Source of Truth
 
-- Type definitions live in `typespec/main.tsp`.
-- JSON Schema 2020-12 output is generated to `typespec/tsp-output/schemas/`.
+- Type definitions live in `models/main.tsp`.
+- JSON Schema 2020-12 output is generated to `models/tsp-output/schemas/`.
 
 ## Content Model Pattern
 

@@ -11,7 +11,7 @@
 
 ```
 fireside/
-├── typespec/          # Source of truth — TypeSpec domain model
+├── models/            # Source of truth — TypeSpec domain model
 │   ├── main.tsp       # ~400 lines, namespace Fireside, v0.1.0
 │   └── tsp-output/schemas/  # 18 generated JSON Schema files
 ├── docs/              # Astro + Starlight documentation site
@@ -21,9 +21,9 @@ fireside/
 │       ├── guides/    # 3 user guides
 │       ├── reference/ # Quick-reference domain vocabulary + data model
 │       └── decisions/ # Architecture Decision Records (ADRs)
-├── schemas/           # (empty — schemas are in typespec/tsp-output/)
+├── schemas/           # (empty — schemas are in models/tsp-output/)
 
-├── examples/          # Example .json files using Fireside format
+├── docs/examples/     # Example .json files using Fireside format
 ├── src/               # Rust reference implementation (TEA architecture)
 └── memory-bank/       # Project context for AI agents
 ```
@@ -110,7 +110,7 @@ the Fireside 0.1.0 protocol.
 - Lint (quality gate): `cargo clippy -- -D warnings`
 - Test: `cargo test`
 - Format check: `cargo fmt --check`
-- Smoke run: `cargo run -- present examples/hello.json`
+- Smoke run: `cargo run -- present docs/examples/hello.json`
 
 ## Documentation Site
 
@@ -135,9 +135,9 @@ the Fireside 0.1.0 protocol.
 
 ## TypeSpec Workflow
 
-- Edit: `typespec/main.tsp`
-- Compile: `cd typespec && npm run build`
-- Output: 18 JSON Schema 2020-12 files in `typespec/tsp-output/schemas/`
+- Edit: `models/main.tsp`
+- Compile: `cd models && npm run build`
+- Output: 18 JSON Schema 2020-12 files in `models/tsp-output/schemas/`
 - After schema changes: update relevant doc pages in `docs/src/content/docs/schemas/`
 
 ## When Making Changes

@@ -1,5 +1,5 @@
 {
-  "$schema": "../typespec/tsp-output/schemas/Graph.json",
+  "$schema": "../models/tsp-output/schemas/Graph.json",
   "title": "Hello, Fireside!",
   "author": "Jane Developer",
   "date": "2026-02-15",
@@ -88,6 +88,10 @@
         {
           "kind": "text",
           "body": "Fireside supports **branching presentations** with traversal overrides."
+        },
+        {
+          "kind": "text",
+          "body": "Press **a**, **b**, or **c** to choose an option."
         }
       ],
       "traversal": {

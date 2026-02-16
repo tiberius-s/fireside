@@ -7,7 +7,7 @@
 - `fireside-tui`: Ratatui rendering and interaction (present mode + edit mode)
 - `fireside-cli`: thin command-line entrypoint that launches/dispatches to app modes
 
-This plan also renames Rust vocabulary to protocol terms (Slide→Node, SlideDeck→Graph, Navigation→Traversal), aligns JSON wire format (`kebab-case` + `kind` discriminator), and **defers any `typespec/` directory rename** for now.
+This plan also renames Rust vocabulary to protocol terms (Slide→Node, SlideDeck→Graph, Navigation→Traversal), aligns JSON wire format (`kebab-case` + `kind` discriminator), and assumes the protocol model lives under `models/`.
 
 ---
 
@@ -29,8 +29,8 @@ This plan also renames Rust vocabulary to protocol terms (Slide→Node, SlideDec
    - `crates/fireside-tui/Cargo.toml` (lib, depends on `fireside-core` + `fireside-engine` + Ratatui stack)
    - `crates/fireside-cli/Cargo.toml` (bin, depends on `fireside-tui`, and optionally direct access to engine for non-TUI commands)
 
-3. **Keep `typespec/` as-is.**
-   - Defer renaming `typespec/` → `models/`
+3. **Keep `models/` as-is.**
+   - The `typespec/` → `models/` rename is already complete
    - Only update docs paths if there are unavoidable build references from workspace moves
 
 ---
@@ -49,7 +49,7 @@ This plan also renames Rust vocabulary to protocol terms (Slide→Node, SlideDec
 5. **Align serialization format to protocol.**
    - Use `#[serde(rename_all = "kebab-case")]` where applicable
    - Use `#[serde(tag = "kind", rename_all = "kebab-case")]` for content blocks
-   - Ensure examples/fixtures round-trip with protocol-compatible JSON
+   - Ensure docs/examples fixtures round-trip with protocol-compatible JSON
 
 6. **Keep core crate UI-agnostic.**
    - No Ratatui dependencies in `fireside-core`
@@ -189,9 +189,9 @@ This plan also renames Rust vocabulary to protocol terms (Slide→Node, SlideDec
 
 - `cargo build --workspace`
 - `cargo test --workspace`
-- `cargo run -p fireside-cli -- present examples/hello.json`
-- `cargo run -p fireside-cli -- edit examples/hello.json`
-- `cargo run -p fireside-cli -- validate examples/hello.json`
+- `cargo run -p fireside-cli -- present docs/examples/hello.json`
+- `cargo run -p fireside-cli -- edit docs/examples/hello.json`
+- `cargo run -p fireside-cli -- validate docs/examples/hello.json`
 
 29. **Update docs pages for architecture and contribution flow.**
 

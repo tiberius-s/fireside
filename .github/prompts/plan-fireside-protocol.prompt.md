@@ -140,7 +140,7 @@ heading, text, code, list, image, divider, blockquote, table, fragment, spacer, 
 
 ## Phase 5 — TypeSpec Model Revision
 
-### Changes to `typespec/main.tsp`:
+### Changes to `models/main.tsp`:
 
 1. **Namespace:** `Hyphae` → `Fireside`
 2. **Version:** `0.4.0-draft` → `0.5.0-draft`
@@ -292,5 +292,5 @@ Create `docs/src/content/docs/decisions/` with ADR (Architecture Decision Record
   - Based on the revision here, it's probably a good time to revise the copilot instructions.
   - There are certain flows, like compiling the TypeSpec to JSON Schema, that are very mechanical and could be fully automated with an AI skill file. For example, we know that once we have changes in the typespec directory, the next step is to run `npm run build` to recompile the JSON Schema. These in turn should trigger a updates to the documentation pages that reference the schema files. We could create a skill file that watches for changes in the typespec directory, runs the build command, and then automatically updates any doc pages that reference the changed schema files with the new version number and any relevant changes. This would save a lot of manual work and ensure consistency across the documentation.
 - Slideways also needs to be rebranded to Fireside in the documentation, guides, and anywhere else it is mentioned. This includes updating the landing page, any references in the guides, and the glossary. We should also update the astro.config.mjs file to reflect the new title and description for the documentation site.
-- I already renamed the directory and deleted the .git folder. Once you are done implementing this superceding revision plan, you can initialize a new git repository in the root of the project and make an initial commit with all the changes. 
+- I already renamed the directory and deleted the .git folder. Once you are done implementing this superceding revision plan, you can initialize a new git repository in the root of the project and make an initial commit with all the changes.
 - The spec is the most important initial contribution from this repository. We will want this to be a rust monorepo that can then implement the spec in rust crates to cover core, cli, validation, rendering, and design system. The spec should be written in a way that is implementation-agnostic and focuses on the protocol itself, rather than any specific implementation details. This will allow for multiple implementations in different languages or frameworks in the future, while still adhering to the same core protocol defined in the spec.

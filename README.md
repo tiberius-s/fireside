@@ -24,7 +24,7 @@ source of truth for the domain model.
 
 ```json
 {
-  "$schema": "typespec/tsp-output/schemas/Graph.json",
+  "$schema": "models/tsp-output/schemas/Graph.json",
   "title": "My First Session",
   "nodes": [
     {
@@ -51,14 +51,14 @@ source of truth for the domain model.
 
 ```text
 fireside/
-├── typespec/          # Source of truth — TypeSpec domain model
+├── models/            # Source of truth — TypeSpec domain model
 ├── docs/              # Astro + Starlight documentation site
 ├── crates/            # Cargo workspace members
 │   ├── fireside-core/   # Protocol types (Graph, Node, ContentBlock, etc.)
 │   ├── fireside-engine/ # Loader, validation, traversal, session
 │   ├── fireside-tui/    # Ratatui terminal UI, themes, rendering
 │   └── fireside-cli/    # Binary entrypoint (`fireside` command)
-├── examples/          # Example .json graph files
+├── docs/examples/     # Example .json graph files
 └── memory-bank/       # Project context for AI agents
 ```
 
@@ -88,10 +88,10 @@ presentation engine using the TEA (The Elm Architecture) pattern with ratatui + 
 cargo build
 
 # Present a graph
-cargo run -- present examples/hello.json
+cargo run -- present docs/examples/hello.json
 
 # Validate a graph file
-cargo run -- validate examples/hello.json
+cargo run -- validate docs/examples/hello.json
 
 # Scaffold a new presentation
 cargo run -- new my-talk
@@ -106,7 +106,7 @@ cargo test --workspace
 cargo clippy --workspace -- -D warnings
 
 # TypeSpec → JSON Schema
-cd typespec && npm run build
+cd models && npm run build
 
 # Documentation
 cd docs && npm run build
