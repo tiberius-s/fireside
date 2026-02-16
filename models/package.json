@@ -4,7 +4,7 @@
   "description": "Fireside Protocol domain model definitions in TypeSpec",
   "private": true,
   "scripts": {
-    "build": "tsp compile .",
+    "build": "npm run clean && tsp compile .",
     "watch": "tsp compile . --watch",
     "clean": "rm -rf tsp-output"
   },
