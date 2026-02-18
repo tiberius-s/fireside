@@ -3,67 +3,68 @@ name: 'typespec-build'
 description: 'Automated workflow for compiling TypeSpec to JSON Schema and updating documentation'
 ---
 
-# TypeSpec Build Pipeline Skill
+## TypeSpec build — workflow and checklist
 
-When changes are detected in the `models/` directory (especially `main.tsp`), follow this automated pipeline:
+This skill captures the _workflow_ for making, verifying, and publishing TypeSpec-driven schema changes. It avoids hard-coded schema filenames — treat the generated schema directory as the canonical artifact and verify effects rather than exact file lists.
 
-## Step 1: Compile TypeSpec
+### When to run
 
-```bash
-cd models && npm run build
-```
+- Any change to files under `models/` (especially `main.tsp`) that alters the TypeSpec model or metadata.
 
-This generates JSON Schema 2020-12 files in `models/tsp-output/schemas/`.
+### Primary steps
 
-Expected output: 18 schema files:
+1. Compile TypeSpec
+   - Run: `cd models && npm run build`
+   - Artifact: updated JSON Schema files written to `models/tsp-output/schemas/`.
+   - Verify the command exits successfully and the output folder timestamps/contents changed for the types you modified.
 
-- Graph.json, Node.json, NodeId.json, NodeDefaults.json
-- ContentBlock.json, HeadingBlock.json, TextBlock.json, CodeBlock.json
-- ListBlock.json, ImageBlock.json, DividerBlock.json, ContainerBlock.json
-- ExtensionBlock.json, Traversal.json, BranchPoint.json, BranchOption.json
-- Layout.json, Transition.json
+2. Smoke-check generated schemas
+   - Confirm the generated schemas reflect your model changes (open the relevant schema files or diff them).
+   - Run any repository schema-consumer tests (docs pages, example validators, or unit tests that depend on the schema).
+   - If you have automated schema validation (AJV or similar), run it against representative examples.
 
-## Step 2: Verify Schema Output
+3. Update documentation & examples
+   - Update schema reference pages and spec pages under `docs/src/content/docs/` that describe any changed types, constraints, or examples.
+   - Update example payloads in `docs/examples/` if the wire format changed.
 
-Check that compilation succeeded with no errors. Verify the expected number of schema files was generated.
+4. Validate documentation build
+   - Run: `cd docs && npm run build`
+   - Ensure the docs site builds cleanly and the changed pages render as expected.
 
-## Step 3: Update Documentation Pages
+5. Run repository checks
+   - Run unit/integration tests and any format/lint checks that may exercise generated artifacts.
+   - Optionally smoke-run consumers that use the schema (CLI examples, sample apps).
 
-After schema changes, these doc pages may need updates:
+6. Commit and open PR
+   - Include both the TypeSpec source changes and the regenerated schemas in the _same_ commit (or same PR) so reviewers can see the generated delta.
+   - Recommended commit message format: `typespec: <short change summary> — regenerate schemas`
 
-### Schema Reference Pages
+### PR reviewer checklist ✅
 
-- `docs/src/content/docs/schemas/graph.md` — Graph, NodeDefaults, Layout, Transition
-- `docs/src/content/docs/schemas/node.md` — Node, Traversal, BranchPoint, BranchOption
-- `docs/src/content/docs/schemas/content-blocks.md` — ContentBlock union, all 7 core blocks, ExtensionBlock
+- [ ] Model change (TypeSpec) and regenerated schemas are present together.
+- [ ] Documentation and examples updated where needed.
+- [ ] Docs build passes locally / CI.
+- [ ] Any schema-consumer tests updated or added.
+- [ ] No breaking changes to the public wire format unless intentional and documented.
 
-### Spec Pages (if type definitions changed)
+### Troubleshooting tips
 
-- `docs/src/content/docs/spec/data-model.md` — Type hierarchy, property tables
-- `docs/src/content/docs/spec/validation.md` — Validation constraints
-- `docs/src/content/docs/spec/serialization.md` — Schema file listing
+- TypeSpec compile errors: run `cd models && npm run build` and fix the compiler output (it reports the exact model/location).
+- Missing/incorrect output: confirm `models/tsp-output/schemas/` is writable and your node dependencies are installed (`npm ci` in `models/`).
+- Unexpected runtime errors in consumers: re-run consumer tests and inspect schema diffs to identify breaking changes.
 
-### Quick Reference
+### Automation suggestions
 
-- `docs/src/content/docs/reference/data-model-quick-reference.md` — Type hierarchy summary
+- Add a CI job that regenerates schemas and fails if generated outputs differ from the committed files.
+- Add a small integration test that validates at least one example JSON against the generated schema set.
 
-## Step 4: Validate Documentation Build
+### Key conventions (reminder)
 
-```bash
-cd docs && npm run build
-```
+- Wire format uses kebab-case property names and enum values.
+- Use `kind` as the ContentBlock discriminator.
+- Extension blocks: `kind: "extension"` with a required `type` and sensible `fallback` where appropriate.
+- Treat the TypeSpec model as the source of truth; generated schemas are derived artifacts.
 
-Ensure the docs build cleanly with no errors.
+---
 
-## Step 5: Update Example Files
-
-If schema changes affect the wire format, update example files in `docs/examples/` to match.
-
-## Key Conventions
-
-- **Wire format:** kebab-case property names (e.g., `speaker-notes`, `branch-point`)
-- **Enum values:** kebab-case (e.g., `split-horizontal`, `slide-left`)
-- **Discriminator:** `kind` field on ContentBlock union
-- **Extension blocks:** `kind: "extension"` + required `type`; `fallback` recommended
-- **Namespace:** `Fireside`
-- **Version:** Read from TypeSpec model header comment
+Short and focused — this document captures the workflow and checks to follow when editing TypeSpec and regenerating schemas.
