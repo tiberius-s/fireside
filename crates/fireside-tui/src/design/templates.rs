@@ -18,6 +18,8 @@
 
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 
+use fireside_core::model::layout::Layout as NodeLayout;
+
 use super::tokens::{Breakpoint, Spacing};
 
 /// Node template identifier.
@@ -42,6 +44,23 @@ pub enum NodeTemplate {
 }
 
 impl NodeTemplate {
+    /// Map a Fireside node layout to the closest design template.
+    #[must_use]
+    pub fn from_layout(layout: NodeLayout) -> Self {
+        match layout {
+            NodeLayout::Title => Self::Title,
+            NodeLayout::SplitHorizontal => Self::TwoColumn,
+            NodeLayout::CodeFocus | NodeLayout::Fullscreen => Self::CodeFocus,
+            NodeLayout::Center => Self::Quote,
+            NodeLayout::Default
+            | NodeLayout::Top
+            | NodeLayout::SplitVertical
+            | NodeLayout::AlignLeft
+            | NodeLayout::AlignRight
+            | NodeLayout::Blank => Self::BulletList,
+        }
+    }
+
     /// Parse a template name from a string.
     #[must_use]
     pub fn from_name(name: &str) -> Option<Self> {

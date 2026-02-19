@@ -1,7 +1,7 @@
 //! Theme definitions controlling the visual appearance of nodes.
 //!
 //! The `Theme` struct holds Ratatui `Color` values for all UI elements.
-//! Themes are loaded from TOML files via `ThemeFile`.
+//! Themes are loaded from JSON files via `ThemeFile`.
 
 use ratatui::style::Color;
 use serde::Deserialize;
@@ -51,7 +51,7 @@ impl Default for Theme {
     }
 }
 
-/// Raw theme file representation for TOML deserialization.
+/// Raw theme file representation for JSON deserialization.
 ///
 /// Color values are strings that get parsed into `ratatui::style::Color`.
 #[derive(Debug, Clone, Default, Deserialize)]

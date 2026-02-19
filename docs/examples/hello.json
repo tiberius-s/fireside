@@ -1,11 +1,11 @@
 {
-  "$schema": "../models/tsp-output/schemas/Graph.json",
+  "$schema": "../../models/tsp-output/schemas/Graph.json",
   "title": "Hello, Fireside!",
   "author": "Jane Developer",
-  "date": "2026-02-15",
-  "description": "A quick tour of Fireside — a portable format for branching presentations.",
-  "version": "1.0",
-  "tags": ["intro", "demo", "fireside"],
+  "date": "2026-02-19",
+  "description": "Comprehensive smoke test deck for transitions, image loading, containers, and extensions.",
+  "version": "0.1.0",
+  "tags": ["intro", "smoke", "visual"],
   "theme": "default",
   "font": "JetBrains Mono",
   "defaults": {
@@ -16,33 +16,19 @@
     {
       "id": "title",
       "layout": "center",
+      "transition": "fade",
       "content": [
         { "kind": "heading", "level": 1, "text": "Hello, Fireside!" },
-        { "kind": "text", "body": "A portable format for branching presentations and lessons." },
-        { "kind": "text", "body": "Press **→** or **l** to advance" }
-      ]
-    },
-    {
-      "id": "what-is",
-      "content": [
-        { "kind": "heading", "level": 2, "text": "What is Fireside?" },
-        {
-          "kind": "list",
-          "items": [
-            "JSON-native presentations with schema validation",
-            "Branching, non-linear traversal",
-            "7 core content blocks + extensible with x- prefix",
-            "Syntax-highlighted code blocks",
-            "Terminal-first — runs everywhere you have a shell"
-          ]
-        }
+        { "kind": "text", "body": "Portable branching presentations in JSON." },
+        { "kind": "text", "body": "This deck is used for runtime smoke testing." }
       ]
     },
     {
       "id": "code-demo",
       "layout": "fullscreen",
+      "transition": "slide-left",
       "content": [
-        { "kind": "heading", "level": 2, "text": "Code Highlight" },
+        { "kind": "heading", "level": 2, "text": "Code + Highlight" },
         {
           "kind": "code",
           "language": "rust",
@@ -53,45 +39,103 @@
       ]
     },
     {
-      "id": "layouts",
+      "id": "image-success",
+      "layout": "center",
+      "transition": "slide-right",
       "content": [
-        { "kind": "heading", "level": 2, "text": "Layout Options" },
+        { "kind": "heading", "level": 2, "text": "Image Metadata (Success)" },
+        {
+          "kind": "image",
+          "src": "assets/sample.ppm",
+          "alt": "8x8 generated smoke-test sample",
+          "caption": "Renderer should display detected width × height."
+        }
+      ]
+    },
+    {
+      "id": "image-fallback",
+      "layout": "center",
+      "transition": "wipe",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Image Fallback (Missing File)" },
+        {
+          "kind": "image",
+          "src": "assets/missing-sample.ppm",
+          "alt": "missing image",
+          "caption": "Renderer should keep running and show fallback details."
+        }
+      ]
+    },
+    {
+      "id": "container-splits",
+      "transition": "dissolve",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Container Layout Hints" },
         {
           "kind": "container",
-          "layout": "columns",
+          "layout": "split-horizontal",
           "children": [
-            {
-              "kind": "list",
-              "items": [
-                "**default** — Standard stacking",
-                "**center** — Centered content",
-                "**fullscreen** — No chrome"
-              ]
-            },
-            {
-              "kind": "list",
-              "items": [
-                "**split-horizontal** — Two columns",
-                "**split-vertical** — Two rows",
-                "**align-left** / **align-right**"
-              ]
-            }
+            { "kind": "text", "body": "left: split-horizontal should render side-by-side" },
+            { "kind": "text", "body": "right: with column separator" }
           ]
+        },
+        {
+          "kind": "container",
+          "layout": "split-vertical",
+          "children": [
+            { "kind": "text", "body": "top: split-vertical" },
+            { "kind": "text", "body": "bottom: separated with a divider line" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "extension-known",
+      "transition": "matrix",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Extension Rendering (Known)" },
+        {
+          "kind": "extension",
+          "type": "acme.mermaid",
+          "code": "graph TD; Input-->Validate; Validate-->Render;"
+        },
+        {
+          "kind": "extension",
+          "type": "acme.table",
+          "headers": ["kind", "status"],
+          "rows": [
+            ["image", "ok"],
+            ["transition", "ok"],
+            ["extension", "ok"]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "extension-unknown",
+      "transition": "typewriter",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Extension Rendering (Unknown + Fallback)" },
+        {
+          "kind": "extension",
+          "type": "vendor.custom-widget",
+          "payload": { "mode": "experimental", "version": 1 },
+          "fallback": {
+            "kind": "text",
+            "body": "Fallback content is displayed when extension type is unsupported."
+          }
         }
       ]
     },
     {
       "id": "branch-demo",
       "layout": "center",
+      "transition": "fade",
       "content": [
         { "kind": "heading", "level": 2, "text": "Choose Your Path" },
         {
           "kind": "text",
-          "body": "Fireside supports **branching presentations** with traversal overrides."
-        },
-        {
-          "kind": "text",
-          "body": "Press **a**, **b**, or **c** to choose an option."
+          "body": "Press a, b, or c to branch; use back to return."
         }
       ],
       "traversal": {
@@ -99,58 +143,38 @@
           "id": "topic-choice",
           "prompt": "What would you like to explore?",
           "options": [
-            { "label": "Themes & Colors", "key": "a", "target": "themes" },
-            { "label": "Content Blocks", "key": "b", "target": "blocks" },
-            { "label": "Skip to end", "key": "c", "target": "thanks" }
+            { "label": "Themes", "key": "a", "target": "themes" },
+            { "label": "Blocks", "key": "b", "target": "blocks" },
+            { "label": "Skip", "key": "c", "target": "thanks" }
           ]
         }
       }
     },
     {
       "id": "themes",
+      "transition": "slide-left",
       "content": [
         { "kind": "heading", "level": 2, "text": "Themes" },
         {
-          "kind": "text",
-          "body": "Fireside engines can import color schemes and map them to semantic design tokens."
-        },
-        {
           "kind": "list",
           "items": [
-            "**surface-primary** — Main background color",
-            "**text-primary** — Default text color",
-            "**accent-primary** — Highlight and link color"
+            "Semantic token mapping",
+            "CLI, document, and default precedence",
+            "Terminal-native palettes"
           ]
-        },
-        {
-          "kind": "text",
-          "body": "See Appendix A in the spec for the full token architecture."
         }
       ],
       "traversal": { "next": "thanks" }
     },
     {
       "id": "blocks",
+      "transition": "slide-right",
       "content": [
-        { "kind": "heading", "level": 2, "text": "Content Blocks" },
-        { "kind": "text", "body": "Every node is built from typed content blocks:" },
+        { "kind": "heading", "level": 2, "text": "Core Blocks" },
         {
           "kind": "list",
           "ordered": true,
-          "items": [
-            "**heading** — H1 through H6",
-            "**text** — prose with inline Markdown",
-            "**code** — syntax-highlighted source code",
-            "**list** — ordered or unordered",
-            "**image** — visual with alt text and caption",
-            "**divider** — horizontal rule",
-            "**group** — container for nested blocks"
-          ]
-        },
-        { "kind": "divider" },
-        {
-          "kind": "text",
-          "body": "Need more? Use the **x-** prefix for extensions like `x-table` or `x-video`."
+          "items": ["heading", "text", "code", "list", "image", "divider", "container", "extension"]
         }
       ],
       "traversal": { "next": "thanks" }
@@ -160,11 +184,10 @@
       "layout": "center",
       "transition": "dissolve",
       "content": [
-        { "kind": "heading", "level": 1, "text": "Thank You!" },
-        { "kind": "text", "body": "Start building your own Fireside sessions." },
-        { "kind": "text", "body": "github.com/tiberius/fireside" }
+        { "kind": "heading", "level": 1, "text": "Thanks" },
+        { "kind": "text", "body": "Smoke test complete if all transitions and blocks render." }
       ],
-      "speaker-notes": "Remind audience about the GitHub repo and invite contributions."
+      "speaker-notes": "Validate branch options and transition pacing before ending session."
     }
   ]
 }

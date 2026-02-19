@@ -1,8 +1,8 @@
 # TASK004 - Milestone 4 visual effects
 
-**Status:** Pending
+**Status:** In Progress
 **Added:** 2026-02-14
-**Updated:** 2026-02-14
+**Updated:** 2026-02-19
 
 ## Original Request
 
@@ -24,20 +24,26 @@ optional and directive-driven so baseline presentations remain fast and stable.
 
 ## Progress Tracking
 
-**Overall Status:** Not Started - 0%
+**Overall Status:** In Progress - 45%
 
 ### Subtasks
 
-| ID  | Description                          | Status      | Updated    | Notes                        |
-| --- | ------------------------------------ | ----------- | ---------- | ---------------------------- |
-| 4.1 | Add effect/render dependencies       | Not Started | 2026-02-14 | Planned after M2 foundations |
-| 4.2 | Implement ASCII art conversion       | Not Started | 2026-02-14 | Not started                  |
-| 4.3 | Implement SNES-style pixel rendering | Not Started | 2026-02-14 | Not started                  |
-| 4.4 | Add enhanced transition effects      | Not Started | 2026-02-14 | Transition engine pending    |
-| 4.5 | Add large title styles and tuning    | Not Started | 2026-02-14 | Not started                  |
+| ID  | Description                          | Status      | Updated    | Notes                                    |
+| --- | ------------------------------------ | ----------- | ---------- | ---------------------------------------- |
+| 4.1 | Add effect/render dependencies       | In Progress | 2026-02-19 | Dependencies partially integrated        |
+| 4.2 | Implement ASCII art conversion       | Not Started | 2026-02-14 | Not started                              |
+| 4.3 | Implement SNES-style pixel rendering | Not Started | 2026-02-14 | Not started                              |
+| 4.4 | Add enhanced transition effects      | Complete    | 2026-02-19 | Enhanced transitions are active          |
+| 4.5 | Add large title styles and tuning    | In Progress | 2026-02-19 | Heading tuning pending                   |
 
 ## Progress Log
 
 ### 2026-02-14
 
 - Task created from roadmap and indexed as pending
+
+### 2026-02-19
+
+- Updated milestone to in-progress based on shipped transition effect enhancements
+- Confirmed matrix/dissolve/typewriter transition paths run in presenter animation loop
+- ASCII and pixel-art rendering remain open for future implementation slices

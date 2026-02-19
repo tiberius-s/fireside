@@ -1,8 +1,8 @@
 # TASK002 - Milestone 2 images themes transitions
 
-**Status:** Pending
+**Status:** In Progress
 **Added:** 2026-02-14
-**Updated:** 2026-02-14
+**Updated:** 2026-02-19
 
 ## Original Request
 
@@ -25,20 +25,26 @@ established in Milestone 1.
 
 ## Progress Tracking
 
-**Overall Status:** Not Started - 0%
+**Overall Status:** In Progress - 65%
 
 ### Subtasks
 
-| ID  | Description                                 | Status      | Updated    | Notes                                          |
-| --- | ------------------------------------------- | ----------- | ---------- | ---------------------------------------------- |
-| 2.1 | Add Milestone 2 dependencies                | Not Started | 2026-02-14 | ratatui-image/image/notify/tokio planned       |
-| 2.2 | Implement image + GIF rendering             | Not Started | 2026-02-14 | Placeholder image block exists today           |
-| 2.3 | Implement slide transitions                 | Not Started | 2026-02-14 | Transition enum exists; engine not implemented |
-| 2.4 | Bundle additional themes and selection flow | Not Started | 2026-02-14 | Default theme only currently                   |
-| 2.5 | Add watch mode and verification             | Not Started | 2026-02-14 | CLI watch flow not implemented                 |
+| ID  | Description                                 | Status      | Updated    | Notes                                   |
+| --- | ------------------------------------------- | ----------- | ---------- | --------------------------------------- |
+| 2.1 | Add Milestone 2 dependencies                | Complete    | 2026-02-19 | Rendering dependencies integrated       |
+| 2.2 | Implement image + GIF rendering             | In Progress | 2026-02-19 | Local image fallback flow implemented   |
+| 2.3 | Implement slide transitions                 | Complete    | 2026-02-19 | Transition animation state is wired     |
+| 2.4 | Bundle additional themes and selection flow | In Progress | 2026-02-19 | Theme import works; more bundles needed |
+| 2.5 | Add watch mode and verification             | Not Started | 2026-02-14 | CLI watch flow still pending            |
 
 ## Progress Log
 
 ### 2026-02-14
 
 - Task created from roadmap and indexed as pending
+
+### 2026-02-19
+
+- Updated milestone status to in progress based on implemented rendering and transition work
+- Confirmed image block renderer supports local-path probing and graceful fallback text
+- Confirmed transition animation lifecycle is active via `Action::Tick` + presenter state

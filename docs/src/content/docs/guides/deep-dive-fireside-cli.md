@@ -16,9 +16,9 @@ This is an ideal beginner pattern in Rust because it avoids business logic in
 - `src/main.rs`: clap command model and top-level dispatch
 - `src/commands/session.rs`: present loop bootstrap and terminal setup/teardown
 - `src/commands/validate.rs`: validation command output
-- `src/commands/project.rs`: `fireside.yml` parsing and entrypoint resolution
+- `src/commands/project.rs`: `fireside.json` parsing and entrypoint resolution
 - `src/commands/scaffold.rs`: project/presentation scaffolding
-- `src/commands/theme.rs`: iTerm2 import to theme TOML
+- `src/commands/theme.rs`: iTerm2 import to theme JSON
 - `src/commands/fonts.rs`: font discovery output
 
 ## Rust Patterns Used
@@ -65,7 +65,7 @@ This is essential for robust terminal apps.
 
 - Default help output path in `None` command arm duplicates clap capabilities
 - Scaffold template schema URL and defaults may drift from local protocol model
-- `run_editor` intentionally returns not-implemented; document this in CLI help text
+- Keep project/file path resolution consistent between `open` and `edit`
 
 ## Improvement Playbook
 

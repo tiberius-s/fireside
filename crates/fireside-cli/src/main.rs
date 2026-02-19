@@ -34,7 +34,7 @@ enum Command {
         /// Path to the JSON graph file.
         file: std::path::PathBuf,
 
-        /// Theme to use (overrides document metadata). Can be a name or path to .itermcolors/.toml.
+        /// Theme to use (overrides document metadata). Can be a name or path to .itermcolors/.json.
         #[arg(short, long)]
         theme: Option<String>,
 
@@ -45,7 +45,7 @@ enum Command {
 
     /// Open a Fireside project directory.
     Open {
-        /// Path to the project directory (must contain fireside.yml).
+        /// Path to the project directory (must contain fireside.json).
         dir: std::path::PathBuf,
 
         /// Theme override.

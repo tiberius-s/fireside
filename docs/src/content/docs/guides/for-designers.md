@@ -64,6 +64,6 @@ hard-coding page-specific colors.
 
 ## Theme Source Flexibility
 
-Engine implementations may load tokens from JSON, YAML, CLI flags, or
+Engine implementations may load tokens from JSON, CLI flags, or
 platform-native settings. As a designer, focus on semantic token intent and
 contrast behavior, not storage syntax.

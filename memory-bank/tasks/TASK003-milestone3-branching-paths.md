@@ -1,8 +1,8 @@
 # TASK003 - Milestone 3 branching paths
 
-**Status:** Pending
+**Status:** In Progress
 **Added:** 2026-02-14
-**Updated:** 2026-02-14
+**Updated:** 2026-02-19
 
 ## Original Request
 
@@ -24,20 +24,26 @@ focus on full navigation behavior and branch-selection UI.
 
 ## Progress Tracking
 
-**Overall Status:** Not Started - 0%
+**Overall Status:** In Progress - 80%
 
 ### Subtasks
 
-| ID  | Description                         | Status      | Updated    | Notes                                        |
-| --- | ----------------------------------- | ----------- | ---------- | -------------------------------------------- |
-| 3.1 | Extend graph model and indices      | Not Started | 2026-02-14 | `slide_index` exists; branch flow incomplete |
-| 3.2 | Complete branch directive semantics | Not Started | 2026-02-14 | Basic parsing exists                         |
-| 3.3 | Implement branch navigation engine  | Not Started | 2026-02-14 | No branch-select mode yet                    |
-| 3.4 | Build branch selection UI           | Not Started | 2026-02-14 | UI module not yet created                    |
-| 3.5 | Add overview/jump workflow          | Not Started | 2026-02-14 | Overview key is listed but feature pending   |
+| ID  | Description                         | Status      | Updated    | Notes                                    |
+| --- | ----------------------------------- | ----------- | ---------- | ---------------------------------------- |
+| 3.1 | Extend graph model and indices      | Complete    | 2026-02-19 | Graph indices and traversal are active   |
+| 3.2 | Complete branch directive semantics | Complete    | 2026-02-19 | Branch directives are implemented        |
+| 3.3 | Implement branch navigation engine  | Complete    | 2026-02-19 | Choose/goto/back flows are active        |
+| 3.4 | Build branch selection UI           | Complete    | 2026-02-19 | Branch overlay and key selection ship    |
+| 3.5 | Add overview/jump workflow          | In Progress | 2026-02-19 | Full graph overview remains pending      |
 
 ## Progress Log
 
 ### 2026-02-14
 
 - Task created from roadmap and indexed as pending
+
+### 2026-02-19
+
+- Updated milestone to in-progress based on completed branch traversal and UI overlay work
+- Confirmed branch choose/backtrack flows are covered by engine and smoke tests
+- Remaining work is concentrated in deeper graph overview/navigation tooling

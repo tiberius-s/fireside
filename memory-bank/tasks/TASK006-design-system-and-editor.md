@@ -1,29 +1,29 @@
-# TASK006 - Design system, editor UI, and project structure
+# TASK006 - Phase 6 integration settings release polish
 
 **Status:** In Progress
 **Added:** 2026-02-14
-**Updated:** 2026-02-14
+**Updated:** 2026-02-19
 
 ## Original Request
 
-Design and implement a complete design system for Slideways: color tokens from
-iTerm2 schemes, monospace font detection, slide layout templates, a TUI editor
+Design and implement a complete design system for Fireside: color tokens from
+iTerm2 schemes, monospace font detection, node layout templates, a TUI editor
 with mouse support, and a directory-backed project structure. The app should be
-a standalone TUI that can open without a target `.md` file.
+a standalone TUI that can open without a target graph file.
 
 ## Thought Process
 
-The user wants to evolve Slideways from a simple "present file.md" tool into a
+The user wants to evolve Fireside from a simple "present file.json" tool into a
 full TUI application with:
 
 1. **Design system** — color tokens mapped from iTerm2 `.itermcolors` palettes,
    restricted to monospace fonts, using Ratatui blocks/panels/outlines
-2. **Slide templates** — reusable layouts (Title, Two-column, Code, Quote, etc.)
+2. **Node templates** — reusable layouts (Title, Two-column, Code, Quote, etc.)
    backed by frontmatter schemas and Ratatui component mappings
 3. **Editor mode** — WYSIWYG-like block editing with keyboard+mouse, undo/redo,
    template selection, property panels, and preview toggle
-4. **Project structure** — directory-backed projects with `slideways.yml` config
-   mapping to collections of markdown files, with single-file fallback
+4. **Project structure** — directory-backed projects with `fireside.json`
+   config mapping to collections of graph files
 5. **Standalone TUI** — open the app without arguments to get a dashboard/editor
 
 Key technical decisions:
@@ -31,7 +31,7 @@ Key technical decisions:
 - iTerm2 `.itermcolors` files are XML plists → use `plist` crate to parse
 - Monospace font detection → use `font-kit` crate (`is_monospace()`)
 - Mouse support → crossterm `EnableMouseCapture` + ratatui stateful widgets
-- Project config → `slideways.yml` with serde_yaml
+- Project config → `fireside.json` with serde_json
 - Editor state machine → new `AppMode::Editing` variant in TEA loop
 
 ## Implementation Plan
@@ -58,9 +58,9 @@ Key technical decisions:
 
 ### Phase 4: Project structure
 
-- Define `slideways.yml` config schema
+- Define `fireside.json` config schema
 - Implement project loader alongside single-file loader
-- Add `slideways open [dir]` CLI subcommand
+- Add `fireside open [dir]` CLI subcommand
 - Create project dashboard view
 
 ### Phase 5: Editor mode
@@ -80,21 +80,21 @@ Key technical decisions:
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - 5%
+**Overall Status:** In Progress - 65%
 
 ### Subtasks
 
-| ID  | Description                       | Status      | Updated    | Notes                          |
-| --- | --------------------------------- | ----------- | ---------- | ------------------------------ |
-| 6.1 | Design token types and iTerm2 map | In Progress | 2026-02-14 | Researched; next is implement  |
-| 6.2 | Font detection module             | Not Started | 2026-02-14 | font-kit API confirmed         |
-| 6.3 | Slide template layouts            | Not Started | 2026-02-14 | 8 templates planned            |
-| 6.4 | Project config and loader         | Not Started | 2026-02-14 | slideways.yml schema designed  |
-| 6.5 | Editor state machine              | Not Started | 2026-02-14 | TEA extension planned          |
-| 6.6 | Block editing with mouse          | Not Started | 2026-02-14 | crossterm mouse events ready   |
-| 6.7 | Property panel and preview        | Not Started | 2026-02-14 | Ratatui layout confirmed       |
-| 6.8 | Undo/redo and save                | Not Started | 2026-02-14 | Command pattern planned        |
-| 6.9 | Integration testing               | Not Started | 2026-02-14 | Multiple terminal size targets |
+| ID  | Description                       | Status      | Updated    | Notes                                                   |
+| --- | --------------------------------- | ----------- | ---------- | ------------------------------------------------------- |
+| 6.1 | Design token types and iTerm2 map | Complete    | 2026-02-19 | Token system and iTerm2 parsing active                  |
+| 6.2 | Font detection module             | Complete    | 2026-02-19 | Monospace detection module implemented                  |
+| 6.3 | Slide template layouts            | Complete    | 2026-02-19 | Template areas wired into presenter                     |
+| 6.4 | Project config and loader         | Complete    | 2026-02-19 | Project open/edit directory flow active (fireside.json) |
+| 6.5 | Editor state machine              | In Progress | 2026-02-19 | Core editing mode/actions are active                    |
+| 6.6 | Block editing with mouse          | In Progress | 2026-02-19 | Mouse click/drag/scroll handlers active                 |
+| 6.7 | Property panel and preview        | In Progress | 2026-02-19 | Metadata panel and preview are active                   |
+| 6.8 | Undo/redo and save                | In Progress | 2026-02-19 | Undo/redo + save flow implemented                       |
+| 6.9 | Integration testing               | In Progress | 2026-02-19 | Ongoing smoke validation by milestone                   |
 
 ## Progress Log
 
@@ -106,3 +106,15 @@ Key technical decisions:
 - Confirmed iTerm2 .itermcolors is XML plist format
 - Surveyed current codebase: Layout enum, Theme struct, render pipeline
 - Created task; beginning Phase 1 implementation
+
+### 2026-02-19
+
+- Updated this milestone to reflect current implementation state from the UX initiative plan
+- Confirmed design tokens, templates, font tooling, and project open flow are in active code
+- Confirmed editor mode now includes selection, inline edits, mouse interactions, undo/redo, and save
+- Added project-directory edit support so `fireside edit <project-dir>` resolves `fireside.json` and opens the project entry graph
+
+### 2026-02-19 (priority reset)
+
+- Applied JSON-first project configuration (`fireside.json`) and removed YAML project-config dependency from active CLI flow.
+- Kept export formats out of this phase to maintain focus on TUI usability and release polish.

@@ -2,15 +2,18 @@
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
+use crate::app::AppMode;
 use crate::event::Action;
 
 /// Map a key event to an action based on the current app mode.
 ///
 /// Returns `None` for unbound keys.
 #[must_use]
-pub fn map_key_to_action(key: KeyEvent, in_goto_mode: bool) -> Option<Action> {
-    if in_goto_mode {
-        return map_goto_mode_key(key);
+pub fn map_key_to_action(key: KeyEvent, mode: &AppMode) -> Option<Action> {
+    match mode {
+        AppMode::GotoNode { .. } => return map_goto_mode_key(key),
+        AppMode::Editing => return map_edit_mode_key(key),
+        AppMode::Presenting | AppMode::Quitting => {}
     }
 
     match key.code {
@@ -26,6 +29,12 @@ pub fn map_key_to_action(key: KeyEvent, in_goto_mode: bool) -> Option<Action> {
         // Help
         KeyCode::Char('?') => Some(Action::ToggleHelp),
 
+        // Speaker notes
+        KeyCode::Char('s') => Some(Action::ToggleSpeakerNotes),
+
+        // Mode
+        KeyCode::Char('e') => Some(Action::EnterEditMode),
+
         // Quit (must come before branch selection range)
         KeyCode::Char('q') => Some(Action::Quit),
         KeyCode::Esc => Some(Action::Quit),
@@ -34,6 +43,42 @@ pub fn map_key_to_action(key: KeyEvent, in_goto_mode: bool) -> Option<Action> {
         // Branch selection (a-f keys when at a branch point)
         KeyCode::Char(c @ 'a'..='f') => Some(Action::ChooseBranch(c)),
 
+        _ => None,
+    }
+}
+
+fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
+    match key.code {
+        KeyCode::Char('j') | KeyCode::Down => Some(Action::EditorSelectNextNode),
+        KeyCode::Char('k') | KeyCode::Up => Some(Action::EditorSelectPrevNode),
+        KeyCode::PageDown => Some(Action::EditorPageDown),
+        KeyCode::PageUp => Some(Action::EditorPageUp),
+        KeyCode::Home => Some(Action::EditorJumpTop),
+        KeyCode::End => Some(Action::EditorJumpBottom),
+        KeyCode::Char('/') => Some(Action::EditorStartNodeSearch),
+        KeyCode::Char('[') => Some(Action::EditorSearchPrevHit),
+        KeyCode::Char(']') => Some(Action::EditorSearchNextHit),
+        KeyCode::Char('g') => Some(Action::EditorStartIndexJump),
+        KeyCode::Tab => Some(Action::EditorToggleFocus),
+        KeyCode::Char('i') => Some(Action::EditorStartInlineEdit),
+        KeyCode::Char('o') => Some(Action::EditorStartNotesEdit),
+        KeyCode::Char('l') => Some(Action::EditorOpenLayoutPicker),
+        KeyCode::Char('L') => Some(Action::EditorCycleLayoutPrev),
+        KeyCode::Char('t') => Some(Action::EditorOpenTransitionPicker),
+        KeyCode::Char('T') => Some(Action::EditorCycleTransitionPrev),
+        KeyCode::Char('a') => Some(Action::EditorAppendTextBlock),
+        KeyCode::Char('n') => Some(Action::EditorAddNode),
+        KeyCode::Char('d') => Some(Action::EditorRemoveNode),
+        KeyCode::Char('w') => Some(Action::EditorSaveGraph),
+        KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            Some(Action::EditorSaveGraph)
+        }
+        KeyCode::Char('u') => Some(Action::EditorUndo),
+        KeyCode::Char('r') => Some(Action::EditorRedo),
+        KeyCode::Esc => Some(Action::ExitEditMode),
+        KeyCode::Char('?') => Some(Action::ToggleHelp),
+        KeyCode::Char('q') => Some(Action::Quit),
+        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => Some(Action::Quit),
         _ => None,
     }
 }

@@ -78,7 +78,7 @@ pub fn scaffold_presentation(name: &str, dir: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Scaffold a new project directory with fireside.yml and an initial presentation.
+/// Scaffold a new project directory with fireside.json and an initial presentation.
 pub fn scaffold_project(name: &str, dir: &Path) -> Result<()> {
     let project_dir = dir.join(name);
 
@@ -88,14 +88,15 @@ pub fn scaffold_project(name: &str, dir: &Path) -> Result<()> {
 
     std::fs::create_dir_all(&project_dir).context("creating project directory")?;
 
-    let config = format!(
-        "# Fireside project configuration\n\
-         name: {name}\n\
-         nodes:\n\
-         - nodes/main.json\n\
-         theme: default\n"
-    );
-    std::fs::write(project_dir.join("fireside.yml"), config).context("writing project config")?;
+    let config = serde_json::json!({
+        "name": name,
+        "nodes": ["nodes/main.json"],
+        "theme": "default"
+    });
+    let config_json =
+        serde_json::to_string_pretty(&config).context("serializing project config")?;
+    std::fs::write(project_dir.join("fireside.json"), config_json)
+        .context("writing project config")?;
 
     let nodes_dir = project_dir.join("nodes");
     std::fs::create_dir_all(&nodes_dir).context("creating nodes directory")?;

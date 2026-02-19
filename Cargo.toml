@@ -54,6 +54,7 @@ textwrap = "0.16"
 # System
 plist = "1.8"
 font-kit = "0.14"
+image = "0.25"
 
 # Dev
 pretty_assertions = "1"

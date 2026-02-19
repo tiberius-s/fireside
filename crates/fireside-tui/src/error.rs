@@ -33,9 +33,9 @@ pub enum ConfigError {
         source: std::io::Error,
     },
 
-    /// A theme file contains invalid TOML.
+    /// A theme file contains invalid JSON.
     #[error("invalid theme file")]
-    InvalidTheme(#[from] toml::de::Error),
+    InvalidTheme(#[from] serde_json::Error),
 
     /// The specified theme was not found.
     #[error("unknown theme: {0}")]

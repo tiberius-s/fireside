@@ -6,7 +6,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use fireside_core::error::CoreError;
-use fireside_core::model::graph::{Graph, GraphFile};
+use fireside_core::model::graph::{Graph, GraphFile, NodeDefaults};
 
 /// Load a graph from a JSON file on disk.
 ///
@@ -21,6 +21,38 @@ pub fn load_graph(path: &Path) -> Result<Graph> {
     })?;
 
     load_graph_from_str(&source).with_context(|| format!("parsing {}", path.display()))
+}
+
+/// Save a graph to a JSON file on disk.
+///
+/// # Errors
+///
+/// Returns an error if serialization or file writing fails.
+pub fn save_graph(path: &Path, graph: &Graph) -> Result<()> {
+    let file = graph_to_file(graph);
+    let json =
+        serde_json::to_string_pretty(&file).map_err(|e| CoreError::InvalidJson(e.to_string()))?;
+    std::fs::write(path, format!("{json}\n")).map_err(|e| CoreError::FileRead {
+        path: path.to_path_buf(),
+        source: e,
+    })?;
+
+    Ok(())
+}
+
+fn graph_to_file(graph: &Graph) -> GraphFile {
+    GraphFile {
+        title: graph.metadata.title.clone(),
+        author: graph.metadata.author.clone(),
+        date: graph.metadata.date.clone(),
+        description: graph.metadata.description.clone(),
+        version: graph.metadata.version.clone(),
+        tags: graph.metadata.tags.clone(),
+        theme: graph.metadata.theme.clone(),
+        font: graph.metadata.font.clone(),
+        defaults: Some(NodeDefaults::default()),
+        nodes: graph.nodes.clone(),
+    }
 }
 
 /// Load a graph from a JSON string.
@@ -119,5 +151,25 @@ mod tests {
         assert_eq!(graph.nodes.len(), 4);
         assert!(graph.node_by_id("start").is_some());
         assert!(graph.node_by_id("path-a").is_some());
+    }
+
+    #[test]
+    fn save_and_reload_roundtrip() {
+        let json = r#"{
+            "title": "Roundtrip",
+            "nodes": [
+                { "id": "n1", "content": [{ "kind": "text", "body": "Hello" }] }
+            ]
+        }"#;
+
+        let graph = load_graph_from_str(json).expect("graph should parse");
+        let temp_path = std::env::temp_dir().join("fireside-save-roundtrip.json");
+
+        save_graph(&temp_path, &graph).expect("save should succeed");
+        let reloaded = load_graph(&temp_path).expect("reload should succeed");
+        let _ = std::fs::remove_file(&temp_path);
+
+        assert_eq!(reloaded.nodes.len(), 1);
+        assert_eq!(reloaded.metadata.title.as_deref(), Some("Roundtrip"));
     }
 }

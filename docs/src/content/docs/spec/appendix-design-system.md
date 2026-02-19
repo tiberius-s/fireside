@@ -58,7 +58,7 @@ fallbacks that preserve readability before visual fidelity.
 ## Theme Source Guidance
 
 The protocol does not mandate a theme file format or folder structure.
-Engines MAY accept JSON, YAML, CLI flags, or platform-native settings,
+Engines MAY accept JSON, CLI flags, or platform-native settings,
 as long as token intent remains consistent.
 
 ## Accessibility Guidance

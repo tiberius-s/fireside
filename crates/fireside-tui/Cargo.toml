@@ -15,8 +15,6 @@ syntect = { workspace = true }
 two-face = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-serde_yaml = { workspace = true }
-toml = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
@@ -24,6 +22,7 @@ unicode-width = { workspace = true }
 textwrap = { workspace = true }
 plist = { workspace = true }
 font-kit = { workspace = true }
+image = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }

@@ -16,7 +16,8 @@ pub mod session;
 pub mod traversal;
 pub mod validation;
 
+pub use commands::{Command, CommandHistory};
 pub use error::EngineError;
-pub use loader::{load_graph, load_graph_from_str};
+pub use loader::{load_graph, load_graph_from_str, save_graph};
 pub use session::PresentationSession;
 pub use traversal::TraversalEngine;

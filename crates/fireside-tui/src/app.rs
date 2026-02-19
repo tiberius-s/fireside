@@ -2,24 +2,58 @@
 //!
 //! Implements the TEA (Model-View-Update) pattern: the `App` struct holds
 //! all state, `update()` processes actions, and `view()` renders the UI.
-
+use std::path::PathBuf;
 use std::time::Instant;
 
-use crossterm::event::{Event, KeyEventKind};
+use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEventKind};
 use ratatui::Frame;
+use ratatui::layout::{Constraint, Direction, Layout as RatatuiLayout, Rect};
 
-use fireside_engine::PresentationSession;
+use fireside_core::model::content::ContentBlock;
+use fireside_core::model::graph::Graph;
+use fireside_core::model::layout::Layout;
+use fireside_core::model::transition::Transition;
+use fireside_engine::{Command, PresentationSession, save_graph};
 
 use crate::config::keybindings::map_key_to_action;
-use crate::event::Action;
+use crate::config::settings::{EditorUiPrefs, load_editor_ui_prefs, save_editor_ui_prefs};
+use crate::event::{Action, MouseScrollDirection};
 use crate::theme::Theme;
-use crate::ui::presenter::render_presenter;
+use crate::ui::branch::branch_overlay_rect;
+use crate::ui::editor::{EditorViewState, render_editor};
+use crate::ui::presenter::{PresenterTransition, PresenterViewState, render_presenter};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EditorPaneFocus {
+    NodeList,
+    NodeDetail,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum EditorInlineTarget {
+    BodyText,
+    SpeakerNotes,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum PendingExitAction {
+    ExitEditor,
+    QuitApp,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EditorPickerOverlay {
+    Layout { selected: usize },
+    Transition { selected: usize },
+}
 
 /// The current mode of the application.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AppMode {
     /// Normal presentation mode.
     Presenting,
+    /// Interactive editing shell mode.
+    Editing,
     /// Waiting for node number input.
     GotoNode {
         /// The digits entered so far.
@@ -37,10 +71,68 @@ pub struct App {
     pub mode: AppMode,
     /// Whether the help overlay is visible.
     pub show_help: bool,
+    /// Whether speaker notes are visible.
+    pub show_speaker_notes: bool,
     /// The active theme.
     pub theme: Theme,
     /// When the presentation started (for elapsed time display).
     pub start_time: Instant,
+    /// Most recently known terminal size.
+    pub terminal_size: (u16, u16),
+    /// Selected node index for editing mode.
+    pub editor_selected_node: usize,
+    /// Focused editor pane.
+    pub editor_focus: EditorPaneFocus,
+    /// Optional path where editor saves the current graph.
+    pub editor_target_path: Option<PathBuf>,
+    /// Active inline text input buffer.
+    pub editor_text_input: Option<String>,
+    /// Last editor status message.
+    pub editor_status: Option<String>,
+    /// Active inline edit target for current text buffer.
+    editor_inline_target: Option<EditorInlineTarget>,
+    /// Pending exit action requiring confirmation when dirty.
+    pending_exit_action: Option<PendingExitAction>,
+    /// Active metadata picker overlay.
+    editor_picker: Option<EditorPickerOverlay>,
+    /// Active node-id search input in editor mode.
+    editor_search_input: Option<String>,
+    /// Last committed node-id search query.
+    editor_search_query: Option<String>,
+    /// Active numeric index jump input in editor mode.
+    editor_index_jump_input: Option<String>,
+    /// Last layout picker index (persisted).
+    editor_last_layout_picker: usize,
+    /// Last transition picker index (persisted).
+    editor_last_transition_picker: usize,
+    /// Top row offset for virtualized node list rendering.
+    editor_list_scroll_offset: usize,
+    /// Active presenter transition animation.
+    active_transition: Option<ActiveTransition>,
+    /// Optional base directory for resolving relative content assets.
+    document_base_dir: Option<PathBuf>,
+    /// Whether presenter mode should render the progress footer.
+    show_progress_bar: bool,
+    /// Whether presenter mode should render elapsed timer in footer.
+    show_elapsed_timer: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct ActiveTransition {
+    from_index: usize,
+    kind: Transition,
+    frame: u8,
+    total_frames: u8,
+}
+
+impl ActiveTransition {
+    fn progress(self) -> f32 {
+        if self.total_frames <= 1 {
+            1.0
+        } else {
+            self.frame as f32 / (self.total_frames - 1) as f32
+        }
+    }
 }
 
 impl App {
@@ -51,9 +143,75 @@ impl App {
             session,
             mode: AppMode::Presenting,
             show_help: false,
+            show_speaker_notes: false,
             theme,
             start_time: Instant::now(),
+            terminal_size: (120, 40),
+            editor_selected_node: 0,
+            editor_focus: EditorPaneFocus::NodeList,
+            editor_target_path: None,
+            editor_text_input: None,
+            editor_status: None,
+            editor_inline_target: None,
+            pending_exit_action: None,
+            editor_picker: None,
+            editor_search_input: None,
+            editor_search_query: None,
+            editor_index_jump_input: None,
+            editor_last_layout_picker: 0,
+            editor_last_transition_picker: 0,
+            editor_list_scroll_offset: 0,
+            active_transition: None,
+            document_base_dir: None,
+            show_progress_bar: true,
+            show_elapsed_timer: true,
         }
+    }
+
+    /// Enable or disable the presenter progress footer.
+    pub fn set_show_progress_bar(&mut self, show: bool) {
+        self.show_progress_bar = show;
+    }
+
+    /// Enable or disable elapsed timer text in the presenter footer.
+    pub fn set_show_elapsed_timer(&mut self, show: bool) {
+        self.show_elapsed_timer = show;
+    }
+
+    /// Set the loaded document path used to resolve relative assets.
+    pub fn set_document_path(&mut self, path: PathBuf) {
+        self.document_base_dir = path.parent().map(std::path::Path::to_path_buf);
+    }
+
+    /// Reload session graph while preserving the current node when possible.
+    pub fn reload_graph(&mut self, graph: Graph) {
+        if graph.nodes.is_empty() {
+            return;
+        }
+
+        let current_id = self.session.current_node().id.clone();
+        let fallback_index = self
+            .session
+            .current_node_index()
+            .min(graph.len().saturating_sub(1));
+        let next_index = current_id
+            .as_deref()
+            .and_then(|id| graph.index_of(id))
+            .unwrap_or(fallback_index);
+
+        self.session = PresentationSession::new(graph, next_index);
+        self.active_transition = None;
+
+        if self.mode == AppMode::Editing {
+            self.sync_editor_selection_bounds();
+            self.sync_editor_list_viewport();
+        }
+    }
+
+    /// Returns `true` when presenter hot-reload is currently safe to apply.
+    #[must_use]
+    pub fn can_hot_reload(&self) -> bool {
+        self.mode == AppMode::Presenting
     }
 
     /// Returns `true` if the application should quit.
@@ -62,23 +220,192 @@ impl App {
         self.mode == AppMode::Quitting
     }
 
+    /// Enter editing mode.
+    pub fn enter_edit_mode(&mut self) {
+        self.mode = AppMode::Editing;
+        self.editor_selected_node = self.session.current_node_index();
+        self.load_editor_preferences();
+        self.sync_editor_selection_bounds();
+        self.sync_editor_list_viewport();
+    }
+
+    /// Set the save target path used by editor save actions.
+    pub fn set_editor_target_path(&mut self, path: PathBuf) {
+        self.editor_target_path = Some(path);
+    }
+
     /// Process a single action, updating application state.
     pub fn update(&mut self, action: Action) {
         match action {
             Action::NextNode => {
+                let from_index = self.session.current_node_index();
                 self.session.traversal.next(&self.session.graph);
+                self.start_transition_if_needed(from_index);
             }
             Action::PrevNode => {
+                let from_index = self.session.current_node_index();
                 self.session.traversal.back();
+                self.start_transition_if_needed(from_index);
             }
             Action::GoToNode(idx) => {
+                let from_index = self.session.current_node_index();
                 let _ = self.session.traversal.goto(idx, &self.session.graph);
+                self.start_transition_if_needed(from_index);
             }
             Action::ChooseBranch(key) => {
+                let from_index = self.session.current_node_index();
                 let _ = self.session.traversal.choose(key, &self.session.graph);
+                self.start_transition_if_needed(from_index);
             }
             Action::ToggleHelp => self.show_help = !self.show_help,
-            Action::Quit => self.mode = AppMode::Quitting,
+            Action::ToggleSpeakerNotes => {
+                self.show_speaker_notes = !self.show_speaker_notes;
+            }
+            Action::EnterEditMode => {
+                self.enter_edit_mode();
+            }
+            Action::ExitEditMode => {
+                self.request_edit_mode_exit(PendingExitAction::ExitEditor);
+            }
+            Action::EditorAppendTextBlock => {
+                if self.mode == AppMode::Editing {
+                    self.append_text_block();
+                }
+            }
+            Action::EditorAddNode => {
+                if self.mode == AppMode::Editing {
+                    self.add_node_after_selected();
+                }
+            }
+            Action::EditorRemoveNode => {
+                if self.mode == AppMode::Editing {
+                    self.remove_selected_node();
+                }
+            }
+            Action::EditorSelectNextNode => {
+                if self.mode == AppMode::Editing {
+                    self.editor_select_next();
+                }
+            }
+            Action::EditorSelectPrevNode => {
+                if self.mode == AppMode::Editing {
+                    self.editor_select_prev();
+                }
+            }
+            Action::EditorPageDown => {
+                if self.mode == AppMode::Editing {
+                    self.editor_page_down();
+                }
+            }
+            Action::EditorPageUp => {
+                if self.mode == AppMode::Editing {
+                    self.editor_page_up();
+                }
+            }
+            Action::EditorJumpTop => {
+                if self.mode == AppMode::Editing {
+                    self.editor_jump_top();
+                }
+            }
+            Action::EditorJumpBottom => {
+                if self.mode == AppMode::Editing {
+                    self.editor_jump_bottom();
+                }
+            }
+            Action::EditorStartNodeSearch => {
+                if self.mode == AppMode::Editing {
+                    self.start_editor_node_search();
+                }
+            }
+            Action::EditorSearchPrevHit => {
+                if self.mode == AppMode::Editing {
+                    self.jump_editor_search_hit(false);
+                }
+            }
+            Action::EditorSearchNextHit => {
+                if self.mode == AppMode::Editing {
+                    self.jump_editor_search_hit(true);
+                }
+            }
+            Action::EditorStartIndexJump => {
+                if self.mode == AppMode::Editing {
+                    self.start_editor_index_jump();
+                }
+            }
+            Action::EditorToggleFocus => {
+                if self.mode == AppMode::Editing {
+                    self.editor_focus = match self.editor_focus {
+                        EditorPaneFocus::NodeList => EditorPaneFocus::NodeDetail,
+                        EditorPaneFocus::NodeDetail => EditorPaneFocus::NodeList,
+                    };
+                    self.persist_editor_preferences();
+                }
+            }
+            Action::EditorStartInlineEdit => {
+                if self.mode == AppMode::Editing {
+                    self.start_inline_edit(EditorInlineTarget::BodyText);
+                }
+            }
+            Action::EditorStartNotesEdit => {
+                if self.mode == AppMode::Editing {
+                    self.start_inline_edit(EditorInlineTarget::SpeakerNotes);
+                }
+            }
+            Action::EditorCycleLayoutNext => {
+                if self.mode == AppMode::Editing {
+                    self.cycle_layout(true);
+                }
+            }
+            Action::EditorCycleLayoutPrev => {
+                if self.mode == AppMode::Editing {
+                    self.cycle_layout(false);
+                }
+            }
+            Action::EditorOpenLayoutPicker => {
+                if self.mode == AppMode::Editing {
+                    self.open_layout_picker();
+                }
+            }
+            Action::EditorCycleTransitionNext => {
+                if self.mode == AppMode::Editing {
+                    self.cycle_transition(true);
+                }
+            }
+            Action::EditorCycleTransitionPrev => {
+                if self.mode == AppMode::Editing {
+                    self.cycle_transition(false);
+                }
+            }
+            Action::EditorOpenTransitionPicker => {
+                if self.mode == AppMode::Editing {
+                    self.open_transition_picker();
+                }
+            }
+            Action::EditorSaveGraph => {
+                if self.mode == AppMode::Editing {
+                    self.save_editor_graph();
+                }
+            }
+            Action::EditorUndo => {
+                if self.mode == AppMode::Editing && self.session.undo().unwrap_or(false) {
+                    self.sync_editor_selection_bounds();
+                }
+            }
+            Action::EditorRedo => {
+                if self.mode == AppMode::Editing && self.session.redo().unwrap_or(false) {
+                    self.sync_editor_selection_bounds();
+                }
+            }
+            Action::Quit => {
+                if self.mode == AppMode::Editing {
+                    self.request_edit_mode_exit(PendingExitAction::QuitApp);
+                } else if self.session.dirty {
+                    self.enter_edit_mode();
+                    self.request_edit_mode_exit(PendingExitAction::QuitApp);
+                } else {
+                    self.mode = AppMode::Quitting;
+                }
+            }
             Action::EnterGotoMode => {
                 self.mode = AppMode::GotoNode {
                     buffer: String::new(),
@@ -95,18 +422,39 @@ impl App {
                 {
                     // User enters 1-based, we use 0-based
                     let idx = num.saturating_sub(1);
+                    let from_index = self.session.current_node_index();
                     let _ = self.session.traversal.goto(idx, &self.session.graph);
+                    self.start_transition_if_needed(from_index);
                 }
                 self.mode = AppMode::Presenting;
             }
             Action::GotoCancel => {
                 self.mode = AppMode::Presenting;
             }
-            Action::Resize(_, _) => {
-                // Terminal resize is handled by ratatui automatically
+            Action::Resize(width, height) => {
+                self.terminal_size = (width, height);
+                if self.mode == AppMode::Editing {
+                    self.sync_editor_list_viewport();
+                }
+            }
+            Action::MouseClick { column, row } => {
+                self.handle_mouse_click(column, row);
+            }
+            Action::MouseDrag { column, row } => {
+                self.handle_mouse_drag(column, row);
+            }
+            Action::MouseScroll(direction) => {
+                self.handle_mouse_scroll(direction);
             }
             Action::Tick => {
-                // Used for animations and timer updates
+                if let Some(mut transition) = self.active_transition {
+                    transition.frame = transition.frame.saturating_add(1);
+                    if transition.frame >= transition.total_frames {
+                        self.active_transition = None;
+                    } else {
+                        self.active_transition = Some(transition);
+                    }
+                }
             }
         }
     }
@@ -114,22 +462,1264 @@ impl App {
     /// Render the current application state to the terminal frame.
     pub fn view(&self, frame: &mut Frame) {
         let elapsed = self.start_time.elapsed().as_secs();
-        render_presenter(frame, &self.session, &self.theme, self.show_help, elapsed);
+        match self.mode {
+            AppMode::Editing => {
+                render_editor(
+                    frame,
+                    &self.session,
+                    &self.theme,
+                    self.show_help,
+                    EditorViewState {
+                        selected_index: self.editor_selected_node,
+                        list_scroll_offset: self.editor_list_scroll_offset,
+                        focus: self.editor_focus,
+                        inline_text_input: self.editor_text_input.as_deref(),
+                        search_input: self.editor_search_input.as_deref(),
+                        index_jump_input: self.editor_index_jump_input.as_deref(),
+                        status: self.editor_status.as_deref(),
+                        pending_exit_confirmation: self.pending_exit_action.is_some(),
+                        picker_overlay: self.editor_picker,
+                    },
+                );
+            }
+            _ => {
+                render_presenter(
+                    frame,
+                    &self.session,
+                    &self.theme,
+                    PresenterViewState {
+                        show_help: self.show_help,
+                        show_speaker_notes: self.show_speaker_notes,
+                        show_progress_bar: self.show_progress_bar,
+                        show_elapsed_timer: self.show_elapsed_timer,
+                        content_base_dir: self.document_base_dir.as_deref(),
+                        transition: self
+                            .active_transition
+                            .map(|transition| PresenterTransition {
+                                kind: transition.kind,
+                                progress: transition.progress(),
+                                from_index: transition.from_index,
+                            }),
+                        elapsed_secs: elapsed,
+                    },
+                );
+            }
+        }
+    }
+
+    #[must_use]
+    pub fn is_animating(&self) -> bool {
+        self.active_transition.is_some()
     }
 
     /// Handle a crossterm event and map it to an action.
     pub fn handle_event(&mut self, event: Event) {
         match event {
             Event::Key(key) if key.kind == KeyEventKind::Press => {
-                let in_goto = matches!(self.mode, AppMode::GotoNode { .. });
-                if let Some(action) = map_key_to_action(key, in_goto) {
+                if self.mode == AppMode::Editing && self.handle_pending_exit_key(key.code) {
+                    return;
+                }
+
+                if self.mode == AppMode::Editing && self.handle_picker_key(key.code) {
+                    return;
+                }
+
+                if self.mode == AppMode::Editing
+                    && self.handle_inline_edit_key(key.code, key.modifiers)
+                {
+                    return;
+                }
+
+                if self.mode == AppMode::Editing && self.handle_editor_search_key(key.code) {
+                    return;
+                }
+
+                if self.mode == AppMode::Editing && self.handle_editor_index_jump_key(key.code) {
+                    return;
+                }
+
+                if let Some(action) = map_key_to_action(key, &self.mode) {
                     self.update(action);
                 }
             }
             Event::Resize(w, h) => {
                 self.update(Action::Resize(w, h));
             }
+            Event::Mouse(mouse) => match mouse.kind {
+                MouseEventKind::Down(MouseButton::Left) => {
+                    self.update(Action::MouseClick {
+                        column: mouse.column,
+                        row: mouse.row,
+                    });
+                }
+                MouseEventKind::Up(MouseButton::Left) => {
+                    self.update(Action::MouseClick {
+                        column: mouse.column,
+                        row: mouse.row,
+                    });
+                }
+                MouseEventKind::Drag(MouseButton::Left) => {
+                    self.update(Action::MouseDrag {
+                        column: mouse.column,
+                        row: mouse.row,
+                    });
+                }
+                MouseEventKind::ScrollUp => {
+                    self.update(Action::MouseScroll(MouseScrollDirection::Up));
+                }
+                MouseEventKind::ScrollDown => {
+                    self.update(Action::MouseScroll(MouseScrollDirection::Down));
+                }
+                _ => {}
+            },
             _ => {}
         }
     }
+
+    fn handle_mouse_click(&mut self, column: u16, row: u16) {
+        if self.mode == AppMode::Editing {
+            self.handle_editor_mouse_click(column, row);
+            return;
+        }
+
+        let (width, height) = self.terminal_size;
+
+        let current = self.session.current_node_index();
+        let node = &self.session.graph.nodes[current];
+
+        if let Some(branch_point) = node.branch_point() {
+            let root = Rect::new(0, 0, width, height);
+            let popup = branch_overlay_rect(root, branch_point.options.len() as u16);
+
+            let in_x = column >= popup.x && column < popup.x.saturating_add(popup.width);
+            let in_y = row >= popup.y && row < popup.y.saturating_add(popup.height);
+
+            if in_x && in_y {
+                let has_prompt = branch_point
+                    .prompt
+                    .as_deref()
+                    .is_some_and(|prompt| !prompt.trim().is_empty());
+                let option_start = popup.y.saturating_add(if has_prompt { 3 } else { 1 });
+                let option_idx = row.saturating_sub(option_start) as usize;
+                let option_key = branch_point
+                    .options
+                    .get(option_idx)
+                    .map(|option| option.key);
+                if let Some(key) = option_key {
+                    let from_index = self.session.current_node_index();
+                    let _ = self.session.traversal.choose(key, &self.session.graph);
+                    self.start_transition_if_needed(from_index);
+                    return;
+                }
+            }
+        }
+
+        if column < width / 2 {
+            let from_index = self.session.current_node_index();
+            self.session.traversal.back();
+            self.start_transition_if_needed(from_index);
+        } else {
+            let from_index = self.session.current_node_index();
+            self.session.traversal.next(&self.session.graph);
+            self.start_transition_if_needed(from_index);
+        }
+    }
+
+    fn handle_mouse_scroll(&mut self, direction: MouseScrollDirection) {
+        if self.mode == AppMode::Editing {
+            self.handle_editor_mouse_scroll(direction);
+            return;
+        }
+
+        match direction {
+            MouseScrollDirection::Up => {
+                let from_index = self.session.current_node_index();
+                self.session.traversal.back();
+                self.start_transition_if_needed(from_index);
+            }
+            MouseScrollDirection::Down => {
+                let from_index = self.session.current_node_index();
+                self.session.traversal.next(&self.session.graph);
+                self.start_transition_if_needed(from_index);
+            }
+        }
+    }
+
+    fn start_transition_if_needed(&mut self, from_index: usize) {
+        if self.mode != AppMode::Presenting {
+            self.active_transition = None;
+            return;
+        }
+
+        let to_index = self.session.current_node_index();
+        if to_index == from_index {
+            self.active_transition = None;
+            return;
+        }
+
+        let kind = self.session.graph.nodes[to_index]
+            .transition
+            .unwrap_or(Transition::None);
+
+        if kind == Transition::None {
+            self.active_transition = None;
+            return;
+        }
+
+        self.active_transition = Some(ActiveTransition {
+            from_index,
+            kind,
+            frame: 0,
+            total_frames: 7,
+        });
+    }
+
+    fn append_text_block(&mut self) {
+        let idx = self.editor_selected_node;
+        let node_id = match self.session.ensure_node_id(idx) {
+            Ok(id) => id,
+            Err(_) => return,
+        };
+
+        let current_content = self.session.graph.nodes[idx].content.clone();
+        let mut updated_content = current_content;
+        updated_content.push(ContentBlock::Text {
+            body: "New text block".to_string(),
+        });
+
+        let command = Command::UpdateNodeContent {
+            node_id,
+            content: updated_content,
+        };
+
+        let _ = self.session.execute_command(command);
+        self.editor_status = Some("Appended text block".to_string());
+        self.sync_editor_selection_bounds();
+    }
+
+    fn add_node_after_selected(&mut self) {
+        let base_index = self.editor_selected_node;
+        let mut suffix = self.session.graph.nodes.len() + 1;
+        let new_node_id = loop {
+            let candidate = format!("node-{suffix}");
+            if self.session.graph.index_of(&candidate).is_none() {
+                break candidate;
+            }
+            suffix += 1;
+        };
+
+        let command = Command::AddNode {
+            node_id: new_node_id,
+            after_index: Some(base_index),
+        };
+
+        if self.session.execute_command(command).is_ok() {
+            self.editor_selected_node =
+                (base_index + 1).min(self.session.graph.nodes.len().saturating_sub(1));
+            self.sync_editor_list_viewport();
+            let _ = self
+                .session
+                .traversal
+                .goto(self.editor_selected_node, &self.session.graph);
+            self.editor_status = Some("Added node".to_string());
+        }
+    }
+
+    fn remove_selected_node(&mut self) {
+        let idx = self.editor_selected_node;
+        let Some(node_id) = self.session.graph.nodes.get(idx).and_then(|n| n.id.clone()) else {
+            return;
+        };
+
+        let command = Command::RemoveNode { node_id };
+        if self.session.execute_command(command).is_ok() {
+            self.sync_editor_selection_bounds();
+            let _ = self
+                .session
+                .traversal
+                .goto(self.editor_selected_node, &self.session.graph);
+            self.editor_status = Some("Removed node".to_string());
+        }
+    }
+
+    fn editor_select_next(&mut self) {
+        let max = self.session.graph.nodes.len().saturating_sub(1);
+        self.editor_selected_node = (self.editor_selected_node + 1).min(max);
+        self.sync_editor_list_viewport();
+        let _ = self
+            .session
+            .traversal
+            .goto(self.editor_selected_node, &self.session.graph);
+    }
+
+    fn editor_select_prev(&mut self) {
+        self.editor_selected_node = self.editor_selected_node.saturating_sub(1);
+        self.sync_editor_list_viewport();
+        let _ = self
+            .session
+            .traversal
+            .goto(self.editor_selected_node, &self.session.graph);
+    }
+
+    fn editor_page_down(&mut self) {
+        let page = self.editor_list_visible_rows().max(1);
+        let max = self.session.graph.nodes.len().saturating_sub(1);
+        self.editor_selected_node = (self.editor_selected_node + page).min(max);
+        self.sync_editor_list_viewport();
+        let _ = self
+            .session
+            .traversal
+            .goto(self.editor_selected_node, &self.session.graph);
+    }
+
+    fn editor_page_up(&mut self) {
+        let page = self.editor_list_visible_rows().max(1);
+        self.editor_selected_node = self.editor_selected_node.saturating_sub(page);
+        self.sync_editor_list_viewport();
+        let _ = self
+            .session
+            .traversal
+            .goto(self.editor_selected_node, &self.session.graph);
+    }
+
+    fn editor_jump_top(&mut self) {
+        self.editor_selected_node = 0;
+        self.sync_editor_list_viewport();
+        let _ = self
+            .session
+            .traversal
+            .goto(self.editor_selected_node, &self.session.graph);
+    }
+
+    fn editor_jump_bottom(&mut self) {
+        self.editor_selected_node = self.session.graph.nodes.len().saturating_sub(1);
+        self.sync_editor_list_viewport();
+        let _ = self
+            .session
+            .traversal
+            .goto(self.editor_selected_node, &self.session.graph);
+    }
+
+    fn start_editor_node_search(&mut self) {
+        self.editor_index_jump_input = None;
+        self.editor_search_input = Some(String::new());
+        self.editor_focus = EditorPaneFocus::NodeList;
+        self.editor_status = Some("Node search: type text, Enter to jump, Esc to cancel".into());
+    }
+
+    fn start_editor_index_jump(&mut self) {
+        self.editor_search_input = None;
+        self.editor_index_jump_input = Some(String::new());
+        self.editor_focus = EditorPaneFocus::NodeList;
+        self.editor_status =
+            Some("Jump to index: type number, Enter to jump, Esc to cancel".into());
+    }
+
+    fn handle_editor_search_key(&mut self, code: KeyCode) -> bool {
+        let Some(buffer) = self.editor_search_input.as_mut() else {
+            return false;
+        };
+
+        match code {
+            KeyCode::Esc => {
+                self.editor_search_input = None;
+                self.editor_status = Some("Node search cancelled".to_string());
+                true
+            }
+            KeyCode::Enter => {
+                self.commit_editor_search();
+                true
+            }
+            KeyCode::Backspace => {
+                buffer.pop();
+                true
+            }
+            KeyCode::Char(ch) => {
+                buffer.push(ch);
+                true
+            }
+            _ => true,
+        }
+    }
+
+    fn handle_editor_index_jump_key(&mut self, code: KeyCode) -> bool {
+        let Some(buffer) = self.editor_index_jump_input.as_mut() else {
+            return false;
+        };
+
+        match code {
+            KeyCode::Esc => {
+                self.editor_index_jump_input = None;
+                self.editor_status = Some("Index jump cancelled".to_string());
+                true
+            }
+            KeyCode::Enter => {
+                self.commit_editor_index_jump();
+                true
+            }
+            KeyCode::Backspace => {
+                buffer.pop();
+                true
+            }
+            KeyCode::Char(ch) if ch.is_ascii_digit() => {
+                buffer.push(ch);
+                true
+            }
+            _ => true,
+        }
+    }
+
+    fn commit_editor_search(&mut self) {
+        let query = self.editor_search_input.take().unwrap_or_default();
+        let trimmed = query.trim();
+        if trimmed.is_empty() {
+            self.editor_status = Some("Node search empty".to_string());
+            return;
+        }
+        self.editor_search_query = Some(trimmed.to_string());
+
+        let tokens = search_tokens(trimmed);
+        let total = self.session.graph.nodes.len();
+        if total == 0 {
+            self.editor_status = Some("Node search failed: no nodes".to_string());
+            return;
+        }
+
+        let current = self.editor_selected_node;
+        let found = self
+            .session
+            .graph
+            .nodes
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, node)| {
+                let id = node.id.as_deref().unwrap_or("");
+                let id_lower = id.to_ascii_lowercase();
+                let score = score_node_id_match(&id_lower, &tokens)?;
+                let distance = if idx >= current {
+                    idx - current
+                } else {
+                    total - (current - idx)
+                };
+                Some((score, distance, idx))
+            })
+            .min_by_key(|&(score, distance, idx)| (score, distance, idx))
+            .map(|(_, _, idx)| idx);
+
+        if let Some(idx) = found {
+            self.editor_selected_node = idx;
+            self.sync_editor_list_viewport();
+            let _ = self.session.traversal.goto(idx, &self.session.graph);
+            self.editor_status = Some(format!("Node search matched #{}", idx + 1));
+        } else {
+            self.editor_status = Some(format!("No node id matches '{trimmed}'"));
+        }
+    }
+
+    fn jump_editor_search_hit(&mut self, forward: bool) {
+        let Some(query) = self.editor_search_query.as_deref() else {
+            self.editor_status = Some("No prior search query".to_string());
+            return;
+        };
+
+        let total = self.session.graph.nodes.len();
+        if total == 0 {
+            self.editor_status = Some("No nodes available".to_string());
+            return;
+        }
+
+        let tokens = search_tokens(query);
+        let current = self.editor_selected_node;
+        let next = if forward {
+            next_search_hit_from(&self.session, &tokens, current)
+        } else {
+            prev_search_hit_from(&self.session, &tokens, current)
+        };
+
+        if let Some(idx) = next {
+            self.editor_selected_node = idx;
+            self.sync_editor_list_viewport();
+            let _ = self.session.traversal.goto(idx, &self.session.graph);
+            let direction = if forward { "next" } else { "previous" };
+            self.editor_status = Some(format!("Search {direction} hit: #{}", idx + 1));
+        } else {
+            self.editor_status = Some(format!("No node id matches '{query}'"));
+        }
+    }
+
+    fn commit_editor_index_jump(&mut self) {
+        let query = self.editor_index_jump_input.take().unwrap_or_default();
+        let trimmed = query.trim();
+        if trimmed.is_empty() {
+            self.editor_status = Some("Index jump empty".to_string());
+            return;
+        }
+
+        let Ok(parsed) = trimmed.parse::<usize>() else {
+            self.editor_status = Some(format!("Invalid index '{trimmed}'"));
+            return;
+        };
+
+        let total = self.session.graph.nodes.len();
+        if total == 0 {
+            self.editor_status = Some("Index jump failed: no nodes".to_string());
+            return;
+        }
+
+        if parsed == 0 || parsed > total {
+            self.editor_status = Some(format!("Index out of range: 1..{total}"));
+            return;
+        }
+
+        let idx = parsed - 1;
+        self.editor_selected_node = idx;
+        self.sync_editor_list_viewport();
+        let _ = self.session.traversal.goto(idx, &self.session.graph);
+        self.editor_status = Some(format!("Jumped to node #{}", idx + 1));
+    }
+
+    fn sync_editor_selection_bounds(&mut self) {
+        let max = self.session.graph.nodes.len().saturating_sub(1);
+        self.editor_selected_node = self.editor_selected_node.min(max);
+        self.sync_editor_list_viewport();
+    }
+
+    fn sync_editor_list_viewport(&mut self) {
+        let total = self.session.graph.nodes.len();
+        if total == 0 {
+            self.editor_list_scroll_offset = 0;
+            return;
+        }
+
+        let visible_rows = self.editor_list_visible_rows().max(1);
+        let max_offset = total.saturating_sub(visible_rows);
+        self.editor_list_scroll_offset = self.editor_list_scroll_offset.min(max_offset);
+
+        if self.editor_selected_node < self.editor_list_scroll_offset {
+            self.editor_list_scroll_offset = self.editor_selected_node;
+            return;
+        }
+
+        let end = self.editor_list_scroll_offset + visible_rows;
+        if self.editor_selected_node >= end {
+            self.editor_list_scroll_offset = self.editor_selected_node + 1 - visible_rows;
+        }
+    }
+
+    fn editor_list_visible_rows(&self) -> usize {
+        let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+        let sections = RatatuiLayout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .split(root);
+        let body = RatatuiLayout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
+            .split(sections[0]);
+
+        body[0].height.saturating_sub(2) as usize
+    }
+
+    fn start_inline_edit(&mut self, target: EditorInlineTarget) {
+        let idx = self.editor_selected_node;
+        let seed = self
+            .session
+            .graph
+            .nodes
+            .get(idx)
+            .map(|node| match target {
+                EditorInlineTarget::BodyText => node
+                    .content
+                    .iter()
+                    .find_map(|block| {
+                        if let ContentBlock::Text { body } = block {
+                            Some(body.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or_default(),
+                EditorInlineTarget::SpeakerNotes => node.speaker_notes.clone().unwrap_or_default(),
+            })
+            .unwrap_or_default();
+
+        self.editor_text_input = Some(seed);
+        self.editor_inline_target = Some(target);
+        self.editor_focus = EditorPaneFocus::NodeDetail;
+        self.editor_status = Some(match target {
+            EditorInlineTarget::BodyText => "Inline text edit started".to_string(),
+            EditorInlineTarget::SpeakerNotes => "Speaker notes edit started".to_string(),
+        });
+    }
+
+    fn handle_inline_edit_key(&mut self, code: KeyCode, modifiers: KeyModifiers) -> bool {
+        let Some(buffer) = self.editor_text_input.as_mut() else {
+            return false;
+        };
+
+        match code {
+            KeyCode::Esc => {
+                self.editor_text_input = None;
+                self.editor_inline_target = None;
+                self.editor_status = Some("Inline edit cancelled".to_string());
+                true
+            }
+            KeyCode::Enter => {
+                self.commit_inline_edit();
+                true
+            }
+            KeyCode::Backspace => {
+                buffer.pop();
+                true
+            }
+            KeyCode::Char(ch)
+                if !modifiers.contains(KeyModifiers::CONTROL)
+                    && !modifiers.contains(KeyModifiers::ALT) =>
+            {
+                buffer.push(ch);
+                true
+            }
+            _ => true,
+        }
+    }
+
+    fn commit_inline_edit(&mut self) {
+        let Some(text) = self.editor_text_input.take() else {
+            return;
+        };
+        let target = self
+            .editor_inline_target
+            .take()
+            .unwrap_or(EditorInlineTarget::BodyText);
+
+        let idx = self.editor_selected_node;
+        match target {
+            EditorInlineTarget::BodyText => {
+                let node_id = match self.session.ensure_node_id(idx) {
+                    Ok(id) => id,
+                    Err(_) => return,
+                };
+
+                let mut content = self.session.graph.nodes[idx].content.clone();
+                if let Some(ContentBlock::Text { body }) = content
+                    .iter_mut()
+                    .find(|block| matches!(block, ContentBlock::Text { .. }))
+                {
+                    *body = text;
+                } else {
+                    content.insert(0, ContentBlock::Text { body: text });
+                }
+
+                let command = Command::UpdateNodeContent { node_id, content };
+                if self.session.execute_command(command).is_ok() {
+                    self.editor_status = Some("Inline text edit applied".to_string());
+                }
+            }
+            EditorInlineTarget::SpeakerNotes => {
+                if let Some(node) = self.session.graph.nodes.get_mut(idx) {
+                    let trimmed = text.trim();
+                    node.speaker_notes = if trimmed.is_empty() { None } else { Some(text) };
+                    self.session.mark_dirty();
+                    self.editor_status = Some("Speaker notes updated".to_string());
+                }
+            }
+        }
+    }
+
+    fn save_editor_graph(&mut self) {
+        let Some(path) = self.editor_target_path.as_ref() else {
+            self.editor_status = Some("No save target configured".to_string());
+            return;
+        };
+
+        match save_graph(path, &self.session.graph) {
+            Ok(()) => {
+                self.session.mark_clean();
+                self.pending_exit_action = None;
+                self.editor_status = Some(format!("Saved {}", path.display()));
+            }
+            Err(err) => {
+                self.editor_status = Some(format!("Save failed: {err}"));
+            }
+        }
+    }
+
+    fn cycle_layout(&mut self, forward: bool) {
+        let idx = self.editor_selected_node;
+        if let Some(node) = self.session.graph.nodes.get_mut(idx) {
+            let variants = [
+                Layout::Default,
+                Layout::Center,
+                Layout::Top,
+                Layout::SplitHorizontal,
+                Layout::SplitVertical,
+                Layout::Title,
+                Layout::CodeFocus,
+                Layout::Fullscreen,
+                Layout::AlignLeft,
+                Layout::AlignRight,
+                Layout::Blank,
+            ];
+
+            let current = node.layout.unwrap_or(Layout::Default);
+            let pos = variants.iter().position(|v| *v == current).unwrap_or(0);
+            let next = if forward {
+                (pos + 1) % variants.len()
+            } else {
+                (pos + variants.len() - 1) % variants.len()
+            };
+
+            node.layout = Some(variants[next]);
+            self.session.mark_dirty();
+            self.editor_status = Some(format!("Layout set to {:?}", variants[next]));
+        }
+    }
+
+    fn cycle_transition(&mut self, forward: bool) {
+        let idx = self.editor_selected_node;
+        if let Some(node) = self.session.graph.nodes.get_mut(idx) {
+            let variants = [
+                Transition::None,
+                Transition::Fade,
+                Transition::SlideLeft,
+                Transition::SlideRight,
+                Transition::Wipe,
+                Transition::Dissolve,
+                Transition::Matrix,
+                Transition::Typewriter,
+            ];
+
+            let current = node.transition.unwrap_or(Transition::None);
+            let pos = variants.iter().position(|v| *v == current).unwrap_or(0);
+            let next = if forward {
+                (pos + 1) % variants.len()
+            } else {
+                (pos + variants.len() - 1) % variants.len()
+            };
+
+            node.transition = Some(variants[next]);
+            self.session.mark_dirty();
+            self.editor_status = Some(format!("Transition set to {:?}", variants[next]));
+        }
+    }
+
+    fn open_layout_picker(&mut self) {
+        let selected = self
+            .editor_last_layout_picker
+            .min(layout_variants().len().saturating_sub(1));
+
+        self.editor_picker = Some(EditorPickerOverlay::Layout { selected });
+        self.editor_status = Some("Layout picker: arrows or 1-9/0 + Enter".to_string());
+    }
+
+    fn open_transition_picker(&mut self) {
+        let selected = self
+            .editor_last_transition_picker
+            .min(transition_variants().len().saturating_sub(1));
+
+        self.editor_picker = Some(EditorPickerOverlay::Transition { selected });
+        self.editor_status = Some("Transition picker: arrows or 1-9/0 + Enter".to_string());
+    }
+
+    fn handle_picker_key(&mut self, code: KeyCode) -> bool {
+        let Some(overlay) = self.editor_picker else {
+            return false;
+        };
+
+        let max_index = match overlay {
+            EditorPickerOverlay::Layout { .. } => layout_variants().len().saturating_sub(1),
+            EditorPickerOverlay::Transition { .. } => transition_variants().len().saturating_sub(1),
+        };
+
+        match code {
+            KeyCode::Esc => {
+                self.editor_picker = None;
+                self.editor_status = Some("Picker cancelled".to_string());
+                true
+            }
+            KeyCode::Up | KeyCode::Char('k') => {
+                self.adjust_picker_selection(max_index, false);
+                true
+            }
+            KeyCode::Down | KeyCode::Char('j') => {
+                self.adjust_picker_selection(max_index, true);
+                true
+            }
+            KeyCode::Char('1'..='9') | KeyCode::Char('0') => {
+                if let Some(index) = digit_to_index(code)
+                    && index <= max_index
+                {
+                    self.set_picker_selection(index);
+                }
+                true
+            }
+            KeyCode::Enter => {
+                self.apply_picker_selection();
+                true
+            }
+            _ => true,
+        }
+    }
+
+    fn adjust_picker_selection(&mut self, max_index: usize, forward: bool) {
+        self.editor_picker = self.editor_picker.map(|overlay| match overlay {
+            EditorPickerOverlay::Layout { selected } => EditorPickerOverlay::Layout {
+                selected: bump_index(selected, max_index, forward),
+            },
+            EditorPickerOverlay::Transition { selected } => EditorPickerOverlay::Transition {
+                selected: bump_index(selected, max_index, forward),
+            },
+        });
+    }
+
+    fn set_picker_selection(&mut self, selected: usize) {
+        self.editor_picker = self.editor_picker.map(|overlay| match overlay {
+            EditorPickerOverlay::Layout { .. } => {
+                self.editor_last_layout_picker = selected;
+                EditorPickerOverlay::Layout { selected }
+            }
+            EditorPickerOverlay::Transition { .. } => {
+                self.editor_last_transition_picker = selected;
+                EditorPickerOverlay::Transition { selected }
+            }
+        });
+        self.persist_editor_preferences();
+    }
+
+    fn apply_picker_selection(&mut self) {
+        let Some(overlay) = self.editor_picker.take() else {
+            return;
+        };
+
+        let idx = self.editor_selected_node;
+        match overlay {
+            EditorPickerOverlay::Layout { selected } => {
+                if let Some(node) = self.session.graph.nodes.get_mut(idx)
+                    && let Some(layout) = layout_variants().get(selected).copied()
+                {
+                    self.editor_last_layout_picker = selected;
+                    node.layout = Some(layout);
+                    self.session.mark_dirty();
+                    self.editor_status = Some(format!("Layout set to {:?}", layout));
+                    self.persist_editor_preferences();
+                }
+            }
+            EditorPickerOverlay::Transition { selected } => {
+                if let Some(node) = self.session.graph.nodes.get_mut(idx)
+                    && let Some(transition) = transition_variants().get(selected).copied()
+                {
+                    self.editor_last_transition_picker = selected;
+                    node.transition = Some(transition);
+                    self.session.mark_dirty();
+                    self.editor_status = Some(format!("Transition set to {:?}", transition));
+                    self.persist_editor_preferences();
+                }
+            }
+        }
+    }
+
+    fn request_edit_mode_exit(&mut self, action: PendingExitAction) {
+        if self.session.dirty {
+            self.pending_exit_action = Some(action);
+            self.editor_status = Some("Unsaved changes: press y to leave, n to stay".to_string());
+            return;
+        }
+
+        self.apply_exit_action(action);
+    }
+
+    fn handle_pending_exit_key(&mut self, code: KeyCode) -> bool {
+        if self.pending_exit_action.is_none() {
+            return false;
+        }
+
+        match code {
+            KeyCode::Char('y') | KeyCode::Char('Y') => {
+                let action = self.pending_exit_action.take();
+                if let Some(action) = action {
+                    self.apply_exit_action(action);
+                }
+                true
+            }
+            KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                self.pending_exit_action = None;
+                self.editor_status = Some("Stayed in editor".to_string());
+                true
+            }
+            _ => true,
+        }
+    }
+
+    fn apply_exit_action(&mut self, action: PendingExitAction) {
+        self.pending_exit_action = None;
+        self.editor_picker = None;
+        self.editor_search_input = None;
+        self.editor_search_query = None;
+        self.editor_index_jump_input = None;
+        match action {
+            PendingExitAction::ExitEditor => {
+                self.mode = AppMode::Presenting;
+                self.editor_text_input = None;
+                self.editor_inline_target = None;
+                self.persist_editor_preferences();
+                let _ = self
+                    .session
+                    .traversal
+                    .goto(self.editor_selected_node, &self.session.graph);
+            }
+            PendingExitAction::QuitApp => {
+                self.mode = AppMode::Quitting;
+            }
+        }
+    }
+}
+
+impl App {
+    fn load_editor_preferences(&mut self) {
+        let prefs = load_editor_ui_prefs();
+        self.editor_focus = match prefs.last_focus.as_str() {
+            "node-detail" => EditorPaneFocus::NodeDetail,
+            _ => EditorPaneFocus::NodeList,
+        };
+        self.editor_last_layout_picker = prefs.last_layout_picker;
+        self.editor_last_transition_picker = prefs.last_transition_picker;
+        self.editor_list_scroll_offset = prefs.last_list_scroll_offset;
+        self.sync_editor_list_viewport();
+    }
+
+    fn persist_editor_preferences(&self) {
+        let prefs = EditorUiPrefs {
+            last_focus: match self.editor_focus {
+                EditorPaneFocus::NodeList => "node-list".to_string(),
+                EditorPaneFocus::NodeDetail => "node-detail".to_string(),
+            },
+            last_layout_picker: self.editor_last_layout_picker,
+            last_transition_picker: self.editor_last_transition_picker,
+            last_list_scroll_offset: self.editor_list_scroll_offset,
+        };
+        let _ = save_editor_ui_prefs(&prefs);
+    }
+
+    fn handle_editor_mouse_click(&mut self, column: u16, row: u16) {
+        let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+        let sections = RatatuiLayout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .split(root);
+        let body = RatatuiLayout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
+            .split(sections[0]);
+
+        if let Some(overlay) = self.editor_picker
+            && self.handle_picker_mouse_click(column, row, overlay, sections[0])
+        {
+            return;
+        }
+
+        if point_in_rect(column, row, body[0]) {
+            self.editor_focus = EditorPaneFocus::NodeList;
+            self.persist_editor_preferences();
+
+            let row_start = body[0].y.saturating_add(1);
+            if row >= row_start {
+                let index = self.editor_list_scroll_offset + row.saturating_sub(row_start) as usize;
+                if index < self.session.graph.nodes.len() {
+                    self.editor_selected_node = index;
+                    self.sync_editor_list_viewport();
+                    let _ = self.session.traversal.goto(index, &self.session.graph);
+                }
+            }
+            return;
+        }
+
+        if point_in_rect(column, row, body[1]) {
+            self.editor_focus = EditorPaneFocus::NodeDetail;
+            self.persist_editor_preferences();
+        }
+    }
+
+    fn handle_mouse_drag(&mut self, column: u16, row: u16) {
+        if self.mode != AppMode::Editing {
+            return;
+        }
+
+        let Some(overlay) = self.editor_picker else {
+            return;
+        };
+
+        let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+        let sections = RatatuiLayout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .split(root);
+
+        let popup = centered_popup(sections[0], 55, 65);
+        if !point_in_rect(column, row, popup) {
+            return;
+        }
+
+        let inner = Rect {
+            x: popup.x.saturating_add(1),
+            y: popup.y.saturating_add(1),
+            width: popup.width.saturating_sub(2),
+            height: popup.height.saturating_sub(2),
+        };
+        if row < inner.y {
+            return;
+        }
+
+        let option_count = match overlay {
+            EditorPickerOverlay::Layout { .. } => layout_variants().len(),
+            EditorPickerOverlay::Transition { .. } => transition_variants().len(),
+        };
+        let index = row.saturating_sub(inner.y) as usize;
+        if index < option_count {
+            self.set_picker_selection(index);
+            self.editor_status = Some(format!("Picker preview: option {}", index + 1));
+        }
+    }
+
+    fn handle_editor_mouse_scroll(&mut self, direction: MouseScrollDirection) {
+        if self.editor_text_input.is_some() {
+            return;
+        }
+
+        if self.editor_search_input.is_some() {
+            return;
+        }
+
+        if self.editor_index_jump_input.is_some() {
+            return;
+        }
+
+        if let Some(overlay) = self.editor_picker {
+            let max_index = match overlay {
+                EditorPickerOverlay::Layout { .. } => layout_variants().len().saturating_sub(1),
+                EditorPickerOverlay::Transition { .. } => {
+                    transition_variants().len().saturating_sub(1)
+                }
+            };
+
+            self.adjust_picker_selection(
+                max_index,
+                matches!(direction, MouseScrollDirection::Down),
+            );
+            return;
+        }
+
+        if self.editor_focus != EditorPaneFocus::NodeList {
+            return;
+        }
+
+        match direction {
+            MouseScrollDirection::Up => self.editor_select_prev(),
+            MouseScrollDirection::Down => self.editor_select_next(),
+        }
+    }
+
+    fn handle_picker_mouse_click(
+        &mut self,
+        column: u16,
+        row: u16,
+        overlay: EditorPickerOverlay,
+        content_area: Rect,
+    ) -> bool {
+        let popup = centered_popup(content_area, 55, 65);
+        if !point_in_rect(column, row, popup) {
+            self.editor_picker = None;
+            self.editor_status = Some("Picker cancelled".to_string());
+            return true;
+        }
+
+        let inner = Rect {
+            x: popup.x.saturating_add(1),
+            y: popup.y.saturating_add(1),
+            width: popup.width.saturating_sub(2),
+            height: popup.height.saturating_sub(2),
+        };
+
+        if row < inner.y {
+            return true;
+        }
+
+        let option_count = match overlay {
+            EditorPickerOverlay::Layout { .. } => layout_variants().len(),
+            EditorPickerOverlay::Transition { .. } => transition_variants().len(),
+        };
+
+        let index = row.saturating_sub(inner.y) as usize;
+        if index < option_count {
+            self.set_picker_selection(index);
+            self.apply_picker_selection();
+        }
+        true
+    }
+}
+
+fn search_tokens(query: &str) -> Vec<String> {
+    let tokens = query
+        .split_whitespace()
+        .map(|token| token.to_ascii_lowercase())
+        .filter(|token| !token.is_empty())
+        .collect::<Vec<_>>();
+
+    if tokens.is_empty() {
+        vec![query.to_ascii_lowercase()]
+    } else {
+        tokens
+    }
+}
+
+fn score_node_id_match(candidate: &str, tokens: &[String]) -> Option<usize> {
+    let mut total_score = 0usize;
+    for token in tokens {
+        let component = if candidate == token {
+            0
+        } else if candidate.starts_with(token) {
+            1
+        } else if candidate.contains(token) {
+            2
+        } else if is_subsequence(candidate, token) {
+            3
+        } else {
+            return None;
+        };
+
+        total_score += component;
+    }
+
+    Some(total_score)
+}
+
+fn is_subsequence(candidate: &str, needle: &str) -> bool {
+    let mut needle_chars = needle.chars();
+    let mut current = needle_chars.next();
+
+    for ch in candidate.chars() {
+        if Some(ch) == current {
+            current = needle_chars.next();
+            if current.is_none() {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+fn next_search_hit_from(
+    session: &PresentationSession,
+    tokens: &[String],
+    current: usize,
+) -> Option<usize> {
+    let total = session.graph.nodes.len();
+    if total == 0 {
+        return None;
+    }
+
+    for step in 1..=total {
+        let idx = (current + step) % total;
+        let id = session.graph.nodes[idx].id.as_deref().unwrap_or("");
+        if score_node_id_match(&id.to_ascii_lowercase(), tokens).is_some() {
+            return Some(idx);
+        }
+    }
+
+    None
+}
+
+fn prev_search_hit_from(
+    session: &PresentationSession,
+    tokens: &[String],
+    current: usize,
+) -> Option<usize> {
+    let total = session.graph.nodes.len();
+    if total == 0 {
+        return None;
+    }
+
+    for step in 1..=total {
+        let idx = (current + total - (step % total)) % total;
+        let id = session.graph.nodes[idx].id.as_deref().unwrap_or("");
+        if score_node_id_match(&id.to_ascii_lowercase(), tokens).is_some() {
+            return Some(idx);
+        }
+    }
+
+    None
+}
+
+fn layout_variants() -> &'static [Layout] {
+    &[
+        Layout::Default,
+        Layout::Center,
+        Layout::Top,
+        Layout::SplitHorizontal,
+        Layout::SplitVertical,
+        Layout::Title,
+        Layout::CodeFocus,
+        Layout::Fullscreen,
+        Layout::AlignLeft,
+        Layout::AlignRight,
+        Layout::Blank,
+    ]
+}
+
+fn transition_variants() -> &'static [Transition] {
+    &[
+        Transition::None,
+        Transition::Fade,
+        Transition::SlideLeft,
+        Transition::SlideRight,
+        Transition::Wipe,
+        Transition::Dissolve,
+        Transition::Matrix,
+        Transition::Typewriter,
+    ]
+}
+
+fn bump_index(current: usize, max_index: usize, forward: bool) -> usize {
+    if forward {
+        (current + 1).min(max_index)
+    } else {
+        current.saturating_sub(1)
+    }
+}
+
+fn digit_to_index(code: KeyCode) -> Option<usize> {
+    match code {
+        KeyCode::Char(ch @ '1'..='9') => ch.to_digit(10).map(|d| d as usize - 1),
+        KeyCode::Char('0') => Some(9),
+        _ => None,
+    }
+}
+
+fn point_in_rect(column: u16, row: u16, rect: Rect) -> bool {
+    column >= rect.x
+        && column < rect.x.saturating_add(rect.width)
+        && row >= rect.y
+        && row < rect.y.saturating_add(rect.height)
+}
+
+fn centered_popup(area: Rect, width_pct: u16, height_pct: u16) -> Rect {
+    let vertical = RatatuiLayout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - height_pct) / 2),
+            Constraint::Percentage(height_pct),
+            Constraint::Percentage((100 - height_pct) / 2),
+        ])
+        .split(area);
+
+    let horizontal = RatatuiLayout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - width_pct) / 2),
+            Constraint::Percentage(width_pct),
+            Constraint::Percentage((100 - width_pct) / 2),
+        ])
+        .split(vertical[1]);
+
+    horizontal[1]
 }

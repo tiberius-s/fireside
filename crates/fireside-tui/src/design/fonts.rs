@@ -14,7 +14,7 @@
 //! Fireside cannot change the terminal's font — the font setting is
 //! informational/advisory: it tells the user which monospace font to
 //! configure in their terminal emulator for the best experience. The
-//! font name is also stored in `fireside.yml` for documentation.
+//! font name is also stored in `fireside.json` for documentation.
 
 use std::collections::BTreeSet;
 

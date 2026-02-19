@@ -2,7 +2,15 @@
 
 ## Current Focus
 
-Protocol and docs alignment for Fireside `0.1.0`.
+Execution of `.github/prompts/plan-fireside-tui-ux-initiative.prompt.md`
+across phased milestones, while keeping protocol/docs aligned.
+
+Current execution mode is TUI usability first:
+
+- JSON-first configuration surfaces (`fireside.json`) for project config.
+- No YAML/TOML expansion work for now unless explicitly re-approved.
+- Export workflows (HTML/PDF) are deferred from active implementation scope.
+- Competitive analysis is tracked in memory-bank, not user-facing docs.
 
 ## Recently Applied Direction
 
@@ -16,5 +24,15 @@ Protocol and docs alignment for Fireside `0.1.0`.
 
 ## Next Workstream
 
-Align Rust reference implementation vocabulary with the protocol model where it
-still uses legacy naming.
+- Continue Phase 5 and Phase 6 TUI slices from the UX initiative:
+  Mermaid pipeline hardening, settings integration, and hot-reload polishing.
+- Keep task tracking explicitly phase-aligned so progress is easy to audit.
+
+## Current Milestone Execution
+
+- Implemented runtime handling for `traversal.after` in engine traversal to
+  support branch rejoin behavior.
+- Implemented project-directory edit support and shared project entry
+  resolution using `fireside.json`.
+- Next milestone slices: Mermaid output path hardening, hot-reload, and
+  release polish that directly improves TUI usability.

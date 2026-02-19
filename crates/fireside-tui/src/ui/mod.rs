@@ -2,6 +2,8 @@
 //!
 //! Implements the presenter view, progress bar, and help overlay.
 
+pub mod branch;
+pub mod editor;
 pub mod help;
 pub mod presenter;
 pub mod progress;

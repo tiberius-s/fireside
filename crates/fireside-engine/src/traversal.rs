@@ -49,6 +49,21 @@ impl TraversalEngine {
         &self.history
     }
 
+    /// Clamp current and history indices to the current graph size.
+    pub fn clamp_to_graph(&mut self, graph_len: usize) {
+        if graph_len == 0 {
+            self.current = 0;
+            self.history.clear();
+            return;
+        }
+
+        if self.current >= graph_len {
+            self.current = graph_len - 1;
+        }
+
+        self.history.retain(|idx| *idx < graph_len);
+    }
+
     /// Advance to the next node.
     ///
     /// Respects traversal overrides (`traversal.next`) on the current node.
@@ -58,6 +73,16 @@ impl TraversalEngine {
 
         // Check for traversal next override
         if let Some(target_id) = node.next_override()
+            && let Some(idx) = graph.index_of(target_id)
+        {
+            let from = self.current;
+            self.history.push(from);
+            self.current = idx;
+            return TraversalResult::Moved { from, to: idx };
+        }
+
+        // Follow branch rejoin target when specified.
+        if let Some(target_id) = node.after_target()
             && let Some(idx) = graph.index_of(target_id)
         {
             let from = self.current;
@@ -243,6 +268,61 @@ mod tests {
         let graph = load_graph_from_str(json).unwrap();
         let mut engine = TraversalEngine::new(0);
         let result = engine.choose('b', &graph).unwrap();
+        assert_eq!(result, TraversalResult::Moved { from: 0, to: 2 });
+    }
+
+    #[test]
+    fn next_uses_after_target_when_present() {
+        let json = r#"{
+            "nodes": [
+                {
+                    "id": "start",
+                    "content": [],
+                    "traversal": {
+                        "branch-point": {
+                            "options": [
+                                { "label": "Path", "key": "a", "target": "path" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "id": "path",
+                    "content": [],
+                    "traversal": { "after": "rejoin" }
+                },
+                { "id": "sibling", "content": [] },
+                { "id": "rejoin", "content": [] }
+            ]
+        }"#;
+        let graph = load_graph_from_str(json).unwrap();
+        let mut engine = TraversalEngine::new(0);
+
+        let _ = engine.choose('a', &graph).unwrap();
+        assert_eq!(engine.current(), 1);
+
+        let result = engine.next(&graph);
+        assert_eq!(result, TraversalResult::Moved { from: 1, to: 3 });
+    }
+
+    #[test]
+    fn next_prefers_next_override_over_after_target() {
+        let json = r#"{
+            "nodes": [
+                {
+                    "id": "node-a",
+                    "content": [],
+                    "traversal": { "next": "node-c", "after": "node-d" }
+                },
+                { "id": "node-b", "content": [] },
+                { "id": "node-c", "content": [] },
+                { "id": "node-d", "content": [] }
+            ]
+        }"#;
+        let graph = load_graph_from_str(json).unwrap();
+        let mut engine = TraversalEngine::new(0);
+
+        let result = engine.next(&graph);
         assert_eq!(result, TraversalResult::Moved { from: 0, to: 2 });
     }
 }
