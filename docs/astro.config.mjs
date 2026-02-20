@@ -26,26 +26,6 @@ export default defineConfig({
       },
       sidebar: [
         {
-          label: 'Crates',
-          items: [
-            { label: 'fireside-core', link: '/crates/fireside-core/' },
-            { label: 'fireside-engine', link: '/crates/fireside-engine/' },
-            {
-              label: 'fireside-tui',
-              items: [
-                { label: 'Overview', link: '/crates/fireside-tui/' },
-                { label: 'App State Machine', link: '/crates/fireside-tui/app-state-machine/' },
-                { label: 'Rendering Pipeline', link: '/crates/fireside-tui/rendering-pipeline/' },
-                {
-                  label: 'Theme & Design System',
-                  link: '/crates/fireside-tui/theme-design-system/',
-                },
-              ],
-            },
-            { label: 'fireside-cli', link: '/crates/fireside-cli/' },
-          ],
-        },
-        {
           label: 'Specification',
           items: [
             { label: '§1 Introduction', link: '/spec/introduction/' },
@@ -58,18 +38,6 @@ export default defineConfig({
             { label: 'Appendix A — Design System', link: '/spec/appendix-design-system/' },
             { label: 'Appendix B — Engine Guidelines', link: '/spec/appendix-engine-guidelines/' },
             { label: 'Appendix C — Content Blocks', link: '/spec/appendix-content-blocks/' },
-          ],
-        },
-        {
-          label: 'Schemas',
-          autogenerate: { directory: 'schemas' },
-        },
-        {
-          label: 'Reference',
-          items: [
-            { label: 'Keybindings', link: '/reference/keybindings/' },
-            { label: 'Data Model Quick Reference', link: '/reference/data-model-quick-reference/' },
-            { label: 'Domain Vocabulary', link: '/reference/domain-vocabulary/' },
           ],
         },
         {
@@ -107,6 +75,38 @@ export default defineConfig({
               ],
             },
           ],
+        },
+        {
+          label: 'Crates',
+          items: [
+            { label: 'fireside-core', link: '/crates/fireside-core/' },
+            { label: 'fireside-engine', link: '/crates/fireside-engine/' },
+            {
+              label: 'fireside-tui',
+              items: [
+                { label: 'Overview', link: '/crates/fireside-tui/' },
+                { label: 'App State Machine', link: '/crates/fireside-tui/app-state-machine/' },
+                { label: 'Rendering Pipeline', link: '/crates/fireside-tui/rendering-pipeline/' },
+                {
+                  label: 'Theme & Design System',
+                  link: '/crates/fireside-tui/theme-design-system/',
+                },
+              ],
+            },
+            { label: 'fireside-cli', link: '/crates/fireside-cli/' },
+          ],
+        },
+        {
+          label: 'Reference',
+          items: [
+            { label: 'Keybindings', link: '/reference/keybindings/' },
+            { label: 'Data Model Quick Reference', link: '/reference/data-model-quick-reference/' },
+            { label: 'Domain Vocabulary', link: '/reference/domain-vocabulary/' },
+          ],
+        },
+        {
+          label: 'Schemas',
+          autogenerate: { directory: 'schemas' },
         },
         {
           label: 'Explanation',
