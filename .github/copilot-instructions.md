@@ -54,7 +54,8 @@ fireside/
 │       ├── schemas/           # Schema reference (graph, node, content-blocks)
 │       ├── guides/            # User and developer guides
 │       ├── reference/         # Quick-reference vocabulary + keybindings
-│       └── decisions/         # Architecture Decision Records (ADRs)
+│       ├── crates/            # Expert deep-dives per Rust crate
+│       └── explanation/       # Understanding-oriented context (Diátaxis)
 ├── crates/
 │   ├── fireside-core/         # Protocol types only — no I/O, no UI
 │   ├── fireside-engine/       # Loader, validation, traversal, commands, session
@@ -64,7 +65,8 @@ fireside/
 │   ├── activeContext.md       # Current focus and recent changes
 │   ├── progress.md            # What works and what's left
 │   └── tasks/                 # Per-task files (TASK001–TASK012)
-└── .cargo/config.toml         # Linker optimisations (ld_prime on macOS)
+├── .cargo/config.toml         # Linker optimisations (ld_prime on macOS)
+└── .githooks/                 # Git hooks (install once: bash .githooks/install.sh)
 ```
 
 ## Crate Responsibilities
@@ -216,6 +218,7 @@ keybinding map is active.
 ```text
 Presenting  ←→  Editing       (e / Esc)
 Presenting  →   GotoNode      (g, then digits, then Enter)
+Any         ←→  GraphView     (v / Esc)
 Any         →   Quitting      (q / Esc / Ctrl-C)
 ```
 
@@ -239,10 +242,11 @@ containing `..` are rejected before canonicalization.
 # Full quality gate (run before every commit)
 cargo fmt --check
 cargo clippy --workspace -- -D warnings
-cargo test --workspace
+cargo nextest run --workspace          # preferred; fallback: cargo test --workspace
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
 
-# Faster parallel test runner
-cargo nextest run --workspace
+# Install git hooks once per checkout
+bash .githooks/install.sh
 
 # TypeSpec → JSON Schema
 cd models && npm run build
@@ -257,7 +261,7 @@ cargo run -- present docs/examples/hello.json
 
 ### Conventions
 
-- Rust 2024 edition. `resolver = "3"` workspace.
+- Rust 2024 edition. `resolver = "3"` workspace. MSRV **1.88** (required by `darling@0.23`).
 - `#[must_use]` on all functions that return a value the caller should act on.
 - Doc comments (`///`) on every public item. Module-level `//!` docs on every file.
 - `pretty_assertions` in dev-dependencies for readable test failure messages.
@@ -272,8 +276,8 @@ cargo run -- present docs/examples/hello.json
 - **Build:** `cd docs && npm run build`
 - **Dev:** `cd docs && npm run dev` (localhost:4321/fireside)
 - `disable404Route: true` in `astro.config.mjs`; custom `404.md` used instead
-- Sidebar uses **manual ordering** for spec chapters (§1–§6 + appendices A–C);
-  autogenerate for schemas, reference, guides, explanation sections
+- Sidebar uses **manual ordering** throughout; `Crates` section comes first.
+- Directory index files must be named `index.md` (NOT `_index.md`) for Starlight routing.
 
 ## TypeSpec Workflow
 
@@ -313,24 +317,42 @@ Never edit the generated JSON Schema files directly.
 | §3      | Traversal               | Next/Choose/Goto/Back algorithms            |
 | §4      | Validation              | JSON Schema rules, graph integrity          |
 | §5      | Extensibility           | Typed extension model, fallback contract    |
-| §5      | Extensibility           | Typed extension model, fallback contract    |
 | §6      | Serialization           | JSON format, media types, file extensions   |
 | App A   | Design System           | Tokens, themes, WCAG (non-normative)        |
 | App B   | Engine Guidelines       | TEA guarantees, modes (non-normative)       |
 | App C   | Content Block Reference | Full catalog + extensions (non-normative)   |
 
-## TypeSpec Workflow
+## Agentic Tools & Skills Registry
 
-- Edit: `models/main.tsp`
-- Compile: `cd models && npm run build`
-- Output: 18 JSON Schema 2020-12 files in `models/tsp-output/schemas/`
-- After schema changes: update relevant doc pages in `docs/src/content/docs/schemas/`
+### When to invoke a Skill
 
-## When Making Changes
+| Skill             | Invoke when                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------------- |
+| `prd`             | Planning a new feature, protocol version, or user-facing initiative from a vague idea                     |
+| `refactor`        | Improving code structure without behavior change (extract function, rename, reduce god object)            |
+| `adr`             | Documenting a significant architectural decision (new crate, protocol breaking change, dependency choice) |
+| `protocol-change` | Making additive changes to Fireside protocol types end-to-end (TypeSpec → Rust → docs → tests)            |
 
-- **Spec changes**: Edit TypeSpec first → compile → update docs
-- **Rust changes**: Preserve TEA flow; mutation only in `App::update`
-- **Doc changes**: Check `npm run build` in `docs/` for clean output
-- **Vocabulary**: Use Fireside terminology; never use Journey/Waypoint/Marker/Crossroads/Hyphae/Slideways
-- **JSON examples**: Always use kebab-case property names and `kind` discriminator
-- **Extension blocks**: Use `kind: "extension"` and include `type`; include `fallback` in examples when practical
+### When to use subagents vs. direct execution
+
+Use `runSubagent` when:
+
+- Broad multi-file research is needed before implementation (e.g., "find all callers of X" across a large codebase).
+- A task is clearly separable: one agent researches Context7 docs, another implements.
+- You need to parallelize work on independent subsystems without context collision.
+
+Use the **Context7 agent** (`.github/agents/context7.agent.md`) when:
+
+- Working with any external crate API you haven't seen in this codebase yet (ratatui, crossterm, serde, plist, syntect, clap, etc.).
+- Always call `resolve-library-id` first, then `query-docs` with a specific query.
+
+Use the **Rust expert agent** (`.github/agents/rust-expert.agent.md`) when:
+
+- Evaluating a performance tradeoff, unsafe usage, lifetime complexity, or crate selection.
+
+### Model routing guidance
+
+- **Complex multi-step planning** (protocol design, initiative scoping): use `prd` skill first, then spawn implementation subagents per phase.
+- **Mechanical cascades** (TypeSpec field → core struct → engine test → doc): protocol-change skill exists but many simple edits can be done directly without invoking any skill.
+- **Research-heavy unknowns** (new crate API, unfamiliar Rust idiom): resolve via Context7 before writing any code.
+- **Memory bank updates**: read `memory-bank/activeContext.md` + `progress.md` first; apply PRD structure to `projectbrief.md` when scope changes.

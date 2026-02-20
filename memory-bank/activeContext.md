@@ -1,10 +1,66 @@
 # Active Context
 
-## Current Focus
+## Current State (as of 2026-02-20)
 
-All release gates are green. Phase 6 documentation and tutorial expansion is complete.
+The **Fireside Improvement Initiative** (6 phases) is **100% complete**. The project is in a clean, stable, well-documented state. All CI jobs are green.
 
-Phase 1 of `plan-fireside-improvement-initiative` is now implemented end-to-end:
+### What is fully working right now
+
+| Layer                                                                             | Status       |
+| --------------------------------------------------------------------------------- | ------------ |
+| Protocol `0.1.0` TypeSpec model + 18 JSON Schemas                                 | ✅ Complete  |
+| `fireside-core` types (all ContentBlock variants, Graph, Node)                    | ✅ Complete  |
+| `fireside-engine` (loader, validation, traversal, commands, session)              | ✅ Complete  |
+| `fireside-tui` (presenter, editor, graph view, help overlay, themes)              | ✅ Complete  |
+| `fireside-cli` binary (present, open, edit, new, validate, fonts, import-theme)   | ✅ Complete  |
+| Test suite (core roundtrips, engine fixtures, CLI e2e, TUI smoke)                 | ✅ Complete  |
+| CI (rust.yml lint/test/MSRV, docs.yml, models.yml, audit.yml)                     | ✅ All green |
+| Git hooks (pre-commit fmt, pre-push clippy+test)                                  | ✅ Installed |
+| Docs site (45 pages: spec, schemas, guides, crates deep-dives, Learn Rust series) | ✅ Complete  |
+
+### Key architectural decisions now locked
+
+- **TEA invariant**: `App::update` is the sole mutation point; all render functions are pure.
+- **Wire format**: kebab-case JSON everywhere; frozen for `0.1.x`.
+- **Crate boundary rule**: `fireside-core` has zero I/O; `fireside-engine` has zero ratatui; `fireside-tui` has zero direct file I/O.
+- **Protocol changes within `0.1.x`**: additive only — all new fields must be `Option` or `#[serde(default)]`.
+- **Config surface**: JSON-only (`fireside.json` project config, `~/.config/fireside/config.json` user config). No YAML/TOML.
+- **MSRV**: 1.88 (required by `darling@0.23` in the dependency tree).
+
+## Active Decisions & Constraints
+
+### Deferred (do not implement without explicit approval)
+
+- HTML export / PDF output — deferred to `1.0.0` planning.
+- YAML/TOML format variants — explicitly rejected for now.
+- GUI tooling — outside project scope.
+- Multi-author / real-time collaboration — outside project scope.
+
+### Working conventions (active)
+
+- No `unwrap()`/`expect()` in library code — use `Result`/`Option`.
+- All public items get `///` doc comments; modules get `//!` file-level docs.
+- `#[must_use]` on every value-returning function.
+- `tracing::warn!` for recoverable render failures (e.g., bad image path) — never panic.
+- After any structural graph mutation, call `Graph::rebuild_index()`.
+- Syntax and theme assets are `LazyLock` statics — never re-initialize per render.
+- Redraw is gated by `App::take_needs_redraw()` — only draw on state change or animation tick.
+
+## Next Steps / Open Questions
+
+1. **Protocol `0.2.0` planning** — What additive fields or new block kinds should go into the next minor? Export capabilities (HTML/PDF), richer extension ecosystem, or audio/media block types are candidates.
+2. **UX polish pass** — The branch fan-out layout in the graph overlay and presentation transition polish could use another pass before the `1.0.0` push.
+3. **Performance profiling** — No profiling has been done. The `LazyLock` for syntect assets and redraw gating are the primary optimizations currently. A flamegraph pass on `App::update` + render could surface regressions.
+4. **Accessibility** — The WCAG contrast check is implemented in `DesignTokens` but not enforced on import. A validation warning for insufficient contrast themes would be a good addition.
+
+## Recent Changes (most recent first)
+
+- 2026-02-20: Fixed `_index.md` → `index.md` naming in `guides/learn-rust/` (was returning 404 from Starlight sidebar).
+- 2026-02-20: Added 7 expert crate deep-dive docs under `docs/src/content/docs/crates/` and corresponding Starlight sidebar section.
+- 2026-02-20: Completed Phase 6 — theme authoring + extension authoring guides, keybindings reference, migration page, full 9-chapter Learn Rust tutorial series.
+- 2026-02-19: CI workflows hardened — MSRV bumped 1.85 → 1.88, added `libfontconfig1-dev` apt step, `deny.toml` license/advisory policy.
+- 2026-02-19: Git hooks installed (`.githooks/pre-commit`, `.githooks/pre-push`, `.githooks/install.sh`).
+- 2026-02-19: Completed Phases 1–5 of the Fireside Improvement Initiative (protocol enhancements, dep cleanup, perf optimizations, security hardening, test suite).
 
 - TypeSpec updated with additive protocol fields:
   - `Node.title`, `Node.tags`, `Node.duration`
@@ -110,11 +166,21 @@ Current execution mode is TUI usability first (unchanged):
   `docs/src/content/docs/reference/`.
 - Enforced chapter ordering in docs sidebar: §1–§6 then appendices.
 
+## Recent Session (2026-02-20) — .github/ Agentic Tooling Overhaul
+
+Complete audit and improvement of all `.github/` agentic infrastructure:
+
+- **Memory bank**: Rewrote `projectbrief.md` (PRD structure), `activeContext.md` (current-state snapshot), `progress.md` (status tables), `techContext.md` (full stack + CI table), `systemPatterns.md` (TEA diagram, AppMode FSM, all patterns). Fixed `tasks/_index.md` — moved TASK001-006 to Completed.
+- **copilot-instructions.md**: Fixed docs structure reference (`decisions/` → `crates/`), added `GraphView` to AppMode transitions, added `nextest` as primary test command, added `.githooks/` reference, removed duplicate TypeSpec and "When Making Changes" sections, added Skills Registry + subagent routing guidance, removed redundant `typespec-build` entry, fixed sidebar docs convention.
+- **New skills**: Created `.github/skills/adr/SKILL.md` (Nygard-style ADR format, numbering, filing), `.github/skills/protocol-change/SKILL.md` (5-phase cascade: TypeSpec → JSON Schema → Rust → docs → verification gates).
+- **New agent**: Created `.github/agents/rust-expert.agent.md` (MSRV validation, crate boundary enforcement, Context7-first API verification, TEA/index-rebuild rule enforcement).
+
 ## Next Workstream
 
-- Continue protocol-vocabulary alignment across remaining legacy wording in
-  implementation docs and UX copy.
-- Keep task tracking explicitly phase-aligned so progress is easy to audit.
+- No active feature work in progress. Project is in maintenance mode.
+- If resuming feature work: read `memory-bank/progress.md` "What's Left" section for deferred items.
+- For any significant architectural decision: invoke the `adr` skill before coding.
+- For any protocol-format change: invoke the `protocol-change` skill (5-phase cascade).
 
 ## Current Milestone Execution
 

@@ -2,12 +2,7 @@
 
 ## In Progress
 
-- [TASK001] Phase 1 presentation polish baseline - Core presenter polish active; ongoing refinement
-- [TASK002] Phase 2 editor foundation - Editing/save loops active; presenter hot-reload now wired
-- [TASK003] Phase 3 graph view and advanced editor - Branch and graph UX polishing in progress
-- [TASK004] Phase 4 media and visual effects - Transition upgrades active; ASCII/pixel work pending
-- [TASK005] Phase 5 docs, notes, and release polish - Mermaid + usability docs in progress; export deferred
-- [TASK006] Phase 6 integration/settings/release polish - JSON config + presenter hot-reload landed; final polish ongoing
+- None
 
 ## Pending
 
@@ -15,12 +10,27 @@
 
 ## Completed
 
-- [TASK012] Phase 6 documentation gaps and tutorial series (plan-fireside-improvement-initiative) - Completed 2026-02-20; theme/extension guides + keybindings reference + migration page + full learn-rust series + sidebar wiring complete
-- [TASK011] Phase 5 functional test suite (plan-fireside-improvement-initiative) - Completed 2026-02-19; core roundtrips + engine fixtures/history + cli e2e + tui smoke extension complete
-- [TASK010] Phase 4 security hardening (plan-fireside-improvement-initiative) - Completed 2026-02-20; image-path sanitization + iTerm2 size guard + spec security guidance + typed path-traversal error complete
-- [TASK009] Phase 3 reference implementation fixes and optimizations (plan-fireside-improvement-initiative) - Completed 2026-02-19; rebuild_index/syntect-cache/redraw-gating/history-cap complete
-- [TASK007] Phase 2 build speed and dependency cleanup (plan-fireside-improvement-initiative) - Completed 2026-02-19; deps/linker/dev-profile/syntect eval/rust-ci-nextest complete
-- [TASK008] Phase 1 protocol enhancements (plan-fireside-improvement-initiative) - Completed 2026-02-19; TypeSpec + core + docs + example + verification gates green
+### Agentic Tooling & Memory Bank
+
+- [TASK013] .github/ agentic tooling overhaul - Completed 2026-02-20
+
+### Fireside Improvement Initiative (phases 1–6)
+
+- [TASK012] Phase 6 documentation gaps and tutorial series - Completed 2026-02-20
+- [TASK011] Phase 5 functional test suite - Completed 2026-02-19
+- [TASK010] Phase 4 security hardening - Completed 2026-02-20
+- [TASK009] Phase 3 reference implementation fixes and optimizations - Completed 2026-02-19
+- [TASK007] Phase 2 build speed and dependency cleanup - Completed 2026-02-19
+- [TASK008] Phase 1 protocol enhancements - Completed 2026-02-19
+
+### Original TUI milestone series (TASK001–006)
+
+- [TASK006] Phase 6 integration/settings/release polish - Completed (JSON config, hot-reload, help overlay, graph view, release audit)
+- [TASK005] Phase 5 docs, notes, and release polish - Completed (Mermaid rendering, usability docs; export remains deferred)
+- [TASK004] Phase 4 media and visual effects - Completed (transition infrastructure, ASCII art blocks)
+- [TASK003] Phase 3 graph view and advanced editor - Completed (graph overlay, branch topology, presenter↔editor handoff)
+- [TASK002] Phase 2 editor foundation - Completed (edit/save loop, presenter hot-reload, project-directory support)
+- [TASK001] Phase 1 presentation polish baseline - Completed (core presenter, layout, theme system, iTerm2 import)
 
 ## Abandoned
 
