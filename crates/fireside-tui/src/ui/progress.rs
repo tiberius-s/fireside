@@ -1,16 +1,29 @@
 //! Progress bar widget showing node position and elapsed time.
+//!
+//! Renders a footer bar with navigation hints on each side, a row of coloured
+//! segment dots indicating the current position through the presentation, and
+//! an optional elapsed-time counter.
 
 use fireside_engine::PresentationSession;
 use ratatui::Frame;
 use ratatui::layout::Rect;
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::Paragraph;
+use ratatui::widgets::{Block, Paragraph};
 
-use crate::design::tokens::DesignTokens;
 use crate::theme::Theme;
 
+/// Maximum number of visible segment dots regardless of total node count.
+const MAX_SEGMENTS: usize = 30;
+
 /// Render the progress bar in the footer area.
+///
+/// Layout (left → right):
+/// ```text
+///  [k] prev   ░ ░ █ ░ ░ ░ ░   3 / 7   [j] next
+/// ```
+/// Each `█` / `░` is one segment coloured in `border_active` / `border_inactive`.
+/// When there are more nodes than `MAX_SEGMENTS`, multiple nodes share a segment.
 pub fn render_progress_bar(
     frame: &mut Frame,
     area: Rect,
@@ -19,22 +32,11 @@ pub fn render_progress_bar(
     show_timer: bool,
     theme: &Theme,
 ) {
-    let tokens = DesignTokens::from_theme(theme);
     let current = session.current_node_index();
     let total = session.graph.nodes.len();
     let current_node = &session.graph.nodes[current];
 
-    let style = Style::default().fg(tokens.footer);
-    let bold = style.add_modifier(Modifier::BOLD);
-
-    let minutes = elapsed_secs / 60;
-    let seconds = elapsed_secs % 60;
-    let node_id = current_node
-        .id
-        .as_deref()
-        .map(ToOwned::to_owned)
-        .unwrap_or_else(|| format!("#{}", current + 1));
-
+    // ── Marker suffixes for branch / override nodes ───────────────────────
     let branch_marker = if current_node.branch_point().is_some() {
         " ⎇"
     } else {
@@ -46,105 +48,81 @@ pub fn render_progress_bar(
         ""
     };
 
-    let gauge_width = 10usize;
-    let filled = if total == 0 {
-        0
-    } else {
-        ((current + 1) * gauge_width) / total.max(1)
-    }
-    .min(gauge_width);
-    let gauge = format!(
-        "[{}{}]",
-        "▓".repeat(filled),
-        "░".repeat(gauge_width.saturating_sub(filled))
+    // ── Fixed spans ───────────────────────────────────────────────────────
+    let left_hint = " [k] prev ".to_owned();
+    let right_hint = " [j] next ".to_owned();
+
+    let position_str = format!(
+        " {}/{}{}{} ",
+        current + 1,
+        total,
+        branch_marker,
+        traversal_marker
     );
 
-    let node_info = format!(
-        " {gauge} {node_id} ({}/{}){branch_marker}{traversal_marker} ",
-        current + 1,
-        total
-    );
-    let breadcrumbs = build_breadcrumbs(session);
-    let time_info = if show_timer {
-        format!(" {minutes:02}:{seconds:02} ")
+    let timer_str = if show_timer {
+        let minutes = elapsed_secs / 60;
+        let seconds = elapsed_secs % 60;
+        format!(" {:02}:{:02} ", minutes, seconds)
     } else {
         String::new()
     };
 
-    let width = area.width as usize;
-    let available_for_middle = width.saturating_sub(node_info.len() + time_info.len());
-    let breadcrumb_info = truncate_middle(&breadcrumbs, available_for_middle);
-    let padding_len =
-        width.saturating_sub(node_info.len() + breadcrumb_info.len() + time_info.len());
-    let padding = " ".repeat(padding_len);
+    // ── Segment calculation ───────────────────────────────────────────────
+    // Available width for the segment dots sits between the fixed elements.
+    let fixed_chars = left_hint.chars().count()
+        + right_hint.chars().count()
+        + position_str.chars().count()
+        + timer_str.chars().count();
+    let area_width = area.width as usize;
+    let segment_space = area_width.saturating_sub(fixed_chars);
 
-    let line = Line::from(vec![
-        Span::styled(node_info, bold),
-        Span::styled(breadcrumb_info, style),
-        Span::styled(padding, style),
-        Span::styled(time_info, style),
-    ]);
+    // Each visible segment occupies 1 char; gaps between segments are 1 space.
+    // n segments need n + (n-1) = 2n-1 chars → n = (space+1)/2.
+    let segment_count = if total == 0 {
+        0
+    } else {
+        let n = segment_space.div_ceil(2);
+        n.max(1).min(total).min(MAX_SEGMENTS)
+    };
 
-    frame.render_widget(Paragraph::new(line), area);
-}
+    // Which segment corresponds to the current node?
+    let active_seg = if total <= 1 || segment_count == 0 {
+        0
+    } else {
+        (current * segment_count) / total.max(1)
+    };
 
-fn build_breadcrumbs(session: &PresentationSession) -> String {
-    let mut labels = Vec::new();
+    // ── Build the line ────────────────────────────────────────────────────
+    let hint_style = Style::default().fg(theme.footer);
+    let pos_style = Style::default()
+        .fg(theme.on_surface)
+        .add_modifier(Modifier::BOLD);
 
-    for idx in session
-        .traversal
-        .history()
-        .iter()
-        .copied()
-        .rev()
-        .take(4)
-        .rev()
-    {
-        labels.push(node_label(session, idx));
-    }
-    labels.push(node_label(session, session.current_node_index()));
+    let mut spans: Vec<Span> = Vec::with_capacity(4 + segment_count * 2);
+    spans.push(Span::styled(left_hint, hint_style));
 
-    if labels.is_empty() {
-        return String::new();
-    }
-
-    format!(" {} ", labels.join(" → "))
-}
-
-fn node_label(session: &PresentationSession, idx: usize) -> String {
-    session
-        .graph
-        .nodes
-        .get(idx)
-        .and_then(|node| node.id.as_deref())
-        .map(ToOwned::to_owned)
-        .unwrap_or_else(|| format!("#{}", idx + 1))
-}
-
-fn truncate_middle(text: &str, max: usize) -> String {
-    if max == 0 {
-        return String::new();
-    }
-    let count = text.chars().count();
-    if count <= max {
-        return text.to_string();
-    }
-    if max <= 1 {
-        return "…".to_string();
+    for i in 0..segment_count {
+        if i > 0 {
+            spans.push(Span::styled(" ", Style::default().bg(theme.toolbar_bg)));
+        }
+        let seg_style = if i == active_seg {
+            Style::default().fg(theme.border_active)
+        } else {
+            Style::default().fg(theme.border_inactive)
+        };
+        spans.push(Span::styled("█", seg_style));
     }
 
-    let left = (max - 1) / 2;
-    let right = max - 1 - left;
+    spans.push(Span::styled(position_str, pos_style));
+    if !timer_str.is_empty() {
+        spans.push(Span::styled(timer_str, hint_style));
+    }
+    spans.push(Span::styled(right_hint, hint_style));
 
-    let left_part: String = text.chars().take(left).collect();
-    let right_part: String = text
-        .chars()
-        .rev()
-        .take(right)
-        .collect::<String>()
-        .chars()
-        .rev()
-        .collect();
-
-    format!("{left_part}…{right_part}")
+    let line = Line::from(spans);
+    frame.render_widget(
+        Paragraph::new(line).block(Block::default().style(Style::default().bg(theme.toolbar_bg))),
+        area,
+    );
 }

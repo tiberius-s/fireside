@@ -91,8 +91,8 @@ impl Default for DesignTokens {
     fn default() -> Self {
         Self {
             // Base palette — dark terminal defaults
-            background: Color::Reset,
-            surface: Color::Rgb(40, 44, 52),
+            background: Color::Rgb(40, 44, 52),
+            surface: Color::Rgb(44, 49, 60),
             primary: Color::Rgb(97, 175, 239),
             accent: Color::Rgb(198, 120, 221),
             muted: Color::Rgb(92, 99, 112),
@@ -128,11 +128,16 @@ impl Default for DesignTokens {
 
 impl DesignTokens {
     /// Convert tokens to the `Theme` struct used by the renderer.
+    ///
+    /// All 19 semantic color fields are mapped so no token information is lost
+    /// in the conversion path.
     #[must_use]
     pub fn to_theme(&self) -> Theme {
         Theme {
             background: self.background,
             foreground: self.on_background,
+            surface: self.surface,
+            on_surface: self.on_surface,
             heading_h1: self.heading_h1,
             heading_h2: self.heading_h2,
             heading_h3: self.heading_h3,
@@ -141,17 +146,27 @@ impl DesignTokens {
             code_border: self.border_inactive,
             block_quote: self.quote,
             footer: self.footer,
+            border_active: self.border_active,
+            border_inactive: self.border_inactive,
+            toolbar_bg: self.toolbar_bg,
+            toolbar_fg: self.toolbar_fg,
+            accent: self.accent,
+            error: self.error,
+            success: self.success,
             syntax_theme: self.syntax_theme.clone(),
         }
     }
 
     /// Create tokens from a `Theme`.
+    ///
+    /// Fields not represented in `Theme` fall back to the `DesignTokens` defaults.
     #[must_use]
     pub fn from_theme(theme: &Theme) -> Self {
         Self {
             background: theme.background,
+            surface: theme.surface,
             on_background: theme.foreground,
-            on_surface: theme.foreground,
+            on_surface: theme.on_surface,
             heading_h1: theme.heading_h1,
             heading_h2: theme.heading_h2,
             heading_h3: theme.heading_h3,
@@ -160,7 +175,13 @@ impl DesignTokens {
             code_bg: theme.code_background,
             quote: theme.block_quote,
             footer: theme.footer,
-            border_inactive: theme.code_border,
+            border_active: theme.border_active,
+            border_inactive: theme.border_inactive,
+            toolbar_bg: theme.toolbar_bg,
+            toolbar_fg: theme.toolbar_fg,
+            accent: theme.accent,
+            error: theme.error,
+            success: theme.success,
             syntax_theme: theme.syntax_theme.clone(),
             ..Self::default()
         }

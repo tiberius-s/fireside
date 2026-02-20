@@ -557,6 +557,11 @@ impl App {
                                 from_index: transition.from_index,
                             }),
                         elapsed_secs: elapsed,
+                        goto_buffer: if let AppMode::GotoNode { ref buffer } = self.mode {
+                            Some(buffer.as_str())
+                        } else {
+                            None
+                        },
                     },
                 );
             }

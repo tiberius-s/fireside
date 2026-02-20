@@ -40,16 +40,25 @@ pub fn render_editor(
 ) {
     let area = frame.area();
 
+    // ── Top-level vertical split: body | slim status bar ─────────────────
     let sections = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Min(1), Constraint::Length(3)])
+        .constraints([Constraint::Min(1), Constraint::Length(2)])
         .split(area);
 
+    // ── Horizontal split: left panel (30%) | detail panel (70%) ──────────
     let body = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
         .split(sections[0]);
 
+    // ── Left panel: node tree (60%) | tools panel (40%) ──────────────────
+    let left_panels = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
+        .split(body[0]);
+
+    // ── Computed state ────────────────────────────────────────────────────
     let total = session.graph.nodes.len();
     let selected = view_state.selected_index.min(total.saturating_sub(1));
     let node = &session.graph.nodes[selected];
@@ -66,23 +75,25 @@ pub fn render_editor(
         .as_deref()
         .is_some_and(|notes| !notes.trim().is_empty())
     {
-        "present"
+        "has notes"
     } else {
         "empty"
     };
 
+    // ── Border colors based on focus ──────────────────────────────────────
     let list_border = if view_state.focus == EditorPaneFocus::NodeList {
-        theme.heading_h1
+        theme.border_active
     } else {
-        theme.code_border
+        theme.border_inactive
     };
     let detail_border = if view_state.focus == EditorPaneFocus::NodeDetail {
-        theme.heading_h1
+        theme.border_active
     } else {
-        theme.code_border
+        theme.border_inactive
     };
 
-    let visible_rows = body[0].height.saturating_sub(2) as usize;
+    // ── Node list (left-top panel) ────────────────────────────────────────
+    let visible_rows = left_panels[0].height.saturating_sub(2) as usize;
     let safe_visible_rows = visible_rows.max(1);
     let max_start = total.saturating_sub(safe_visible_rows);
     let mut list_start = view_state.list_scroll_offset.min(max_start);
@@ -92,15 +103,26 @@ pub fn render_editor(
         list_start = selected + 1 - safe_visible_rows;
     }
     let list_end = (list_start + safe_visible_rows).min(total);
-    let selected_pct = if total == 0 {
-        0
-    } else {
-        ((selected + 1) * 100) / total
-    };
 
     let list_items = (list_start..list_end)
         .map(|index| {
-            let label = node_label(session, index);
+            let n = &session.graph.nodes[index];
+            // Type prefix icon for quick visual scanning
+            let icon = match n.content.first() {
+                Some(ContentBlock::Heading { .. }) => "▸",
+                Some(ContentBlock::Code { .. }) => "⌥",
+                Some(ContentBlock::Image { .. }) => "⬛",
+                _ if n
+                    .traversal
+                    .as_ref()
+                    .and_then(|t| t.branch_point.as_ref())
+                    .is_some() =>
+                {
+                    "⎇"
+                }
+                _ => "·",
+            };
+            let label = format!("{} {}", icon, node_label(session, index));
             ListItem::new(Line::from(Span::styled(
                 label,
                 Style::default().fg(theme.foreground),
@@ -111,120 +133,264 @@ pub fn render_editor(
     let list = List::new(list_items)
         .block(
             Block::default()
-                .title(" Nodes ")
+                .title(format!(" Nodes {dirty_marker}({}/{total}) ", selected + 1))
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(list_border)),
+                .border_style(Style::default().fg(list_border))
+                .style(Style::default().bg(theme.surface)),
         )
         .highlight_style(
             Style::default()
                 .fg(theme.heading_h2)
+                .bg(theme.background)
                 .add_modifier(Modifier::BOLD),
         )
         .highlight_symbol("› ");
 
     let mut state = ratatui::widgets::ListState::default();
     state.select(Some(selected.saturating_sub(list_start)));
-    frame.render_stateful_widget(list, body[0], &mut state);
+    frame.render_stateful_widget(list, left_panels[0], &mut state);
+
+    // ── Tools panel (left-bottom panel) ──────────────────────────────────
+    let key = |k: &'static str| Span::styled(k, Style::default().fg(theme.heading_h2));
+    let sep = || Span::styled("  ", Style::default().fg(theme.toolbar_fg));
+    let hint = |h: &str| Span::styled(h.to_string(), Style::default().fg(theme.toolbar_fg));
+
+    let tools_lines = vec![
+        Line::from(vec![Span::styled(
+            "Navigation",
+            Style::default()
+                .fg(theme.heading_h3)
+                .add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(vec![
+            key("j/k"),
+            hint(" up/dn"),
+            sep(),
+            key("PgUpDn"),
+            hint(" page"),
+            sep(),
+            key("Home/End"),
+        ]),
+        Line::from(vec![
+            key("g"),
+            hint(" jump#"),
+            sep(),
+            key("/"),
+            hint(" search"),
+            sep(),
+            key("[/]"),
+            hint(" hits"),
+        ]),
+        Line::from(vec![]),
+        Line::from(vec![Span::styled(
+            "Editing",
+            Style::default()
+                .fg(theme.heading_h3)
+                .add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(vec![
+            key("i"),
+            hint(" inline"),
+            sep(),
+            key("a"),
+            hint(" append"),
+            sep(),
+            key("d"),
+            hint(" delete"),
+        ]),
+        Line::from(vec![
+            key("n"),
+            hint(" add node"),
+            sep(),
+            key("u/r"),
+            hint(" undo/redo"),
+        ]),
+        Line::from(vec![
+            key("w"),
+            hint(" save"),
+            sep(),
+            key("e"),
+            hint(" → present"),
+        ]),
+        Line::from(vec![]),
+        Line::from(vec![Span::styled(
+            "Metadata",
+            Style::default()
+                .fg(theme.heading_h3)
+                .add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(vec![
+            key("L/l"),
+            hint(" layout"),
+            sep(),
+            key("T/t"),
+            hint(" transition"),
+        ]),
+        Line::from(vec![
+            key("o"),
+            hint(format!(" notes ({notes_state})").as_str()),
+            sep(),
+            key("v"),
+            hint(" graph"),
+        ]),
+        Line::from(vec![
+            key("Tab"),
+            hint(" focus"),
+            sep(),
+            key("?"),
+            hint(" help"),
+        ]),
+    ];
+
+    let tools_panel = Paragraph::new(tools_lines)
+        .block(
+            Block::default()
+                .title(" Keybindings ")
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(theme.border_inactive))
+                .style(Style::default().bg(theme.toolbar_bg)),
+        )
+        .style(Style::default().fg(theme.toolbar_fg));
+
+    frame.render_widget(tools_panel, left_panels[1]);
+
+    // ── Detail panel (right) ──────────────────────────────────────────────
+    // Helper closures for field rows: "  label  │  value  "
+    let label_style = Style::default().fg(theme.footer);
+    let value_style = Style::default().fg(theme.foreground);
+    let sep = Span::styled(" │ ", Style::default().fg(theme.border_inactive));
+
+    let field_row = |label: &'static str, spans: Vec<Span<'static>>| -> Line<'static> {
+        let mut parts: Vec<Span<'static>> = vec![
+            Span::styled(format!("  {label:<12}"), label_style),
+            sep.clone(),
+        ];
+        parts.extend(spans);
+        Line::from(parts)
+    };
+
+    // Derive per-block fields from the selected node
+    let first_block = node.content.first();
+    let block_kind = match first_block {
+        Some(ContentBlock::Heading { .. }) => "heading",
+        Some(ContentBlock::Text { .. }) => "text",
+        Some(ContentBlock::Code { .. }) => "code",
+        Some(ContentBlock::List { .. }) => "list",
+        Some(ContentBlock::Image { .. }) => "image",
+        Some(ContentBlock::Divider) => "divider",
+        Some(ContentBlock::Container { .. }) => "container",
+        Some(ContentBlock::Extension { .. }) => "extension",
+        None => "(empty)",
+    };
+    let code_lang = match first_block {
+        Some(ContentBlock::Code { language, .. }) => {
+            language.as_deref().unwrap_or("plain").to_owned()
+        }
+        _ => "—".to_owned(),
+    };
+    let highlight_info = match first_block {
+        Some(ContentBlock::Code {
+            highlight_lines, ..
+        }) if !highlight_lines.is_empty() => highlight_lines
+            .iter()
+            .map(|n| n.to_string())
+            .collect::<Vec<_>>()
+            .join(", "),
+        _ => "—".to_owned(),
+    };
 
     let mut detail_lines = vec![
         Line::from(Span::styled(
-            format!("Selected: {selected_node_label} ({}/{total})", selected + 1),
+            format!("  Node {}/{total}: {selected_node_label}", selected + 1),
             Style::default()
-                .fg(theme.foreground)
+                .fg(theme.on_surface)
                 .add_modifier(Modifier::BOLD),
-        )),
-        Line::from(Span::styled(
-            format!(
-                "List window: {}-{} ({selected_pct}%)",
-                list_start + 1,
-                list_end
-            ),
-            Style::default().fg(theme.footer),
-        )),
-        Line::from(Span::styled(
-            format!("Session: {dirty_marker} undo={can_undo} redo={can_redo}"),
-            Style::default().fg(theme.footer),
         )),
         Line::default(),
-        Line::from(Span::styled(
-            "Metadata Selectors:",
-            Style::default()
-                .fg(theme.heading_h3)
-                .add_modifier(Modifier::BOLD),
-        )),
+        // ── Content block fields ───────────────────────────────────────
+        field_row(
+            "kind",
+            vec![Span::styled(
+                block_kind.to_owned(),
+                Style::default().fg(theme.heading_h2),
+            )],
+        ),
+        field_row("language", vec![Span::styled(code_lang, value_style)]),
+        field_row(
+            "content",
+            vec![Span::styled(
+                truncate(&preview_line(first_block), 55),
+                value_style,
+            )],
+        ),
+        field_row("highlight", vec![Span::styled(highlight_info, value_style)]),
+        Line::default(),
+        // ── Node metadata fields ────────────────────────────────────────
         Line::from(vec![
-            Span::styled("L", Style::default().fg(theme.heading_h2)),
+            Span::styled("  layout     ", label_style),
+            sep.clone(),
             Span::styled(
-                format!("◀ {}   ", layout_name(prev_layout)),
+                format!("◀ {}  ", layout_name(prev_layout)),
                 Style::default().fg(theme.footer),
             ),
             Span::styled(
-                format!("[{}]", layout_name(current_layout)),
+                format!(" {} ", layout_name(current_layout)),
                 Style::default()
-                    .fg(theme.foreground)
+                    .fg(theme.on_surface)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled("   ", Style::default().fg(theme.foreground)),
             Span::styled(
-                format!("{} ▶", layout_name(next_layout)),
+                format!("  {} ▶", layout_name(next_layout)),
                 Style::default().fg(theme.footer),
             ),
-            Span::styled("   l", Style::default().fg(theme.heading_h2)),
+            Span::styled("   L/l", Style::default().fg(theme.heading_h2)),
         ]),
         Line::from(vec![
-            Span::styled("T", Style::default().fg(theme.heading_h2)),
+            Span::styled("  transition ", label_style),
+            sep.clone(),
             Span::styled(
-                format!("◀ {}   ", transition_name(prev_transition)),
+                format!("◀ {}  ", transition_name(prev_transition)),
                 Style::default().fg(theme.footer),
             ),
             Span::styled(
-                format!("[{}]", transition_name(current_transition)),
+                format!(" {} ", transition_name(current_transition)),
                 Style::default()
-                    .fg(theme.foreground)
+                    .fg(theme.on_surface)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled("   ", Style::default().fg(theme.foreground)),
             Span::styled(
-                format!("{} ▶", transition_name(next_transition)),
+                format!("  {} ▶", transition_name(next_transition)),
                 Style::default().fg(theme.footer),
             ),
-            Span::styled("   t", Style::default().fg(theme.heading_h2)),
+            Span::styled("   T/t", Style::default().fg(theme.heading_h2)),
         ]),
-        Line::from(vec![
-            Span::styled("o", Style::default().fg(theme.heading_h2)),
-            Span::styled(
-                format!(" edit speaker notes ({notes_state})"),
-                Style::default().fg(theme.foreground),
-            ),
-        ]),
-        Line::default(),
-        Line::from(Span::styled(
-            format!("Blocks: {}", node.content.len()),
-            Style::default().fg(theme.foreground),
-        )),
-        Line::default(),
-        Line::from(Span::styled(
-            "Preview:",
-            Style::default()
-                .fg(theme.heading_h3)
-                .add_modifier(Modifier::BOLD),
-        )),
-        Line::from(Span::styled(
-            preview_line(node.content.first()),
-            Style::default().fg(theme.foreground),
-        )),
+        field_row(
+            "notes",
+            vec![Span::styled(
+                format!("{notes_state}  [o] edit"),
+                Style::default().fg(if notes_state == "has notes" {
+                    theme.success
+                } else {
+                    theme.footer
+                }),
+            )],
+        ),
+        field_row(
+            "blocks",
+            vec![Span::styled(node.content.len().to_string(), value_style)],
+        ),
     ];
 
     if let Some(buffer) = view_state.inline_text_input {
         detail_lines.push(Line::default());
         detail_lines.push(Line::from(Span::styled(
-            "Inline Text Editor (Enter=commit, Esc=cancel)",
+            "Inline Text Editor  Enter=commit  Esc=cancel",
             Style::default().fg(theme.heading_h2),
         )));
         detail_lines.push(Line::from(Span::styled(
             truncate(buffer, 220),
             Style::default()
-                .fg(theme.foreground)
+                .fg(theme.on_surface)
                 .add_modifier(Modifier::BOLD),
         )));
     }
@@ -234,85 +400,97 @@ pub fn render_editor(
             Block::default()
                 .title(" Node Detail ")
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(detail_border)),
+                .border_style(Style::default().fg(detail_border))
+                .style(Style::default().bg(theme.surface)),
         )
-        .style(Style::default().bg(theme.background))
+        .style(Style::default().fg(theme.foreground))
         .wrap(Wrap { trim: true });
 
     frame.render_widget(detail, body[1]);
 
-    let mut control_spans = vec![
-        Span::styled("Tab", Style::default().fg(theme.heading_h2)),
-        Span::styled(" focus  ", Style::default().fg(theme.foreground)),
-        Span::styled("j/k", Style::default().fg(theme.heading_h2)),
-        Span::styled(" select  ", Style::default().fg(theme.foreground)),
-        Span::styled("PgUp/PgDn", Style::default().fg(theme.heading_h2)),
-        Span::styled(" page  ", Style::default().fg(theme.foreground)),
-        Span::styled("Home/End", Style::default().fg(theme.heading_h2)),
-        Span::styled(" top/bottom  ", Style::default().fg(theme.foreground)),
-        Span::styled("/", Style::default().fg(theme.heading_h2)),
-        Span::styled(" search  ", Style::default().fg(theme.foreground)),
-        Span::styled("[/]", Style::default().fg(theme.heading_h2)),
-        Span::styled(" prev/next hit  ", Style::default().fg(theme.foreground)),
-        Span::styled("g", Style::default().fg(theme.heading_h2)),
-        Span::styled(" jump  ", Style::default().fg(theme.foreground)),
-        Span::styled("i", Style::default().fg(theme.heading_h2)),
-        Span::styled(" inline edit  ", Style::default().fg(theme.foreground)),
-        Span::styled("a", Style::default().fg(theme.heading_h2)),
-        Span::styled(" append  ", Style::default().fg(theme.foreground)),
-        Span::styled("n", Style::default().fg(theme.heading_h2)),
-        Span::styled(" add node  ", Style::default().fg(theme.foreground)),
-        Span::styled("d", Style::default().fg(theme.heading_h2)),
-        Span::styled(" delete  ", Style::default().fg(theme.foreground)),
-        Span::styled("v", Style::default().fg(theme.heading_h2)),
-        Span::styled(" graph  ", Style::default().fg(theme.foreground)),
-        Span::styled("u/r", Style::default().fg(theme.heading_h2)),
-        Span::styled(" undo/redo  ", Style::default().fg(theme.foreground)),
-        Span::styled("w", Style::default().fg(theme.heading_h2)),
-        Span::styled(" save", Style::default().fg(theme.foreground)),
+    // ── Status bar ────────────────────────────────────────────────────────
+    let mut status_spans = vec![
+        Span::styled(
+            " EDITING ",
+            Style::default()
+                .fg(theme.toolbar_bg)
+                .bg(theme.accent)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("  ", Style::default().bg(theme.toolbar_bg)),
     ];
 
+    // Filename + dirty marker
+    let filename = if session.dirty {
+        format!("● {dirty_marker}unsaved")
+    } else {
+        "● saved".to_string()
+    };
+    status_spans.push(Span::styled(
+        filename,
+        Style::default()
+            .fg(if session.dirty {
+                theme.error
+            } else {
+                theme.success
+            })
+            .bg(theme.toolbar_bg),
+    ));
+
+    // Undo/redo chips
+    status_spans.push(Span::styled("  ", Style::default().bg(theme.toolbar_bg)));
+    let undo_style = if can_undo {
+        Style::default().fg(theme.heading_h2).bg(theme.toolbar_bg)
+    } else {
+        Style::default().fg(theme.footer).bg(theme.toolbar_bg)
+    };
+    let redo_style = if can_redo {
+        Style::default().fg(theme.heading_h2).bg(theme.toolbar_bg)
+    } else {
+        Style::default().fg(theme.footer).bg(theme.toolbar_bg)
+    };
+    status_spans.push(Span::styled("[u undo]", undo_style));
+    status_spans.push(Span::styled(" ", Style::default().bg(theme.toolbar_bg)));
+    status_spans.push(Span::styled("[r redo]", redo_style));
+
+    // Active search/jump prompt
     if let Some(search) = view_state.search_input {
-        control_spans.push(Span::styled("  |  ", Style::default().fg(theme.footer)));
-        control_spans.push(Span::styled(
-            format!("Search node id: {search}_"),
-            Style::default().fg(theme.heading_h2),
+        status_spans.push(Span::styled(
+            format!("  Search: {search}_"),
+            Style::default().fg(theme.heading_h1).bg(theme.toolbar_bg),
         ));
     } else if let Some(index_jump) = view_state.index_jump_input {
-        control_spans.push(Span::styled("  |  ", Style::default().fg(theme.footer)));
-        control_spans.push(Span::styled(
-            format!("Jump to index: {index_jump}_"),
-            Style::default().fg(theme.heading_h2),
+        status_spans.push(Span::styled(
+            format!("  Jump to: {index_jump}_"),
+            Style::default().fg(theme.heading_h1).bg(theme.toolbar_bg),
         ));
     }
 
+    // Status message
     if let Some(message) = view_state.status {
-        control_spans.push(Span::styled("  |  ", Style::default().fg(theme.footer)));
-        control_spans.push(Span::styled(
-            truncate(message, 60),
-            Style::default().fg(theme.heading_h3),
+        status_spans.push(Span::styled(
+            format!("  {}", truncate(message, 60)),
+            Style::default().fg(theme.heading_h3).bg(theme.toolbar_bg),
         ));
     }
 
+    // Pending exit confirmation
     if view_state.pending_exit_confirmation {
-        control_spans.push(Span::styled("  |  ", Style::default().fg(theme.footer)));
-        control_spans.push(Span::styled(
-            "Unsaved changes: y=leave n=stay",
-            Style::default().fg(theme.heading_h1),
+        status_spans.push(Span::styled(
+            "  Unsaved changes — y leave  n stay",
+            Style::default()
+                .fg(theme.error)
+                .bg(theme.toolbar_bg)
+                .add_modifier(Modifier::BOLD),
         ));
     }
 
-    let controls = Line::from(control_spans);
+    let status_bar = Paragraph::new(Line::from(status_spans))
+        .block(Block::default().style(Style::default().bg(theme.toolbar_bg)));
 
-    let footer = Paragraph::new(controls).block(
-        Block::default()
-            .title(" Editor Mode ")
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(theme.footer)),
-    );
+    frame.render_widget(status_bar, sections[1]);
 
-    frame.render_widget(footer, sections[1]);
-
+    // ── Overlays ──────────────────────────────────────────────────────────
     if show_help {
         render_help_overlay(
             frame,
@@ -502,7 +680,7 @@ fn render_picker_overlay(
     let block = Block::default()
         .title(title)
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(theme.heading_h1));
+        .border_style(Style::default().fg(theme.border_active));
     let inner = block.inner(popup);
     frame.render_widget(block, popup);
 

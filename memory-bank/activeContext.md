@@ -55,9 +55,27 @@ The **Fireside Improvement Initiative** (6 phases) is **100% complete**. The pro
 
 ## Recent Changes (most recent first)
 
+- 2026-02-20: **Penpot UX design session (TASK014)** — Full design audit of TUI in Presenting and Editing modes. Created 7 Penpot boards: Design System (palette, typography, spacing, borders), Presenter Mode, Presenter + Branch Overlay, Presenter + Help Overlay, Editor Mode, Editor + Graph Overlay, and a 9-card UX Improvements catalog. Identified 9 actionable UX gaps. Registered Penpot MCP server and `penpot-uiux-design` skill in `copilot-instructions.md`.
 - 2026-02-20: Fixed `_index.md` → `index.md` naming in `guides/learn-rust/` (was returning 404 from Starlight sidebar).
 - 2026-02-20: Added 7 expert crate deep-dive docs under `docs/src/content/docs/crates/` and corresponding Starlight sidebar section.
 - 2026-02-20: Completed Phase 6 — theme authoring + extension authoring guides, keybindings reference, migration page, full 9-chapter Learn Rust tutorial series.
+
+## UX Improvement Proposals (from TASK014)
+
+The following 9 improvements have been designed and documented in Penpot board "07 — UX Improvements".
+
+Low complexity: proposals 1–4. Medium: 5–8. High: 9.
+
+1. **Persistent Mode Badge** — `■ PRESENT` (blue) / `✎ EDITING` (purple) in footer top-right. Non-breaking, pure UI.
+2. **Progress Bar Upgrade** — Add next-node ID preview; show `⎇ BRANCH` indicator in gold when current node has a branch-point.
+3. **GotoNode Autocomplete** — Show filtered node list above footer as user types, not just naked buffer.
+4. **Undo/Redo Chip State** — Render `[ Z undo ]` / `[ Y redo ]` as greyed-out chips when unavailable.
+5. **Branch Button Affordance** — Box-drawing key chip `╔═╗ ║a║ ╚═╝` per option instead of plain `[a]` text.
+6. **Metadata Selector Chip Row** — Replace `◀ [val] ▶` with a visible chip row showing neighbouring values.
+7. **Help Slide-in Panel** — Right-side 55% panel (not full-modal); left 45% stays visible and dimmed.
+8. **Graph Edge Colour Coding** — blue=next, gold=branch, green=after, red=goto.
+9. **Compact Breakpoint Adaptation** — At ≤80 cols, collapse node list to overlay; right pane takes full width.
+
 - 2026-02-19: CI workflows hardened — MSRV bumped 1.85 → 1.88, added `libfontconfig1-dev` apt step, `deny.toml` license/advisory policy.
 - 2026-02-19: Git hooks installed (`.githooks/pre-commit`, `.githooks/pre-push`, `.githooks/install.sh`).
 - 2026-02-19: Completed Phases 1–5 of the Fireside Improvement Initiative (protocol enhancements, dep cleanup, perf optimizations, security hardening, test suite).

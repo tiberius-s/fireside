@@ -58,7 +58,7 @@ pub(crate) fn resolve_project_entry(dir: &Path) -> Result<(PathBuf, Option<Strin
 pub fn run_project(dir: &Path, theme_name: Option<&str>) -> Result<()> {
     let (entry_path, project_theme) = resolve_project_entry(dir)?;
     let effective_theme = theme_name.or(project_theme.as_deref());
-    run_presentation(&entry_path, effective_theme, 1)
+    run_presentation(&entry_path, effective_theme, 1, false)
 }
 
 #[cfg(test)]

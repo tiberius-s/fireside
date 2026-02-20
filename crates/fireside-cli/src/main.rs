@@ -41,6 +41,10 @@ enum Command {
         /// Start at a specific node number (1-indexed).
         #[arg(short = 's', long, default_value = "1")]
         start: usize,
+
+        /// Open directly in editor mode instead of presentation mode.
+        #[arg(short, long)]
+        edit: bool,
     },
 
     /// Open a Fireside project directory.
@@ -82,9 +86,13 @@ enum Command {
     /// List installed monospace fonts.
     Fonts,
 
-    /// Import an iTerm2 color scheme (.itermcolors) as a Fireside theme.
+    /// Import a terminal color scheme as a Fireside theme.
+    ///
+    /// Accepts iTerm2 `.itermcolors` plist files and VS Code JSON files from
+    /// <https://github.com/mbadolato/iTerm2-Color-Schemes/tree/master/vscode>.
+    /// The format is auto-detected from the file extension.
     ImportTheme {
-        /// Path to the .itermcolors file.
+        /// Path to the .itermcolors or VS Code .json file.
         file: std::path::PathBuf,
 
         /// Name for the imported theme.
@@ -105,8 +113,13 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Some(Command::Present { file, theme, start }) => {
-            run_presentation(&file, theme.as_deref(), start)?;
+        Some(Command::Present {
+            file,
+            theme,
+            start,
+            edit,
+        }) => {
+            run_presentation(&file, theme.as_deref(), start, edit)?;
         }
         Some(Command::Open { dir, theme }) => {
             run_project(&dir, theme.as_deref())?;
@@ -142,7 +155,7 @@ fn main() -> Result<()> {
             println!("  fireside new <name> -p         Scaffold a new project directory");
             println!("  fireside validate <file.json>  Validate a graph file");
             println!("  fireside fonts                 List installed monospace fonts");
-            println!("  fireside import-theme <file>   Import an iTerm2 color scheme");
+            println!("  fireside import-theme <file>   Import an iTerm2 or VS Code color scheme");
             println!();
             println!("Run `fireside --help` for full options.");
         }

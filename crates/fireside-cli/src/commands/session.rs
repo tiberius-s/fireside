@@ -20,7 +20,17 @@ use fireside_tui::{Action, App};
 use super::project::resolve_project_entry;
 
 /// Run the interactive presentation.
-pub fn run_presentation(file: &Path, theme_name: Option<&str>, start_node: usize) -> Result<()> {
+///
+/// When `start_in_edit` is `true` the TUI opens directly in editor mode,
+/// equivalent to `fireside edit` but with the presentation-style CLI entry
+/// point (theme / start-node flags). In both cases the document path is set
+/// so that pressing `e` to switch modes mid-session enables saving with `w`.
+pub fn run_presentation(
+    file: &Path,
+    theme_name: Option<&str>,
+    start_node: usize,
+    start_in_edit: bool,
+) -> Result<()> {
     let graph = load_graph(file).context("loading graph")?;
     let settings = load_settings();
 
@@ -32,8 +42,14 @@ pub fn run_presentation(file: &Path, theme_name: Option<&str>, start_node: usize
     let session = PresentationSession::new(graph, start_node.saturating_sub(1));
     let mut app = App::new(session, theme);
     app.set_document_path(file.to_path_buf());
+    // Set the save target so that switching to editor mode mid-presentation
+    // and pressing `w` works correctly — same as `run_editor()` does.
+    app.set_editor_target_path(file.to_path_buf());
     app.set_show_progress_bar(settings.show_progress);
     app.set_show_elapsed_timer(settings.show_timer);
+    if start_in_edit {
+        app.enter_edit_mode();
+    }
 
     enable_raw_mode().context("enabling raw mode")?;
     let mut stdout = io::stdout();

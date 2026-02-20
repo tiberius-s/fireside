@@ -335,6 +335,7 @@ Never edit the generated JSON Schema files directly.
 | ------------ | ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | **Context7** | `mcp_context7_*` | Looking up any external crate or library API before writing code. Always `resolve-library-id` first.                          |
 | **GitHub**   | `mcp_github_*`   | CI status, PR searches, issue management, remote file reads, branch/commit history. Prefer over `gh` CLI for structured data. |
+| **Penpot**   | `mcp_penpot_*`   | Creating and editing design artifacts in the connected Penpot project. Use `execute_code` for all shape operations.           |
 
 #### Context7 — usage rules
 
@@ -351,14 +352,26 @@ Never edit the generated JSON Schema files directly.
 - Prefer GitHub MCP over spawning `gh` CLI commands when the operation maps to a structured API call.
 - Use for: checking CI run results, reading remote file contents, searching PRs/issues, listing branches.
 
+#### Penpot MCP — usage rules
+
+- ALL shape mutations use `mcp_penpot_execute_code`; never describe changes without executing code.
+- `penpot.createText("content")` — pass text as constructor arg, NOT via `.characters`.
+- `shape.resize(w, h)` to change dimensions — `.width` and `.height` are read-only.
+- `penpotUtils.setParentXY(shape, x, y)` for relative positioning inside a board.
+- `board.insertChild(board.children.length, shape)` to append children (NOT `appendChild` for non-flex boards).
+- `penpot.setActivePage` does NOT exist — the active page is whichever the user has open in the Penpot UI.
+- Use `storage` object to persist helper functions and shape IDs across successive `execute_code` calls.
+- Always read the `penpot-uiux-design` skill before starting any UI/UX design session.
+
 ### When to invoke a Skill
 
-| Skill             | Invoke when                                                                                               |
-| ----------------- | --------------------------------------------------------------------------------------------------------- |
-| `prd`             | Planning a new feature, protocol version, or user-facing initiative from a vague idea                     |
-| `refactor`        | Improving code structure without behavior change (extract function, rename, reduce god object)            |
-| `adr`             | Documenting a significant architectural decision (new crate, protocol breaking change, dependency choice) |
-| `protocol-change` | Making additive changes to Fireside protocol types end-to-end (TypeSpec → Rust → docs → tests)            |
+| Skill                | Invoke when                                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------- |
+| `prd`                | Planning a new feature, protocol version, or user-facing initiative from a vague idea                     |
+| `refactor`           | Improving code structure without behavior change (extract function, rename, reduce god object)            |
+| `adr`                | Documenting a significant architectural decision (new crate, protocol breaking change, dependency choice) |
+| `protocol-change`    | Making additive changes to Fireside protocol types end-to-end (TypeSpec → Rust → docs → tests)            |
+| `penpot-uiux-design` | Creating UI/UX designs, wireframes, or design systems in Penpot. Always read the skill first.             |
 
 ### When to use subagents vs. direct execution
 

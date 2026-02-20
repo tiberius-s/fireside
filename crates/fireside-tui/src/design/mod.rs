@@ -10,3 +10,4 @@ pub mod fonts;
 pub mod iterm2;
 pub mod templates;
 pub mod tokens;
+pub mod vscode;

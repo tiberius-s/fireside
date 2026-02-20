@@ -12,6 +12,8 @@
 
 ### Agentic Tooling & Memory Bank
 
+- [TASK015] Penpot 8 UX improvements — Completed 2026-02-21 (multi-page arch, token catalog, components, flows, state machine, size variants, accessibility)
+- [TASK014] Penpot UX design audit — Completed 2026-02-20 (7 design boards, 9 UX improvement proposals)
 - [TASK013] .github/ agentic tooling overhaul - Completed 2026-02-20
 
 ### Fireside Improvement Initiative (phases 1–6)

@@ -42,6 +42,8 @@ pub struct PresenterViewState<'a> {
     pub content_base_dir: Option<&'a Path>,
     pub transition: Option<PresenterTransition>,
     pub elapsed_secs: u64,
+    /// When in `GotoNode` mode, the digits typed so far (shown as a badge).
+    pub goto_buffer: Option<&'a str>,
 }
 
 /// Render the full presenter view for the current node.
@@ -133,6 +135,44 @@ pub fn render_presenter(
             view_state.help_scroll_offset,
         );
     }
+
+    // Render GOTO mode badge (gold border, top-right corner)
+    if let Some(buffer) = view_state.goto_buffer {
+        render_goto_badge(frame, area, buffer, theme);
+    }
+}
+
+fn render_goto_badge(frame: &mut Frame, area: Rect, buffer: &str, theme: &Theme) {
+    // Small badge in the top-right: `GOTO: <buffer>_`
+    // Gold border (heading_h3), surface bg.
+    let text = format!(" GOTO: {buffer}_ ");
+    let badge_width = (text.chars().count() as u16 + 2).min(area.width);
+    let badge_height = 3u16;
+    if area.width < badge_width || area.height < badge_height {
+        return;
+    }
+    let badge = Rect {
+        x: area.x + area.width - badge_width,
+        y: area.y,
+        width: badge_width,
+        height: badge_height,
+    };
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(theme.heading_h3))
+        .style(Style::default().bg(theme.surface));
+    let inner = block.inner(badge);
+    frame.render_widget(block, badge);
+    frame.render_widget(
+        Paragraph::new(Line::from(Span::styled(
+            &text,
+            Style::default()
+                .fg(theme.heading_h3)
+                .add_modifier(Modifier::BOLD),
+        ))),
+        inner,
+    );
 }
 
 fn render_transition_node(
