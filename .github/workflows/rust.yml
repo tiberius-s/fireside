@@ -30,6 +30,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install system dependencies
+        run: sudo apt-get update -q && sudo apt-get install -y libfontconfig1-dev
+
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -60,6 +63,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install system dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update -q && sudo apt-get install -y libfontconfig1-dev
+
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -75,14 +82,17 @@ jobs:
         run: cargo nextest run --workspace
 
   msrv:
-    name: MSRV (1.85)
+    name: MSRV (1.88)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Rust 1.85
-        uses: dtolnay/rust-toolchain@1.85
+      - name: Install system dependencies
+        run: sudo apt-get update -q && sudo apt-get install -y libfontconfig1-dev
+
+      - name: Setup Rust 1.88
+        uses: dtolnay/rust-toolchain@1.88
 
       - name: Cache cargo artifacts
         uses: Swatinem/rust-cache@v2

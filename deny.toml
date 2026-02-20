@@ -10,6 +10,8 @@ allow = [
   "BSD-2-Clause",
   "BSD-3-Clause",
   "ISC",
+  "MPL-2.0",
+  "NCSA",
   "Unicode-3.0",
   "Unicode-DFS-2016",
   "CC0-1.0",
@@ -21,7 +23,12 @@ allow = [
 # RustSec advisory database
 db-path = "~/.cargo/advisory-db"
 db-urls = ["https://github.com/rustsec/advisory-db"]
-ignore = []
+ignore = [
+  # bincode: unmaintained (RUSTSEC-2025-0141) — transitive dep, no direct usage
+  "RUSTSEC-2025-0141",
+  # paste: unmaintained (RUSTSEC-2024-0436) — transitive dep, no direct usage
+  "RUSTSEC-2024-0436",
+]
 
 [bans]
 # Warn on duplicate versions — this project does not need to be strict, but
