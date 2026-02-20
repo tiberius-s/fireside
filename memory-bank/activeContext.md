@@ -2,10 +2,17 @@
 
 ## Current Focus
 
-Execution of `.github/prompts/plan-fireside-tui-ux-initiative.prompt.md`
-across phased milestones, while keeping protocol/docs aligned.
+All release gates are green. Documentation parity pass complete.
 
-Current execution mode is TUI usability first:
+- Crate READMEs written for all four Cargo workspace members:
+  `fireside-core`, `fireside-engine`, `fireside-tui`, `fireside-cli`.
+- Root `README.md` updated to reflect full feature set post-UX rehaul:
+  editor mode, graph overlay, help overlay, all keybindings, project mode,
+  iTerm2 theme import, `fireside fonts`, crate README cross-links.
+- Writing style: expert technical writer teaching Rust — architecture
+  rationale, annotated code examples, key design decisions, module maps.
+
+Current execution mode is TUI usability first (unchanged):
 
 - JSON-first configuration surfaces (`fireside.json`) for project config.
 - No YAML/TOML expansion work for now unless explicitly re-approved.

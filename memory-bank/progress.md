@@ -42,6 +42,13 @@
 - Holistic release/usability audit now passes end-to-end for Rust workspace
   checks and TypeSpec schema generation; docs static build is clean after
   resolving Starlight 404 entry handling.
+- Crate READMEs written for all four workspace members (`fireside-core`,
+  `fireside-engine`, `fireside-tui`, `fireside-cli`): teaching-quality Rust
+  documentation with architecture rationale, annotated code examples, module
+  maps, and dependency tables.
+- Root `README.md` updated with full feature set documentation: all CLI
+  subcommands with examples, complete keybinding tables for presenter and
+  editor modes, iTerm2 theme import flow, and cross-links to crate READMEs.
 
 ## In Progress
 
