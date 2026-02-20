@@ -100,7 +100,8 @@ impl PresentationSession {
     ///
     /// Returns an engine error when command application fails.
     pub fn execute_command(&mut self, command: Command) -> Result<(), EngineError> {
-        self.command_history.apply_command(&mut self.graph, command)?;
+        self.command_history
+            .apply_command(&mut self.graph, command)?;
         self.rebuild_node_index();
         self.traversal.clamp_to_graph(self.graph.len());
         self.mark_dirty();

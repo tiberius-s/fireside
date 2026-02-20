@@ -4,6 +4,7 @@
 
 pub mod branch;
 pub mod editor;
+pub mod graph;
 pub mod help;
 pub mod presenter;
 pub mod progress;

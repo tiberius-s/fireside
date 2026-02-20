@@ -1,5 +1,5 @@
 ---
-id: docs-index
+id: docs
 title: 'The Fireside Protocol'
 description: 'A portable format for branching presentations and lessons.'
 ---

@@ -69,22 +69,22 @@ fn merge_settings_from_file(path: &Path, settings: &mut Settings) {
     parsed.apply(settings);
 }
 
-#[derive(Debug, Default, Deserialize)]
-#[serde(default)]
-struct PartialSettings {
-    theme: Option<String>,
-    poll_timeout_ms: Option<u64>,
-    show_progress: Option<bool>,
-    show_timer: Option<bool>,
-}
-
 impl PartialSettings {
     fn apply(self, settings: &mut Settings) {
+        if let Some(nested) = self.settings {
+            nested.apply(settings);
+        }
+
         if let Some(theme) = self.theme {
-            settings.theme = Some(theme);
+            let trimmed = theme.trim();
+            if trimmed.is_empty() {
+                settings.theme = None;
+            } else {
+                settings.theme = Some(trimmed.to_string());
+            }
         }
         if let Some(timeout) = self.poll_timeout_ms {
-            settings.poll_timeout_ms = timeout;
+            settings.poll_timeout_ms = timeout.clamp(10, 10_000);
         }
         if let Some(show_progress) = self.show_progress {
             settings.show_progress = show_progress;
@@ -95,13 +95,22 @@ impl PartialSettings {
     }
 }
 
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+struct PartialSettings {
+    #[serde(alias = "default_theme")]
+    theme: Option<String>,
+    #[serde(alias = "poll-timeout-ms")]
+    poll_timeout_ms: Option<u64>,
+    #[serde(alias = "show-progress", alias = "show_progress_bar")]
+    show_progress: Option<bool>,
+    #[serde(alias = "show-timer", alias = "show_elapsed_timer")]
+    show_timer: Option<bool>,
+    settings: Option<Box<PartialSettings>>,
+}
+
 fn user_settings_path() -> Option<PathBuf> {
-    std::env::var("HOME").ok().map(|home| {
-        PathBuf::from(home)
-            .join(".config")
-            .join("fireside")
-            .join("config.json")
-    })
+    config_base_dir().map(|base| base.join("fireside").join("config.json"))
 }
 
 fn project_settings_path() -> Option<PathBuf> {
@@ -162,14 +171,24 @@ pub fn save_editor_ui_prefs(prefs: &EditorUiPrefs) -> std::io::Result<()> {
 }
 
 fn editor_prefs_path() -> PathBuf {
-    if let Ok(home) = std::env::var("HOME") {
-        return PathBuf::from(home)
-            .join(".config")
-            .join("fireside")
-            .join("editor-ui.json");
+    if let Some(base) = config_base_dir() {
+        return base.join("fireside").join("editor-ui.json");
     }
 
     PathBuf::from(".fireside-editor-ui.json")
+}
+
+fn config_base_dir() -> Option<PathBuf> {
+    if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME")
+        && !xdg.trim().is_empty()
+    {
+        return Some(PathBuf::from(xdg));
+    }
+
+    std::env::var("HOME")
+        .ok()
+        .filter(|home| !home.trim().is_empty())
+        .map(|home| PathBuf::from(home).join(".config"))
 }
 
 #[cfg(test)]
@@ -220,6 +239,36 @@ mod tests {
         assert!(!settings.show_timer);
 
         let _ = std::fs::remove_file(&user_path);
+        let _ = std::fs::remove_file(&project_path);
+        let _ = std::fs::remove_dir(&root);
+    }
+
+    #[test]
+    fn nested_settings_block_is_supported() {
+        let unique = format!(
+            "fireside-settings-nested-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("time should be monotonic")
+                .as_nanos()
+        );
+        let root = std::env::temp_dir().join(unique);
+        std::fs::create_dir_all(&root).expect("temp dir should be creatable");
+
+        let project_path = root.join("project.json");
+        std::fs::write(
+            &project_path,
+            "{\n  \"settings\": {\n    \"theme\": \"  nord  \",\n    \"poll-timeout-ms\": 1,\n    \"show-progress\": false\n  }\n}\n",
+        )
+        .expect("project settings should be writable");
+
+        let settings = load_settings_from_paths(Some(&project_path), None);
+
+        assert_eq!(settings.theme.as_deref(), Some("nord"));
+        assert_eq!(settings.poll_timeout_ms, 10);
+        assert!(!settings.show_progress);
+
         let _ = std::fs::remove_file(&project_path);
         let _ = std::fs::remove_dir(&root);
     }

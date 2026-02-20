@@ -74,7 +74,8 @@ pub fn render_progress_bar(
     let width = area.width as usize;
     let available_for_middle = width.saturating_sub(node_info.len() + time_info.len());
     let breadcrumb_info = truncate_middle(&breadcrumbs, available_for_middle);
-    let padding_len = width.saturating_sub(node_info.len() + breadcrumb_info.len() + time_info.len());
+    let padding_len =
+        width.saturating_sub(node_info.len() + breadcrumb_info.len() + time_info.len());
     let padding = " ".repeat(padding_len);
 
     let line = Line::from(vec![
@@ -90,7 +91,15 @@ pub fn render_progress_bar(
 fn build_breadcrumbs(session: &PresentationSession) -> String {
     let mut labels = Vec::new();
 
-    for idx in session.traversal.history().iter().copied().rev().take(4).rev() {
+    for idx in session
+        .traversal
+        .history()
+        .iter()
+        .copied()
+        .rev()
+        .take(4)
+        .rev()
+    {
         labels.push(node_label(session, idx));
     }
     labels.push(node_label(session, session.current_node_index()));

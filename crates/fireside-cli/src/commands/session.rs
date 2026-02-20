@@ -146,7 +146,7 @@ fn run_event_loop(
         if app.can_hot_reload()
             && let Some(path) = watch_path
             && let Some(updated_modified) = file_modified_time(path)
-            && last_modified.map_or(true, |prev| updated_modified > prev)
+            && last_modified.is_none_or(|prev| updated_modified > prev)
         {
             if let Ok(graph) = load_graph(path) {
                 app.reload_graph(graph);

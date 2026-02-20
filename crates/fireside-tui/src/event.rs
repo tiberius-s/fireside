@@ -77,6 +77,8 @@ pub enum Action {
     EditorOpenTransitionPicker,
     /// Save current graph to its editor target path.
     EditorSaveGraph,
+    /// Toggle editor graph view overlay.
+    EditorToggleGraphView,
     /// Undo the last editor command.
     EditorUndo,
     /// Redo the last undone editor command.

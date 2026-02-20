@@ -67,7 +67,10 @@ fn apply_layout(area: Rect, layout: Layout) -> Rect {
             pad_rect(area, horizontal, 0)
         }
         Layout::Blank => area,
-        Layout::SplitHorizontal | Layout::SplitVertical | Layout::AlignLeft | Layout::AlignRight => {
+        Layout::SplitHorizontal
+        | Layout::SplitVertical
+        | Layout::AlignLeft
+        | Layout::AlignRight => {
             let horizontal = if breakpoint == Breakpoint::Compact {
                 Spacing::XS
             } else {

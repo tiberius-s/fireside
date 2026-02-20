@@ -92,7 +92,11 @@ impl CommandHistory {
     ///
     /// Returns an `EngineError::CommandError` when the command is invalid
     /// for the current graph state.
-    pub fn apply_command(&mut self, graph: &mut Graph, command: Command) -> Result<(), EngineError> {
+    pub fn apply_command(
+        &mut self,
+        graph: &mut Graph,
+        command: Command,
+    ) -> Result<(), EngineError> {
         let inverse = apply_command(graph, &command)?;
         self.applied.push(HistoryEntry { command, inverse });
         self.undone.clear();
@@ -184,7 +188,9 @@ fn apply_command(graph: &mut Graph, command: &Command) -> Result<Command, Engine
                 )));
             }
 
-            let index = after_index.map_or(graph.nodes.len(), |i| i.saturating_add(1).min(graph.nodes.len()));
+            let index = after_index.map_or(graph.nodes.len(), |i| {
+                i.saturating_add(1).min(graph.nodes.len())
+            });
 
             graph.nodes.insert(
                 index,
@@ -218,9 +224,10 @@ fn apply_command(graph: &mut Graph, command: &Command) -> Result<Command, Engine
             graph.nodes.insert(insert_index, node.clone());
             rebuild_node_index(graph);
 
-            let node_id = node.id.clone().ok_or_else(|| {
-                EngineError::CommandError("restored node is missing id".into())
-            })?;
+            let node_id = node
+                .id
+                .clone()
+                .ok_or_else(|| EngineError::CommandError("restored node is missing id".into()))?;
 
             Ok(Command::RemoveNode { node_id })
         }

@@ -22,7 +22,7 @@ use crate::theme::Theme;
 use std::path::Path;
 
 use super::branch::render_branch_overlay;
-use super::help::render_help_overlay;
+use super::help::{HelpMode, render_help_overlay};
 use super::progress::render_progress_bar;
 
 #[derive(Debug, Clone, Copy)]
@@ -35,6 +35,7 @@ pub struct PresenterTransition {
 #[derive(Debug, Clone, Copy)]
 pub struct PresenterViewState<'a> {
     pub show_help: bool,
+    pub help_scroll_offset: usize,
     pub show_speaker_notes: bool,
     pub show_progress_bar: bool,
     pub show_elapsed_timer: bool,
@@ -124,7 +125,13 @@ pub fn render_presenter(
 
     // Render help overlay if active
     if view_state.show_help {
-        render_help_overlay(frame, area, theme);
+        render_help_overlay(
+            frame,
+            area,
+            theme,
+            HelpMode::Presenting,
+            view_state.help_scroll_offset,
+        );
     }
 }
 

@@ -10,7 +10,8 @@ use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
 
 use crate::app::{EditorPaneFocus, EditorPickerOverlay};
 use crate::theme::Theme;
-use crate::ui::help::render_help_overlay;
+use crate::ui::graph::{GraphOverlayViewState, render_graph_overlay};
+use crate::ui::help::{HelpMode, render_help_overlay};
 use fireside_core::model::layout::Layout as NodeLayout;
 use fireside_core::model::transition::Transition;
 
@@ -25,6 +26,8 @@ pub struct EditorViewState<'a> {
     pub status: Option<&'a str>,
     pub pending_exit_confirmation: bool,
     pub picker_overlay: Option<EditorPickerOverlay>,
+    pub graph_overlay: Option<GraphOverlayViewState>,
+    pub help_scroll_offset: usize,
 }
 
 /// Render the editing mode shell.
@@ -261,6 +264,8 @@ pub fn render_editor(
         Span::styled(" add node  ", Style::default().fg(theme.foreground)),
         Span::styled("d", Style::default().fg(theme.heading_h2)),
         Span::styled(" delete  ", Style::default().fg(theme.foreground)),
+        Span::styled("v", Style::default().fg(theme.heading_h2)),
+        Span::styled(" graph  ", Style::default().fg(theme.foreground)),
         Span::styled("u/r", Style::default().fg(theme.heading_h2)),
         Span::styled(" undo/redo  ", Style::default().fg(theme.foreground)),
         Span::styled("w", Style::default().fg(theme.heading_h2)),
@@ -309,11 +314,21 @@ pub fn render_editor(
     frame.render_widget(footer, sections[1]);
 
     if show_help {
-        render_help_overlay(frame, popup_area(sections[0]), theme);
+        render_help_overlay(
+            frame,
+            popup_area(sections[0]),
+            theme,
+            HelpMode::Editing,
+            view_state.help_scroll_offset,
+        );
     }
 
     if let Some(overlay) = view_state.picker_overlay {
         render_picker_overlay(frame, overlay, theme, sections[0]);
+    }
+
+    if let Some(graph_overlay) = view_state.graph_overlay {
+        render_graph_overlay(frame, sections[0], session, theme, graph_overlay);
     }
 }
 

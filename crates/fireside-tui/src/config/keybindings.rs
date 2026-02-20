@@ -69,6 +69,7 @@ fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
         KeyCode::Char('a') => Some(Action::EditorAppendTextBlock),
         KeyCode::Char('n') => Some(Action::EditorAddNode),
         KeyCode::Char('d') => Some(Action::EditorRemoveNode),
+        KeyCode::Char('v') => Some(Action::EditorToggleGraphView),
         KeyCode::Char('w') => Some(Action::EditorSaveGraph),
         KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
             Some(Action::EditorSaveGraph)

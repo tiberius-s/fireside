@@ -80,21 +80,21 @@ Key technical decisions:
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - 65%
+**Overall Status:** In Progress - 84%
 
 ### Subtasks
 
-| ID  | Description                       | Status      | Updated    | Notes                                                   |
-| --- | --------------------------------- | ----------- | ---------- | ------------------------------------------------------- |
-| 6.1 | Design token types and iTerm2 map | Complete    | 2026-02-19 | Token system and iTerm2 parsing active                  |
-| 6.2 | Font detection module             | Complete    | 2026-02-19 | Monospace detection module implemented                  |
-| 6.3 | Slide template layouts            | Complete    | 2026-02-19 | Template areas wired into presenter                     |
-| 6.4 | Project config and loader         | Complete    | 2026-02-19 | Project open/edit directory flow active (fireside.json) |
-| 6.5 | Editor state machine              | In Progress | 2026-02-19 | Core editing mode/actions are active                    |
-| 6.6 | Block editing with mouse          | In Progress | 2026-02-19 | Mouse click/drag/scroll handlers active                 |
-| 6.7 | Property panel and preview        | In Progress | 2026-02-19 | Metadata panel and preview are active                   |
-| 6.8 | Undo/redo and save                | In Progress | 2026-02-19 | Undo/redo + save flow implemented                       |
-| 6.9 | Integration testing               | In Progress | 2026-02-19 | Ongoing smoke validation by milestone                   |
+| ID  | Description                       | Status      | Updated    | Notes                                                     |
+| --- | --------------------------------- | ----------- | ---------- | --------------------------------------------------------- |
+| 6.1 | Design token types and iTerm2 map | Complete    | 2026-02-19 | Token system and iTerm2 parsing active                    |
+| 6.2 | Font detection module             | Complete    | 2026-02-19 | Monospace detection module implemented                    |
+| 6.3 | Slide template layouts            | Complete    | 2026-02-19 | Template areas wired into presenter                       |
+| 6.4 | Project config and loader         | Complete    | 2026-02-19 | Project open/edit directory flow active (`fireside.json`) |
+| 6.5 | Editor state machine              | In Progress | 2026-02-19 | Core editing mode/actions are active                      |
+| 6.6 | Block editing with mouse          | In Progress | 2026-02-19 | Mouse click/drag/scroll handlers active                   |
+| 6.7 | Property panel and preview        | In Progress | 2026-02-19 | Metadata panel and preview are active                     |
+| 6.8 | Undo/redo and save                | In Progress | 2026-02-19 | Undo/redo + save flow implemented                         |
+| 6.9 | Integration testing               | In Progress | 2026-02-19 | Mermaid/settings/hot-reload validations are green         |
 
 ## Progress Log
 
@@ -118,3 +118,40 @@ Key technical decisions:
 
 - Applied JSON-first project configuration (`fireside.json`) and removed YAML project-config dependency from active CLI flow.
 - Kept export formats out of this phase to maintain focus on TUI usability and release polish.
+
+### 2026-02-19 (hot-reload continuation)
+
+- Implemented presenter-mode hot-reload loop in CLI session runner using file modification time checks.
+- Added app-level graph reload behavior that preserves current node when IDs remain stable and clamps safely otherwise.
+- Restricted hot-reload application to presenting mode to avoid editor-state conflicts.
+- Resolved strict clippy warning in reload condition by using `Option::is_none_or`.
+- Verified touched Rust files with diagnostics (`No errors found` in `session.rs` and `app.rs`) while broader smoke/lint runs continue.
+
+### 2026-02-19 (resume after terminal crash)
+
+- Re-ran targeted TUI hot-reload tests and confirmed they pass:
+  - `cargo test -p fireside-tui reload_graph`
+  - `cargo test -p fireside-tui hot_reload_is_only_enabled_in_presenter_mode`
+- Re-ran crate lint gate for touched crates and confirmed clean output:
+  - `cargo clippy -p fireside-cli -p fireside-tui -- -D warnings`
+- Re-ran CLI test suite and confirmed green status:
+  - `cargo test -p fireside-cli --no-fail-fast`
+- Confirmed this hot-reload continuation slice is validated and ready for next Phase 6 polish items.
+
+### 2026-02-19 (Mermaid + settings completion)
+
+- Completed Mermaid extension hardening in renderer:
+  - Added robust extension-type detection helper for Mermaid variants.
+  - Added payload extraction support for `code`, `diagram`, `source`, and string payloads.
+  - Added fenced-code normalization and preview truncation safeguards for long diagrams.
+  - Added preview overflow messaging for clipped lines and payload truncation notice.
+- Completed settings polish:
+  - Added alias support for config keys (`poll-timeout-ms`, `show-progress`, `show-timer`, etc.).
+  - Added nested `settings` block support and bounded poll-timeout clamping.
+  - Normalized theme values by trimming whitespace and handling empty theme strings.
+  - Added XDG-aware config base-dir resolution for settings and editor UI preferences.
+- Verified with sequential checks:
+  - `cargo test -p fireside-tui extension_mermaid --no-fail-fast`
+  - `cargo test -p fireside-tui nested_settings_block_is_supported --no-fail-fast`
+  - `cargo clippy -p fireside-tui -p fireside-cli -- -D warnings`
+  - `cargo test -p fireside-tui --no-fail-fast`

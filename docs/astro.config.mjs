@@ -12,6 +12,7 @@ export default defineConfig({
     starlight({
       title: 'Fireside',
       description: 'A portable format for branching presentations and lessons.',
+      disable404Route: true,
       lastUpdated: true,
       social: {
         github: 'https://github.com/tiberius/fireside',
@@ -24,7 +25,6 @@ export default defineConfig({
         maxHeadingLevel: 3,
       },
       sidebar: [
-        { label: 'Overview', link: '/' },
         {
           label: 'Specification',
           items: [

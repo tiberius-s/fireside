@@ -563,17 +563,9 @@ fn render_known_extension<'a>(
     width: u16,
 ) -> Option<Vec<Line<'a>>> {
     let normalized = extension_type.to_ascii_lowercase();
-    if normalized.contains("mermaid") {
-        let code = payload
-            .get("code")
-            .and_then(Value::as_str)
-            .or_else(|| payload.get("diagram").and_then(Value::as_str));
-
-        return Some(render_mermaid_preview(
-            code.unwrap_or("(missing diagram code)"),
-            tokens,
-            width,
-        ));
+    if is_mermaid_extension(&normalized) {
+        let (code, truncated) = extract_mermaid_code(payload);
+        return Some(render_mermaid_preview(&code, tokens, width, truncated));
     }
 
     if normalized == "table" || normalized.ends_with(".table") || normalized.contains("table") {
@@ -601,7 +593,64 @@ fn render_known_extension<'a>(
     None
 }
 
-fn render_mermaid_preview<'a>(code: &str, tokens: &DesignTokens, width: u16) -> Vec<Line<'a>> {
+fn is_mermaid_extension(normalized_type: &str) -> bool {
+    normalized_type == "mermaid"
+        || normalized_type.ends_with(".mermaid")
+        || normalized_type.contains("mermaid")
+}
+
+fn extract_mermaid_code(payload: &Value) -> (String, bool) {
+    let raw = payload
+        .get("code")
+        .and_then(Value::as_str)
+        .or_else(|| payload.get("diagram").and_then(Value::as_str))
+        .or_else(|| payload.get("source").and_then(Value::as_str))
+        .or_else(|| payload.as_str())
+        .unwrap_or("");
+
+    let normalized = normalize_mermaid_code(raw);
+    if normalized.is_empty() {
+        return ("(missing diagram code)".to_string(), false);
+    }
+
+    const MERMAID_MAX_CHARS: usize = 2_000;
+    let mut preview = normalized;
+    let mut truncated = false;
+    if preview.chars().count() > MERMAID_MAX_CHARS {
+        preview = truncate_text(&preview, MERMAID_MAX_CHARS);
+        truncated = true;
+    }
+
+    (preview, truncated)
+}
+
+fn normalize_mermaid_code(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    if let Some(stripped) = trimmed.strip_prefix("```") {
+        let mut lines = stripped.lines();
+        let _fence_info = lines.next();
+        let mut body = lines.collect::<Vec<_>>().join("\n");
+
+        if let Some(without_trailing) = body.trim_end().strip_suffix("```") {
+            body = without_trailing.trim_end().to_string();
+        }
+
+        return body.trim().to_string();
+    }
+
+    trimmed.to_string()
+}
+
+fn render_mermaid_preview<'a>(
+    code: &str,
+    tokens: &DesignTokens,
+    width: u16,
+    truncated: bool,
+) -> Vec<Line<'a>> {
     let mut lines = vec![Line::from(Span::styled(
         "mermaid diagram preview:",
         Style::default()
@@ -609,11 +658,33 @@ fn render_mermaid_preview<'a>(code: &str, tokens: &DesignTokens, width: u16) -> 
             .add_modifier(Modifier::BOLD),
     ))];
 
+    const MERMAID_MAX_LINES: usize = 8;
     let wrapped = textwrap::wrap(code, width.saturating_sub(4).max(20) as usize);
-    for line in wrapped.into_iter().take(6) {
+    let total_wrapped = wrapped.len();
+
+    for line in wrapped.into_iter().take(MERMAID_MAX_LINES) {
         lines.push(Line::from(Span::styled(
             format!("  {}", line.into_owned()),
             Style::default().fg(tokens.body),
+        )));
+    }
+
+    if total_wrapped > MERMAID_MAX_LINES {
+        lines.push(Line::from(Span::styled(
+            format!(
+                "  … {} more preview lines",
+                total_wrapped - MERMAID_MAX_LINES
+            ),
+            Style::default().fg(tokens.muted),
+        )));
+    }
+
+    if truncated {
+        lines.push(Line::from(Span::styled(
+            "  (preview truncated for performance)",
+            Style::default()
+                .fg(tokens.muted)
+                .add_modifier(Modifier::ITALIC),
         )));
     }
 
@@ -740,5 +811,37 @@ mod tests {
 
         assert!(text.contains("mermaid diagram preview"));
         assert!(text.contains("graph TD; A-->B;"));
+    }
+
+    #[test]
+    fn extension_mermaid_normalizes_fenced_code() {
+        let block = ContentBlock::Extension {
+            extension_type: "mermaid".to_string(),
+            fallback: None,
+            payload: serde_json::json!({"code": "```mermaid\nflowchart TD\nA-->B\n```"}),
+        };
+
+        let tokens = DesignTokens::default();
+        let lines = render_block_with_tokens(&block, &tokens, 80, None);
+        let text = lines_to_text(&lines).join("\n");
+
+        assert!(text.contains("flowchart TD"));
+        assert!(!text.contains("```mermaid"));
+    }
+
+    #[test]
+    fn extension_mermaid_reports_truncation_for_large_payload() {
+        let long = "graph TD; ".repeat(600);
+        let block = ContentBlock::Extension {
+            extension_type: "acme.mermaid".to_string(),
+            fallback: None,
+            payload: serde_json::json!({"source": long}),
+        };
+
+        let tokens = DesignTokens::default();
+        let lines = render_block_with_tokens(&block, &tokens, 60, None);
+        let text = lines_to_text(&lines).join("\n");
+
+        assert!(text.contains("preview truncated for performance"));
     }
 }

@@ -21,6 +21,11 @@ use crate::event::{Action, MouseScrollDirection};
 use crate::theme::Theme;
 use crate::ui::branch::branch_overlay_rect;
 use crate::ui::editor::{EditorViewState, render_editor};
+use crate::ui::graph::{
+    GraphOverlayViewState, graph_overlay_list_panel_rect, graph_overlay_page_span,
+    graph_overlay_rect, graph_overlay_row_to_node, graph_overlay_window,
+};
+use crate::ui::help::{HelpMode, help_navigation};
 use crate::ui::presenter::{PresenterTransition, PresenterViewState, render_presenter};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -73,6 +78,8 @@ pub struct App {
     pub show_help: bool,
     /// Whether speaker notes are visible.
     pub show_speaker_notes: bool,
+    /// Top row offset for scrollable help overlay content.
+    help_scroll_offset: usize,
     /// The active theme.
     pub theme: Theme,
     /// When the presentation started (for elapsed time display).
@@ -107,6 +114,12 @@ pub struct App {
     editor_last_transition_picker: usize,
     /// Top row offset for virtualized node list rendering.
     editor_list_scroll_offset: usize,
+    /// Whether the editor graph overlay is visible.
+    editor_graph_overlay: bool,
+    /// Selected node index in graph overlay.
+    editor_graph_selected_node: usize,
+    /// Top row offset for graph overlay list viewport.
+    editor_graph_scroll_offset: usize,
     /// Active presenter transition animation.
     active_transition: Option<ActiveTransition>,
     /// Optional base directory for resolving relative content assets.
@@ -144,6 +157,7 @@ impl App {
             mode: AppMode::Presenting,
             show_help: false,
             show_speaker_notes: false,
+            help_scroll_offset: 0,
             theme,
             start_time: Instant::now(),
             terminal_size: (120, 40),
@@ -161,6 +175,9 @@ impl App {
             editor_last_layout_picker: 0,
             editor_last_transition_picker: 0,
             editor_list_scroll_offset: 0,
+            editor_graph_overlay: false,
+            editor_graph_selected_node: 0,
+            editor_graph_scroll_offset: 0,
             active_transition: None,
             document_base_dir: None,
             show_progress_bar: true,
@@ -222,11 +239,21 @@ impl App {
 
     /// Enter editing mode.
     pub fn enter_edit_mode(&mut self) {
+        let previous_mode = self.mode.clone();
         self.mode = AppMode::Editing;
         self.editor_selected_node = self.session.current_node_index();
+        self.editor_graph_selected_node = self.editor_selected_node;
         self.load_editor_preferences();
         self.sync_editor_selection_bounds();
         self.sync_editor_list_viewport();
+        self.sync_editor_graph_viewport();
+
+        if previous_mode == AppMode::Presenting {
+            self.editor_status = Some(format!(
+                "Presenter → editor @ node #{}",
+                self.editor_selected_node + 1
+            ));
+        }
     }
 
     /// Set the save target path used by editor save actions.
@@ -257,7 +284,12 @@ impl App {
                 let _ = self.session.traversal.choose(key, &self.session.graph);
                 self.start_transition_if_needed(from_index);
             }
-            Action::ToggleHelp => self.show_help = !self.show_help,
+            Action::ToggleHelp => {
+                self.show_help = !self.show_help;
+                if self.show_help {
+                    self.help_scroll_offset = 0;
+                }
+            }
             Action::ToggleSpeakerNotes => {
                 self.show_speaker_notes = !self.show_speaker_notes;
             }
@@ -386,6 +418,11 @@ impl App {
                     self.save_editor_graph();
                 }
             }
+            Action::EditorToggleGraphView => {
+                if self.mode == AppMode::Editing {
+                    self.toggle_editor_graph_view();
+                }
+            }
             Action::EditorUndo => {
                 if self.mode == AppMode::Editing && self.session.undo().unwrap_or(false) {
                     self.sync_editor_selection_bounds();
@@ -435,6 +472,7 @@ impl App {
                 self.terminal_size = (width, height);
                 if self.mode == AppMode::Editing {
                     self.sync_editor_list_viewport();
+                    self.sync_editor_graph_viewport();
                 }
             }
             Action::MouseClick { column, row } => {
@@ -479,6 +517,11 @@ impl App {
                         status: self.editor_status.as_deref(),
                         pending_exit_confirmation: self.pending_exit_action.is_some(),
                         picker_overlay: self.editor_picker,
+                        graph_overlay: self.editor_graph_overlay.then_some(GraphOverlayViewState {
+                            selected_index: self.editor_graph_selected_node,
+                            scroll_offset: self.editor_graph_scroll_offset,
+                        }),
+                        help_scroll_offset: self.help_scroll_offset,
                     },
                 );
             }
@@ -489,6 +532,7 @@ impl App {
                     &self.theme,
                     PresenterViewState {
                         show_help: self.show_help,
+                        help_scroll_offset: self.help_scroll_offset,
                         show_speaker_notes: self.show_speaker_notes,
                         show_progress_bar: self.show_progress_bar,
                         show_elapsed_timer: self.show_elapsed_timer,
@@ -516,7 +560,15 @@ impl App {
     pub fn handle_event(&mut self, event: Event) {
         match event {
             Event::Key(key) if key.kind == KeyEventKind::Press => {
+                if self.show_help && self.handle_help_overlay_key(key.code) {
+                    return;
+                }
+
                 if self.mode == AppMode::Editing && self.handle_pending_exit_key(key.code) {
+                    return;
+                }
+
+                if self.mode == AppMode::Editing && self.handle_graph_overlay_key(key.code) {
                     return;
                 }
 
@@ -623,6 +675,65 @@ impl App {
             self.session.traversal.next(&self.session.graph);
             self.start_transition_if_needed(from_index);
         }
+    }
+
+    fn handle_help_overlay_key(&mut self, code: KeyCode) -> bool {
+        if !self.show_help {
+            return false;
+        }
+
+        let nav = self.help_overlay_navigation();
+        let viewport = nav.viewport_rows.max(1);
+        let max_scroll = nav.total_rows.saturating_sub(viewport);
+
+        match code {
+            KeyCode::Esc | KeyCode::Char('?') => {
+                self.show_help = false;
+                true
+            }
+            KeyCode::Down | KeyCode::Char('j') => {
+                self.help_scroll_offset = (self.help_scroll_offset + 1).min(max_scroll);
+                true
+            }
+            KeyCode::Up | KeyCode::Char('k') => {
+                self.help_scroll_offset = self.help_scroll_offset.saturating_sub(1);
+                true
+            }
+            KeyCode::PageDown => {
+                self.help_scroll_offset = (self.help_scroll_offset + viewport).min(max_scroll);
+                true
+            }
+            KeyCode::PageUp => {
+                self.help_scroll_offset = self.help_scroll_offset.saturating_sub(viewport);
+                true
+            }
+            KeyCode::Home => {
+                self.help_scroll_offset = 0;
+                true
+            }
+            KeyCode::End => {
+                self.help_scroll_offset = max_scroll;
+                true
+            }
+            KeyCode::Char(ch @ '1'..='6') => {
+                let section_index = ch as usize - '1' as usize;
+                if let Some(target) = nav.section_starts.get(section_index).copied() {
+                    self.help_scroll_offset = target.min(max_scroll);
+                }
+                true
+            }
+            _ => true,
+        }
+    }
+
+    fn help_overlay_navigation(&self) -> crate::ui::help::HelpNavigation {
+        let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+        let mode = if self.mode == AppMode::Editing {
+            HelpMode::Editing
+        } else {
+            HelpMode::Presenting
+        };
+        help_navigation(root, mode)
     }
 
     fn handle_mouse_scroll(&mut self, direction: MouseScrollDirection) {
@@ -981,7 +1092,9 @@ impl App {
     fn sync_editor_selection_bounds(&mut self) {
         let max = self.session.graph.nodes.len().saturating_sub(1);
         self.editor_selected_node = self.editor_selected_node.min(max);
+        self.editor_graph_selected_node = self.editor_graph_selected_node.min(max);
         self.sync_editor_list_viewport();
+        self.sync_editor_graph_viewport();
     }
 
     fn sync_editor_list_viewport(&mut self) {
@@ -1006,6 +1119,35 @@ impl App {
         }
     }
 
+    fn sync_editor_graph_viewport(&mut self) {
+        let total = self.session.graph.nodes.len();
+        if total == 0 {
+            self.editor_graph_scroll_offset = 0;
+            return;
+        }
+
+        let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+        let sections = RatatuiLayout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .split(root);
+
+        let window = graph_overlay_window(
+            sections[0],
+            &self.session,
+            self.editor_graph_selected_node,
+            self.editor_graph_scroll_offset,
+        );
+
+        if self.editor_graph_selected_node < window.start
+            || self.editor_graph_selected_node >= window.end
+        {
+            self.editor_graph_scroll_offset = self.editor_graph_selected_node;
+        } else {
+            self.editor_graph_scroll_offset = window.start;
+        }
+    }
+
     fn editor_list_visible_rows(&self) -> usize {
         let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
         let sections = RatatuiLayout::default()
@@ -1018,6 +1160,115 @@ impl App {
             .split(sections[0]);
 
         body[0].height.saturating_sub(2) as usize
+    }
+
+    fn editor_graph_visible_rows(&self) -> usize {
+        let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+        let sections = RatatuiLayout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .split(root);
+
+        graph_overlay_page_span(
+            sections[0],
+            &self.session,
+            self.editor_graph_selected_node,
+            self.editor_graph_scroll_offset,
+        )
+    }
+
+    fn toggle_editor_graph_view(&mut self) {
+        self.editor_graph_overlay = !self.editor_graph_overlay;
+        if self.editor_graph_overlay {
+            self.editor_picker = None;
+            self.editor_graph_selected_node = self.editor_selected_node;
+            self.sync_editor_graph_viewport();
+            self.editor_status = Some("Graph view opened (Enter jumps to node)".to_string());
+        } else {
+            self.editor_status = Some("Graph view closed".to_string());
+        }
+    }
+
+    fn handle_graph_overlay_key(&mut self, code: KeyCode) -> bool {
+        if !self.editor_graph_overlay {
+            return false;
+        }
+
+        match code {
+            KeyCode::Esc | KeyCode::Char('v') => {
+                self.editor_graph_overlay = false;
+                self.editor_status = Some("Graph view closed".to_string());
+                true
+            }
+            KeyCode::Up | KeyCode::Char('k') | KeyCode::Left | KeyCode::Char('h') => {
+                self.editor_graph_selected_node = self.editor_graph_selected_node.saturating_sub(1);
+                self.sync_editor_graph_viewport();
+                true
+            }
+            KeyCode::Down | KeyCode::Char('j') | KeyCode::Right | KeyCode::Char('l') => {
+                let max = self.session.graph.nodes.len().saturating_sub(1);
+                self.editor_graph_selected_node = (self.editor_graph_selected_node + 1).min(max);
+                self.sync_editor_graph_viewport();
+                true
+            }
+            KeyCode::PageUp => {
+                let page = self.editor_graph_visible_rows().max(1);
+                self.editor_graph_selected_node =
+                    self.editor_graph_selected_node.saturating_sub(page);
+                self.sync_editor_graph_viewport();
+                true
+            }
+            KeyCode::PageDown => {
+                let page = self.editor_graph_visible_rows().max(1);
+                let max = self.session.graph.nodes.len().saturating_sub(1);
+                self.editor_graph_selected_node = (self.editor_graph_selected_node + page).min(max);
+                self.sync_editor_graph_viewport();
+                true
+            }
+            KeyCode::Home => {
+                self.editor_graph_selected_node = 0;
+                self.sync_editor_graph_viewport();
+                true
+            }
+            KeyCode::End => {
+                self.editor_graph_selected_node = self.session.graph.nodes.len().saturating_sub(1);
+                self.sync_editor_graph_viewport();
+                true
+            }
+            KeyCode::Enter => {
+                self.apply_graph_overlay_selection(false);
+                true
+            }
+            KeyCode::Char('p') | KeyCode::Char('P') => {
+                self.apply_graph_overlay_selection(true);
+                true
+            }
+            _ => true,
+        }
+    }
+
+    fn apply_graph_overlay_selection(&mut self, enter_present_mode: bool) {
+        let idx = self
+            .editor_graph_selected_node
+            .min(self.session.graph.nodes.len().saturating_sub(1));
+        self.editor_selected_node = idx;
+        self.sync_editor_list_viewport();
+        let _ = self.session.traversal.goto(idx, &self.session.graph);
+        self.editor_graph_overlay = false;
+
+        if enter_present_mode {
+            self.mode = AppMode::Presenting;
+            self.editor_text_input = None;
+            self.editor_inline_target = None;
+            self.editor_picker = None;
+            self.editor_search_input = None;
+            self.editor_index_jump_input = None;
+            self.pending_exit_action = None;
+            self.persist_editor_preferences();
+            self.editor_status = Some(format!("Presenter jump: node #{}", idx + 1));
+        } else {
+            self.editor_status = Some(format!("Graph jump: node #{}", idx + 1));
+        }
     }
 
     fn start_inline_edit(&mut self, target: EditorInlineTarget) {
@@ -1353,6 +1604,7 @@ impl App {
     fn apply_exit_action(&mut self, action: PendingExitAction) {
         self.pending_exit_action = None;
         self.editor_picker = None;
+        self.editor_graph_overlay = false;
         self.editor_search_input = None;
         self.editor_search_query = None;
         self.editor_index_jump_input = None;
@@ -1410,6 +1662,13 @@ impl App {
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
             .split(sections[0]);
+
+        if self.editor_graph_overlay {
+            if self.handle_graph_overlay_mouse_click(column, row, sections[0]) {
+                return;
+            }
+            return;
+        }
 
         if let Some(overlay) = self.editor_picker
             && self.handle_picker_mouse_click(column, row, overlay, sections[0])
@@ -1493,6 +1752,22 @@ impl App {
             return;
         }
 
+        if self.editor_graph_overlay {
+            match direction {
+                MouseScrollDirection::Up => {
+                    self.editor_graph_selected_node =
+                        self.editor_graph_selected_node.saturating_sub(1);
+                }
+                MouseScrollDirection::Down => {
+                    let max = self.session.graph.nodes.len().saturating_sub(1);
+                    self.editor_graph_selected_node =
+                        (self.editor_graph_selected_node + 1).min(max);
+                }
+            }
+            self.sync_editor_graph_viewport();
+            return;
+        }
+
         if let Some(overlay) = self.editor_picker {
             let max_index = match overlay {
                 EditorPickerOverlay::Layout { .. } => layout_variants().len().saturating_sub(1),
@@ -1553,6 +1828,49 @@ impl App {
             self.set_picker_selection(index);
             self.apply_picker_selection();
         }
+        true
+    }
+
+    fn handle_graph_overlay_mouse_click(
+        &mut self,
+        column: u16,
+        row: u16,
+        content_area: Rect,
+    ) -> bool {
+        let popup = graph_overlay_rect(content_area);
+        if !point_in_rect(column, row, popup) {
+            self.editor_graph_overlay = false;
+            self.editor_status = Some("Graph view closed".to_string());
+            return true;
+        }
+
+        let list_area = graph_overlay_list_panel_rect(content_area);
+
+        if !point_in_rect(column, row, list_area) {
+            return true;
+        }
+
+        let idx = graph_overlay_row_to_node(
+            content_area,
+            &self.session,
+            self.editor_graph_selected_node,
+            self.editor_graph_scroll_offset,
+            row,
+        );
+        let Some(idx) = idx else {
+            return true;
+        };
+
+        if idx < self.session.graph.nodes.len() {
+            self.editor_graph_selected_node = idx;
+            self.sync_editor_graph_viewport();
+            self.editor_selected_node = idx;
+            self.sync_editor_list_viewport();
+            let _ = self.session.traversal.goto(idx, &self.session.graph);
+            self.editor_graph_overlay = false;
+            self.editor_status = Some(format!("Graph jump: node #{}", idx + 1));
+        }
+
         true
     }
 }
@@ -1722,4 +2040,236 @@ fn centered_popup(area: Rect, width_pct: u16, height_pct: u16) -> Rect {
         .split(vertical[1]);
 
     horizontal[1]
+}
+
+#[cfg(test)]
+mod tests {
+    use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+    use fireside_core::model::graph::{Graph, GraphFile};
+    use fireside_core::model::node::Node;
+    use fireside_engine::PresentationSession;
+
+    use super::{App, Theme};
+    use crate::event::Action;
+
+    fn graph_with_ids(ids: &[&str]) -> Graph {
+        let file = GraphFile {
+            title: None,
+            author: None,
+            date: None,
+            description: None,
+            version: None,
+            tags: Vec::new(),
+            theme: None,
+            font: None,
+            defaults: None,
+            nodes: ids
+                .iter()
+                .map(|id| Node {
+                    id: Some((*id).to_string()),
+                    layout: None,
+                    transition: None,
+                    speaker_notes: None,
+                    traversal: None,
+                    content: Vec::new(),
+                })
+                .collect(),
+        };
+
+        Graph::from_file(file).expect("graph should be valid")
+    }
+
+    #[test]
+    fn reload_graph_preserves_current_node_by_id() {
+        let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 1);
+        let mut app = App::new(session, Theme::default());
+
+        app.reload_graph(graph_with_ids(&["x", "b", "y"]));
+
+        assert_eq!(app.session.current_node_index(), 1);
+        assert_eq!(app.session.current_node().id.as_deref(), Some("b"));
+    }
+
+    #[test]
+    fn reload_graph_falls_back_to_clamped_index_when_id_missing() {
+        let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 2);
+        let mut app = App::new(session, Theme::default());
+
+        app.reload_graph(graph_with_ids(&["a", "b"]));
+
+        assert_eq!(app.session.current_node_index(), 1);
+        assert_eq!(app.session.current_node().id.as_deref(), Some("b"));
+    }
+
+    #[test]
+    fn hot_reload_is_only_enabled_in_presenter_mode() {
+        let session = PresentationSession::new(graph_with_ids(&["a", "b"]), 0);
+        let mut app = App::new(session, Theme::default());
+
+        assert!(app.can_hot_reload());
+        app.enter_edit_mode();
+        assert!(!app.can_hot_reload());
+    }
+
+    #[test]
+    fn graph_overlay_toggle_tracks_editor_selection() {
+        let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 1);
+        let mut app = App::new(session, Theme::default());
+
+        app.enter_edit_mode();
+        app.update(Action::EditorToggleGraphView);
+
+        assert!(app.editor_graph_overlay);
+        assert_eq!(app.editor_graph_selected_node, 1);
+
+        app.update(Action::EditorToggleGraphView);
+
+        assert!(!app.editor_graph_overlay);
+    }
+
+    #[test]
+    fn graph_overlay_keyboard_enter_jumps_to_selected_node() {
+        let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 0);
+        let mut app = App::new(session, Theme::default());
+
+        app.enter_edit_mode();
+        app.update(Action::EditorToggleGraphView);
+        app.handle_event(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::Enter,
+            KeyModifiers::NONE,
+        )));
+
+        assert!(!app.editor_graph_overlay);
+        assert_eq!(app.editor_selected_node, 1);
+        assert_eq!(app.session.current_node_index(), 1);
+    }
+
+    #[test]
+    fn graph_overlay_paged_navigation_advances_selection() {
+        let ids = (1..=24)
+            .map(|index| format!("node-{index}"))
+            .collect::<Vec<_>>();
+        let id_refs = ids.iter().map(String::as_str).collect::<Vec<_>>();
+
+        let session = PresentationSession::new(graph_with_ids(&id_refs), 0);
+        let mut app = App::new(session, Theme::default());
+        app.terminal_size = (100, 28);
+
+        app.enter_edit_mode();
+        app.update(Action::EditorToggleGraphView);
+        let page = app.editor_graph_visible_rows().max(1);
+
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::PageDown,
+            KeyModifiers::NONE,
+        )));
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::Enter,
+            KeyModifiers::NONE,
+        )));
+
+        assert_eq!(app.editor_selected_node, page.min(23));
+    }
+
+    #[test]
+    fn graph_overlay_home_end_navigation_hits_bounds() {
+        let ids = (1..=12)
+            .map(|index| format!("node-{index}"))
+            .collect::<Vec<_>>();
+        let id_refs = ids.iter().map(String::as_str).collect::<Vec<_>>();
+
+        let session = PresentationSession::new(graph_with_ids(&id_refs), 5);
+        let mut app = App::new(session, Theme::default());
+        app.enter_edit_mode();
+        app.update(Action::EditorToggleGraphView);
+
+        app.handle_event(Event::Key(KeyEvent::new(KeyCode::End, KeyModifiers::NONE)));
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::Enter,
+            KeyModifiers::NONE,
+        )));
+        assert_eq!(app.editor_selected_node, 11);
+
+        app.update(Action::EditorToggleGraphView);
+        app.handle_event(Event::Key(KeyEvent::new(KeyCode::Home, KeyModifiers::NONE)));
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::Enter,
+            KeyModifiers::NONE,
+        )));
+        assert_eq!(app.editor_selected_node, 0);
+    }
+
+    #[test]
+    fn graph_overlay_present_shortcut_switches_to_presenting_mode() {
+        let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 0);
+        let mut app = App::new(session, Theme::default());
+
+        app.enter_edit_mode();
+        app.update(Action::EditorToggleGraphView);
+        app.handle_event(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::Char('p'),
+            KeyModifiers::NONE,
+        )));
+
+        assert_eq!(app.mode, super::AppMode::Presenting);
+        assert!(!app.editor_graph_overlay);
+        assert_eq!(app.session.current_node_index(), 1);
+        assert_eq!(app.editor_selected_node, 1);
+    }
+
+    #[test]
+    fn presenter_enter_edit_mode_sets_breadcrumb_status() {
+        let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 2);
+        let mut app = App::new(session, Theme::default());
+
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::Char('e'),
+            KeyModifiers::NONE,
+        )));
+
+        assert_eq!(app.mode, super::AppMode::Editing);
+        assert_eq!(app.editor_selected_node, 2);
+        let status = app.editor_status.as_deref().unwrap_or_default();
+        assert!(status.contains("Presenter"));
+        assert!(status.contains("node #3"));
+    }
+
+    #[test]
+    fn help_overlay_scroll_keys_adjust_offset() {
+        let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 0);
+        let mut app = App::new(session, Theme::default());
+        app.terminal_size = (80, 24);
+
+        app.update(Action::ToggleHelp);
+        let start = app.help_scroll_offset;
+
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::PageDown,
+            KeyModifiers::NONE,
+        )));
+        assert!(app.help_scroll_offset >= start);
+
+        app.handle_event(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+        assert!(app.help_scroll_offset >= start);
+
+        app.handle_event(Event::Key(KeyEvent::new(KeyCode::Home, KeyModifiers::NONE)));
+        assert_eq!(app.help_scroll_offset, 0);
+    }
+
+    #[test]
+    fn help_overlay_section_jump_key_moves_scroll() {
+        let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 0);
+        let mut app = App::new(session, Theme::default());
+        app.terminal_size = (80, 24);
+
+        app.update(Action::ToggleHelp);
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::Char('4'),
+            KeyModifiers::NONE,
+        )));
+
+        assert!(app.help_scroll_offset > 0);
+    }
 }
