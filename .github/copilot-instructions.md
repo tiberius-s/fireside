@@ -28,14 +28,19 @@ this order:
    - Working with syntect's `HighlightLines` or `ThemeSet`
    - Any use of `plist`, `font-kit`, or `image` crate APIs
 
-3. **Verify patterns against existing implementations in this repo.** Before adding a
+3. **Use GitHub MCP for repository-level research.** When you need to inspect CI
+   results, search pull requests, read issues, or look up file contents on the remote,
+   use the GitHub MCP tools (`mcp_github_*`) rather than running `gh` CLI commands.
+   Prefer `search_*` tools for targeted queries and `list_*` tools for broad pagination.
+
+4. **Verify patterns against existing implementations in this repo.** Before adding a
    new `ContentBlock` variant, read `crates/fireside-core/src/model/content.rs` to
    confirm the serde tag pattern. Before adding a new `Action`, read
    `crates/fireside-tui/src/event.rs`. Before adding a new CLI subcommand, read
    `crates/fireside-cli/src/main.rs`. Consistency with existing patterns is more
    important than novelty.
 
-4. **Check the memory bank.** Read `memory-bank/activeContext.md` and relevant task
+5. **Check the memory bank.** Read `memory-bank/activeContext.md` and relevant task
    files in `memory-bank/tasks/` before starting any multi-step work. These contain
    architectural decisions and in-progress context that may not be visible in code.
 
@@ -323,6 +328,28 @@ Never edit the generated JSON Schema files directly.
 | App C   | Content Block Reference | Full catalog + extensions (non-normative)   |
 
 ## Agentic Tools & Skills Registry
+
+### Available MCP Servers
+
+| Server       | Tool prefix      | Use when                                                                                                                      |
+| ------------ | ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Context7** | `mcp_context7_*` | Looking up any external crate or library API before writing code. Always `resolve-library-id` first.                          |
+| **GitHub**   | `mcp_github_*`   | CI status, PR searches, issue management, remote file reads, branch/commit history. Prefer over `gh` CLI for structured data. |
+
+#### Context7 — usage rules
+
+- Call `mcp_context7_resolve-library-id` with the crate name before any `query-docs` call.
+- Provide a specific, detailed query — not just a crate name (e.g., `"ratatui Paragraph wrapping"` not `"ratatui"`).
+- Do not call `query-docs` more than 3 times per question; use the best result you have.
+- Mandatory for: any crate API you haven't verified in the current session.
+
+#### GitHub MCP — usage rules
+
+- Use `search_*` tools for targeted queries (keywords, filters, author, labels).
+- Use `list_*` tools for broad enumeration with pagination (batches of 5–10 items).
+- Use `minimal_output: true` where available to reduce context consumption.
+- Prefer GitHub MCP over spawning `gh` CLI commands when the operation maps to a structured API call.
+- Use for: checking CI run results, reading remote file contents, searching PRs/issues, listing branches.
 
 ### When to invoke a Skill
 
