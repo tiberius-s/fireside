@@ -26,6 +26,26 @@ export default defineConfig({
       },
       sidebar: [
         {
+          label: 'Crates',
+          items: [
+            { label: 'fireside-core', link: '/crates/fireside-core/' },
+            { label: 'fireside-engine', link: '/crates/fireside-engine/' },
+            {
+              label: 'fireside-tui',
+              items: [
+                { label: 'Overview', link: '/crates/fireside-tui/' },
+                { label: 'App State Machine', link: '/crates/fireside-tui/app-state-machine/' },
+                { label: 'Rendering Pipeline', link: '/crates/fireside-tui/rendering-pipeline/' },
+                {
+                  label: 'Theme & Design System',
+                  link: '/crates/fireside-tui/theme-design-system/',
+                },
+              ],
+            },
+            { label: 'fireside-cli', link: '/crates/fireside-cli/' },
+          ],
+        },
+        {
           label: 'Specification',
           items: [
             { label: '§1 Introduction', link: '/spec/introduction/' },
@@ -60,10 +80,6 @@ export default defineConfig({
             { label: 'For Designers', link: '/guides/for-designers/' },
             { label: 'Theme Authoring', link: '/guides/theme-authoring/' },
             { label: 'Extension Authoring', link: '/guides/extension-authoring/' },
-            { label: 'Deep Dive: fireside-core', link: '/guides/deep-dive-fireside-core/' },
-            { label: 'Deep Dive: fireside-engine', link: '/guides/deep-dive-fireside-engine/' },
-            { label: 'Deep Dive: fireside-tui', link: '/guides/deep-dive-fireside-tui/' },
-            { label: 'Deep Dive: fireside-cli', link: '/guides/deep-dive-fireside-cli/' },
             {
               label: 'Learn Rust with Fireside',
               items: [
