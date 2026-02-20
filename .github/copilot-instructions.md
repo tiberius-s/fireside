@@ -3,120 +3,306 @@
 ## Project Identity
 
 - **Fireside** is a portable format for branching presentations and lessons.
-- This is a spec-first monorepo: the protocol specification is the primary artifact.
-- The Rust codebase is a reference implementation (terminal presentation engine).
-- Protocol version: **0.1.0**. JSON Schema 2020-12.
+- This is a **spec-first monorepo**: the TypeSpec protocol model is the primary artifact.
+- The Rust codebase is a mature reference implementation — a full terminal presentation
+  and editing engine using Ratatui + crossterm in a TEA (The Elm Architecture) pattern.
+- Protocol version: **0.1.0**. Wire format: JSON Schema 2020-12.
+
+## How to Research Before Implementing
+
+Before writing any new code or making architectural decisions, use available tools in
+this order:
+
+1. **Read the codebase first.** The implementation is the ground truth. Read the
+   relevant source files before guessing at types, function signatures, or patterns.
+   Use `semantic_search` for broad discovery and `grep_search` for exact symbol lookup.
+
+2. **Look up library and API docs via Context7 MCP.** For any external crate (ratatui,
+   serde, syntect, clap, crossterm, anyhow, thiserror, plist, etc.), use Context7 to
+   retrieve up-to-date documentation and code examples _before_ writing usage code.
+   Always call `resolve-library-id` first, then `query-docs` with a specific query.
+   Examples of when this is mandatory:
+   - Adding a new ratatui widget or layout constraint
+   - Using a serde attribute you haven't seen in this codebase before
+   - Adding a crossterm event type or terminal mode
+   - Working with syntect's `HighlightLines` or `ThemeSet`
+   - Any use of `plist`, `font-kit`, or `image` crate APIs
+
+3. **Verify patterns against existing implementations in this repo.** Before adding a
+   new `ContentBlock` variant, read `crates/fireside-core/src/model/content.rs` to
+   confirm the serde tag pattern. Before adding a new `Action`, read
+   `crates/fireside-tui/src/event.rs`. Before adding a new CLI subcommand, read
+   `crates/fireside-cli/src/main.rs`. Consistency with existing patterns is more
+   important than novelty.
+
+4. **Check the memory bank.** Read `memory-bank/activeContext.md` and relevant task
+   files in `memory-bank/tasks/` before starting any multi-step work. These contain
+   architectural decisions and in-progress context that may not be visible in code.
 
 ## Repository Structure
 
 ```
 fireside/
-├── models/            # Source of truth — TypeSpec domain model
-│   ├── main.tsp       # ~400 lines, namespace Fireside, v0.1.0
-│   └── tsp-output/schemas/  # 18 generated JSON Schema files
-├── docs/              # Astro + Starlight documentation site
+├── models/                    # Source of truth — TypeSpec domain model
+│   ├── main.tsp               # Namespace Fireside, v0.1.0
+│   └── tsp-output/schemas/    # 18 generated JSON Schema 2020-12 files
+├── docs/                      # Astro 5 + Starlight 0.32 documentation site
+│   ├── astro.config.mjs       # Sidebar config, disable404Route: true
+│   ├── examples/              # Example .json graph files (hello.json)
 │   └── src/content/docs/
-│       ├── spec/      # 6 normative chapters + 3 appendices
-│       ├── schemas/   # Schema reference pages (graph, node, content-blocks)
-│       ├── guides/    # 3 user guides
-│       ├── reference/ # Quick-reference domain vocabulary + data model
-│       └── decisions/ # Architecture Decision Records (ADRs)
-├── schemas/           # (empty — schemas are in models/tsp-output/)
-
-├── docs/examples/     # Example .json files using Fireside format
-├── src/               # Rust reference implementation (TEA architecture)
-└── memory-bank/       # Project context for AI agents
+│       ├── spec/              # 6 normative chapters + 3 appendices + migration
+│       ├── schemas/           # Schema reference (graph, node, content-blocks)
+│       ├── guides/            # User and developer guides
+│       ├── reference/         # Quick-reference vocabulary + keybindings
+│       └── decisions/         # Architecture Decision Records (ADRs)
+├── crates/
+│   ├── fireside-core/         # Protocol types only — no I/O, no UI
+│   ├── fireside-engine/       # Loader, validation, traversal, commands, session
+│   ├── fireside-tui/          # Ratatui TUI — App, render, ui, theme, config
+│   └── fireside-cli/          # Binary — `fireside` command, terminal lifecycle
+├── memory-bank/               # Project context for AI agents (read this!)
+│   ├── activeContext.md       # Current focus and recent changes
+│   ├── progress.md            # What works and what's left
+│   └── tasks/                 # Per-task files (TASK001–TASK012)
+└── .cargo/config.toml         # Linker optimisations (ld_prime on macOS)
 ```
+
+## Crate Responsibilities
+
+Each crate has a strict responsibility boundary. Do not add dependencies that violate
+these boundaries:
+
+| Crate             | Owns                                              | Must NOT contain                  |
+| ----------------- | ------------------------------------------------- | --------------------------------- |
+| `fireside-core`   | Protocol types, serde, wire format                | I/O, UI, validation logic, engine |
+| `fireside-engine` | Loading, validation, traversal, undo/redo session | Ratatui, crossterm, rendering     |
+| `fireside-tui`    | Ratatui UI, rendering, themes, settings           | Business logic, direct file I/O   |
+| `fireside-cli`    | `main`, terminal lifecycle, clap dispatch         | State, rendering, business logic  |
 
 ## Domain Model (Fireside Protocol)
 
 ### Wire Format: kebab-case JSON
 
-All property names use kebab-case in the JSON wire format:
+All JSON property names use **kebab-case**. Serde derives handle this with
+`#[serde(rename_all = "kebab-case")]` on structs and enums, plus explicit
+`#[serde(rename = "...")]` on variants that don't map cleanly by convention.
 
-- `speaker-notes` (not `speakerNotes`)
-- `branch-point` (not `branchPoint`)
-- `highlight-lines` (not `highlightLines`)
-- `show-line-numbers` (not `showLineNumbers`)
+| Rust field name     | JSON wire name        |
+| ------------------- | --------------------- |
+| `speaker_notes`     | `"speaker-notes"`     |
+| `branch_point`      | `"branch-point"`      |
+| `highlight_lines`   | `"highlight-lines"`   |
+| `show_line_numbers` | `"show-line-numbers"` |
+| `extension_type`    | `"type"`              |
 
-Enum values also use kebab-case: `split-horizontal`, `slide-left`, `align-right`.
+Enum values also use kebab-case in JSON: `"split-horizontal"`, `"slide-left"`,
+`"align-right"`, `"code-focus"`.
 
 ### Type Vocabulary
 
-| TypeSpec Type    | Purpose                            | JSON `kind` Value |
-| ---------------- | ---------------------------------- | ----------------- |
-| `Graph`          | Top-level document (root)          | —                 |
-| `Node`           | Graph vertex with content          | —                 |
-| `NodeId`         | String identifier (minLength: 1)   | —                 |
-| `ContentBlock`   | Union of 7 core + extension blocks | —                 |
-| `HeadingBlock`   | Heading with level (1-6)           | `"heading"`       |
-| `TextBlock`      | Prose text with inline Markdown    | `"text"`          |
-| `CodeBlock`      | Source code with language hint     | `"code"`          |
-| `ListBlock`      | Ordered or unordered list          | `"list"`          |
-| `ImageBlock`     | Image with alt text and caption    | `"image"`         |
-| `DividerBlock`   | Horizontal rule                    | `"divider"`       |
-| `ContainerBlock` | Generic container with layout hint | `"container"`     |
-| `ExtensionBlock` | Extension block with typed payload | `"extension"`     |
-| `Traversal`      | Per-node traversal overrides       | —                 |
-| `BranchPoint`    | Decision point with options        | —                 |
-| `BranchOption`   | Single choice at a branch point    | —                 |
-| `Layout`         | Enum: 12 layout modes              | —                 |
-| `Transition`     | Enum: 8 transition effects         | —                 |
+| Rust Type        | Purpose                                                         | JSON `kind`   |
+| ---------------- | --------------------------------------------------------------- | ------------- |
+| `Graph`          | Runtime top-level document (has `node_index` HashMap)           | —             |
+| `GraphFile`      | Wire-format serde target (maps 1:1 to JSON)                     | —             |
+| `GraphMeta`      | Extracted document metadata                                     | —             |
+| `NodeDefaults`   | Default layout/transition for all nodes                         | —             |
+| `Node`           | Graph vertex with content and traversal                         | —             |
+| `NodeId`         | `type alias for String` (minLength: 1 enforced in validation)   | —             |
+| `ContentBlock`   | Discriminated union of 8 content types                          | via `"kind"`  |
+| `HeadingBlock`   | Heading with level 1–6                                          | `"heading"`   |
+| `TextBlock`      | Prose text with inline Markdown                                 | `"text"`      |
+| `CodeBlock`      | Source code with language, highlight-lines, line numbers        | `"code"`      |
+| `ListBlock`      | Ordered or unordered list of `ListItem`s                        | `"list"`      |
+| `ImageBlock`     | Image with alt text and optional caption                        | `"image"`     |
+| `DividerBlock`   | Horizontal rule                                                 | `"divider"`   |
+| `ContainerBlock` | Generic container with layout hint and children                 | `"container"` |
+| `ExtensionBlock` | Typed extension with fallback and payload                       | `"extension"` |
+| `Traversal`      | Per-node traversal overrides (`next`, `after`, `branch-point`)  | —             |
+| `BranchPoint`    | Decision point with prompt and options                          | —             |
+| `BranchOption`   | Single choice: `label`, `key`, `target`, optional `description` | —             |
+| `Layout`         | Enum: 12 layout modes                                           | —             |
+| `Transition`     | Enum: 8 transition effects                                      | —             |
 
-### Content Discriminator
+### `ContentBlock` Discriminator Pattern
 
-ContentBlock uses `"kind"` as the discriminator field. Extension blocks use
-`"kind": "extension"` with a required `type` identifier (e.g., `"acme.table"`).
+```rust
+#[serde(tag = "kind", rename_all = "kebab-case")]
+pub enum ContentBlock { ... }
+```
+
+The `"kind"` field is embedded in the JSON object. Extension blocks always use
+`"kind": "extension"` plus a required `"type"` identifier (reverse-domain convention,
+e.g. `"acme.table"`).
+
+### `GraphFile` → `Graph` Boundary
+
+`GraphFile` is the serde target (matches JSON wire format). `Graph` is what the engine
+uses at runtime — it adds `node_index: HashMap<NodeId, usize>` for O(1) ID lookup and
+applies `NodeDefaults` to nodes. The only construction path is `Graph::from_file`.
+
+After any structural mutation (node add, remove, reorder), the index must be
+reconstructed via `Graph::rebuild_index()`.
 
 ### Traversal Operations (4)
 
-| Operation | Description                                         |
-| --------- | --------------------------------------------------- |
-| Next      | Advance to next node (or `traversal.next` override) |
-| Choose    | Select an option at a BranchPoint                   |
-| Goto      | Jump to any node by ID                              |
-| Back      | Pop history stack, return to previous node          |
+| Operation | Engine method             | Description                                                                                  |
+| --------- | ------------------------- | -------------------------------------------------------------------------------------------- |
+| Next      | `TraversalEngine::next`   | Advance — respects `traversal.next` override, then `traversal.after` rejoin, then sequential |
+| Choose    | `TraversalEngine::choose` | Select a `BranchOption` by `key` character                                                   |
+| Goto      | `TraversalEngine::goto`   | Jump to any node by index                                                                    |
+| Back      | `TraversalEngine::back`   | Pop history stack (capped at 256 entries, uses `VecDeque`)                                   |
 
 ## Rust Reference Implementation
 
 ### Architecture: TEA (The Elm Architecture)
 
 ```text
-Event (crossterm) → Action (enum) → App::update(&mut self, action) → View (ratatui)
+crossterm::Event
+    └── map_key_to_action(key, &app.mode) → Option<Action>
+              └── App::update(&mut self, action)   ← SOLE mutation point
+                        └── terminal.draw(|f| app.view(f))   ← pure render
 ```
 
-- `src/main.rs` — terminal lifecycle, event poll/draw loop
-- `src/app.rs` — `App` state machine (sole owner of navigation state)
-- `src/loader.rs` — JSON → deserialization
-- `src/render/*` — stateless rendering (consumes model refs → ratatui lines)
-- `src/ui/*` — UI composition layer
+**Key rule:** `App::update` is the only function that mutates `App` state. All render
+and UI functions receive `&App` and produce ratatui output. This is a hard invariant.
 
-**Key rule:** state mutation ONLY in `App::update`; render/UI modules are pure.
+### Crate Module Maps
 
-**Note:** The Rust codebase still uses old vocabulary (Slide, SlideDeck, etc.) and
-snake_case/camelCase field names. A code alignment task will update these to match
-the Fireside 0.1.0 protocol.
+**`fireside-core/src/`**
 
-### Conventions
+```
+lib.rs, error.rs, model/{mod,branch,content,graph,layout,node,transition,traversal}.rs
+```
 
-- Error strategy: typed errors (`thiserror`) in library modules; `anyhow::Result` at app boundaries.
-- Key handling: maps to `Action` first in `src/config/keybindings.rs`; no direct state mutation in handlers.
-- Theme resolution: CLI `--theme` > document `theme` field > default theme.
-- Rust 2024 edition patterns.
+**`fireside-engine/src/`**
+
+```
+lib.rs, error.rs, commands.rs, loader.rs, session.rs, traversal.rs, validation.rs
+```
+
+**`fireside-tui/src/`**
+
+```
+lib.rs, app.rs, error.rs, event.rs, theme.rs
+config/{keybindings,settings}.rs
+design/{tokens,templates,fonts,iterm2}.rs
+render/{markdown,code,layout}.rs
+ui/{presenter,editor,graph,branch,help,progress}.rs
+```
+
+**`fireside-cli/src/`**
+
+```
+main.rs, commands/{mod,fonts,project,scaffold,session,theme,validate}.rs
+```
+
+### Key Implementation Patterns
+
+**Error handling stratification:**
+
+- `fireside-core`: `CoreError` via `thiserror` — typed, matchable
+- `fireside-engine`: `EngineError` via `thiserror` — typed, matchable
+- `fireside-tui`: `TuiError` via `thiserror` — typed, matchable
+- Application boundaries (loader, CLI): `anyhow::Result` — rich context chains
+
+**Keybinding dispatch:**
+Keys are mapped to `Action` enum variants in `config/keybindings.rs` before reaching
+`App::update`. No key handling in `update` directly — only `Action` matching. Mode
+(`AppMode::Presenting`, `AppMode::Editing`, `AppMode::GotoNode`) determines which
+keybinding map is active.
+
+**`AppMode` transitions:**
+
+```text
+Presenting  ←→  Editing       (e / Esc)
+Presenting  →   GotoNode      (g, then digits, then Enter)
+Any         →   Quitting      (q / Esc / Ctrl-C)
+```
+
+**Theme resolution order (highest priority first):**
+CLI `--theme` flag → document `theme` metadata field → user config
+`~/.config/fireside/config.json` → `Theme::default()`
+
+**`syntect` assets are cached as statics:**
+`SYNTAX_SET` and `THEME_SET` are `LazyLock` statics in `render/code.rs`.
+Do not call `two_face::syntax::extra_newlines()` or `two_face::theme::extra()` outside
+of their initializers.
+
+**Image path security:**
+`local_image_path` in `render/markdown.rs` sanitizes paths: relative paths are
+canonicalized and verified to remain within the document's base directory. Paths
+containing `..` are rejected before canonicalization.
 
 ### Build, Lint, Test
 
-- Build: `cargo build`
-- Lint (quality gate): `cargo clippy -- -D warnings`
-- Test: `cargo test`
-- Format check: `cargo fmt --check`
-- Smoke run: `cargo run -- present docs/examples/hello.json`
+```bash
+# Full quality gate (run before every commit)
+cargo fmt --check
+cargo clippy --workspace -- -D warnings
+cargo test --workspace
+
+# Faster parallel test runner
+cargo nextest run --workspace
+
+# TypeSpec → JSON Schema
+cd models && npm run build
+
+# Docs site
+cd docs && npm run dev       # localhost:4321/fireside
+cd docs && npm run build     # static build check
+
+# Smoke run
+cargo run -- present docs/examples/hello.json
+```
+
+### Conventions
+
+- Rust 2024 edition. `resolver = "3"` workspace.
+- `#[must_use]` on all functions that return a value the caller should act on.
+- Doc comments (`///`) on every public item. Module-level `//!` docs on every file.
+- `pretty_assertions` in dev-dependencies for readable test failure messages.
+- `tracing::warn!` instead of silent failures in rendering code.
+- No `unwrap()` or `expect()` in library code — return `Result` or `Option`.
+- New nodes must be accessible via `node_by_id` after any editor command — always
+  call `rebuild_index` after structural graph mutations.
 
 ## Documentation Site
 
-- **Stack:** Astro 5.17 + Starlight 0.32 + astro-mermaid
+- **Stack:** Astro 5 + Starlight 0.32 + astro-mermaid
 - **Build:** `cd docs && npm run build`
 - **Dev:** `cd docs && npm run dev` (localhost:4321/fireside)
+- `disable404Route: true` in `astro.config.mjs`; custom `404.md` used instead
+- Sidebar uses **manual ordering** for spec chapters (§1–§6 + appendices A–C);
+  autogenerate for schemas, reference, guides, explanation sections
+
+## TypeSpec Workflow
+
+When the protocol model changes:
+
+1. Edit `models/main.tsp`
+2. Run `cd models && npm run build` — regenerates all schemas in `tsp-output/schemas/`
+3. Update `crates/fireside-core/src/model/` structs to match
+4. Update relevant `docs/src/content/docs/` pages
+5. Update `docs/examples/hello.json` if needed
+
+Never edit the generated JSON Schema files directly.
+
+## When Making Changes
+
+- **Protocol changes:** TypeSpec first → compile → update Rust structs → update docs.
+  All 0.1.x changes must be additive (new fields must be `Option` or have `#[serde(default)]`).
+- **Rust changes:** Preserve TEA flow — mutation only in `App::update`.
+- **New `ContentBlock` variant:** Add to both TypeSpec and Rust enum simultaneously.
+  Add a JSON example. Add a round-trip test in `crates/fireside-core/tests/`.
+- **New keybinding:** Add `Action` variant → add arm in `keybindings.rs` → handle in
+  `App::update` → update help overlay text in `ui/help.rs` → update keybinding reference doc.
+- **New CLI subcommand:** Add `Command` variant in `main.rs` → add handler in
+  `commands/` → add e2e test in `crates/fireside-cli/tests/cli_e2e.rs`.
+- **Doc changes:** Run `npm run build` in `docs/` for clean output before committing.
+- **Vocabulary:** Use Fireside terminology exclusively. Never use: Journey, Waypoint,
+  Marker, Crossroads, Hyphae, Slideways, Slide, SlideDeck.
+- **JSON examples:** Always use kebab-case property names and `kind` discriminator.
+  Include `key` on every `BranchOption`. Include `fallback` on `Extension` blocks where practical.
 
 ### Spec Structure (6 + 3)
 
