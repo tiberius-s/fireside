@@ -1,0 +1,36 @@
+# cargo deny configuration
+# https://embarkstudios.github.io/cargo-deny/
+
+[licenses]
+# Licenses that are explicitly allowed.
+allow = [
+  "MIT",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Unicode-3.0",
+  "Unicode-DFS-2016",
+  "CC0-1.0",
+  "Zlib",
+  "OpenSSL",
+]
+
+[advisories]
+# RustSec advisory database
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+ignore = []
+
+[bans]
+# Warn on duplicate versions — this project does not need to be strict, but
+# it is useful signal for future dependency pruning.
+multiple-versions = "warn"
+wildcards = "allow"
+highlight = "all"
+
+[sources]
+# Only crates.io and path/git sources allowed.
+unknown-registry = "warn"
+unknown-git = "warn"

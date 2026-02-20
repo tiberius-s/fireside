@@ -1,0 +1,48 @@
+name: Models
+
+on:
+  pull_request:
+    paths:
+      - 'models/**'
+      - '.github/workflows/models.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'models/**'
+      - '.github/workflows/models.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Compile TypeSpec schemas
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: models
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: models/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile TypeSpec
+        run: npm run build
+
+      - name: Verify tsp-output is committed
+        run: |
+          if ! git diff --exit-code tsp-output/; then
+            echo "::error::tsp-output/ has uncommitted changes — run 'npm run build' in models/ and commit the result."
+            exit 1
+          fi
