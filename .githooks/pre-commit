@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# pre-commit — runs before every commit.
+# Mirrors the "Format check" step in .github/workflows/rust.yml.
+#
+# Install once: git config core.hooksPath .githooks
+#   or run:     .githooks/install.sh
+
+set -euo pipefail
+
+echo "🔍 pre-commit: checking formatting..."
+
+if ! cargo fmt --check --quiet 2>&1; then
+  echo ""
+  echo "❌ Formatting issues found. Run 'cargo fmt' to fix them, then re-stage."
+  exit 1
+fi
+
+echo "✅ Formatting OK."

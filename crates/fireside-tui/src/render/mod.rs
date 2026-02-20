@@ -1,6 +1,6 @@
 //! Rendering pipeline — converts content blocks to ratatui widgets.
 //!
-//! This module maps [`ContentBlock`]s into ratatui primitives for display
+//! This module maps [`fireside_core::model::content::ContentBlock`]s into ratatui primitives for display
 //! in the terminal.
 
 pub mod code;

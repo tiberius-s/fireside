@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# pre-push — runs before every 'git push'.
+# Mirrors the "Lint" and "Tests" jobs in .github/workflows/rust.yml.
+#
+# Install once: git config core.hooksPath .githooks
+#   or run:     .githooks/install.sh
+
+set -euo pipefail
+
+echo "🔍 pre-push: running clippy..."
+
+if ! cargo clippy --workspace --quiet -- -D warnings 2>&1; then
+  echo ""
+  echo "❌ Clippy errors. Fix them before pushing."
+  exit 1
+fi
+
+echo "✅ Clippy OK."
+echo "🔍 pre-push: running tests..."
+
+if cargo nextest run --workspace --quiet 2>/dev/null; then
+  echo "✅ Tests OK (nextest)."
+elif cargo test --workspace --quiet 2>&1; then
+  echo "✅ Tests OK."
+else
+  echo ""
+  echo "❌ Tests failed. Fix them before pushing."
+  exit 1
+fi
