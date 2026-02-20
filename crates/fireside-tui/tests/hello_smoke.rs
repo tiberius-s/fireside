@@ -1,5 +1,5 @@
 use fireside_engine::{PresentationSession, load_graph};
-use fireside_tui::render::markdown::render_node_content_with_base;
+use fireside_tui::render::blocks::render_node_content_with_base;
 use fireside_tui::{Action, App, Theme};
 
 fn hello_path() -> std::path::PathBuf {

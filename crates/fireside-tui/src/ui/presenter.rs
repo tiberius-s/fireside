@@ -16,8 +16,8 @@ use fireside_engine::PresentationSession;
 
 use crate::design::templates::NodeTemplate;
 use crate::design::tokens::Breakpoint;
+use crate::render::blocks::render_node_content_with_base;
 use crate::render::layout::two_column_split;
-use crate::render::markdown::render_node_content_with_base;
 use crate::theme::Theme;
 use std::path::Path;
 

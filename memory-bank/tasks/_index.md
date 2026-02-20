@@ -6,7 +6,7 @@
 
 ## Pending
 
-- None
+- [TASK016] TUI UX implementation plan — Research complete; ready for coding agent to execute phases 1–8 in order
 
 ## Completed
 

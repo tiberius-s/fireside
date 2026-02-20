@@ -3,6 +3,6 @@
 //! This module maps [`fireside_core::model::content::ContentBlock`]s into ratatui primitives for display
 //! in the terminal.
 
+pub mod blocks;
 pub mod code;
 pub mod layout;
-pub mod markdown;
