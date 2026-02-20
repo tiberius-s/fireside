@@ -1,0 +1,19 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "ExtensionDeclaration.json",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "Extension type identifier (e.g., \"acme.table\")."
+        },
+        "required": {
+            "type": "boolean",
+            "description": "Whether engines MUST support this extension for correct rendering."
+        }
+    },
+    "required": [
+        "type"
+    ],
+    "description": "Declares an extension type used by this graph and whether it is required."
+}

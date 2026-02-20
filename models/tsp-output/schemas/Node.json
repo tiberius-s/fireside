@@ -8,6 +8,21 @@
             "minLength": 1,
             "description": "Unique identifier for this node. Required for traversal targets."
         },
+        "title": {
+            "type": "string",
+            "description": "Human-readable node title for navigation and indexing UIs."
+        },
+        "tags": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Optional categorization tags for this node."
+        },
+        "duration": {
+            "type": "string",
+            "description": "Optional duration hint (ISO 8601 recommended)."
+        },
         "layout": {
             "$ref": "Layout.json",
             "description": "Spatial arrangement strategy for this node's content blocks."

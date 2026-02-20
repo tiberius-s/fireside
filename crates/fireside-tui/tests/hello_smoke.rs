@@ -121,3 +121,22 @@ fn hello_example_image_success_and_fallback_render() {
         "expected graceful fallback output for missing image"
     );
 }
+
+#[test]
+fn hello_example_each_node_renders_non_empty_content_lines() {
+    let graph = load_graph(&hello_path()).expect("hello example should load");
+    let base_dir = hello_path()
+        .parent()
+        .expect("hello example should have parent")
+        .to_path_buf();
+
+    for node in &graph.nodes {
+        let lines =
+            render_node_content_with_base(&node.content, &Theme::default(), 80, Some(&base_dir));
+        assert!(
+            !lines.is_empty(),
+            "expected non-empty rendered output for node {:?}",
+            node.id
+        );
+    }
+}

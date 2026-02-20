@@ -9,32 +9,37 @@ This chapter defines the protocol data model for version `0.1.0`.
 
 A document root with metadata, defaults, and ordered nodes.
 
-| Property      | Type            | Required | Notes                                    |
-| ------------- | --------------- | -------- | ---------------------------------------- |
-| `$schema`     | `string?`       | No       | Schema identifier URI.                   |
-| `title`       | `string?`       | No       | Human-readable graph title.              |
-| `author`      | `string?`       | No       | Author metadata.                         |
-| `date`        | `string?`       | No       | Date metadata.                           |
-| `description` | `string?`       | No       | Summary metadata.                        |
-| `version`     | `string?`       | No       | Document version metadata.               |
-| `tags`        | `string[]?`     | No       | Classification tags.                     |
-| `theme`       | `string?`       | No       | Theme hint for engines.                  |
-| `font`        | `string?`       | No       | Font hint for engines.                   |
-| `defaults`    | `NodeDefaults?` | No       | Global defaults for nodes.               |
-| `nodes`       | `Node[]`        | Yes      | `minItems: 1`. Entry point is index `0`. |
+| Property           | Type                      | Required | Notes                                    |
+| ------------------ | ------------------------- | -------- | ---------------------------------------- |
+| `$schema`          | `string?`                 | No       | Schema identifier URI.                   |
+| `fireside-version` | `Versions?`               | No       | Protocol version (`"0.1.0"`).            |
+| `title`            | `string?`                 | No       | Human-readable graph title.              |
+| `author`           | `string?`                 | No       | Author metadata.                         |
+| `date`             | `string?`                 | No       | Date metadata.                           |
+| `description`      | `string?`                 | No       | Summary metadata.                        |
+| `version`          | `string?`                 | No       | Document version metadata.               |
+| `tags`             | `string[]?`               | No       | Classification tags.                     |
+| `theme`            | `string?`                 | No       | Theme hint for engines.                  |
+| `font`             | `string?`                 | No       | Font hint for engines.                   |
+| `defaults`         | `NodeDefaults?`           | No       | Global defaults for nodes.               |
+| `extensions`       | `ExtensionDeclaration[]?` | No       | Declared extension capabilities.         |
+| `nodes`            | `Node[]`                  | Yes      | `minItems: 1`. Entry point is index `0`. |
 
 ## Node
 
 A graph vertex containing renderable content and traversal hints.
 
-| Property        | Type             | Required | Notes                            |
-| --------------- | ---------------- | -------- | -------------------------------- |
-| `id`            | `NodeId?`        | No       | Must be unique when present.     |
-| `layout`        | `Layout?`        | No       | Node layout hint.                |
-| `transition`    | `Transition?`    | No       | Node transition hint.            |
-| `speaker-notes` | `string?`        | No       | Presenter-only notes.            |
-| `traversal`     | `Traversal?`     | No       | Traversal overrides.             |
-| `content`       | `ContentBlock[]` | Yes      | Renderable blocks for this node. |
+| Property        | Type             | Required | Notes                                 |
+| --------------- | ---------------- | -------- | ------------------------------------- |
+| `id`            | `NodeId?`        | No       | Must be unique when present.          |
+| `title`         | `string?`        | No       | Human-readable node title.            |
+| `tags`          | `string[]?`      | No       | Node-level categorization tags.       |
+| `duration`      | `string?`        | No       | Duration hint (ISO 8601 recommended). |
+| `layout`        | `Layout?`        | No       | Node layout hint.                     |
+| `transition`    | `Transition?`    | No       | Node transition hint.                 |
+| `speaker-notes` | `string?`        | No       | Presenter-only notes.                 |
+| `traversal`     | `Traversal?`     | No       | Traversal overrides.                  |
+| `content`       | `ContentBlock[]` | Yes      | Renderable blocks for this node.      |
 
 ## ContentBlock Union
 

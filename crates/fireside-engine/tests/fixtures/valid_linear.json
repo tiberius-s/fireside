@@ -1,0 +1,10 @@
+{
+  "title": "Valid Linear",
+  "nodes": [
+    { "id": "n1", "content": [{ "kind": "text", "body": "one" }] },
+    { "id": "n2", "content": [{ "kind": "text", "body": "two" }] },
+    { "id": "n3", "content": [{ "kind": "text", "body": "three" }] },
+    { "id": "n4", "content": [{ "kind": "text", "body": "four" }] },
+    { "id": "n5", "content": [{ "kind": "text", "body": "five" }] }
+  ]
+}

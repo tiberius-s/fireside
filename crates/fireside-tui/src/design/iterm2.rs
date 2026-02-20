@@ -41,6 +41,8 @@ use ratatui::style::Color;
 
 use super::tokens::DesignTokens;
 
+const MAX_ITERM2_FILE_SIZE_BYTES: u64 = 1_048_576;
+
 /// Errors that can occur when parsing an iTerm2 color scheme.
 #[derive(Debug, thiserror::Error)]
 pub enum Iterm2Error {
@@ -55,6 +57,17 @@ pub enum Iterm2Error {
     /// The plist structure is not the expected dictionary.
     #[error("expected a dictionary at the root of the plist")]
     NotADict,
+
+    /// The plist file is too large to parse safely.
+    #[error("itermcolors file too large: {path} ({size} bytes, max {max_size} bytes)")]
+    FileTooLarge {
+        /// Path to the oversize file.
+        path: String,
+        /// Actual file size.
+        size: u64,
+        /// Maximum accepted size.
+        max_size: u64,
+    },
 }
 
 /// Parsed color entries from an iTerm2 color scheme.
@@ -73,6 +86,16 @@ impl Iterm2Scheme {
     ///
     /// Returns `Iterm2Error` if the file cannot be read or parsed.
     pub fn load(path: &Path) -> Result<Self, Iterm2Error> {
+        let metadata = std::fs::metadata(path)?;
+        let size = metadata.len();
+        if size > MAX_ITERM2_FILE_SIZE_BYTES {
+            return Err(Iterm2Error::FileTooLarge {
+                path: path.display().to_string(),
+                size,
+                max_size: MAX_ITERM2_FILE_SIZE_BYTES,
+            });
+        }
+
         let value = plist::Value::from_file(path)?;
         let dict = value.as_dictionary().ok_or(Iterm2Error::NotADict)?;
 
@@ -176,6 +199,15 @@ fn parse_iterm2_color(value: &plist::Value) -> Option<Color> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_file(name: &str) -> std::path::PathBuf {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock should be monotonic")
+            .as_nanos();
+        std::env::temp_dir().join(format!("fireside-{name}-{unique}.itermcolors"))
+    }
 
     #[test]
     fn parse_iterm2_color_dict() {
@@ -197,5 +229,17 @@ mod tests {
 
         let color = parse_iterm2_color(&plist::Value::Dictionary(dict));
         assert_eq!(color, None);
+    }
+
+    #[test]
+    fn load_rejects_oversized_file() {
+        let path = temp_file("oversized");
+        let bytes = vec![b'x'; (MAX_ITERM2_FILE_SIZE_BYTES as usize) + 1];
+        std::fs::write(&path, bytes).expect("oversized fixture should be created");
+
+        let result = Iterm2Scheme::load(&path);
+        assert!(matches!(result, Err(Iterm2Error::FileTooLarge { .. })));
+
+        let _ = std::fs::remove_file(path);
     }
 }

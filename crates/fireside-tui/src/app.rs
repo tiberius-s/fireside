@@ -128,6 +128,8 @@ pub struct App {
     show_progress_bar: bool,
     /// Whether presenter mode should render elapsed timer in footer.
     show_elapsed_timer: bool,
+    /// Whether the UI needs a redraw.
+    needs_redraw: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -182,6 +184,7 @@ impl App {
             document_base_dir: None,
             show_progress_bar: true,
             show_elapsed_timer: true,
+            needs_redraw: true,
         }
     }
 
@@ -223,6 +226,13 @@ impl App {
             self.sync_editor_selection_bounds();
             self.sync_editor_list_viewport();
         }
+
+        self.needs_redraw = true;
+    }
+
+    /// Returns true if a redraw is pending and clears the flag.
+    pub fn take_needs_redraw(&mut self) -> bool {
+        std::mem::take(&mut self.needs_redraw)
     }
 
     /// Returns `true` when presenter hot-reload is currently safe to apply.
@@ -263,6 +273,8 @@ impl App {
 
     /// Process a single action, updating application state.
     pub fn update(&mut self, action: Action) {
+        self.needs_redraw = true;
+
         match action {
             Action::NextNode => {
                 let from_index = self.session.current_node_index();
@@ -561,32 +573,39 @@ impl App {
         match event {
             Event::Key(key) if key.kind == KeyEventKind::Press => {
                 if self.show_help && self.handle_help_overlay_key(key.code) {
+                    self.needs_redraw = true;
                     return;
                 }
 
                 if self.mode == AppMode::Editing && self.handle_pending_exit_key(key.code) {
+                    self.needs_redraw = true;
                     return;
                 }
 
                 if self.mode == AppMode::Editing && self.handle_graph_overlay_key(key.code) {
+                    self.needs_redraw = true;
                     return;
                 }
 
                 if self.mode == AppMode::Editing && self.handle_picker_key(key.code) {
+                    self.needs_redraw = true;
                     return;
                 }
 
                 if self.mode == AppMode::Editing
                     && self.handle_inline_edit_key(key.code, key.modifiers)
                 {
+                    self.needs_redraw = true;
                     return;
                 }
 
                 if self.mode == AppMode::Editing && self.handle_editor_search_key(key.code) {
+                    self.needs_redraw = true;
                     return;
                 }
 
                 if self.mode == AppMode::Editing && self.handle_editor_index_jump_key(key.code) {
+                    self.needs_redraw = true;
                     return;
                 }
 
@@ -2055,6 +2074,7 @@ mod tests {
     fn graph_with_ids(ids: &[&str]) -> Graph {
         let file = GraphFile {
             title: None,
+            fireside_version: None,
             author: None,
             date: None,
             description: None,
@@ -2063,10 +2083,14 @@ mod tests {
             theme: None,
             font: None,
             defaults: None,
+            extensions: Vec::new(),
             nodes: ids
                 .iter()
                 .map(|id| Node {
                     id: Some((*id).to_string()),
+                    title: None,
+                    tags: Vec::new(),
+                    duration: None,
                     layout: None,
                     transition: None,
                     speaker_notes: None,

@@ -13,19 +13,21 @@ first node (`nodes[0]`) is always the entry point.
 
 ## Properties
 
-| Property      | Type           | Required | Description                                            |
-| ------------- | -------------- | -------- | ------------------------------------------------------ |
-| `$schema`     | `string`       | No       | JSON Schema URI for self-describing documents.         |
-| `title`       | `string`       | No       | The graph's display name.                              |
-| `author`      | `string`       | No       | The graph creator's name.                              |
-| `date`        | `string`       | No       | Creation or presentation date (ISO 8601 recommended).  |
-| `description` | `string`       | No       | A brief summary of the graph's purpose.                |
-| `version`     | `string`       | No       | Semantic version of this graph document.               |
-| `tags`        | `string[]`     | No       | Categorization tags for organization and filtering.    |
-| `theme`       | `string`       | No       | Default theme name for the engine to use.              |
-| `font`        | `string`       | No       | Preferred monospace font family.                       |
-| `defaults`    | `NodeDefaults` | No       | Default values applied to all nodes unless overridden. |
-| `nodes`       | `Node[]`       | **Yes**  | The ordered array of nodes. `minItems: 1`.             |
+| Property           | Type                     | Required | Description                                                |
+| ------------------ | ------------------------ | -------- | ---------------------------------------------------------- |
+| `$schema`          | `string`                 | No       | JSON Schema URI for self-describing documents.             |
+| `fireside-version` | `string`                 | No       | Protocol version for this document (for example, `0.1.0`). |
+| `title`            | `string`                 | No       | The graph's display name.                                  |
+| `author`           | `string`                 | No       | The graph creator's name.                                  |
+| `date`             | `string`                 | No       | Creation or presentation date (ISO 8601 recommended).      |
+| `description`      | `string`                 | No       | A brief summary of the graph's purpose.                    |
+| `version`          | `string`                 | No       | Semantic version of this graph document.                   |
+| `tags`             | `string[]`               | No       | Categorization tags for organization and filtering.        |
+| `theme`            | `string`                 | No       | Default theme name for the engine to use.                  |
+| `font`             | `string`                 | No       | Preferred monospace font family.                           |
+| `defaults`         | `NodeDefaults`           | No       | Default values applied to all nodes unless overridden.     |
+| `extensions`       | `ExtensionDeclaration[]` | No       | Declared extension capabilities used by this graph.        |
+| `nodes`            | `Node[]`                 | **Yes**  | The ordered array of nodes. `minItems: 1`.                 |
 
 All metadata properties are optional. The only required property is `nodes`,
 which must contain at least one Node object.
@@ -101,6 +103,7 @@ A Graph using all metadata fields, defaults, and multiple nodes:
 ```json
 {
   "$schema": "https://fireside.dev/schemas/0.1.0/Graph.json",
+  "fireside-version": "0.1.0",
   "title": "An Introduction to Fireside",
   "author": "Dana",
   "date": "2026-02-15",
@@ -113,6 +116,7 @@ A Graph using all metadata fields, defaults, and multiple nodes:
     "layout": "center",
     "transition": "fade"
   },
+  "extensions": [{ "type": "acme.table", "required": false }],
   "nodes": [
     {
       "id": "welcome",

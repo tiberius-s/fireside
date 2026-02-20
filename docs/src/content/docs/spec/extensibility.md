@@ -79,3 +79,11 @@ For protocol version `0.1.0`:
 - Core blocks remain fixed and mandatory.
 - Extension support is optional per engine.
 - Fallback rendering is mandatory for unsupported extensions.
+
+## Security Considerations
+
+- Extension payload fields are **data**, not executable instructions.
+- Engines **MUST NOT** evaluate, compile, or execute extension payload values.
+- Engines **SHOULD** validate payloads against extension-specific schemas before rendering.
+- Engines **SHOULD** apply input-size limits to extension payloads to avoid memory pressure.
+- Engines **SHOULD** preserve fallback rendering behavior when payload validation fails.

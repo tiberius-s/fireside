@@ -122,9 +122,11 @@ fn run_event_loop(
     }
 
     loop {
-        terminal
-            .draw(|frame| app.view(frame))
-            .context("drawing frame")?;
+        if app.take_needs_redraw() {
+            terminal
+                .draw(|frame| app.view(frame))
+                .context("drawing frame")?;
+        }
 
         if app.should_quit() {
             break;

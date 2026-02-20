@@ -1,0 +1,37 @@
+{
+  "title": "Valid Branching",
+  "nodes": [
+    {
+      "id": "start",
+      "content": [{ "kind": "heading", "level": 2, "text": "Start" }],
+      "traversal": {
+        "branch-point": {
+          "prompt": "Pick",
+          "options": [
+            { "label": "A", "key": "a", "target": "a-path" },
+            { "label": "B", "key": "b", "target": "b-path" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a-path",
+      "content": [{ "kind": "text", "body": "A" }],
+      "traversal": { "after": "rejoin" }
+    },
+    {
+      "id": "b-path",
+      "content": [{ "kind": "text", "body": "B" }],
+      "traversal": { "after": "rejoin" }
+    },
+    {
+      "id": "rejoin",
+      "content": [{ "kind": "text", "body": "Rejoin" }],
+      "traversal": { "next": "end" }
+    },
+    {
+      "id": "end",
+      "content": [{ "kind": "text", "body": "End" }]
+    }
+  ]
+}

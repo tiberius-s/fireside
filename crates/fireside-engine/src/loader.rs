@@ -43,6 +43,7 @@ pub fn save_graph(path: &Path, graph: &Graph) -> Result<()> {
 fn graph_to_file(graph: &Graph) -> GraphFile {
     GraphFile {
         title: graph.metadata.title.clone(),
+        fireside_version: graph.metadata.fireside_version.clone(),
         author: graph.metadata.author.clone(),
         date: graph.metadata.date.clone(),
         description: graph.metadata.description.clone(),
@@ -51,6 +52,7 @@ fn graph_to_file(graph: &Graph) -> GraphFile {
         theme: graph.metadata.theme.clone(),
         font: graph.metadata.font.clone(),
         defaults: Some(NodeDefaults::default()),
+        extensions: graph.metadata.extensions.clone(),
         nodes: graph.nodes.clone(),
     }
 }

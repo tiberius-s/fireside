@@ -1,0 +1,10 @@
+{
+  "title": "Invalid Dangling",
+  "nodes": [
+    {
+      "id": "start",
+      "content": [{ "kind": "text", "body": "start" }],
+      "traversal": { "next": "missing-node" }
+    }
+  ]
+}

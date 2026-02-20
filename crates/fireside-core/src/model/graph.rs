@@ -66,6 +66,7 @@ impl Graph {
         Ok(Self {
             metadata: GraphMeta {
                 title: file.title,
+                fireside_version: file.fireside_version,
                 author: file.author,
                 date: file.date,
                 description: file.description,
@@ -73,6 +74,7 @@ impl Graph {
                 tags: file.tags,
                 theme: file.theme,
                 font: file.font,
+                extensions: file.extensions,
             },
             nodes,
             node_index,
@@ -102,6 +104,27 @@ impl Graph {
     pub fn index_of(&self, id: &str) -> Option<usize> {
         self.node_index.get(id).copied()
     }
+
+    /// Rebuild the node index from the current node list.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if duplicate node IDs are found.
+    pub fn rebuild_index(&mut self) -> Result<(), String> {
+        let mut node_index = HashMap::new();
+
+        for (i, node) in self.nodes.iter().enumerate() {
+            if let Some(ref id) = node.id {
+                if node_index.contains_key(id) {
+                    return Err(format!("duplicate node id: {id}"));
+                }
+                node_index.insert(id.clone(), i);
+            }
+        }
+
+        self.node_index = node_index;
+        Ok(())
+    }
 }
 
 /// The raw Fireside JSON file structure.
@@ -113,6 +136,13 @@ pub struct GraphFile {
     /// Document title.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    /// Protocol version for this document.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "fireside-version"
+    )]
+    pub fireside_version: Option<String>,
     /// Author name.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub author: Option<String>,
@@ -137,8 +167,21 @@ pub struct GraphFile {
     /// Default node settings.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub defaults: Option<NodeDefaults>,
+    /// Declared extension capabilities used by this graph.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub extensions: Vec<ExtensionDeclaration>,
     /// Ordered nodes.
     pub nodes: Vec<Node>,
+}
+
+/// A declared extension capability used by a graph.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ExtensionDeclaration {
+    /// Extension type identifier (e.g., "acme.table").
+    pub r#type: String,
+    /// Whether support for this extension is required for correct rendering.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub required: Option<bool>,
 }
 
 /// Default values applied to all nodes in the graph.
@@ -157,6 +200,8 @@ pub struct NodeDefaults {
 pub struct GraphMeta {
     /// The title of the document.
     pub title: Option<String>,
+    /// Protocol version for this document.
+    pub fireside_version: Option<String>,
     /// The author.
     pub author: Option<String>,
     /// The date.
@@ -171,6 +216,8 @@ pub struct GraphMeta {
     pub theme: Option<String>,
     /// Monospace font family.
     pub font: Option<String>,
+    /// Declared extension capabilities used by this graph.
+    pub extensions: Vec<ExtensionDeclaration>,
 }
 
 #[cfg(test)]

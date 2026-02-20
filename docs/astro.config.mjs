@@ -34,6 +34,7 @@ export default defineConfig({
             { label: '§4 Validation', link: '/spec/validation/' },
             { label: '§5 Extensibility', link: '/spec/extensibility/' },
             { label: '§6 Serialization', link: '/spec/serialization/' },
+            { label: 'Migration', link: '/spec/migration/' },
             { label: 'Appendix A — Design System', link: '/spec/appendix-design-system/' },
             { label: 'Appendix B — Engine Guidelines', link: '/spec/appendix-engine-guidelines/' },
             { label: 'Appendix C — Content Blocks', link: '/spec/appendix-content-blocks/' },
@@ -45,11 +46,51 @@ export default defineConfig({
         },
         {
           label: 'Reference',
-          autogenerate: { directory: 'reference' },
+          items: [
+            { label: 'Keybindings', link: '/reference/keybindings/' },
+            { label: 'Data Model Quick Reference', link: '/reference/data-model-quick-reference/' },
+            { label: 'Domain Vocabulary', link: '/reference/domain-vocabulary/' },
+          ],
         },
         {
           label: 'Guides',
-          autogenerate: { directory: 'guides' },
+          items: [
+            { label: 'Your First Fireside Session', link: '/guides/getting-started/' },
+            { label: 'Branching Adventures', link: '/guides/branching-adventures/' },
+            { label: 'For Designers', link: '/guides/for-designers/' },
+            { label: 'Theme Authoring', link: '/guides/theme-authoring/' },
+            { label: 'Extension Authoring', link: '/guides/extension-authoring/' },
+            { label: 'Deep Dive: fireside-core', link: '/guides/deep-dive-fireside-core/' },
+            { label: 'Deep Dive: fireside-engine', link: '/guides/deep-dive-fireside-engine/' },
+            { label: 'Deep Dive: fireside-tui', link: '/guides/deep-dive-fireside-tui/' },
+            { label: 'Deep Dive: fireside-cli', link: '/guides/deep-dive-fireside-cli/' },
+            {
+              label: 'Learn Rust with Fireside',
+              items: [
+                { label: 'Series Overview', link: '/guides/learn-rust/' },
+                { label: '1. Your First Data Model', link: '/guides/learn-rust/01-data-model/' },
+                { label: '2. Errors That Help', link: '/guides/learn-rust/02-errors/' },
+                {
+                  label: '3. Ownership, Borrowing, and Collections',
+                  link: '/guides/learn-rust/03-ownership/',
+                },
+                { label: '4. Traits and Polymorphism', link: '/guides/learn-rust/04-traits/' },
+                {
+                  label: "5. When Derive Isn't Enough",
+                  link: '/guides/learn-rust/05-custom-serde/',
+                },
+                { label: '6. State Machines', link: '/guides/learn-rust/06-state-machines/' },
+                {
+                  label: '7. Undo/Redo with the Command Pattern',
+                  link: '/guides/learn-rust/07-command-pattern/',
+                },
+                {
+                  label: '8. The Elm Architecture in Rust',
+                  link: '/guides/learn-rust/08-tea-architecture/',
+                },
+              ],
+            },
+          ],
         },
         {
           label: 'Explanation',

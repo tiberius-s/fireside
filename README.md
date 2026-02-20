@@ -163,6 +163,7 @@ fireside import-theme ~/Downloads/Nord.itermcolors --name nord
 # Rust
 cargo build
 cargo test --workspace
+cargo nextest run --workspace
 cargo clippy --workspace -- -D warnings
 
 # TypeSpec → JSON Schema

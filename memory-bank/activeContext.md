@@ -2,7 +2,88 @@
 
 ## Current Focus
 
-All release gates are green. Documentation parity pass complete.
+All release gates are green. Phase 6 documentation and tutorial expansion is complete.
+
+Phase 1 of `plan-fireside-improvement-initiative` is now implemented end-to-end:
+
+- TypeSpec updated with additive protocol fields:
+  - `Node.title`, `Node.tags`, `Node.duration`
+  - `Graph.fireside-version`
+  - `Graph.extensions` via `ExtensionDeclaration`
+- `fireside-core` model updated to match new wire shape (`Node`, `GraphFile`,
+  `GraphMeta`, and extension declaration mapping).
+- Docs updated in spec and schema reference pages for Graph and Node.
+- `docs/examples/hello.json` updated with `fireside-version` and node `title`.
+- Verification completed: `models npm run build`, `cargo build`,
+  `cargo test --workspace`, and `docs npm run build` all green.
+
+Phase 2 is now implemented end-to-end:
+
+- Removed unused workspace dependencies (`serde_yaml`, `toml`) from root
+  `Cargo.toml`.
+- Added linker optimization config at `.cargo/config.toml` for Apple Silicon
+  (`-ld_prime`).
+- Added dependency optimization in dev profile:
+  `[profile.dev.package."*"] opt-level = 2`.
+- Evaluated and adopted a pure-Rust syntect feature set:
+  `default-syntaxes + default-themes + regex-fancy`.
+- Added Rust CI workflow using `cargo-nextest`:
+  `.github/workflows/rust.yml`.
+- Updated root README build/test section to include
+  `cargo nextest run --workspace`.
+- Validation completed: `cargo build`, `cargo test --workspace`,
+  `cargo clippy --workspace -- -D warnings`.
+
+Phase 3 is now implemented end-to-end:
+
+- Added `Graph::rebuild_index()` in `fireside-core` and switched engine command
+  mutations to use the shared rebuild path.
+- Replaced per-call syntect initialization with cached `LazyLock` statics for
+  `SyntaxSet` and `ThemeSet` in `fireside-tui`.
+- Added redraw gating using `App::needs_redraw` +
+  `App::take_needs_redraw()` and updated the CLI event loop to draw only when
+  required.
+- Capped traversal history at 256 entries using `VecDeque` in
+  `TraversalEngine`.
+- Validation completed: `cargo build`, `cargo test --workspace`,
+  `cargo clippy --workspace -- -D warnings`.
+
+Phase 4 is now implemented end-to-end:
+
+- Added `EngineError::PathTraversal` in `fireside-engine` for typed traversal
+  sanitization errors.
+- Hardened image path sanitization in `fireside-tui` markdown renderer:
+  rejects parent traversal components, constrains image resolution to the
+  presentation base directory, and logs `tracing::warn!` for rejections.
+- Added iTerm2 import safety limit in `fireside-tui` (`>1 MB` files rejected
+  before plist parsing).
+- Added normative extension payload safety language to spec docs in
+  `docs/src/content/docs/spec/extensibility.md`.
+- Added/updated tests for image-path sanitization and iTerm2 file-size
+  rejection, including a macOS-canonicalization-safe assertion.
+- Validation completed: `cargo test --workspace`,
+  `cargo clippy --workspace -- -D warnings`.
+
+Phase 5 is now implemented end-to-end:
+
+- Added `fireside-core` round-trip tests for all `ContentBlock` variants in
+  `crates/fireside-core/tests/content_roundtrip.rs`, including edge cases for
+  list bare-string decoding, nested container children, and extension fallback payloads.
+- Added engine fixture suite under
+  `crates/fireside-engine/tests/fixtures/` with valid/invalid graph fixtures,
+  plus `validation_fixtures.rs` coverage for expected diagnostics and load-time
+  failure modes.
+- Added engine command-history invariant test in
+  `crates/fireside-engine/tests/command_history.rs` to verify add/update/remove
+  and undo restores the original node sequence.
+- Added CLI e2e tests in `crates/fireside-cli/tests/cli_e2e.rs` for
+  validate success/failure and scaffolding flows (single file + project directory).
+- Added TUI smoke extension in `crates/fireside-tui/tests/hello_smoke.rs`
+  asserting each node produces non-empty rendered output.
+- Added CLI test dev dependencies in `crates/fireside-cli/Cargo.toml`:
+  `assert_cmd`, `predicates`, and `tempfile`.
+- Validation completed: `cargo test --workspace`,
+  `cargo clippy --workspace -- -D warnings`.
 
 - Crate READMEs written for all four Cargo workspace members:
   `fireside-core`, `fireside-engine`, `fireside-tui`, `fireside-cli`.
@@ -31,12 +112,26 @@ Current execution mode is TUI usability first (unchanged):
 
 ## Next Workstream
 
-- Continue Phase 3/5/6 TUI slices from the UX initiative:
-  graph exploration workflow polish, release usability refinements, and
-  final integration cleanup.
+- Continue protocol-vocabulary alignment across remaining legacy wording in
+  implementation docs and UX copy.
 - Keep task tracking explicitly phase-aligned so progress is easy to audit.
 
 ## Current Milestone Execution
+
+- Completed Phase 6 of `plan-fireside-improvement-initiative`:
+  - Added new guides:
+    - `docs/src/content/docs/guides/theme-authoring.md`
+    - `docs/src/content/docs/guides/extension-authoring.md`
+  - Added new reference page:
+    - `docs/src/content/docs/reference/keybindings.md`
+  - Added migration placeholder:
+    - `docs/src/content/docs/spec/migration.md`
+  - Added full 9-page tutorial series at
+    `docs/src/content/docs/guides/learn-rust/` (`_index` + 8 chapters).
+  - Updated Starlight sidebar in `docs/astro.config.mjs` to explicitly include
+    migration, keybindings, new guides, and the full Learn Rust chapter order.
+  - Verified docs build successfully (`cd docs && npm run build`), with one
+    pre-existing warning about duplicate id in `spec/extensibility.md`.
 
 - Implemented runtime handling for `traversal.after` in engine traversal to
   support branch rejoin behavior.

@@ -7,6 +7,10 @@
             "type": "string",
             "description": "JSON Schema URI for self-describing documents."
         },
+        "fireside-version": {
+            "$ref": "Versions.json",
+            "description": "Protocol version for this document (machine-readable)."
+        },
         "title": {
             "type": "string",
             "description": "The graph's display name."
@@ -45,6 +49,13 @@
         "defaults": {
             "$ref": "NodeDefaults.json",
             "description": "Default values applied to all nodes unless overridden."
+        },
+        "extensions": {
+            "type": "array",
+            "items": {
+                "$ref": "ExtensionDeclaration.json"
+            },
+            "description": "Declared extension capabilities used by this graph."
         },
         "nodes": {
             "type": "array",

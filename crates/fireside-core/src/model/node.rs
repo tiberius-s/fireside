@@ -21,6 +21,18 @@ pub struct Node {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<NodeId>,
 
+    /// Human-readable node title for navigation and indexing UIs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+
+    /// Optional categorization tags for this node.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
+
+    /// Optional duration hint (ISO 8601 recommended).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub duration: Option<String>,
+
     /// Layout variant for this node.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub layout: Option<Layout>,

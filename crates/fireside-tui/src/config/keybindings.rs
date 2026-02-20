@@ -88,7 +88,7 @@ fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
 fn map_goto_mode_key(key: KeyEvent) -> Option<Action> {
     match key.code {
         KeyCode::Char(c) if c.is_ascii_digit() => {
-            let digit = c.to_digit(10).expect("verified ascii digit") as usize;
+            let digit = usize::from((c as u8) - b'0');
             Some(Action::GotoDigit(digit))
         }
         KeyCode::Enter => Some(Action::GotoConfirm),

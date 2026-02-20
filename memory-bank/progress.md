@@ -49,15 +49,78 @@
 - Root `README.md` updated with full feature set documentation: all CLI
   subcommands with examples, complete keybinding tables for presenter and
   editor modes, iTerm2 theme import flow, and cross-links to crate READMEs.
+- Phase 1 of `plan-fireside-improvement-initiative` completed end-to-end:
+  additive protocol fields landed in TypeSpec and `fireside-core`, schema/spec
+  docs updated, and `docs/examples/hello.json` updated with
+  `fireside-version` and node-level `title` metadata.
+- Phase 1 verification gates are green:
+  - `cd models && npm run build`
+  - `cargo build && cargo test --workspace`
+  - `cd docs && npm run build`
+- Phase 2 of `plan-fireside-improvement-initiative` completed end-to-end:
+  - Removed unused workspace dependencies (`serde_yaml`, `toml`)
+  - Added `.cargo/config.toml` with Apple Silicon linker optimization
+  - Added `[profile.dev.package."*"] opt-level = 2`
+  - Evaluated and adopted pure-Rust syntect feature set
+    (`default-syntaxes`, `default-themes`, `regex-fancy`)
+  - Added Rust CI workflow with `cargo nextest run --workspace`
+  - Updated root README build/test section with nextest command
+- Phase 2 verification gates are green:
+  - `cargo build`
+  - `cargo test --workspace`
+  - `cargo clippy --workspace -- -D warnings`
+- Phase 3 of `plan-fireside-improvement-initiative` completed end-to-end:
+  - Added canonical `Graph::rebuild_index()` API and switched engine command
+    mutations to use it.
+  - Cached syntect assets in `fireside-tui` (`LazyLock` for syntax and themes)
+    to avoid per-render reinitialization.
+  - Added redraw gating (`needs_redraw`) so terminal draw calls only occur when
+    state changes or animation ticks.
+  - Capped traversal history at 256 entries with `VecDeque`.
+- Phase 3 verification gates are green:
+  - `cargo build`
+  - `cargo test --workspace`
+  - `cargo clippy --workspace -- -D warnings`
+- Phase 4 of `plan-fireside-improvement-initiative` completed end-to-end:
+  - Added `EngineError::PathTraversal` in `fireside-engine`
+  - Hardened image-path sanitization with base-dir confinement and
+    parent-traversal rejection in markdown renderer
+  - Added iTerm2 plist pre-parse file-size guard (1 MB)
+  - Added normative extension payload safety section in extensibility spec
+  - Added unit/integration coverage for path sanitization and iTerm2
+    oversized-file rejection
+- Phase 4 verification gates are green:
+  - `cargo test --workspace`
+  - `cargo clippy --workspace -- -D warnings`
+- Phase 5 of `plan-fireside-improvement-initiative` completed end-to-end:
+  - Added `fireside-core` integration coverage for `ContentBlock` round trips
+    across all variants and edge cases (`tests/content_roundtrip.rs`)
+  - Added engine fixture validation suite and command-history invariant tests
+    (`tests/fixtures/*`, `validation_fixtures.rs`, `command_history.rs`)
+  - Added CLI end-to-end command tests for validate and scaffold flows
+    (`crates/fireside-cli/tests/cli_e2e.rs`)
+  - Added TUI smoke extension asserting non-empty render output per node
+    (`crates/fireside-tui/tests/hello_smoke.rs`)
+  - Added CLI test-only dependencies (`assert_cmd`, `predicates`, `tempfile`)
+- Phase 5 verification gates are green:
+  - `cargo test --workspace`
+  - `cargo clippy --workspace -- -D warnings`
+- Phase 6 of `plan-fireside-improvement-initiative` completed end-to-end:
+  - Added theme authoring guide (`docs/src/content/docs/guides/theme-authoring.md`)
+  - Added extension authoring guide (`docs/src/content/docs/guides/extension-authoring.md`)
+  - Added keybindings reference (`docs/src/content/docs/reference/keybindings.md`)
+  - Added migration placeholder (`docs/src/content/docs/spec/migration.md`)
+  - Added full Learn Rust tutorial series (`docs/src/content/docs/guides/learn-rust/`):
+    `_index.md` plus chapters 1-8
+  - Updated docs sidebar in `docs/astro.config.mjs` for explicit ordering and
+    navigation of all new pages
+- Phase 6 verification gate is green:
+  - `cd docs && npm run build`
 
 ## In Progress
 
 - Bring Rust reference implementation vocabulary fully in line with protocol
   naming where legacy terms remain.
-- UX initiative phase execution from `.github/prompts/plan-fireside-tui-ux-initiative.prompt.md`
-  with memory-bank milestone sync in progress.
-- Phase 5/6 TUI usability slices: release polish and remaining milestone
-  integration cleanup.
 
 ## Known Follow-Up
 

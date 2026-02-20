@@ -25,4 +25,8 @@ pub enum EngineError {
     /// A command could not be applied to the current session.
     #[error("command error: {0}")]
     CommandError(String),
+
+    /// A path traversal attempt was detected.
+    #[error("path traversal detected: {0}")]
+    PathTraversal(String),
 }

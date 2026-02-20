@@ -4,8 +4,6 @@
 //! undone, and redone. This module defines the command types and the
 //! application logic.
 //!
-use std::collections::HashMap;
-
 use fireside_core::model::content::ContentBlock;
 use fireside_core::model::graph::Graph;
 use fireside_core::model::node::{Node, NodeId};
@@ -15,6 +13,7 @@ use crate::error::EngineError;
 
 /// A command that mutates the graph within a session.
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum Command {
     /// Update the content blocks of a node.
     UpdateNodeContent {
@@ -196,6 +195,9 @@ fn apply_command(graph: &mut Graph, command: &Command) -> Result<Command, Engine
                 index,
                 Node {
                     id: Some(node_id.clone()),
+                    title: None,
+                    tags: Vec::new(),
+                    duration: None,
                     layout: None,
                     transition: None,
                     speaker_notes: None,
@@ -205,7 +207,7 @@ fn apply_command(graph: &mut Graph, command: &Command) -> Result<Command, Engine
                     }],
                 },
             );
-            rebuild_node_index(graph);
+            graph.rebuild_index().map_err(EngineError::CommandError)?;
 
             Ok(Command::RemoveNode {
                 node_id: node_id.clone(),
@@ -222,7 +224,7 @@ fn apply_command(graph: &mut Graph, command: &Command) -> Result<Command, Engine
 
             let insert_index = (*index).min(graph.nodes.len());
             graph.nodes.insert(insert_index, node.clone());
-            rebuild_node_index(graph);
+            graph.rebuild_index().map_err(EngineError::CommandError)?;
 
             let node_id = node
                 .id
@@ -243,7 +245,7 @@ fn apply_command(graph: &mut Graph, command: &Command) -> Result<Command, Engine
             })?;
 
             let removed = graph.nodes.remove(idx);
-            rebuild_node_index(graph);
+            graph.rebuild_index().map_err(EngineError::CommandError)?;
 
             Ok(Command::RestoreNode {
                 node: removed,
@@ -319,15 +321,6 @@ fn apply_command(graph: &mut Graph, command: &Command) -> Result<Command, Engine
             Ok(inverse)
         }
     }
-}
-
-fn rebuild_node_index(graph: &mut Graph) {
-    graph.node_index = graph
-        .nodes
-        .iter()
-        .enumerate()
-        .filter_map(|(idx, node)| node.id.as_ref().map(|id| (id.clone(), idx)))
-        .collect::<HashMap<_, _>>();
 }
 
 #[cfg(test)]

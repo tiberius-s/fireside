@@ -3,6 +3,8 @@
 //! The `TraversalEngine` maintains the current position within a graph
 //! and a history stack for backtracking.
 
+use std::collections::VecDeque;
+
 use fireside_core::model::graph::Graph;
 
 use crate::error::EngineError;
@@ -15,8 +17,10 @@ pub struct TraversalEngine {
     /// Index of the currently active node (0-based).
     current: usize,
     /// Navigation history stack for backtracking.
-    history: Vec<usize>,
+    history: VecDeque<usize>,
 }
+
+const MAX_HISTORY: usize = 256;
 
 /// Result of a traversal operation.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -33,7 +37,7 @@ impl TraversalEngine {
     pub fn new(start: usize) -> Self {
         Self {
             current: start,
-            history: Vec::new(),
+            history: VecDeque::new(),
         }
     }
 
@@ -45,7 +49,7 @@ impl TraversalEngine {
 
     /// Returns the navigation history stack.
     #[must_use]
-    pub fn history(&self) -> &[usize] {
+    pub fn history(&self) -> &VecDeque<usize> {
         &self.history
     }
 
@@ -76,7 +80,7 @@ impl TraversalEngine {
             && let Some(idx) = graph.index_of(target_id)
         {
             let from = self.current;
-            self.history.push(from);
+            self.push_history(from);
             self.current = idx;
             return TraversalResult::Moved { from, to: idx };
         }
@@ -86,7 +90,7 @@ impl TraversalEngine {
             && let Some(idx) = graph.index_of(target_id)
         {
             let from = self.current;
-            self.history.push(from);
+            self.push_history(from);
             self.current = idx;
             return TraversalResult::Moved { from, to: idx };
         }
@@ -94,7 +98,7 @@ impl TraversalEngine {
         // Sequential advance
         if self.current + 1 < graph.len() {
             let from = self.current;
-            self.history.push(from);
+            self.push_history(from);
             self.current = from + 1;
             TraversalResult::Moved { from, to: from + 1 }
         } else {
@@ -106,7 +110,7 @@ impl TraversalEngine {
     ///
     /// If the history is empty, tries sequential backward movement.
     pub fn back(&mut self) -> TraversalResult {
-        if let Some(prev) = self.history.pop() {
+        if let Some(prev) = self.history.pop_back() {
             let from = self.current;
             self.current = prev;
             TraversalResult::Moved { from, to: prev }
@@ -133,7 +137,7 @@ impl TraversalEngine {
         }
 
         let from = self.current;
-        self.history.push(from);
+        self.push_history(from);
         self.current = index;
         Ok(TraversalResult::Moved { from, to: index })
     }
@@ -162,12 +166,19 @@ impl TraversalEngine {
         })?;
 
         let from = self.current;
-        self.history.push(from);
+        self.push_history(from);
         self.current = target_idx;
         Ok(TraversalResult::Moved {
             from,
             to: target_idx,
         })
+    }
+
+    fn push_history(&mut self, index: usize) {
+        self.history.push_back(index);
+        if self.history.len() > MAX_HISTORY {
+            let _ = self.history.pop_front();
+        }
     }
 }
 

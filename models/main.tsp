@@ -376,6 +376,15 @@ model Node {
   @minLength(1)
   id?: NodeId;
 
+  /** Human-readable node title for navigation and indexing UIs. */
+  title?: string;
+
+  /** Optional categorization tags for this node. */
+  tags?: string[];
+
+  /** Optional duration hint (ISO 8601 recommended). */
+  duration?: string;
+
   /** Spatial arrangement strategy for this node's content blocks. */
   layout?: Layout;
 
@@ -410,6 +419,17 @@ model NodeDefaults {
 }
 
 /**
+ * Declares an extension type used by this graph and whether it is required.
+ */
+model ExtensionDeclaration {
+  /** Extension type identifier (e.g., "acme.table"). */
+  type: string;
+
+  /** Whether engines MUST support this extension for correct rendering. */
+  required?: boolean;
+}
+
+/**
  * A Graph is the top-level document — a self-contained directed graph
  * of nodes forming traversable content with metadata.
  *
@@ -432,6 +452,9 @@ model NodeDefaults {
 model Graph {
   /** JSON Schema URI for self-describing documents. */
   $schema?: string;
+
+  /** Protocol version for this document (machine-readable). */
+  `fireside-version`?: Versions;
 
   /** The graph's display name. */
   title?: string;
@@ -459,6 +482,9 @@ model Graph {
 
   /** Default values applied to all nodes unless overridden. */
   defaults?: NodeDefaults;
+
+  /** Declared extension capabilities used by this graph. */
+  extensions?: ExtensionDeclaration[];
 
   /** The ordered array of nodes forming the graph. MUST contain at least one node. */
   @minItems(1)

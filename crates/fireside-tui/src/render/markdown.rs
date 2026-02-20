@@ -6,7 +6,7 @@
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use serde_json::Value;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use fireside_core::model::content::{ContentBlock, ListItem};
 use image::ImageReader;
@@ -367,12 +367,31 @@ fn local_image_path(src: &str, base_dir: Option<&Path>) -> Option<PathBuf> {
         PathBuf::from(src)
     };
 
-    if path.is_absolute() {
-        return Some(path);
+    if path
+        .components()
+        .any(|component| matches!(component, Component::ParentDir))
+    {
+        tracing::warn!(src = %src, "rejecting image path with parent traversal");
+        return None;
     }
 
     if let Some(base_dir) = base_dir {
-        return Some(base_dir.join(path));
+        let base_canonical = base_dir.canonicalize().ok()?;
+        if path.is_absolute() {
+            let resolved_for_check = path.canonicalize().unwrap_or_else(|_| path.clone());
+            if !resolved_for_check.starts_with(&base_canonical) {
+                tracing::warn!(src = %src, base_dir = %base_dir.display(), "rejecting image path outside base directory");
+                return None;
+            }
+            return Some(resolved_for_check);
+        }
+
+        let resolved_for_check = base_canonical.join(path);
+        if !resolved_for_check.starts_with(&base_canonical) {
+            tracing::warn!(src = %src, base_dir = %base_dir.display(), "rejecting image path outside base directory");
+            return None;
+        }
+        return Some(resolved_for_check);
     }
 
     Some(path)
@@ -769,6 +788,17 @@ fn truncate_text(text: &str, max_chars: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_dir(prefix: &str) -> PathBuf {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock should be monotonic")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("fireside-{prefix}-{unique}"));
+        std::fs::create_dir_all(&path).expect("temp dir should be created");
+        path
+    }
 
     fn lines_to_text(lines: &[Line<'_>]) -> Vec<String> {
         lines.iter().map(line_to_plain_text).collect()
@@ -843,5 +873,36 @@ mod tests {
         let text = lines_to_text(&lines).join("\n");
 
         assert!(text.contains("preview truncated for performance"));
+    }
+
+    #[test]
+    fn local_image_path_rejects_parent_traversal() {
+        let base = temp_dir("image-base");
+        let resolved = local_image_path("../../../etc/passwd", Some(&base));
+        assert!(resolved.is_none());
+    }
+
+    #[test]
+    fn local_image_path_rejects_absolute_path_outside_base_dir() {
+        let base = temp_dir("image-base-abs");
+        let resolved = local_image_path("/etc/passwd", Some(&base));
+        assert!(resolved.is_none());
+    }
+
+    #[test]
+    fn local_image_path_allows_relative_path_within_base_dir() {
+        let base = temp_dir("image-base-valid");
+        let image = base.join("valid-image.png");
+        std::fs::write(&image, b"not-an-image").expect("test file should be written");
+
+        let resolved = local_image_path("valid-image.png", Some(&base));
+        let resolved = resolved
+            .and_then(|path| path.canonicalize().ok())
+            .expect("resolved path should canonicalize");
+        let expected = image
+            .canonicalize()
+            .expect("expected image path should canonicalize");
+
+        assert_eq!(resolved, expected);
     }
 }

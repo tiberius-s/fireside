@@ -15,7 +15,12 @@
 
 ## Completed
 
-- None
+- [TASK012] Phase 6 documentation gaps and tutorial series (plan-fireside-improvement-initiative) - Completed 2026-02-20; theme/extension guides + keybindings reference + migration page + full learn-rust series + sidebar wiring complete
+- [TASK011] Phase 5 functional test suite (plan-fireside-improvement-initiative) - Completed 2026-02-19; core roundtrips + engine fixtures/history + cli e2e + tui smoke extension complete
+- [TASK010] Phase 4 security hardening (plan-fireside-improvement-initiative) - Completed 2026-02-20; image-path sanitization + iTerm2 size guard + spec security guidance + typed path-traversal error complete
+- [TASK009] Phase 3 reference implementation fixes and optimizations (plan-fireside-improvement-initiative) - Completed 2026-02-19; rebuild_index/syntect-cache/redraw-gating/history-cap complete
+- [TASK007] Phase 2 build speed and dependency cleanup (plan-fireside-improvement-initiative) - Completed 2026-02-19; deps/linker/dev-profile/syntect eval/rust-ci-nextest complete
+- [TASK008] Phase 1 protocol enhancements (plan-fireside-improvement-initiative) - Completed 2026-02-19; TypeSpec + core + docs + example + verification gates green
 
 ## Abandoned
 
