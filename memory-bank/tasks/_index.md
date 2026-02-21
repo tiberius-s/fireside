@@ -6,11 +6,13 @@
 
 ## Pending
 
-- [TASK016] TUI UX implementation plan — Research complete; ready for coding agent to execute phases 1–8 in order
+- None
 
 ## Completed
 
 ### Agentic Tooling & Memory Bank
+
+- [TASK016] TUI UX implementation plan — Completed 2026-02-20 (all UX phases 1–8 implemented and validated, including graph branch-box polish)
 
 - [TASK015] Penpot 8 UX improvements — Completed 2026-02-21 (multi-page arch, token catalog, components, flows, state machine, size variants, accessibility)
 - [TASK014] Penpot UX design audit — Completed 2026-02-20 (7 design boards, 9 UX improvement proposals)

@@ -12,7 +12,7 @@ use crossterm::terminal::{
 use ratatui::Terminal;
 use ratatui::backend::CrosstermBackend;
 
-use fireside_engine::{PresentationSession, load_graph};
+use fireside_engine::{PresentationSession, load_graph, load_graph_from_str};
 use fireside_tui::config::resolve_theme;
 use fireside_tui::config::settings::load_settings;
 use fireside_tui::{Action, App};
@@ -124,6 +124,39 @@ pub fn run_editor(target: &Path) -> Result<()> {
     result
 }
 
+/// Run the in-memory welcome graph.
+pub fn run_welcome(start_in_edit: bool) -> Result<()> {
+    let settings = load_settings();
+    let theme = resolve_theme(settings.theme.as_deref());
+    let session = build_welcome_session().context("building welcome graph")?;
+    let mut app = App::new(session, theme);
+    app.set_show_progress_bar(settings.show_progress);
+    app.set_show_elapsed_timer(settings.show_timer);
+    if start_in_edit {
+        app.enter_edit_mode();
+    }
+
+    enable_raw_mode().context("enabling raw mode")?;
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)
+        .context("entering alternate screen")?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal = Terminal::new(backend).context("creating terminal")?;
+
+    let result = run_event_loop(&mut terminal, &mut app, settings.poll_timeout_ms, None);
+
+    disable_raw_mode().context("disabling raw mode")?;
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )
+    .context("leaving alternate screen")?;
+    terminal.show_cursor().context("showing cursor")?;
+
+    result
+}
+
 /// The main event loop implementing the TEA pattern.
 fn run_event_loop(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
@@ -148,7 +181,9 @@ fn run_event_loop(
             break;
         }
 
-        let poll_duration = if app.is_animating() {
+        let needs_periodic_tick = app.needs_periodic_tick();
+
+        let poll_duration = if needs_periodic_tick {
             std::time::Duration::from_millis(50)
         } else {
             std::time::Duration::from_millis(idle_poll_timeout_ms.max(10))
@@ -157,7 +192,7 @@ fn run_event_loop(
         if event::poll(poll_duration).context("polling events")? {
             let ev = event::read().context("reading event")?;
             app.handle_event(ev);
-        } else if app.is_animating() {
+        } else if needs_periodic_tick {
             app.update(Action::Tick);
         }
 
@@ -178,4 +213,75 @@ fn run_event_loop(
 
 fn file_modified_time(path: &Path) -> Option<SystemTime> {
     std::fs::metadata(path).ok()?.modified().ok()
+}
+
+fn build_welcome_session() -> Result<PresentationSession> {
+    const WELCOME_JSON: &str = r#"{
+  "title": "Fireside Welcome",
+  "fireside-version": "0.1.0",
+  "description": "In-memory welcome flow",
+  "tags": ["welcome"],
+  "nodes": [
+    {
+      "id": "welcome",
+      "title": "Welcome",
+      "tags": ["welcome"],
+      "speaker-notes": "Use 1/2/3 to choose a path, e to edit, ? for help.",
+      "traversal": {
+        "branch-point": {
+          "id": "welcome-choices",
+          "prompt": "Where would you like to start?",
+          "options": [
+            { "label": "Present an existing file", "key": "1", "target": "present-file" },
+            { "label": "Open editor mode", "key": "2", "target": "edit-mode" },
+            { "label": "Read quick-start tips", "key": "3", "target": "quick-start" }
+          ]
+        }
+      },
+      "content": [
+        { "kind": "heading", "level": 1, "text": "Welcome to Fireside" },
+        { "kind": "text", "body": "No file was provided, so this in-memory welcome presentation is running." },
+        {
+          "kind": "list",
+          "ordered": false,
+          "items": [
+            "Press e to switch between presentation and editor modes",
+            "Press n to advance, b to go back, and ? for keybindings",
+            "Use fireside new demo to scaffold a file"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "present-file",
+      "title": "Present a File",
+      "traversal": { "next": "welcome" },
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Present a file" },
+        { "kind": "text", "body": "Run: fireside present path/to/graph.json" }
+      ]
+    },
+    {
+      "id": "edit-mode",
+      "title": "Editor Mode",
+      "traversal": { "next": "welcome" },
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Open editor mode" },
+        { "kind": "text", "body": "Run: fireside edit path/to/graph.json" }
+      ]
+    },
+    {
+      "id": "quick-start",
+      "title": "Quick Start",
+      "traversal": { "next": "welcome" },
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Quick start" },
+        { "kind": "text", "body": "Run: fireside new demo, then fireside present demo.json" }
+      ]
+    }
+  ]
+}"#;
+
+    let graph = load_graph_from_str(WELCOME_JSON).context("parsing welcome graph")?;
+    Ok(PresentationSession::new(graph, 0))
 }

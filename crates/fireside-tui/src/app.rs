@@ -3,7 +3,7 @@
 //! Implements the TEA (Model-View-Update) pattern: the `App` struct holds
 //! all state, `update()` processes actions, and `view()` renders the UI.
 use std::path::PathBuf;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEventKind};
 use ratatui::Frame;
@@ -20,6 +20,7 @@ use crate::config::settings::{EditorUiPrefs, load_editor_ui_prefs, save_editor_u
 use crate::event::{Action, MouseScrollDirection};
 use crate::theme::Theme;
 use crate::ui::branch::branch_overlay_rect;
+use crate::ui::chrome::FlashKind;
 use crate::ui::editor::{EditorViewState, render_editor};
 use crate::ui::graph::{
     GraphOverlayViewState, graph_overlay_list_panel_rect, graph_overlay_page_span,
@@ -120,6 +121,10 @@ pub struct App {
     editor_graph_selected_node: usize,
     /// Top row offset for graph overlay list viewport.
     editor_graph_scroll_offset: usize,
+    /// Whether compact editor mode currently shows the node list overlay.
+    editor_node_list_visible: bool,
+    /// Focused branch option index in presenter mode branch overlays.
+    branch_focused_option: usize,
     /// Active presenter transition animation.
     active_transition: Option<ActiveTransition>,
     /// Optional base directory for resolving relative content assets.
@@ -130,6 +135,12 @@ pub struct App {
     show_elapsed_timer: bool,
     /// Whether the UI needs a redraw.
     needs_redraw: bool,
+    /// Transient global flash message for presenter/editor chrome.
+    flash_message: Option<(String, FlashKind, Instant)>,
+    /// Timestamp when current unsaved period started.
+    dirty_since: Option<Instant>,
+    /// Last time an unsaved-data warning flash was emitted.
+    last_dirty_flash_at: Option<Instant>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -180,11 +191,16 @@ impl App {
             editor_graph_overlay: false,
             editor_graph_selected_node: 0,
             editor_graph_scroll_offset: 0,
+            editor_node_list_visible: false,
+            branch_focused_option: 0,
             active_transition: None,
             document_base_dir: None,
             show_progress_bar: true,
             show_elapsed_timer: true,
             needs_redraw: true,
+            flash_message: None,
+            dirty_since: None,
+            last_dirty_flash_at: None,
         }
     }
 
@@ -273,6 +289,7 @@ impl App {
 
     /// Process a single action, updating application state.
     pub fn update(&mut self, action: Action) {
+        self.refresh_timed_state();
         self.needs_redraw = true;
 
         match action {
@@ -294,6 +311,7 @@ impl App {
             Action::ChooseBranch(key) => {
                 let from_index = self.session.current_node_index();
                 let _ = self.session.traversal.choose(key, &self.session.graph);
+                self.branch_focused_option = 0;
                 self.start_transition_if_needed(from_index);
             }
             Action::ToggleHelp => {
@@ -309,7 +327,7 @@ impl App {
                 self.enter_edit_mode();
             }
             Action::ExitEditMode => {
-                self.request_edit_mode_exit(PendingExitAction::ExitEditor);
+                self.request_exit_action(PendingExitAction::ExitEditor);
             }
             Action::EditorAppendTextBlock => {
                 if self.mode == AppMode::Editing {
@@ -446,11 +464,8 @@ impl App {
                 }
             }
             Action::Quit => {
-                if self.mode == AppMode::Editing {
-                    self.request_edit_mode_exit(PendingExitAction::QuitApp);
-                } else if self.session.dirty {
-                    self.enter_edit_mode();
-                    self.request_edit_mode_exit(PendingExitAction::QuitApp);
+                if self.session.dirty {
+                    self.request_exit_action(PendingExitAction::QuitApp);
                 } else {
                     self.mode = AppMode::Quitting;
                 }
@@ -505,6 +520,7 @@ impl App {
                         self.active_transition = Some(transition);
                     }
                 }
+                self.refresh_timed_state();
             }
         }
     }
@@ -534,6 +550,7 @@ impl App {
                             scroll_offset: self.editor_graph_scroll_offset,
                         }),
                         help_scroll_offset: self.help_scroll_offset,
+                        node_list_visible: self.editor_node_list_visible,
                     },
                 );
             }
@@ -562,6 +579,9 @@ impl App {
                         } else {
                             None
                         },
+                        branch_focused_option: self.branch_focused_option,
+                        flash_message: self.visible_flash(),
+                        pending_exit_confirmation: self.pending_exit_action.is_some(),
                     },
                 );
             }
@@ -573,16 +593,46 @@ impl App {
         self.active_transition.is_some()
     }
 
+    #[must_use]
+    pub fn needs_periodic_tick(&self) -> bool {
+        self.is_animating() || self.visible_flash().is_some() || self.session.dirty
+    }
+
     /// Handle a crossterm event and map it to an action.
     pub fn handle_event(&mut self, event: Event) {
         match event {
             Event::Key(key) if key.kind == KeyEventKind::Press => {
-                if self.show_help && self.handle_help_overlay_key(key.code) {
+                if self.handle_pending_exit_key(key.code) {
                     self.needs_redraw = true;
                     return;
                 }
 
-                if self.mode == AppMode::Editing && self.handle_pending_exit_key(key.code) {
+                if self.mode == AppMode::Presenting
+                    && !self.show_help
+                    && self.handle_presenter_branch_keys(key.code)
+                {
+                    self.needs_redraw = true;
+                    return;
+                }
+
+                if self.mode == AppMode::Editing
+                    && key.code == KeyCode::Char('n')
+                    && self.terminal_size.0 <= 80
+                    && self.editor_text_input.is_none()
+                    && self.editor_search_input.is_none()
+                    && self.editor_index_jump_input.is_none()
+                {
+                    self.editor_node_list_visible = !self.editor_node_list_visible;
+                    self.editor_status = Some(if self.editor_node_list_visible {
+                        "Compact: node list visible".to_string()
+                    } else {
+                        "Compact: node list hidden".to_string()
+                    });
+                    self.needs_redraw = true;
+                    return;
+                }
+
+                if self.show_help && self.handle_help_overlay_key(key.code) {
                     self.needs_redraw = true;
                     return;
                 }
@@ -739,7 +789,7 @@ impl App {
                 self.help_scroll_offset = max_scroll;
                 true
             }
-            KeyCode::Char(ch @ '1'..='6') => {
+            KeyCode::Char(ch @ '1'..='4') => {
                 let section_index = ch as usize - '1' as usize;
                 if let Some(target) = nav.section_starts.get(section_index).copied() {
                     self.help_scroll_offset = target.min(max_scroll);
@@ -777,6 +827,39 @@ impl App {
                 self.session.traversal.next(&self.session.graph);
                 self.start_transition_if_needed(from_index);
             }
+        }
+    }
+
+    fn handle_presenter_branch_keys(&mut self, code: KeyCode) -> bool {
+        let Some(branch) = self.session.current_node().branch_point() else {
+            self.branch_focused_option = 0;
+            return false;
+        };
+
+        match code {
+            KeyCode::Up | KeyCode::Char('k') => {
+                self.branch_focused_option = self.branch_focused_option.saturating_sub(1);
+                true
+            }
+            KeyCode::Down | KeyCode::Char('j') => {
+                let max = branch.options.len().saturating_sub(1);
+                self.branch_focused_option = (self.branch_focused_option + 1).min(max);
+                true
+            }
+            KeyCode::Enter => {
+                if let Some(option) = branch.options.get(self.branch_focused_option) {
+                    let from_index = self.session.current_node_index();
+                    let _ = self
+                        .session
+                        .traversal
+                        .choose(option.key, &self.session.graph);
+                    self.branch_focused_option = 0;
+                    self.start_transition_if_needed(from_index);
+                    return true;
+                }
+                false
+            }
+            _ => false,
         }
     }
 
@@ -1173,6 +1256,22 @@ impl App {
     }
 
     fn editor_list_visible_rows(&self) -> usize {
+        if self.terminal_size.0 <= 80 {
+            if !self.editor_node_list_visible {
+                return 0;
+            }
+            let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+            let sections = RatatuiLayout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Min(1), Constraint::Length(3)])
+                .split(root);
+            let body = RatatuiLayout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
+                .split(sections[0]);
+            return body[0].height.saturating_sub(2) as usize;
+        }
+
         let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
         let sections = RatatuiLayout::default()
             .direction(Direction::Vertical)
@@ -1402,19 +1501,29 @@ impl App {
     }
 
     fn save_editor_graph(&mut self) {
+        if self.save_graph_to_target() {
+            self.pending_exit_action = None;
+        }
+    }
+
+    fn save_graph_to_target(&mut self) -> bool {
         let Some(path) = self.editor_target_path.as_ref() else {
             self.editor_status = Some("No save target configured".to_string());
-            return;
+            self.set_flash("No save target configured", FlashKind::Error);
+            return false;
         };
 
         match save_graph(path, &self.session.graph) {
             Ok(()) => {
                 self.session.mark_clean();
-                self.pending_exit_action = None;
                 self.editor_status = Some(format!("Saved {}", path.display()));
+                self.set_flash(format!("Saved {}", path.display()), FlashKind::Success);
+                true
             }
             Err(err) => {
                 self.editor_status = Some(format!("Save failed: {err}"));
+                self.set_flash(format!("Save failed: {err}"), FlashKind::Error);
+                false
             }
         }
     }
@@ -1593,10 +1702,17 @@ impl App {
         }
     }
 
-    fn request_edit_mode_exit(&mut self, action: PendingExitAction) {
+    fn request_exit_action(&mut self, action: PendingExitAction) {
         if self.session.dirty {
             self.pending_exit_action = Some(action);
-            self.editor_status = Some("Unsaved changes: press y to leave, n to stay".to_string());
+            if self.mode == AppMode::Editing {
+                self.editor_status =
+                    Some("Unsaved changes: y=yes n=no s=save-first Esc=cancel".to_string());
+            }
+            self.set_flash(
+                "Unsaved changes: y=yes n=no s=save-first Esc=cancel",
+                FlashKind::Warning,
+            );
             return;
         }
 
@@ -1616,9 +1732,22 @@ impl App {
                 }
                 true
             }
+            KeyCode::Char('s') | KeyCode::Char('S') => {
+                let action = self.pending_exit_action;
+                if self.save_graph_to_target() {
+                    self.pending_exit_action = None;
+                    if let Some(action) = action {
+                        self.apply_exit_action(action);
+                    }
+                }
+                true
+            }
             KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
                 self.pending_exit_action = None;
-                self.editor_status = Some("Stayed in editor".to_string());
+                if self.mode == AppMode::Editing {
+                    self.editor_status = Some("Stayed in editor".to_string());
+                }
+                self.set_flash("Quit cancelled", FlashKind::Info);
                 true
             }
             _ => true,
@@ -1646,6 +1775,53 @@ impl App {
             PendingExitAction::QuitApp => {
                 self.mode = AppMode::Quitting;
             }
+        }
+    }
+
+    fn set_flash(&mut self, message: impl Into<String>, kind: FlashKind) {
+        self.flash_message = Some((message.into(), kind, Instant::now()));
+        self.needs_redraw = true;
+    }
+
+    fn visible_flash(&self) -> Option<(&str, FlashKind)> {
+        self.flash_message.as_ref().and_then(|(text, kind, at)| {
+            if Instant::now().duration_since(*at) < Duration::from_secs(3) {
+                Some((text.as_str(), *kind))
+            } else {
+                None
+            }
+        })
+    }
+
+    fn refresh_timed_state(&mut self) {
+        let now = Instant::now();
+        if let Some((_, _, shown_at)) = self.flash_message
+            && now.duration_since(shown_at) >= Duration::from_secs(3)
+        {
+            self.flash_message = None;
+            self.needs_redraw = true;
+        }
+
+        if self.session.dirty {
+            if self.dirty_since.is_none() {
+                self.dirty_since = Some(now);
+                self.last_dirty_flash_at = None;
+            }
+
+            if let Some(since) = self.dirty_since
+                && now.duration_since(since) >= Duration::from_secs(30)
+            {
+                let should_emit = self
+                    .last_dirty_flash_at
+                    .is_none_or(|last| now.duration_since(last) >= Duration::from_secs(30));
+                if should_emit {
+                    self.set_flash("Unsaved changes for over 30 seconds", FlashKind::Warning);
+                    self.last_dirty_flash_at = Some(now);
+                }
+            }
+        } else {
+            self.dirty_since = None;
+            self.last_dirty_flash_at = None;
         }
     }
 }
@@ -1682,10 +1858,24 @@ impl App {
             .direction(Direction::Vertical)
             .constraints([Constraint::Min(1), Constraint::Length(3)])
             .split(root);
-        let body = RatatuiLayout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
-            .split(sections[0]);
+        let compact = self.terminal_size.0 <= 80;
+        let (list_area, detail_area) = if compact {
+            if self.editor_node_list_visible {
+                let v = RatatuiLayout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
+                    .split(sections[0]);
+                (Some(v[0]), v[1])
+            } else {
+                (None, sections[0])
+            }
+        } else {
+            let body = RatatuiLayout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
+                .split(sections[0]);
+            (Some(body[0]), body[1])
+        };
 
         if self.editor_graph_overlay {
             if self.handle_graph_overlay_mouse_click(column, row, sections[0]) {
@@ -1700,11 +1890,13 @@ impl App {
             return;
         }
 
-        if point_in_rect(column, row, body[0]) {
+        if let Some(list_area) = list_area
+            && point_in_rect(column, row, list_area)
+        {
             self.editor_focus = EditorPaneFocus::NodeList;
             self.persist_editor_preferences();
 
-            let row_start = body[0].y.saturating_add(1);
+            let row_start = list_area.y.saturating_add(1);
             if row >= row_start {
                 let index = self.editor_list_scroll_offset + row.saturating_sub(row_start) as usize;
                 if index < self.session.graph.nodes.len() {
@@ -1716,7 +1908,7 @@ impl App {
             return;
         }
 
-        if point_in_rect(column, row, body[1]) {
+        if point_in_rect(column, row, detail_area) {
             self.editor_focus = EditorPaneFocus::NodeDetail;
             self.persist_editor_preferences();
         }

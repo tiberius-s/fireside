@@ -49,8 +49,7 @@ pub fn render_progress_bar(
     };
 
     // ── Fixed spans ───────────────────────────────────────────────────────
-    let left_hint = " [k] prev ".to_owned();
-    let right_hint = " [j] next ".to_owned();
+    let (left_hint, right_hint) = footer_hints(area.width, current_node.branch_point().is_some());
 
     let position_str = format!(
         " {}/{}{}{} ",
@@ -108,6 +107,8 @@ pub fn render_progress_bar(
         }
         let seg_style = if i == active_seg {
             Style::default().fg(theme.border_active)
+        } else if any_node_in_bucket_is_branch(i, total, segment_count, session) {
+            Style::default().fg(theme.heading_h3)
         } else {
             Style::default().fg(theme.border_inactive)
         };
@@ -125,4 +126,57 @@ pub fn render_progress_bar(
         Paragraph::new(line).block(Block::default().style(Style::default().bg(theme.toolbar_bg))),
         area,
     );
+}
+
+fn footer_hints(width: u16, is_branch: bool) -> (String, String) {
+    if width <= 80 {
+        return (
+            " ← ? ".to_string(),
+            if is_branch {
+                " ⎇ ".to_string()
+            } else {
+                " → e ".to_string()
+            },
+        );
+    }
+
+    if width < 120 {
+        return (
+            " [←] prev ".to_string(),
+            if is_branch {
+                " ⎇ BRANCH ".to_string()
+            } else {
+                " [→] next  [?] help ".to_string()
+            },
+        );
+    }
+
+    (
+        " [←] prev ".to_string(),
+        if is_branch {
+            " ⎇ BRANCH  ·  [?] help  ·  [e] edit ".to_string()
+        } else {
+            " next [→]  ·  [?] help  ·  [e] edit ".to_string()
+        },
+    )
+}
+
+fn any_node_in_bucket_is_branch(
+    seg: usize,
+    total: usize,
+    count: usize,
+    session: &PresentationSession,
+) -> bool {
+    if total == 0 || count == 0 {
+        return false;
+    }
+    let start = (seg * total) / count;
+    let end = ((seg + 1) * total).div_ceil(count).min(total);
+    (start..end).any(|idx| {
+        session
+            .graph
+            .nodes
+            .get(idx)
+            .is_some_and(|node| node.branch_point().is_some())
+    })
 }

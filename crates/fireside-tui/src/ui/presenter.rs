@@ -22,6 +22,10 @@ use crate::theme::Theme;
 use std::path::Path;
 
 use super::branch::render_branch_overlay;
+use super::chrome::{
+    FlashKind, ModeBadgeKind, render_flash_message, render_mode_badge,
+    render_quit_confirmation_banner,
+};
 use super::help::{HelpMode, render_help_overlay};
 use super::progress::render_progress_bar;
 
@@ -44,6 +48,12 @@ pub struct PresenterViewState<'a> {
     pub elapsed_secs: u64,
     /// When in `GotoNode` mode, the digits typed so far (shown as a badge).
     pub goto_buffer: Option<&'a str>,
+    /// Focused branch option index when branch overlay is visible.
+    pub branch_focused_option: usize,
+    /// Optional transient flash message shown above the footer.
+    pub flash_message: Option<(&'a str, FlashKind)>,
+    /// Whether quit confirmation is currently pending.
+    pub pending_exit_confirmation: bool,
 }
 
 /// Render the full presenter view for the current node.
@@ -75,7 +85,16 @@ pub fn render_presenter(
     let bg_block = Block::default().style(bg_style);
     frame.render_widget(bg_block, area);
 
-    let content_area = areas.main;
+    let content_area = if breakpoint == Breakpoint::Compact {
+        Rect {
+            x: area.x,
+            y: areas.main.y,
+            width: area.width,
+            height: areas.main.height,
+        }
+    } else {
+        areas.main
+    };
     let notes_area = if template == NodeTemplate::SpeakerNotes {
         areas.secondary
     } else {
@@ -110,7 +129,14 @@ pub fn render_presenter(
 
     // Render branch overlay for branch nodes
     if view_state.transition.is_none() && node.branch_point().is_some() {
-        render_branch_overlay(frame, area, node, &session.graph, theme);
+        render_branch_overlay(
+            frame,
+            area,
+            node,
+            &session.graph,
+            theme,
+            view_state.branch_focused_option,
+        );
     }
 
     // Render progress bar
@@ -125,6 +151,33 @@ pub fn render_presenter(
         );
     }
 
+    let mut banner_y = if view_state.show_progress_bar {
+        areas.footer.y.saturating_sub(1)
+    } else {
+        area.y.saturating_add(area.height.saturating_sub(1))
+    };
+
+    if view_state.pending_exit_confirmation {
+        let banner = Rect {
+            x: area.x,
+            y: banner_y,
+            width: area.width,
+            height: 1,
+        };
+        render_quit_confirmation_banner(frame, banner, theme);
+        banner_y = banner_y.saturating_sub(1);
+    }
+
+    if let Some((text, kind)) = view_state.flash_message {
+        let banner = Rect {
+            x: area.x,
+            y: banner_y,
+            width: area.width,
+            height: 1,
+        };
+        render_flash_message(frame, banner, text, kind, theme);
+    }
+
     // Render help overlay if active
     if view_state.show_help {
         render_help_overlay(
@@ -136,9 +189,21 @@ pub fn render_presenter(
         );
     }
 
+    render_mode_badge(
+        frame,
+        area,
+        if view_state.goto_buffer.is_some() {
+            ModeBadgeKind::GotoNode
+        } else {
+            ModeBadgeKind::Presenting
+        },
+        theme,
+    );
+
     // Render GOTO mode badge (gold border, top-right corner)
     if let Some(buffer) = view_state.goto_buffer {
         render_goto_badge(frame, area, buffer, theme);
+        render_goto_autocomplete(frame, area, areas.footer, buffer, session, theme);
     }
 }
 
@@ -153,7 +218,7 @@ fn render_goto_badge(frame: &mut Frame, area: Rect, buffer: &str, theme: &Theme)
     }
     let badge = Rect {
         x: area.x + area.width - badge_width,
-        y: area.y,
+        y: area.y.saturating_add(3),
         width: badge_width,
         height: badge_height,
     };
@@ -173,6 +238,125 @@ fn render_goto_badge(frame: &mut Frame, area: Rect, buffer: &str, theme: &Theme)
         ))),
         inner,
     );
+}
+
+fn render_goto_autocomplete(
+    frame: &mut Frame,
+    area: Rect,
+    footer_area: Rect,
+    buffer: &str,
+    session: &PresentationSession,
+    theme: &Theme,
+) {
+    if buffer.is_empty() {
+        return;
+    }
+
+    let matches = goto_matches(session, buffer, 5);
+    if matches.is_empty() {
+        return;
+    }
+
+    let max_rows: usize = if area.height <= 24 { 3 } else { 6 };
+    let visible = matches.len().min(max_rows.saturating_sub(1));
+    if visible == 0 {
+        return;
+    }
+
+    let height = (visible as u16).saturating_add(1);
+    let y = footer_area.y.saturating_sub(height);
+    if y <= area.y {
+        return;
+    }
+
+    let panel = Rect {
+        x: area.x,
+        y,
+        width: area.width,
+        height,
+    };
+
+    let block = Block::default()
+        .title(" GOTO MATCHES ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(theme.heading_h3))
+        .style(Style::default().bg(theme.surface));
+    let inner = block.inner(panel);
+    frame.render_widget(block, panel);
+
+    let lines = matches
+        .iter()
+        .take(visible)
+        .enumerate()
+        .map(|(row, (idx, id, title))| {
+            let style = if row == 0 {
+                Style::default()
+                    .fg(theme.heading_h1)
+                    .bg(theme.background)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(theme.foreground)
+            };
+            let title_text = title.as_deref().unwrap_or("(untitled)");
+            Line::from(Span::styled(
+                format!(
+                    " {:>2} │ {:<16} │ {}",
+                    idx + 1,
+                    id,
+                    truncate_line(title_text, 40)
+                ),
+                style,
+            ))
+        })
+        .collect::<Vec<_>>();
+
+    frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
+}
+
+fn goto_matches<'a>(
+    session: &'a PresentationSession,
+    buffer: &str,
+    limit: usize,
+) -> Vec<(usize, &'a str, Option<String>)> {
+    let prefix = buffer.to_ascii_lowercase();
+    session
+        .graph
+        .nodes
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, node)| {
+            let id = node.id.as_deref()?;
+            if !id.to_ascii_lowercase().starts_with(&prefix) {
+                return None;
+            }
+            let title = node
+                .title
+                .clone()
+                .or_else(|| {
+                    node.content.iter().find_map(|block| {
+                        if let fireside_core::model::content::ContentBlock::Heading {
+                            text, ..
+                        } = block
+                        {
+                            Some(text.clone())
+                        } else {
+                            None
+                        }
+                    })
+                })
+                .or_else(|| Some(id.to_string()));
+            Some((idx, id, title))
+        })
+        .take(limit)
+        .collect()
+}
+
+fn truncate_line(text: &str, max_chars: usize) -> String {
+    if text.chars().count() <= max_chars {
+        return text.to_owned();
+    }
+    let clipped: String = text.chars().take(max_chars.saturating_sub(1)).collect();
+    format!("{clipped}…")
 }
 
 fn render_transition_node(
@@ -362,7 +546,8 @@ fn transition_lines(
 ) -> Vec<Line<'static>> {
     let rows = from_lines.len().max(to_lines.len());
     let mut output = Vec::with_capacity(rows);
-    let reveal = (progress * width as f32).floor() as usize;
+    let eased_progress = ease_out_cubic(progress.clamp(0.0, 1.0));
+    let reveal = (eased_progress * width as f32).floor() as usize;
 
     for row in 0..rows {
         let from_text = from_lines.get(row).map_or_else(String::new, line_to_text);
@@ -377,11 +562,11 @@ fn transition_lines(
                 }
             }
             Transition::SlideLeft => {
-                let shift = ((1.0 - progress) * width as f32).floor() as usize;
+                let shift = ((1.0 - eased_progress) * width as f32).floor() as usize;
                 clip_pad(&format!("{}{}", " ".repeat(shift), to_text), width)
             }
             Transition::SlideRight => {
-                let shift = ((1.0 - progress) * width as f32).floor() as usize;
+                let shift = ((1.0 - eased_progress) * width as f32).floor() as usize;
                 let padded = format!("{}{}", " ".repeat(width), to_text);
                 let start = width.saturating_sub(shift).min(padded.chars().count());
                 clip_pad(&padded.chars().skip(start).collect::<String>(), width)
@@ -434,6 +619,10 @@ fn transition_lines(
     }
 
     output
+}
+
+fn ease_out_cubic(t: f32) -> f32 {
+    1.0 - (1.0 - t).powi(3)
 }
 
 fn line_to_text(line: &Line<'_>) -> String {

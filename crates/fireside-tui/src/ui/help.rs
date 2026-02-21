@@ -21,6 +21,14 @@ pub struct HelpNavigation {
     pub section_starts: Vec<usize>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HelpSection {
+    Nav,
+    Branch,
+    Display,
+    Editor,
+}
+
 const MODE_PRESENTING: u8 = 0b01;
 const MODE_EDITING: u8 = 0b10;
 const MODE_BOTH: u8 = MODE_PRESENTING | MODE_EDITING;
@@ -36,6 +44,7 @@ struct HelpEntry {
 struct SectionLegend {
     index: usize,
     short: &'static str,
+    section: HelpSection,
     active: bool,
 }
 
@@ -157,7 +166,7 @@ const KEYBINDINGS: &[HelpEntry] = &[
     HelpEntry {
         section: "System",
         key: "q / Esc / Ctrl+c",
-        desc: "Quit app or cancel prompt",
+        desc: "Quit app (dirty: y/n/s/Esc confirm)",
         modes: MODE_BOTH,
     },
     HelpEntry {
@@ -176,9 +185,17 @@ pub fn render_help_overlay(
     mode: HelpMode,
     scroll_offset: usize,
 ) {
-    let popup = centered_popup(area, 66, 78);
+    let popup = if area.width <= 80 {
+        centered_popup(area, 66, 78)
+    } else {
+        let (dim_area, panel_area) = help_panel_rect(area);
+        frame.render_widget(
+            Block::default().style(Style::default().bg(theme.toolbar_bg)),
+            dim_area,
+        );
+        panel_area
+    };
 
-    // Clear the area behind the popup
     frame.render_widget(Clear, popup);
 
     let block = Block::default()
@@ -274,7 +291,11 @@ pub fn render_help_overlay(
 }
 
 pub fn help_navigation(area: Rect, mode: HelpMode) -> HelpNavigation {
-    let popup = centered_popup(area, 66, 78);
+    let popup = if area.width <= 80 {
+        centered_popup(area, 66, 78)
+    } else {
+        help_panel_rect(area).1
+    };
     let inner = Rect {
         x: popup.x.saturating_add(1),
         y: popup.y.saturating_add(1),
@@ -285,8 +306,18 @@ pub fn help_navigation(area: Rect, mode: HelpMode) -> HelpNavigation {
     let rows = build_help_rows(mode);
     let viewport_rows = inner.height.saturating_sub(1) as usize;
     let mut section_starts = Vec::new();
-    for (idx, row) in rows.iter().enumerate() {
-        if matches!(row, HelpRow::Section { .. }) {
+    for section in section_legends(mode) {
+        let section_name = match section.section {
+            HelpSection::Nav => "Navigation",
+            HelpSection::Branch => "Branching",
+            HelpSection::Display => "Display",
+            HelpSection::Editor => "Editor",
+        };
+        if let Some((idx, _)) = rows
+            .iter()
+            .enumerate()
+            .find(|(_, row)| matches!(row, HelpRow::Section { name } if *name == section_name))
+        {
             section_starts.push(idx);
         }
     }
@@ -344,26 +375,43 @@ fn build_help_rows(mode: HelpMode) -> Vec<HelpRow> {
 }
 
 fn section_legends(mode: HelpMode) -> Vec<SectionLegend> {
-    const SECTIONS: [(&str, &str); 6] = [
-        ("Navigation", "Nav"),
-        ("Branching", "Branch"),
-        ("Display", "Display"),
-        ("Editor", "Editor"),
-        ("Graph View", "Graph"),
-        ("System", "System"),
+    const SECTIONS: [(&str, &str, HelpSection); 4] = [
+        ("Navigation", "Nav", HelpSection::Nav),
+        ("Branching", "Branch", HelpSection::Branch),
+        ("Display", "Display", HelpSection::Display),
+        ("Editor", "Editor", HelpSection::Editor),
     ];
 
     SECTIONS
         .iter()
         .enumerate()
-        .map(|(index, (name, short))| SectionLegend {
+        .map(|(index, (name, short, section))| SectionLegend {
             index: index + 1,
             short,
+            section: *section,
             active: KEYBINDINGS
                 .iter()
                 .any(|entry| entry.section == *name && entry_active(mode, entry.modes)),
         })
         .collect()
+}
+
+pub fn help_panel_rect(area: Rect) -> (Rect, Rect) {
+    let panel_width = ((area.width as u32 * 55) / 100).clamp(45, 60) as u16;
+    let panel_width = panel_width.min(area.width);
+    let panel = Rect {
+        x: area.x + area.width.saturating_sub(panel_width),
+        y: area.y,
+        width: panel_width,
+        height: area.height,
+    };
+    let dim = Rect {
+        x: area.x,
+        y: area.y,
+        width: area.width.saturating_sub(panel_width),
+        height: area.height,
+    };
+    (dim, panel)
 }
 
 /// Create a centered rect for a popup overlay.
@@ -402,14 +450,10 @@ mod tests {
         assert!(presenting[1].active);
         assert!(presenting[2].active);
         assert!(presenting[3].active);
-        assert!(!presenting[4].active);
-        assert!(presenting[5].active);
 
         assert!(!editing[0].active);
         assert!(!editing[1].active);
         assert!(!editing[2].active);
         assert!(editing[3].active);
-        assert!(editing[4].active);
-        assert!(editing[5].active);
     }
 }

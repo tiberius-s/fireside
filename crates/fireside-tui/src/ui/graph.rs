@@ -68,7 +68,7 @@ pub fn render_graph_overlay(
     let end = window.end;
 
     let items = (start..end)
-        .map(|idx| ListItem::new(graph_item_lines(session, idx)))
+        .map(|idx| ListItem::new(graph_item_lines(session, idx, theme)))
         .collect::<Vec<_>>();
 
     let mut state = ListState::default();
@@ -108,6 +108,31 @@ pub fn render_graph_overlay(
 
     frame.render_widget(minimap, panes[1]);
 
+    let mini_inner = Block::default().inner(panes[1]);
+    let legend_area = Rect {
+        x: mini_inner.x,
+        y: mini_inner
+            .y
+            .saturating_add(mini_inner.height.saturating_sub(4)),
+        width: mini_inner.width,
+        height: 4,
+    };
+    frame.render_widget(
+        Paragraph::new(vec![
+            Line::from(Span::styled(
+                "── next",
+                Style::default().fg(theme.heading_h1),
+            )),
+            Line::from(Span::styled(
+                "── branch",
+                Style::default().fg(theme.heading_h3),
+            )),
+            Line::from(Span::styled("── after", Style::default().fg(theme.success))),
+            Line::from(Span::styled("── goto", Style::default().fg(theme.error))),
+        ]),
+        legend_area,
+    );
+
     let legend = Paragraph::new(Line::from(vec![
         Span::styled("j/k/↑/↓", Style::default().fg(theme.heading_h2)),
         Span::styled(" move  ", Style::default().fg(theme.foreground)),
@@ -126,29 +151,46 @@ pub fn render_graph_overlay(
     frame.render_widget(legend, body[1]);
 }
 
-fn graph_item_lines(session: &PresentationSession, index: usize) -> Vec<Line<'static>> {
+fn graph_item_lines(
+    session: &PresentationSession,
+    index: usize,
+    theme: &Theme,
+) -> Vec<Line<'static>> {
     let current = session.current_node_index();
     let Some(node) = session.graph.nodes.get(index) else {
         return vec![Line::from("(missing node)")];
     };
 
-    let marker = if index == current { "*" } else { " " };
+    let is_current = index == current;
+    let is_branch = node.branch_point().is_some();
+    let marker = if is_current { "*" } else { " " };
     let id = node.id.as_deref().unwrap_or("(no-id)");
     let rail = if index + 1 < session.graph.nodes.len() {
         "│"
     } else {
         "└"
     };
-    let mut lines = vec![Line::from(format!(
-        "{marker} {rail} ┌[{:>2}] {id}┐",
-        index + 1
-    ))];
+    let header_text = if is_branch {
+        format!("{marker} {rail} ┌⎇[{:>2}] {id}┐", index + 1)
+    } else {
+        format!("{marker} {rail} ┌[{:>2}] {id}┐", index + 1)
+    };
+    let header_style = if is_current {
+        Style::default()
+            .fg(theme.border_active)
+            .add_modifier(Modifier::BOLD)
+    } else if is_branch {
+        Style::default().fg(theme.heading_h3)
+    } else {
+        Style::default().fg(theme.foreground)
+    };
+    let mut lines = vec![Line::from(Span::styled(header_text, header_style))];
 
     let edge_lines = summarize_edge_lines(session, node, index);
     if !edge_lines.is_empty() {
         let max_kind_len = edge_lines
             .iter()
-            .map(|edge| edge.kind.len())
+            .map(|edge| edge.kind_label.len())
             .max()
             .unwrap_or(0);
         let max_target_len = edge_lines
@@ -164,10 +206,11 @@ fn graph_item_lines(session: &PresentationSession, index: usize) -> Vec<Line<'st
                 "├"
             };
 
-            let kind = format!("{:width$}", edge.kind, width = max_kind_len);
+            let kind = format!("{:width$}", edge.kind_label, width = max_kind_len);
             let target = format!("{:width$}", edge.target_label, width = max_target_len);
-            lines.push(Line::from(format!(
-                "  {rail}  {branch_connector}╼ {kind} → {target}"
+            lines.push(Line::from(Span::styled(
+                format!("  {rail}  {branch_connector}╼ {kind} → {target}"),
+                Style::default().fg(edge.kind.color(theme)),
             )));
         }
     }
@@ -177,8 +220,28 @@ fn graph_item_lines(session: &PresentationSession, index: usize) -> Vec<Line<'st
 
 #[derive(Debug, Clone)]
 struct EdgeLine {
-    kind: String,
+    kind: EdgeKind,
+    kind_label: String,
     target_label: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum EdgeKind {
+    Next,
+    Branch,
+    After,
+    Goto,
+}
+
+impl EdgeKind {
+    fn color(self, theme: &Theme) -> ratatui::style::Color {
+        match self {
+            Self::Next => theme.heading_h1,
+            Self::Branch => theme.heading_h3,
+            Self::After => theme.success,
+            Self::Goto => theme.error,
+        }
+    }
 }
 
 fn summarize_edge_lines(session: &PresentationSession, node: &Node, index: usize) -> Vec<EdgeLine> {
@@ -186,14 +249,25 @@ fn summarize_edge_lines(session: &PresentationSession, node: &Node, index: usize
 
     if let Some(target) = node.next_override() {
         if let Some(idx) = session.graph.index_of(target) {
+            let is_goto = index + 1 != idx;
             edges.push(EdgeLine {
-                kind: "next".to_string(),
+                kind: if is_goto {
+                    EdgeKind::Goto
+                } else {
+                    EdgeKind::Next
+                },
+                kind_label: if is_goto {
+                    "goto".to_string()
+                } else {
+                    "next".to_string()
+                },
                 target_label: format!("#{}", idx + 1),
             });
         }
     } else if index + 1 < session.graph.nodes.len() {
         edges.push(EdgeLine {
-            kind: "next".to_string(),
+            kind: EdgeKind::Next,
+            kind_label: "next".to_string(),
             target_label: format!("#{}", index + 2),
         });
     }
@@ -202,7 +276,8 @@ fn summarize_edge_lines(session: &PresentationSession, node: &Node, index: usize
         && let Some(idx) = session.graph.index_of(target)
     {
         edges.push(EdgeLine {
-            kind: "after".to_string(),
+            kind: EdgeKind::After,
+            kind_label: "after".to_string(),
             target_label: format!("#{}", idx + 1),
         });
     }
@@ -211,7 +286,8 @@ fn summarize_edge_lines(session: &PresentationSession, node: &Node, index: usize
         for option in &branch.options {
             if let Some(idx) = session.graph.index_of(&option.target) {
                 edges.push(EdgeLine {
-                    kind: format!("branch [{}]", option.key),
+                    kind: EdgeKind::Branch,
+                    kind_label: format!("branch [{}]", option.key),
                     target_label: format!("#{}", idx + 1),
                 });
             }
@@ -403,4 +479,123 @@ fn centered_popup(area: Rect, width_pct: u16, height_pct: u16) -> Rect {
         .split(vert[1]);
 
     horiz[1]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{EdgeKind, graph_item_lines, summarize_edge_lines};
+    use crate::theme::Theme;
+    use fireside_core::model::branch::{BranchOption, BranchPoint};
+    use fireside_core::model::content::ContentBlock;
+    use fireside_core::model::graph::{Graph, GraphFile};
+    use fireside_core::model::node::Node;
+    use fireside_core::model::traversal::Traversal;
+    use fireside_engine::PresentationSession;
+
+    fn node(id: &str) -> Node {
+        Node {
+            id: Some(id.to_string()),
+            title: None,
+            tags: vec![],
+            duration: None,
+            layout: None,
+            transition: None,
+            speaker_notes: None,
+            traversal: None,
+            content: vec![ContentBlock::Text {
+                body: format!("node {id}"),
+            }],
+        }
+    }
+
+    fn graph_with_nodes(nodes: Vec<Node>) -> Graph {
+        Graph::from_file(GraphFile {
+            title: None,
+            fireside_version: None,
+            author: None,
+            date: None,
+            description: None,
+            version: None,
+            tags: vec![],
+            theme: None,
+            font: None,
+            defaults: None,
+            extensions: vec![],
+            nodes,
+        })
+        .expect("graph should be valid")
+    }
+
+    fn lines_to_text(lines: &[ratatui::text::Line<'_>]) -> Vec<String> {
+        lines
+            .iter()
+            .map(|line| {
+                line.spans
+                    .iter()
+                    .map(|span| span.content.as_ref())
+                    .collect::<Vec<_>>()
+                    .join("")
+            })
+            .collect()
+    }
+
+    #[test]
+    fn summarize_edge_lines_classifies_next_after_branch_and_goto() {
+        let mut start = node("start");
+        start.traversal = Some(Traversal {
+            next: Some("end".to_string()),
+            after: Some("middle".to_string()),
+            branch_point: Some(BranchPoint {
+                id: Some("bp".to_string()),
+                prompt: None,
+                options: vec![BranchOption {
+                    label: "to-middle".to_string(),
+                    key: 'a',
+                    target: "middle".to_string(),
+                }],
+            }),
+        });
+
+        let middle = node("middle");
+        let end = node("end");
+
+        let graph = graph_with_nodes(vec![start, middle, end]);
+        let session = PresentationSession::new(graph, 0);
+        let edges = summarize_edge_lines(&session, &session.graph.nodes[0], 0);
+
+        assert_eq!(edges.len(), 3);
+        assert_eq!(edges[0].kind, EdgeKind::Goto);
+        assert_eq!(edges[0].kind_label, "goto");
+        assert_eq!(edges[1].kind, EdgeKind::After);
+        assert_eq!(edges[1].kind_label, "after");
+        assert_eq!(edges[2].kind, EdgeKind::Branch);
+        assert_eq!(edges[2].kind_label, "branch [a]");
+    }
+
+    #[test]
+    fn graph_item_lines_marks_branch_headers() {
+        let mut branch = node("branch");
+        branch.traversal = Some(Traversal {
+            next: None,
+            after: None,
+            branch_point: Some(BranchPoint {
+                id: Some("branch-node".to_string()),
+                prompt: None,
+                options: vec![BranchOption {
+                    label: "go".to_string(),
+                    key: '1',
+                    target: "end".to_string(),
+                }],
+            }),
+        });
+
+        let end = node("end");
+        let graph = graph_with_nodes(vec![branch, end]);
+        let session = PresentationSession::new(graph, 0);
+        let theme = Theme::default();
+
+        let lines = graph_item_lines(&session, 0, &theme);
+        let text = lines_to_text(&lines);
+        assert!(text[0].contains("┌⎇[ 1] branch┐"));
+    }
 }

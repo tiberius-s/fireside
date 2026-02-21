@@ -9,6 +9,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
 
 use crate::app::{EditorPaneFocus, EditorPickerOverlay};
+use crate::design::tokens::Breakpoint;
 use crate::theme::Theme;
 use crate::ui::graph::{GraphOverlayViewState, render_graph_overlay};
 use crate::ui::help::{HelpMode, render_help_overlay};
@@ -28,6 +29,7 @@ pub struct EditorViewState<'a> {
     pub picker_overlay: Option<EditorPickerOverlay>,
     pub graph_overlay: Option<GraphOverlayViewState>,
     pub help_scroll_offset: usize,
+    pub node_list_visible: bool,
 }
 
 /// Render the editing mode shell.
@@ -46,17 +48,26 @@ pub fn render_editor(
         .constraints([Constraint::Min(1), Constraint::Length(2)])
         .split(area);
 
-    // ── Horizontal split: left panel (30%) | detail panel (70%) ──────────
-    let body = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
-        .split(sections[0]);
+    let compact = Breakpoint::from_size(area.width, area.height) == Breakpoint::Compact;
 
-    // ── Left panel: node tree (60%) | tools panel (40%) ──────────────────
-    let left_panels = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
-        .split(body[0]);
+    // ── Adaptive shell layout ─────────────────────────────────────────────
+    let (left_panels, detail_area) = if compact {
+        if view_state.node_list_visible {
+            let v = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
+                .split(sections[0]);
+            (Some(v[0]), v[1])
+        } else {
+            (None, sections[0])
+        }
+    } else {
+        let body = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
+            .split(sections[0]);
+        (Some(body[0]), body[1])
+    };
 
     // ── Computed state ────────────────────────────────────────────────────
     let total = session.graph.nodes.len();
@@ -93,7 +104,9 @@ pub fn render_editor(
     };
 
     // ── Node list (left-top panel) ────────────────────────────────────────
-    let visible_rows = left_panels[0].height.saturating_sub(2) as usize;
+    let visible_rows = left_panels
+        .map(|lp| lp.height.saturating_sub(2) as usize)
+        .unwrap_or(0);
     let safe_visible_rows = visible_rows.max(1);
     let max_start = total.saturating_sub(safe_visible_rows);
     let mut list_start = view_state.list_scroll_offset.min(max_start);
@@ -146,159 +159,129 @@ pub fn render_editor(
         )
         .highlight_symbol("› ");
 
-    let mut state = ratatui::widgets::ListState::default();
-    state.select(Some(selected.saturating_sub(list_start)));
-    frame.render_stateful_widget(list, left_panels[0], &mut state);
+    if let Some(left_area) = left_panels {
+        let list_split = if compact {
+            vec![left_area]
+        } else {
+            Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
+                .split(left_area)
+                .to_vec()
+        };
 
-    // ── Tools panel (left-bottom panel) ──────────────────────────────────
-    let key = |k: &'static str| Span::styled(k, Style::default().fg(theme.heading_h2));
-    let sep = || Span::styled("  ", Style::default().fg(theme.toolbar_fg));
-    let hint = |h: &str| Span::styled(h.to_string(), Style::default().fg(theme.toolbar_fg));
+        let mut state = ratatui::widgets::ListState::default();
+        state.select(Some(selected.saturating_sub(list_start)));
+        frame.render_stateful_widget(list, list_split[0], &mut state);
 
-    let tools_lines = vec![
-        Line::from(vec![Span::styled(
-            "Navigation",
-            Style::default()
-                .fg(theme.heading_h3)
-                .add_modifier(Modifier::BOLD),
-        )]),
-        Line::from(vec![
-            key("j/k"),
-            hint(" up/dn"),
-            sep(),
-            key("PgUpDn"),
-            hint(" page"),
-            sep(),
-            key("Home/End"),
-        ]),
-        Line::from(vec![
-            key("g"),
-            hint(" jump#"),
-            sep(),
-            key("/"),
-            hint(" search"),
-            sep(),
-            key("[/]"),
-            hint(" hits"),
-        ]),
-        Line::from(vec![]),
-        Line::from(vec![Span::styled(
-            "Editing",
-            Style::default()
-                .fg(theme.heading_h3)
-                .add_modifier(Modifier::BOLD),
-        )]),
-        Line::from(vec![
-            key("i"),
-            hint(" inline"),
-            sep(),
-            key("a"),
-            hint(" append"),
-            sep(),
-            key("d"),
-            hint(" delete"),
-        ]),
-        Line::from(vec![
-            key("n"),
-            hint(" add node"),
-            sep(),
-            key("u/r"),
-            hint(" undo/redo"),
-        ]),
-        Line::from(vec![
-            key("w"),
-            hint(" save"),
-            sep(),
-            key("e"),
-            hint(" → present"),
-        ]),
-        Line::from(vec![]),
-        Line::from(vec![Span::styled(
-            "Metadata",
-            Style::default()
-                .fg(theme.heading_h3)
-                .add_modifier(Modifier::BOLD),
-        )]),
-        Line::from(vec![
-            key("L/l"),
-            hint(" layout"),
-            sep(),
-            key("T/t"),
-            hint(" transition"),
-        ]),
-        Line::from(vec![
-            key("o"),
-            hint(format!(" notes ({notes_state})").as_str()),
-            sep(),
-            key("v"),
-            hint(" graph"),
-        ]),
-        Line::from(vec![
-            key("Tab"),
-            hint(" focus"),
-            sep(),
-            key("?"),
-            hint(" help"),
-        ]),
-    ];
+        if !compact {
+            // ── Tools panel (left-bottom panel) ──────────────────────────────────
+            let key = |k: &'static str| Span::styled(k, Style::default().fg(theme.heading_h2));
+            let sep = || Span::styled("  ", Style::default().fg(theme.toolbar_fg));
+            let hint = |h: &str| Span::styled(h.to_string(), Style::default().fg(theme.toolbar_fg));
 
-    let tools_panel = Paragraph::new(tools_lines)
-        .block(
-            Block::default()
-                .title(" Keybindings ")
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(theme.border_inactive))
-                .style(Style::default().bg(theme.toolbar_bg)),
-        )
-        .style(Style::default().fg(theme.toolbar_fg));
+            let tools_lines = vec![
+                Line::from(vec![Span::styled(
+                    "Navigation",
+                    Style::default()
+                        .fg(theme.heading_h3)
+                        .add_modifier(Modifier::BOLD),
+                )]),
+                Line::from(vec![
+                    key("j/k"),
+                    hint(" up/dn"),
+                    sep(),
+                    key("PgUpDn"),
+                    hint(" page"),
+                    sep(),
+                    key("Home/End"),
+                ]),
+                Line::from(vec![
+                    key("g"),
+                    hint(" jump#"),
+                    sep(),
+                    key("/"),
+                    hint(" search"),
+                    sep(),
+                    key("[/]"),
+                    hint(" hits"),
+                ]),
+                Line::from(vec![]),
+                Line::from(vec![Span::styled(
+                    "Editing",
+                    Style::default()
+                        .fg(theme.heading_h3)
+                        .add_modifier(Modifier::BOLD),
+                )]),
+                Line::from(vec![
+                    key("i"),
+                    hint(" inline"),
+                    sep(),
+                    key("a"),
+                    hint(" append"),
+                    sep(),
+                    key("d"),
+                    hint(" delete"),
+                ]),
+                Line::from(vec![
+                    key("n"),
+                    hint(" add node"),
+                    sep(),
+                    key("u/r"),
+                    hint(" undo/redo"),
+                ]),
+                Line::from(vec![
+                    key("w"),
+                    hint(" save"),
+                    sep(),
+                    key("e"),
+                    hint(" → present"),
+                ]),
+                Line::from(vec![]),
+                Line::from(vec![Span::styled(
+                    "Metadata",
+                    Style::default()
+                        .fg(theme.heading_h3)
+                        .add_modifier(Modifier::BOLD),
+                )]),
+                Line::from(vec![
+                    key("L/l"),
+                    hint(" layout"),
+                    sep(),
+                    key("T/t"),
+                    hint(" transition"),
+                ]),
+                Line::from(vec![
+                    key("o"),
+                    hint(format!(" notes ({notes_state})").as_str()),
+                    sep(),
+                    key("v"),
+                    hint(" graph"),
+                ]),
+                Line::from(vec![
+                    key("Tab"),
+                    hint(" focus"),
+                    sep(),
+                    key("?"),
+                    hint(" help"),
+                ]),
+            ];
 
-    frame.render_widget(tools_panel, left_panels[1]);
+            let tools_panel = Paragraph::new(tools_lines)
+                .block(
+                    Block::default()
+                        .title(" Keybindings ")
+                        .borders(Borders::ALL)
+                        .border_style(Style::default().fg(theme.border_inactive))
+                        .style(Style::default().bg(theme.toolbar_bg)),
+                )
+                .style(Style::default().fg(theme.toolbar_fg));
+
+            frame.render_widget(tools_panel, list_split[1]);
+        }
+    }
 
     // ── Detail panel (right) ──────────────────────────────────────────────
-    // Helper closures for field rows: "  label  │  value  "
-    let label_style = Style::default().fg(theme.footer);
-    let value_style = Style::default().fg(theme.foreground);
-    let sep = Span::styled(" │ ", Style::default().fg(theme.border_inactive));
-
-    let field_row = |label: &'static str, spans: Vec<Span<'static>>| -> Line<'static> {
-        let mut parts: Vec<Span<'static>> = vec![
-            Span::styled(format!("  {label:<12}"), label_style),
-            sep.clone(),
-        ];
-        parts.extend(spans);
-        Line::from(parts)
-    };
-
-    // Derive per-block fields from the selected node
-    let first_block = node.content.first();
-    let block_kind = match first_block {
-        Some(ContentBlock::Heading { .. }) => "heading",
-        Some(ContentBlock::Text { .. }) => "text",
-        Some(ContentBlock::Code { .. }) => "code",
-        Some(ContentBlock::List { .. }) => "list",
-        Some(ContentBlock::Image { .. }) => "image",
-        Some(ContentBlock::Divider) => "divider",
-        Some(ContentBlock::Container { .. }) => "container",
-        Some(ContentBlock::Extension { .. }) => "extension",
-        None => "(empty)",
-    };
-    let code_lang = match first_block {
-        Some(ContentBlock::Code { language, .. }) => {
-            language.as_deref().unwrap_or("plain").to_owned()
-        }
-        _ => "—".to_owned(),
-    };
-    let highlight_info = match first_block {
-        Some(ContentBlock::Code {
-            highlight_lines, ..
-        }) if !highlight_lines.is_empty() => highlight_lines
-            .iter()
-            .map(|n| n.to_string())
-            .collect::<Vec<_>>()
-            .join(", "),
-        _ => "—".to_owned(),
-    };
-
     let mut detail_lines = vec![
         Line::from(Span::styled(
             format!("  Node {}/{total}: {selected_node_label}", selected + 1),
@@ -307,79 +290,85 @@ pub fn render_editor(
                 .add_modifier(Modifier::BOLD),
         )),
         Line::default(),
-        // ── Content block fields ───────────────────────────────────────
-        field_row(
-            "kind",
-            vec![Span::styled(
-                block_kind.to_owned(),
-                Style::default().fg(theme.heading_h2),
-            )],
-        ),
-        field_row("language", vec![Span::styled(code_lang, value_style)]),
-        field_row(
-            "content",
-            vec![Span::styled(
-                truncate(&preview_line(first_block), 55),
-                value_style,
-            )],
-        ),
-        field_row("highlight", vec![Span::styled(highlight_info, value_style)]),
+        section_header(theme, "METADATA"),
+        metadata_chip_row_layout(theme, prev_layout, current_layout, next_layout),
+        metadata_chip_row_transition(theme, prev_transition, current_transition, next_transition),
+        Line::from(vec![
+            Span::styled("  id", Style::default().fg(theme.footer)),
+            Span::styled(
+                format!(
+                    "  {}",
+                    truncate(node.id.as_deref().unwrap_or("(no-id)"), 72)
+                ),
+                Style::default().fg(theme.foreground),
+            ),
+        ]),
+        Line::from(vec![
+            Span::styled("  blocks", Style::default().fg(theme.footer)),
+            Span::styled(
+                format!("  {}", node.content.len()),
+                Style::default().fg(theme.foreground),
+            ),
+        ]),
         Line::default(),
-        // ── Node metadata fields ────────────────────────────────────────
-        Line::from(vec![
-            Span::styled("  layout     ", label_style),
-            sep.clone(),
-            Span::styled(
-                format!("◀ {}  ", layout_name(prev_layout)),
-                Style::default().fg(theme.footer),
-            ),
-            Span::styled(
-                format!(" {} ", layout_name(current_layout)),
-                Style::default()
-                    .fg(theme.on_surface)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            Span::styled(
-                format!("  {} ▶", layout_name(next_layout)),
-                Style::default().fg(theme.footer),
-            ),
-            Span::styled("   L/l", Style::default().fg(theme.heading_h2)),
-        ]),
-        Line::from(vec![
-            Span::styled("  transition ", label_style),
-            sep.clone(),
-            Span::styled(
-                format!("◀ {}  ", transition_name(prev_transition)),
-                Style::default().fg(theme.footer),
-            ),
-            Span::styled(
-                format!(" {} ", transition_name(current_transition)),
-                Style::default()
-                    .fg(theme.on_surface)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            Span::styled(
-                format!("  {} ▶", transition_name(next_transition)),
-                Style::default().fg(theme.footer),
-            ),
-            Span::styled("   T/t", Style::default().fg(theme.heading_h2)),
-        ]),
-        field_row(
-            "notes",
-            vec![Span::styled(
-                format!("{notes_state}  [o] edit"),
-                Style::default().fg(if notes_state == "has notes" {
-                    theme.success
-                } else {
-                    theme.footer
-                }),
-            )],
-        ),
-        field_row(
-            "blocks",
-            vec![Span::styled(node.content.len().to_string(), value_style)],
-        ),
+        section_header(theme, "CONTENT BLOCKS"),
     ];
+
+    if node.content.is_empty() {
+        detail_lines.push(Line::from(vec![
+            Span::styled("  · ", Style::default().fg(theme.footer)),
+            Span::styled("(no content blocks)", Style::default().fg(theme.footer)),
+        ]));
+    } else {
+        for (idx, block) in node.content.iter().enumerate() {
+            detail_lines.push(Line::from(vec![
+                Span::styled(
+                    format!("  {} ", block_type_glyph(block)),
+                    Style::default().fg(theme.heading_h2),
+                ),
+                Span::styled(
+                    format!("{:>2}. ", idx + 1),
+                    Style::default().fg(theme.footer),
+                ),
+                Span::styled(
+                    truncate(&block_summary(block), 74),
+                    Style::default().fg(theme.foreground),
+                ),
+            ]));
+        }
+    }
+
+    detail_lines.push(Line::default());
+    detail_lines.push(section_header(theme, "TRAVERSAL"));
+    detail_lines.extend(traversal_summary_lines(node, theme));
+
+    detail_lines.push(Line::default());
+    detail_lines.push(section_header(theme, "SPEAKER NOTES"));
+    detail_lines.push(Line::from(vec![
+        Span::styled("  status", Style::default().fg(theme.footer)),
+        Span::styled(
+            format!("  {notes_state}"),
+            Style::default().fg(if notes_state == "has notes" {
+                theme.success
+            } else {
+                theme.footer
+            }),
+        ),
+        Span::styled("   [o] edit", Style::default().fg(theme.heading_h2)),
+    ]));
+
+    if let Some(notes) = node.speaker_notes.as_deref() {
+        let trimmed = notes.trim();
+        if !trimmed.is_empty() {
+            detail_lines.push(Line::from(vec![
+                Span::styled("  preview", Style::default().fg(theme.footer)),
+                Span::styled(
+                    format!("  {}", truncate(trimmed, 70)),
+                    Style::default().fg(theme.foreground),
+                ),
+            ]));
+        }
+    }
 
     if let Some(buffer) = view_state.inline_text_input {
         detail_lines.push(Line::default());
@@ -406,7 +395,7 @@ pub fn render_editor(
         .style(Style::default().fg(theme.foreground))
         .wrap(Wrap { trim: true });
 
-    frame.render_widget(detail, body[1]);
+    frame.render_widget(detail, detail_area);
 
     // ── Status bar ────────────────────────────────────────────────────────
     let mut status_spans = vec![
@@ -442,16 +431,22 @@ pub fn render_editor(
     let undo_style = if can_undo {
         Style::default().fg(theme.heading_h2).bg(theme.toolbar_bg)
     } else {
-        Style::default().fg(theme.footer).bg(theme.toolbar_bg)
+        Style::default()
+            .fg(theme.footer)
+            .bg(theme.toolbar_bg)
+            .add_modifier(Modifier::DIM)
     };
     let redo_style = if can_redo {
         Style::default().fg(theme.heading_h2).bg(theme.toolbar_bg)
     } else {
-        Style::default().fg(theme.footer).bg(theme.toolbar_bg)
+        Style::default()
+            .fg(theme.footer)
+            .bg(theme.toolbar_bg)
+            .add_modifier(Modifier::DIM)
     };
-    status_spans.push(Span::styled("[u undo]", undo_style));
+    status_spans.push(Span::styled("[Z undo]", undo_style));
     status_spans.push(Span::styled(" ", Style::default().bg(theme.toolbar_bg)));
-    status_spans.push(Span::styled("[r redo]", redo_style));
+    status_spans.push(Span::styled("[Y redo]", redo_style));
 
     // Active search/jump prompt
     if let Some(search) = view_state.search_input {
@@ -477,11 +472,22 @@ pub fn render_editor(
     // Pending exit confirmation
     if view_state.pending_exit_confirmation {
         status_spans.push(Span::styled(
-            "  Unsaved changes — y leave  n stay",
+            "  Save and quit? y=yes n=no s=save-first Esc=cancel",
             Style::default()
                 .fg(theme.error)
                 .bg(theme.toolbar_bg)
                 .add_modifier(Modifier::BOLD),
+        ));
+    }
+
+    if compact {
+        status_spans.push(Span::styled(
+            if view_state.node_list_visible {
+                "  [n] hide list"
+            } else {
+                "  [n] show list"
+            },
+            Style::default().fg(theme.heading_h2).bg(theme.toolbar_bg),
         ));
     }
 
@@ -521,24 +527,177 @@ fn node_label(session: &PresentationSession, index: usize) -> String {
     format!("{prefix}{id}")
 }
 
-fn preview_line(block: Option<&ContentBlock>) -> String {
+fn section_header(theme: &Theme, title: &'static str) -> Line<'static> {
+    Line::from(vec![
+        Span::styled("  ", Style::default()),
+        Span::styled(
+            title,
+            Style::default()
+                .fg(theme.heading_h3)
+                .add_modifier(Modifier::BOLD),
+        ),
+    ])
+}
+
+fn metadata_chip_row_layout(
+    theme: &Theme,
+    prev: NodeLayout,
+    current: NodeLayout,
+    next: NodeLayout,
+) -> Line<'static> {
+    Line::from(vec![
+        Span::styled("  layout      ", Style::default().fg(theme.footer)),
+        Span::styled(
+            format!("◀ {}  ", layout_name(prev)),
+            Style::default().fg(theme.footer),
+        ),
+        Span::styled(
+            format!(" {} ", layout_name(current)),
+            Style::default()
+                .fg(theme.on_surface)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("  {} ▶", layout_name(next)),
+            Style::default().fg(theme.footer),
+        ),
+        Span::styled("   L/l", Style::default().fg(theme.heading_h2)),
+    ])
+}
+
+fn metadata_chip_row_transition(
+    theme: &Theme,
+    prev: Transition,
+    current: Transition,
+    next: Transition,
+) -> Line<'static> {
+    Line::from(vec![
+        Span::styled("  transition  ", Style::default().fg(theme.footer)),
+        Span::styled(
+            format!("◀ {}  ", transition_name(prev)),
+            Style::default().fg(theme.footer),
+        ),
+        Span::styled(
+            format!(" {} ", transition_name(current)),
+            Style::default()
+                .fg(theme.on_surface)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("  {} ▶", transition_name(next)),
+            Style::default().fg(theme.footer),
+        ),
+        Span::styled("   T/t", Style::default().fg(theme.heading_h2)),
+    ])
+}
+
+fn block_type_glyph(block: &ContentBlock) -> char {
     match block {
-        Some(ContentBlock::Heading { text, .. }) => format!("heading: {text}"),
-        Some(ContentBlock::Text { body }) => format!("text: {}", truncate(body, 70)),
-        Some(ContentBlock::Code { language, .. }) => {
-            format!("code: {}", language.as_deref().unwrap_or("plain"))
-        }
-        Some(ContentBlock::List { items, .. }) => format!("list: {} items", items.len()),
-        Some(ContentBlock::Image { src, .. }) => format!("image: {}", truncate(src, 70)),
-        Some(ContentBlock::Divider) => "divider".to_string(),
-        Some(ContentBlock::Container { children, .. }) => {
-            format!("container: {} children", children.len())
-        }
-        Some(ContentBlock::Extension { extension_type, .. }) => {
-            format!("extension: {extension_type}")
-        }
-        None => "(empty node)".to_string(),
+        ContentBlock::Heading { .. } => '▸',
+        ContentBlock::Text { .. } => '¶',
+        ContentBlock::Code { .. } => '⌥',
+        ContentBlock::List { .. } => '•',
+        ContentBlock::Image { .. } => '⬛',
+        ContentBlock::Divider => '─',
+        ContentBlock::Container { .. } => '□',
+        ContentBlock::Extension { .. } => '⎇',
     }
+}
+
+fn block_summary(block: &ContentBlock) -> String {
+    match block {
+        ContentBlock::Heading { level, text } => {
+            format!("heading h{level}: {}", truncate(text, 52))
+        }
+        ContentBlock::Text { body } => format!("text: {}", truncate(body, 56)),
+        ContentBlock::Code {
+            language,
+            highlight_lines,
+            ..
+        } => {
+            let lang = language.as_deref().unwrap_or("plain");
+            if highlight_lines.is_empty() {
+                format!("code: {lang}")
+            } else {
+                format!(
+                    "code: {lang}  highlights [{}]",
+                    highlight_lines
+                        .iter()
+                        .map(|line| line.to_string())
+                        .collect::<Vec<_>>()
+                        .join(",")
+                )
+            }
+        }
+        ContentBlock::List { ordered, items } => {
+            let list_type = if *ordered { "ordered" } else { "unordered" };
+            format!("list: {list_type}, {} item(s)", items.len())
+        }
+        ContentBlock::Image { src, alt, .. } => {
+            let alt_preview = if alt.trim().is_empty() {
+                "(no alt)".to_string()
+            } else {
+                truncate(alt, 24)
+            };
+            format!("image: {}  alt: {alt_preview}", truncate(src, 28))
+        }
+        ContentBlock::Divider => "divider".to_string(),
+        ContentBlock::Container { layout, children } => {
+            let layout_name = layout.as_deref().unwrap_or("default");
+            format!(
+                "container: {layout_name}, {} child block(s)",
+                children.len()
+            )
+        }
+        ContentBlock::Extension {
+            extension_type,
+            fallback,
+            ..
+        } => {
+            let fallback_blocks = usize::from(fallback.is_some());
+            format!("extension: {extension_type} ({fallback_blocks} fallback block(s))")
+        }
+    }
+}
+
+fn traversal_summary_lines(
+    node: &fireside_core::model::node::Node,
+    theme: &Theme,
+) -> Vec<Line<'static>> {
+    let traversal = node.traversal.as_ref();
+    let next = traversal
+        .and_then(|value| value.next.as_deref())
+        .unwrap_or("(sequential)");
+    let after = traversal
+        .and_then(|value| value.after.as_deref())
+        .unwrap_or("(none)");
+    let mut lines = vec![
+        Line::from(vec![
+            Span::styled("  next", Style::default().fg(theme.footer)),
+            Span::styled(format!("  {next}"), Style::default().fg(theme.foreground)),
+        ]),
+        Line::from(vec![
+            Span::styled("  after", Style::default().fg(theme.footer)),
+            Span::styled(format!("  {after}"), Style::default().fg(theme.foreground)),
+        ]),
+    ];
+
+    if let Some(branch) = traversal.and_then(|value| value.branch_point.as_ref()) {
+        lines.push(Line::from(vec![
+            Span::styled("  branch", Style::default().fg(theme.footer)),
+            Span::styled(
+                format!("  {} option(s)", branch.options.len()),
+                Style::default().fg(theme.heading_h2),
+            ),
+        ]));
+    } else {
+        lines.push(Line::from(vec![
+            Span::styled("  branch", Style::default().fg(theme.footer)),
+            Span::styled("  (none)", Style::default().fg(theme.footer)),
+        ]));
+    }
+
+    lines
 }
 
 fn truncate(text: &str, max_chars: usize) -> String {

@@ -63,6 +63,7 @@ pub fn render_branch_overlay(
     node: &Node,
     graph: &Graph,
     theme: &Theme,
+    focused_option: usize,
 ) {
     let Some(branch_point) = node.branch_point() else {
         return;
@@ -131,10 +132,10 @@ pub fn render_branch_overlay(
 
     // Render each option
     for (idx, option) in branch_point.options.iter().enumerate() {
-        let is_first = idx == 0;
+        let is_focused = idx == focused_option.min(branch_point.options.len().saturating_sub(1));
         let description = option_preview(graph, &option.target);
 
-        let (badge_fg, badge_bg) = if is_first {
+        let (badge_fg, badge_bg) = if is_focused {
             (theme.toolbar_bg, theme.heading_h1)
         } else {
             (theme.footer, theme.surface)
@@ -145,18 +146,36 @@ pub fn render_branch_overlay(
             .add_modifier(Modifier::BOLD);
 
         lines.push(Line::from(vec![
-            Span::styled("  ", Style::default()),
+            Span::styled(
+                if is_focused { "▌ " } else { "  " },
+                Style::default().fg(theme.border_active).bg(theme.surface),
+            ),
             Span::styled(
                 format!(" {} ", option.key),
                 Style::default().fg(badge_fg).bg(badge_bg),
             ),
             Span::styled("  ", Style::default()),
-            Span::styled(option.label.as_str(), label_style),
+            Span::styled(
+                option.label.as_str(),
+                if is_focused {
+                    label_style
+                        .fg(theme.heading_h2)
+                        .add_modifier(Modifier::UNDERLINED)
+                } else {
+                    label_style
+                },
+            ),
         ]));
         lines.push(Line::from(Span::styled(
             format!("       {}", truncate(&description, 70)),
             Style::default().fg(theme.footer),
         )));
+        if idx + 1 < branch_point.options.len() {
+            lines.push(Line::from(Span::styled(
+                "  ─────────────────────────────────────────",
+                Style::default().fg(theme.border_inactive),
+            )));
+        }
     }
 
     frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), body_area);

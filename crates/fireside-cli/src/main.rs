@@ -13,7 +13,7 @@ mod commands;
 use commands::fonts::list_fonts;
 use commands::project::run_project;
 use commands::scaffold::{scaffold_presentation, scaffold_project};
-use commands::session::{run_editor, run_presentation};
+use commands::session::{run_editor, run_presentation, run_welcome};
 use commands::theme::import_iterm2_theme;
 use commands::validate::run_validate;
 
@@ -125,8 +125,13 @@ fn main() -> Result<()> {
             run_project(&dir, theme.as_deref())?;
         }
         Some(Command::Edit { path }) => {
-            let target = path.as_deref().unwrap_or(Path::new("."));
-            run_editor(target)?;
+            if let Some(target) = path.as_deref() {
+                run_editor(target)?;
+            } else if Path::new("fireside.json").exists() {
+                run_editor(Path::new("."))?;
+            } else {
+                run_welcome(true)?;
+            }
         }
         Some(Command::New { name, project, dir }) => {
             if project {
@@ -144,21 +149,7 @@ fn main() -> Result<()> {
         Some(Command::ImportTheme { file, name }) => {
             import_iterm2_theme(&file, name.as_deref())?;
         }
-        None => {
-            println!("Fireside — Portable Branching Presentations");
-            println!();
-            println!("Usage:");
-            println!("  fireside present <file.json>   Present a graph in the terminal");
-            println!("  fireside open <dir>            Open a project directory");
-            println!("  fireside edit [path]           Edit nodes in the TUI editor");
-            println!("  fireside new <name>            Scaffold a new presentation");
-            println!("  fireside new <name> -p         Scaffold a new project directory");
-            println!("  fireside validate <file.json>  Validate a graph file");
-            println!("  fireside fonts                 List installed monospace fonts");
-            println!("  fireside import-theme <file>   Import an iTerm2 or VS Code color scheme");
-            println!();
-            println!("Run `fireside --help` for full options.");
-        }
+        None => run_welcome(false)?,
     }
 
     Ok(())

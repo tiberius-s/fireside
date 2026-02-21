@@ -1,6 +1,6 @@
 # TASK016 — TUI UX Implementation Plan
 
-**Status:** Pending
+**Status:** Completed
 **Added:** 2026-02-20
 **Updated:** 2026-02-20
 
@@ -565,35 +565,60 @@ Each phase should add at minimum:
 
 ## Progress Tracking
 
-**Overall Status:** Not Started — 0 %
+**Overall Status:** Completed — 100 %
 
 ### Sub-tasks
 
 | ID  | Description                                                         | Status                          |
 | --- | ------------------------------------------------------------------- | ------------------------------- |
 | 0.1 | Accept / refine five design gaps (GAP-1 through GAP-5)              | Complete — resolved in this doc |
-| 1.1 | `ui/chrome.rs`: `render_mode_badge` + PRESENTING badge in presenter | Not Started                     |
-| 1.2 | `progress.rs`: branch-segment colouring                             | Not Started                     |
-| 1.3 | `progress.rs`: adaptive footer hints                                | Not Started                     |
-| 1.4 | `app.rs`: flash message system                                      | Not Started                     |
-| 2.1 | `help.rs`: right-panel layout                                       | Not Started                     |
-| 2.2 | `help.rs`: section tabs + key navigation                            | Not Started                     |
-| 3.1 | `app.rs`: `goto_matches` helper                                     | Not Started                     |
-| 3.2 | `presenter.rs`: autocomplete strip render                           | Not Started                     |
-| 4.1 | `branch.rs` + `app.rs`: focused option state                        | Not Started                     |
-| 4.2 | `branch.rs`: styled focused row + separators                        | Not Started                     |
-| 4.3 | `app.rs`: Enter / arrow key selection                               | Not Started                     |
-| 5.1 | `editor.rs`: detail panel layout skeleton                           | Not Started                     |
-| 5.2 | `editor.rs`: metadata chip row                                      | Not Started                     |
-| 5.3 | `editor.rs`: content blocks summary list                            | Not Started                     |
-| 5.4 | `editor.rs`: traversal section                                      | Not Started                     |
-| 5.5 | `editor.rs`: speaker notes editable area                            | Not Started                     |
-| 5.6 | `editor.rs`: undo/redo chips in footer                              | Not Started                     |
-| 6.1 | `graph.rs`: `classify_edge` + `EdgeKind`                            | Not Started                     |
-| 6.2 | `graph.rs`: coloured edge spans + branch box                        | Not Started                     |
-| 6.3 | `graph.rs`: legend in minimap area                                  | Not Started                     |
-| 7.1 | `editor.rs` + `app.rs`: compact breakpoint routing                  | Not Started                     |
-| 7.2 | `presenter.rs`: compact presenter layout                            | Not Started                     |
-| 8.1 | Quit confirmation inline banner                                     | Not Started                     |
-| 8.2 | Welcome / no-file screen                                            | Not Started                     |
-| 8.3 | `ease_out_cubic` transition easing                                  | Not Started                     |
+| 1.1 | `ui/chrome.rs`: `render_mode_badge` + PRESENTING badge in presenter | Complete                        |
+| 1.2 | `progress.rs`: branch-segment colouring                             | Complete                        |
+| 1.3 | `progress.rs`: adaptive footer hints                                | Complete                        |
+| 1.4 | `app.rs`: flash message system                                      | Complete                        |
+| 2.1 | `help.rs`: right-panel layout                                       | Complete                        |
+| 2.2 | `help.rs`: section tabs + key navigation                            | Complete                        |
+| 3.1 | `app.rs`: `goto_matches` helper                                     | Complete                        |
+| 3.2 | `presenter.rs`: autocomplete strip render                           | Complete                        |
+| 4.1 | `branch.rs` + `app.rs`: focused option state                        | Complete                        |
+| 4.2 | `branch.rs`: styled focused row + separators                        | Complete                        |
+| 4.3 | `app.rs`: Enter / arrow key selection                               | Complete                        |
+| 5.1 | `editor.rs`: detail panel layout skeleton                           | Complete                        |
+| 5.2 | `editor.rs`: metadata chip row                                      | Complete                        |
+| 5.3 | `editor.rs`: content blocks summary list                            | Complete                        |
+| 5.4 | `editor.rs`: traversal section                                      | Complete                        |
+| 5.5 | `editor.rs`: speaker notes editable area                            | Complete                        |
+| 5.6 | `editor.rs`: undo/redo chips in footer                              | Complete                        |
+| 6.1 | `graph.rs`: `classify_edge` + `EdgeKind`                            | Complete                        |
+| 6.2 | `graph.rs`: coloured edge spans + branch box                        | Complete                        |
+| 6.3 | `graph.rs`: legend in minimap area                                  | Complete                        |
+| 7.1 | `editor.rs` + `app.rs`: compact breakpoint routing                  | Complete                        |
+| 7.2 | `presenter.rs`: compact presenter layout                            | Complete                        |
+| 8.1 | Quit confirmation inline banner                                     | Complete                        |
+| 8.2 | Welcome / no-file screen                                            | Complete                        |
+| 8.3 | `ease_out_cubic` transition easing                                  | Complete                        |
+
+Notes:
+
+- Sub-task 3.1 is complete with `goto_matches` implemented in presenter module scope.
+- Sub-task 5.1 is complete with sectioned editor detail rendering and metadata/content/traversal/notes grouping.
+- Sub-task 6.2 is complete with branch-node header marker/styling polish and edge classification tests.
+
+### 2026-02-20 Progress Log
+
+- Implemented shared presenter chrome with persistent mode badge in `ui/chrome.rs` and integrated it into presenter rendering.
+- Added goto autocomplete strip in presenter mode and moved goto badge placement to avoid overlap with persistent mode badge.
+- Implemented branch overlay focus state with arrow-key navigation and Enter activation, including focused-row affordance and row separators.
+- Switched help overlay to context-preserving right-side panel on wide terminals with 4-section jump model and compact fallback behavior.
+- Added adaptive progress hints by width tier and branch-aware segment coloring in footer progress visualization.
+- Added compact editor node-list toggle behavior and updated footer undo/redo chips to `[Z undo]` and `[Y redo]` with dim unavailable states.
+- Added graph edge classification and colorized edge rendering with minimap legend.
+- Completed graph branch-box polish with branch-node header emphasis and added table-driven edge-classification coverage in `ui/graph.rs` tests.
+- Added `ease_out_cubic` transition easing for `SlideLeft` / `SlideRight` in presenter transition rendering.
+- Added global flash message lifecycle in `app.rs` + `ui/chrome.rs` with timed expiry and dirty-duration warning behavior.
+- Added inline quit confirmation banner rendering in presenter/editor contexts with `y/n/s/Esc` handling.
+- Updated event-loop ticking in `fireside-cli` session runner to support timed UI updates when flash/dirty timers are active.
+- Updated compact presenter rendering to use full-width content area at `Breakpoint::Compact`.
+- Refactored editor detail pane to structured sections (METADATA / CONTENT BLOCKS / TRAVERSAL / SPEAKER NOTES) with metadata chips and per-block summaries.
+- Added no-arg welcome flow via in-memory graph session: `fireside` now launches a welcome presentation; `fireside edit` with no path opens welcome when no local project exists.
+- Validation complete: `cargo fmt --check`, `cargo check --workspace`, `cargo clippy --workspace -- -D warnings`, and `cargo test -p fireside-tui --no-fail-fast` all passed.
