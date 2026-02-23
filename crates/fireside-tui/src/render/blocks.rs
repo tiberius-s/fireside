@@ -6,14 +6,14 @@
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use serde_json::Value;
-use std::path::{Component, Path, PathBuf};
+use std::path::Path;
 
 use fireside_core::model::content::{ContentBlock, ListItem};
-use image::ImageReader;
 
 use crate::design::tokens::DesignTokens;
-use crate::error::RenderError;
 use crate::theme::Theme;
+use super::blocks_extension::render_known_extension;
+use super::blocks_image::render_image_placeholder;
 
 use super::code::highlight_code;
 
@@ -273,150 +273,6 @@ fn render_list<'a>(
     lines
 }
 
-fn render_image_placeholder<'a>(
-    alt: &'a str,
-    src: &'a str,
-    caption: Option<&'a str>,
-    tokens: &DesignTokens,
-    width: u16,
-    base_dir: Option<&Path>,
-) -> Vec<Line<'a>> {
-    let border_style = Style::default().fg(tokens.border_inactive);
-    let label_style = Style::default()
-        .fg(tokens.heading_h3)
-        .add_modifier(Modifier::BOLD);
-    let text_style = Style::default().fg(tokens.body);
-
-    let inner_width = width.saturating_sub(2).max(24) as usize;
-    let src_display = truncate_text(src, inner_width.saturating_sub(8));
-
-    let mut lines = vec![Line::from(Span::styled(
-        format!(
-            "┌─ 🖼 {} {}",
-            src_display,
-            "─".repeat(inner_width.saturating_sub(src_display.chars().count() + 5))
-        ),
-        border_style,
-    ))];
-
-    if !alt.is_empty() {
-        lines.push(Line::from(vec![
-            Span::styled("│ ", border_style),
-            Span::styled(format!("alt: {alt}"), text_style),
-        ]));
-    }
-
-    if let Some(cap) = caption {
-        lines.push(Line::from(vec![
-            Span::styled("│ ", border_style),
-            Span::styled(
-                cap.to_owned(),
-                Style::default()
-                    .fg(tokens.body)
-                    .add_modifier(Modifier::ITALIC),
-            ),
-        ]));
-    }
-
-    if let Some(path) = local_image_path(src, base_dir) {
-        match read_image_dimensions(&path) {
-            Ok((img_width, img_height)) => {
-                lines.push(Line::from(vec![
-                    Span::styled("│ ", border_style),
-                    Span::styled(
-                        format!("size: {img_width}×{img_height}"),
-                        Style::default().fg(tokens.muted),
-                    ),
-                ]));
-            }
-            Err(err) => {
-                lines.push(Line::from(vec![
-                    Span::styled("│ ", border_style),
-                    Span::styled(
-                        truncate_text(&format!("fallback: {err}"), inner_width.saturating_sub(4)),
-                        Style::default().fg(tokens.error),
-                    ),
-                ]));
-            }
-        }
-    }
-
-    if alt.is_empty() && caption.is_none() {
-        lines.push(Line::from(vec![
-            Span::styled("│ ", border_style),
-            Span::styled("image block", label_style),
-        ]));
-    }
-
-    lines.push(Line::from(Span::styled(
-        format!("└{}", "─".repeat(inner_width + 1)),
-        border_style,
-    )));
-
-    lines
-}
-
-fn local_image_path(src: &str, base_dir: Option<&Path>) -> Option<PathBuf> {
-    if src.starts_with("http://") || src.starts_with("https://") {
-        return None;
-    }
-
-    let path = if let Some(rest) = src.strip_prefix("file://") {
-        PathBuf::from(rest)
-    } else {
-        PathBuf::from(src)
-    };
-
-    if path
-        .components()
-        .any(|component| matches!(component, Component::ParentDir))
-    {
-        tracing::warn!(src = %src, "rejecting image path with parent traversal");
-        return None;
-    }
-
-    if let Some(base_dir) = base_dir {
-        let base_canonical = base_dir.canonicalize().ok()?;
-        if path.is_absolute() {
-            let resolved_for_check = path.canonicalize().unwrap_or_else(|_| path.clone());
-            if !resolved_for_check.starts_with(&base_canonical) {
-                tracing::warn!(src = %src, base_dir = %base_dir.display(), "rejecting image path outside base directory");
-                return None;
-            }
-            return Some(resolved_for_check);
-        }
-
-        let resolved_for_check = base_canonical.join(path);
-        if !resolved_for_check.starts_with(&base_canonical) {
-            tracing::warn!(src = %src, base_dir = %base_dir.display(), "rejecting image path outside base directory");
-            return None;
-        }
-        return Some(resolved_for_check);
-    }
-
-    Some(path)
-}
-
-fn read_image_dimensions(path: &Path) -> Result<(u32, u32), RenderError> {
-    let reader = ImageReader::open(path).map_err(|source| RenderError::ImageLoad {
-        path: path.to_path_buf(),
-        source,
-    })?;
-
-    let reader = reader
-        .with_guessed_format()
-        .map_err(|source| RenderError::ImageLoad {
-            path: path.to_path_buf(),
-            source,
-        })?;
-
-    reader
-        .into_dimensions()
-        .map_err(|err| RenderError::ImageLoad {
-            path: path.to_path_buf(),
-            source: std::io::Error::other(err.to_string()),
-        })
-}
 
 fn render_divider(width: u16, tokens: &DesignTokens) -> Vec<Line<'static>> {
     let style = Style::default().fg(tokens.border_inactive);
@@ -575,189 +431,6 @@ fn compose_side_by_side<'a>(
     lines
 }
 
-fn render_known_extension<'a>(
-    extension_type: &str,
-    payload: &Value,
-    tokens: &DesignTokens,
-    width: u16,
-) -> Option<Vec<Line<'a>>> {
-    let normalized = extension_type.to_ascii_lowercase();
-    if is_mermaid_extension(&normalized) {
-        let (code, truncated) = extract_mermaid_code(payload);
-        return Some(render_mermaid_preview(&code, tokens, width, truncated));
-    }
-
-    if normalized == "table" || normalized.ends_with(".table") || normalized.contains("table") {
-        let headers = payload
-            .get("headers")
-            .and_then(Value::as_array)
-            .map(|items| items.iter().map(payload_cell_text).collect::<Vec<_>>())
-            .unwrap_or_default();
-
-        let rows = payload
-            .get("rows")
-            .and_then(Value::as_array)
-            .map(|items| {
-                items
-                    .iter()
-                    .filter_map(Value::as_array)
-                    .map(|row| row.iter().map(payload_cell_text).collect::<Vec<_>>())
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
-
-        return Some(render_table_preview(&headers, &rows, tokens, width));
-    }
-
-    None
-}
-
-fn is_mermaid_extension(normalized_type: &str) -> bool {
-    normalized_type == "mermaid"
-        || normalized_type.ends_with(".mermaid")
-        || normalized_type.contains("mermaid")
-}
-
-fn extract_mermaid_code(payload: &Value) -> (String, bool) {
-    let raw = payload
-        .get("code")
-        .and_then(Value::as_str)
-        .or_else(|| payload.get("diagram").and_then(Value::as_str))
-        .or_else(|| payload.get("source").and_then(Value::as_str))
-        .or_else(|| payload.as_str())
-        .unwrap_or("");
-
-    let normalized = normalize_mermaid_code(raw);
-    if normalized.is_empty() {
-        return ("(missing diagram code)".to_string(), false);
-    }
-
-    const MERMAID_MAX_CHARS: usize = 2_000;
-    let mut preview = normalized;
-    let mut truncated = false;
-    if preview.chars().count() > MERMAID_MAX_CHARS {
-        preview = truncate_text(&preview, MERMAID_MAX_CHARS);
-        truncated = true;
-    }
-
-    (preview, truncated)
-}
-
-fn normalize_mermaid_code(raw: &str) -> String {
-    let trimmed = raw.trim();
-    if trimmed.is_empty() {
-        return String::new();
-    }
-
-    if let Some(stripped) = trimmed.strip_prefix("```") {
-        let mut lines = stripped.lines();
-        let _fence_info = lines.next();
-        let mut body = lines.collect::<Vec<_>>().join("\n");
-
-        if let Some(without_trailing) = body.trim_end().strip_suffix("```") {
-            body = without_trailing.trim_end().to_string();
-        }
-
-        return body.trim().to_string();
-    }
-
-    trimmed.to_string()
-}
-
-fn render_mermaid_preview<'a>(
-    code: &str,
-    tokens: &DesignTokens,
-    width: u16,
-    truncated: bool,
-) -> Vec<Line<'a>> {
-    let mut lines = vec![Line::from(Span::styled(
-        "mermaid diagram preview:",
-        Style::default()
-            .fg(tokens.heading_h2)
-            .add_modifier(Modifier::BOLD),
-    ))];
-
-    const MERMAID_MAX_LINES: usize = 8;
-    let wrapped = textwrap::wrap(code, width.saturating_sub(4).max(20) as usize);
-    let total_wrapped = wrapped.len();
-
-    for line in wrapped.into_iter().take(MERMAID_MAX_LINES) {
-        lines.push(Line::from(Span::styled(
-            format!("  {}", line.into_owned()),
-            Style::default().fg(tokens.body),
-        )));
-    }
-
-    if total_wrapped > MERMAID_MAX_LINES {
-        lines.push(Line::from(Span::styled(
-            format!(
-                "  … {} more preview lines",
-                total_wrapped - MERMAID_MAX_LINES
-            ),
-            Style::default().fg(tokens.muted),
-        )));
-    }
-
-    if truncated {
-        lines.push(Line::from(Span::styled(
-            "  (preview truncated for performance)",
-            Style::default()
-                .fg(tokens.muted)
-                .add_modifier(Modifier::ITALIC),
-        )));
-    }
-
-    lines
-}
-
-fn render_table_preview<'a>(
-    headers: &[String],
-    rows: &[Vec<String>],
-    tokens: &DesignTokens,
-    width: u16,
-) -> Vec<Line<'a>> {
-    let mut lines = vec![Line::from(Span::styled(
-        "table preview:",
-        Style::default()
-            .fg(tokens.heading_h2)
-            .add_modifier(Modifier::BOLD),
-    ))];
-
-    if !headers.is_empty() {
-        lines.push(Line::from(Span::styled(
-            fit_to_width(&headers.join(" | "), width.saturating_sub(2) as usize),
-            Style::default().fg(tokens.heading_h3),
-        )));
-        lines.push(Line::from(Span::styled(
-            "-".repeat(width.saturating_sub(2).max(12) as usize),
-            Style::default().fg(tokens.border_inactive),
-        )));
-    }
-
-    for row in rows.iter().take(6) {
-        lines.push(Line::from(Span::styled(
-            fit_to_width(&row.join(" | "), width.saturating_sub(2) as usize),
-            Style::default().fg(tokens.body),
-        )));
-    }
-
-    if rows.len() > 6 {
-        lines.push(Line::from(Span::styled(
-            format!("… {} more rows", rows.len() - 6),
-            Style::default().fg(tokens.muted),
-        )));
-    }
-
-    lines
-}
-
-fn payload_cell_text(value: &Value) -> String {
-    match value {
-        Value::String(text) => text.clone(),
-        Value::Null => "null".to_string(),
-        _ => value.to_string(),
-    }
-}
 
 fn line_to_plain_text(line: &Line<'_>) -> String {
     line.spans
@@ -788,6 +461,8 @@ fn truncate_text(text: &str, max_chars: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::render::blocks_image::local_image_path;
+    use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     fn temp_dir(prefix: &str) -> PathBuf {

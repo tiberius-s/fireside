@@ -190,7 +190,7 @@ fn render_tree_row(
     spans.push(Span::raw("  "));
     if row.depth > 0 {
         spans.push(Span::styled(
-            format!("{}", "  ".repeat(row.depth.saturating_sub(1))),
+            "  ".repeat(row.depth.saturating_sub(1)),
             Style::default().fg(theme.footer),
         ));
         spans.push(Span::styled("└─", Style::default().fg(theme.footer)));

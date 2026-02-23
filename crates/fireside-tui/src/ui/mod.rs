@@ -6,6 +6,7 @@ pub mod branch;
 pub mod breadcrumb;
 pub mod chrome;
 pub mod editor;
+pub(crate) mod editor_parts;
 pub mod graph;
 pub mod help;
 pub mod presenter;
