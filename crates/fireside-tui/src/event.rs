@@ -27,6 +27,12 @@ pub enum Action {
     ToggleHelp,
     /// Toggle speaker notes panel.
     ToggleSpeakerNotes,
+    /// Toggle distraction-free presenter mode.
+    ToggleZenMode,
+    /// Toggle session timeline visibility.
+    ToggleTimeline,
+    /// Jump to the last branch point in navigation history.
+    JumpToBranchPoint,
     /// Enter editing mode.
     EnterEditMode,
     /// Exit editing mode and return to presenting mode.
@@ -61,6 +67,14 @@ pub enum Action {
     EditorToggleFocus,
     /// Start inline editing of selected node text content.
     EditorStartInlineEdit,
+    /// Select next content block in selected node.
+    EditorSelectNextBlock,
+    /// Select previous content block in selected node.
+    EditorSelectPrevBlock,
+    /// Move selected content block up within selected node.
+    EditorMoveBlockUp,
+    /// Move selected content block down within selected node.
+    EditorMoveBlockDown,
     /// Start inline editing of selected node speaker notes.
     EditorStartNotesEdit,
     /// Cycle selected node layout to next variant.

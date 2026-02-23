@@ -22,12 +22,14 @@ use crate::theme::Theme;
 use std::path::Path;
 
 use super::branch::render_branch_overlay;
+use super::breadcrumb::render_breadcrumb;
 use super::chrome::{
     FlashKind, ModeBadgeKind, render_flash_message, render_mode_badge,
     render_quit_confirmation_banner,
 };
 use super::help::{HelpMode, render_help_overlay};
 use super::progress::render_progress_bar;
+use super::timeline::render_timeline;
 
 #[derive(Debug, Clone, Copy)]
 pub struct PresenterTransition {
@@ -43,6 +45,11 @@ pub struct PresenterViewState<'a> {
     pub show_speaker_notes: bool,
     pub show_progress_bar: bool,
     pub show_elapsed_timer: bool,
+    pub show_chrome: bool,
+    pub show_timeline: bool,
+    pub target_duration_secs: Option<u64>,
+    pub visited_nodes: &'a [usize],
+    pub nav_path: &'a [(usize, bool)],
     pub content_base_dir: Option<&'a Path>,
     pub transition: Option<PresenterTransition>,
     pub elapsed_secs: u64,
@@ -147,14 +154,66 @@ pub fn render_presenter(
             session,
             view_state.elapsed_secs,
             view_state.show_elapsed_timer,
+            view_state.target_duration_secs,
             theme,
         );
     }
 
+    if view_state.show_chrome {
+        let breadcrumb_area = Rect {
+            x: area.x,
+            y: area.y,
+            width: area.width,
+            height: 1,
+        };
+        render_breadcrumb(
+            frame,
+            breadcrumb_area,
+            session,
+            view_state.nav_path,
+            current,
+            theme,
+        );
+    }
+
+    let mut timeline_rendered = false;
+    if view_state.show_chrome && view_state.show_timeline {
+        let timeline_y = if view_state.show_progress_bar {
+            areas.footer.y.saturating_sub(1)
+        } else {
+            area.y.saturating_add(area.height.saturating_sub(2))
+        };
+        if timeline_y > area.y {
+            let timeline_area = Rect {
+                x: area.x,
+                y: timeline_y,
+                width: area.width,
+                height: 1,
+            };
+            render_timeline(
+                frame,
+                timeline_area,
+                session,
+                view_state.visited_nodes,
+                current,
+                theme,
+            );
+            timeline_rendered = true;
+        }
+    }
+
     let mut banner_y = if view_state.show_progress_bar {
-        areas.footer.y.saturating_sub(1)
+        if timeline_rendered {
+            areas.footer.y.saturating_sub(2)
+        } else {
+            areas.footer.y.saturating_sub(1)
+        }
     } else {
-        area.y.saturating_add(area.height.saturating_sub(1))
+        let mut y = area.y.saturating_add(area.height.saturating_sub(1));
+        if timeline_rendered {
+            y = y.saturating_sub(1);
+        }
+        y
     };
 
     if view_state.pending_exit_confirmation {
@@ -189,21 +248,25 @@ pub fn render_presenter(
         );
     }
 
-    render_mode_badge(
-        frame,
-        area,
-        if view_state.goto_buffer.is_some() {
-            ModeBadgeKind::GotoNode
-        } else {
-            ModeBadgeKind::Presenting
-        },
-        theme,
-    );
+    if view_state.show_chrome {
+        render_mode_badge(
+            frame,
+            area,
+            if view_state.goto_buffer.is_some() {
+                ModeBadgeKind::GotoNode
+            } else if node.branch_point().is_some() {
+                ModeBadgeKind::Branch
+            } else {
+                ModeBadgeKind::Presenting
+            },
+            theme,
+        );
 
-    // Render GOTO mode badge (gold border, top-right corner)
-    if let Some(buffer) = view_state.goto_buffer {
-        render_goto_badge(frame, area, buffer, theme);
-        render_goto_autocomplete(frame, area, areas.footer, buffer, session, theme);
+        // Render GOTO mode badge (gold border, top-right corner)
+        if let Some(buffer) = view_state.goto_buffer {
+            render_goto_badge(frame, area, buffer, theme);
+            render_goto_autocomplete(frame, area, areas.footer, buffer, session, theme);
+        }
     }
 }
 

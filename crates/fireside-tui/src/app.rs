@@ -9,10 +9,11 @@ use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, MouseButton, 
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Direction, Layout as RatatuiLayout, Rect};
 
-use fireside_core::model::content::ContentBlock;
+use fireside_core::model::content::{ContentBlock, ListItem};
 use fireside_core::model::graph::Graph;
 use fireside_core::model::layout::Layout;
 use fireside_core::model::transition::Transition;
+use fireside_engine::validation::validate_content_block;
 use fireside_engine::{Command, PresentationSession, save_graph};
 
 use crate::config::keybindings::map_key_to_action;
@@ -37,7 +38,7 @@ pub enum EditorPaneFocus {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum EditorInlineTarget {
-    BodyText,
+    BlockField { block_index: usize },
     SpeakerNotes,
 }
 
@@ -51,6 +52,7 @@ enum PendingExitAction {
 pub enum EditorPickerOverlay {
     Layout { selected: usize },
     Transition { selected: usize },
+    BlockType { selected: usize },
 }
 
 /// The current mode of the application.
@@ -89,6 +91,8 @@ pub struct App {
     pub terminal_size: (u16, u16),
     /// Selected node index for editing mode.
     pub editor_selected_node: usize,
+    /// Selected content block index for editing mode.
+    pub editor_selected_block: usize,
     /// Focused editor pane.
     pub editor_focus: EditorPaneFocus,
     /// Optional path where editor saves the current graph.
@@ -113,6 +117,8 @@ pub struct App {
     editor_last_layout_picker: usize,
     /// Last transition picker index (persisted).
     editor_last_transition_picker: usize,
+    /// Last block-type picker index (persisted).
+    editor_last_block_picker: usize,
     /// Top row offset for virtualized node list rendering.
     editor_list_scroll_offset: usize,
     /// Whether the editor graph overlay is visible.
@@ -133,6 +139,16 @@ pub struct App {
     show_progress_bar: bool,
     /// Whether presenter mode should render elapsed timer in footer.
     show_elapsed_timer: bool,
+    /// Whether presenter mode is in distraction-free mode.
+    show_zen_mode: bool,
+    /// Whether the presenter timeline strip is visible.
+    show_timeline: bool,
+    /// Optional target duration in seconds for pace guidance.
+    target_duration_secs: Option<u64>,
+    /// Recent visited nodes for timeline rendering.
+    visited_nodes: Vec<usize>,
+    /// Navigation path with branch-step markers for breadcrumb rendering.
+    nav_path: Vec<(usize, bool)>,
     /// Whether the UI needs a redraw.
     needs_redraw: bool,
     /// Transient global flash message for presenter/editor chrome.
@@ -165,6 +181,7 @@ impl App {
     /// Create a new application with the given session and theme.
     #[must_use]
     pub fn new(session: PresentationSession, theme: Theme) -> Self {
+        let start_index = session.current_node_index();
         Self {
             session,
             mode: AppMode::Presenting,
@@ -175,6 +192,7 @@ impl App {
             start_time: Instant::now(),
             terminal_size: (120, 40),
             editor_selected_node: 0,
+            editor_selected_block: 0,
             editor_focus: EditorPaneFocus::NodeList,
             editor_target_path: None,
             editor_text_input: None,
@@ -187,6 +205,7 @@ impl App {
             editor_index_jump_input: None,
             editor_last_layout_picker: 0,
             editor_last_transition_picker: 0,
+            editor_last_block_picker: 0,
             editor_list_scroll_offset: 0,
             editor_graph_overlay: false,
             editor_graph_selected_node: 0,
@@ -197,6 +216,11 @@ impl App {
             document_base_dir: None,
             show_progress_bar: true,
             show_elapsed_timer: true,
+            show_zen_mode: false,
+            show_timeline: true,
+            target_duration_secs: None,
+            visited_nodes: vec![start_index],
+            nav_path: vec![(start_index, false)],
             needs_redraw: true,
             flash_message: None,
             dirty_since: None,
@@ -212,6 +236,11 @@ impl App {
     /// Enable or disable elapsed timer text in the presenter footer.
     pub fn set_show_elapsed_timer(&mut self, show: bool) {
         self.show_elapsed_timer = show;
+    }
+
+    /// Set optional target duration for presenter pace guidance.
+    pub fn set_target_duration_secs(&mut self, target_secs: Option<u64>) {
+        self.target_duration_secs = target_secs;
     }
 
     /// Set the loaded document path used to resolve relative assets.
@@ -237,6 +266,9 @@ impl App {
 
         self.session = PresentationSession::new(graph, next_index);
         self.active_transition = None;
+        self.visited_nodes.clear();
+        self.nav_path.clear();
+        self.record_navigation(next_index, false);
 
         if self.mode == AppMode::Editing {
             self.sync_editor_selection_bounds();
@@ -268,6 +300,7 @@ impl App {
         let previous_mode = self.mode.clone();
         self.mode = AppMode::Editing;
         self.editor_selected_node = self.session.current_node_index();
+        self.sync_editor_block_selection_bounds();
         self.editor_graph_selected_node = self.editor_selected_node;
         self.load_editor_preferences();
         self.sync_editor_selection_bounds();
@@ -296,22 +329,38 @@ impl App {
             Action::NextNode => {
                 let from_index = self.session.current_node_index();
                 self.session.traversal.next(&self.session.graph);
+                let next_index = self.session.current_node_index();
+                if next_index != from_index {
+                    self.record_navigation(next_index, false);
+                }
                 self.start_transition_if_needed(from_index);
             }
             Action::PrevNode => {
                 let from_index = self.session.current_node_index();
                 self.session.traversal.back();
+                let next_index = self.session.current_node_index();
+                if next_index != from_index {
+                    self.record_navigation(next_index, false);
+                }
                 self.start_transition_if_needed(from_index);
             }
             Action::GoToNode(idx) => {
                 let from_index = self.session.current_node_index();
                 let _ = self.session.traversal.goto(idx, &self.session.graph);
+                let next_index = self.session.current_node_index();
+                if next_index != from_index {
+                    self.record_navigation(next_index, false);
+                }
                 self.start_transition_if_needed(from_index);
             }
             Action::ChooseBranch(key) => {
                 let from_index = self.session.current_node_index();
                 let _ = self.session.traversal.choose(key, &self.session.graph);
                 self.branch_focused_option = 0;
+                let next_index = self.session.current_node_index();
+                if next_index != from_index {
+                    self.record_navigation(next_index, true);
+                }
                 self.start_transition_if_needed(from_index);
             }
             Action::ToggleHelp => {
@@ -323,6 +372,40 @@ impl App {
             Action::ToggleSpeakerNotes => {
                 self.show_speaker_notes = !self.show_speaker_notes;
             }
+            Action::ToggleZenMode => {
+                self.show_zen_mode = !self.show_zen_mode;
+            }
+            Action::ToggleTimeline => {
+                self.show_timeline = !self.show_timeline;
+            }
+            Action::JumpToBranchPoint => {
+                if self.mode != AppMode::Editing {
+                    let current_index = self.session.current_node_index();
+                    if let Some(target) =
+                        self.nav_path
+                            .iter()
+                            .rev()
+                            .map(|(index, _)| *index)
+                            .find(|index| {
+                                *index != current_index
+                                    && self
+                                        .session
+                                        .graph
+                                        .nodes
+                                        .get(*index)
+                                        .is_some_and(|node| node.branch_point().is_some())
+                            })
+                    {
+                        let from_index = current_index;
+                        let _ = self.session.traversal.goto(target, &self.session.graph);
+                        let next_index = self.session.current_node_index();
+                        if next_index != from_index {
+                            self.record_navigation(next_index, false);
+                        }
+                        self.start_transition_if_needed(from_index);
+                    }
+                }
+            }
             Action::EnterEditMode => {
                 self.enter_edit_mode();
             }
@@ -331,7 +414,7 @@ impl App {
             }
             Action::EditorAppendTextBlock => {
                 if self.mode == AppMode::Editing {
-                    self.append_text_block();
+                    self.open_block_type_picker();
                 }
             }
             Action::EditorAddNode => {
@@ -405,12 +488,40 @@ impl App {
             }
             Action::EditorStartInlineEdit => {
                 if self.mode == AppMode::Editing {
-                    self.start_inline_edit(EditorInlineTarget::BodyText);
+                    self.start_selected_block_edit();
+                }
+            }
+            Action::EditorSelectNextBlock => {
+                if self.mode == AppMode::Editing {
+                    self.editor_select_next_block();
+                }
+            }
+            Action::EditorSelectPrevBlock => {
+                if self.mode == AppMode::Editing {
+                    self.editor_select_prev_block();
+                }
+            }
+            Action::EditorMoveBlockUp => {
+                if self.mode == AppMode::Editing {
+                    self.move_selected_block(false);
+                }
+            }
+            Action::EditorMoveBlockDown => {
+                if self.mode == AppMode::Editing {
+                    self.move_selected_block(true);
                 }
             }
             Action::EditorStartNotesEdit => {
                 if self.mode == AppMode::Editing {
-                    self.start_inline_edit(EditorInlineTarget::SpeakerNotes);
+                    let seed = self
+                        .session
+                        .graph
+                        .nodes
+                        .get(self.editor_selected_node)
+                        .and_then(|node| node.speaker_notes.clone())
+                        .unwrap_or_default();
+                    self.start_inline_edit(EditorInlineTarget::SpeakerNotes, seed);
+                    self.editor_status = Some("Editing speaker notes".to_string());
                 }
             }
             Action::EditorCycleLayoutNext => {
@@ -488,6 +599,10 @@ impl App {
                     let idx = num.saturating_sub(1);
                     let from_index = self.session.current_node_index();
                     let _ = self.session.traversal.goto(idx, &self.session.graph);
+                    let next_index = self.session.current_node_index();
+                    if next_index != from_index {
+                        self.record_navigation(next_index, false);
+                    }
                     self.start_transition_if_needed(from_index);
                 }
                 self.mode = AppMode::Presenting;
@@ -530,6 +645,18 @@ impl App {
         let elapsed = self.start_time.elapsed().as_secs();
         match self.mode {
             AppMode::Editing => {
+                let selected_block_index = self.selected_block_with_index().map(|(index, _)| index);
+                let block_warning_messages = self
+                    .selected_block_with_index()
+                    .map(|(_, block)| {
+                        validate_content_block(block)
+                            .into_iter()
+                            .map(|diag| diag.message)
+                            .filter(|message| is_editor_actionable_warning(message))
+                            .collect::<Vec<_>>()
+                    })
+                    .unwrap_or_default();
+
                 render_editor(
                     frame,
                     &self.session,
@@ -540,6 +667,8 @@ impl App {
                         list_scroll_offset: self.editor_list_scroll_offset,
                         focus: self.editor_focus,
                         inline_text_input: self.editor_text_input.as_deref(),
+                        selected_block_index,
+                        block_warning_messages: &block_warning_messages,
                         search_input: self.editor_search_input.as_deref(),
                         index_jump_input: self.editor_index_jump_input.as_deref(),
                         status: self.editor_status.as_deref(),
@@ -563,8 +692,13 @@ impl App {
                         show_help: self.show_help,
                         help_scroll_offset: self.help_scroll_offset,
                         show_speaker_notes: self.show_speaker_notes,
-                        show_progress_bar: self.show_progress_bar,
+                        show_progress_bar: self.show_progress_bar && !self.show_zen_mode,
                         show_elapsed_timer: self.show_elapsed_timer,
+                        show_chrome: !self.show_zen_mode,
+                        show_timeline: self.show_timeline,
+                        target_duration_secs: self.target_duration_secs,
+                        visited_nodes: &self.visited_nodes,
+                        nav_path: &self.nav_path,
                         content_base_dir: self.document_base_dir.as_deref(),
                         transition: self
                             .active_transition
@@ -673,12 +807,6 @@ impl App {
             }
             Event::Mouse(mouse) => match mouse.kind {
                 MouseEventKind::Down(MouseButton::Left) => {
-                    self.update(Action::MouseClick {
-                        column: mouse.column,
-                        row: mouse.row,
-                    });
-                }
-                MouseEventKind::Up(MouseButton::Left) => {
                     self.update(Action::MouseClick {
                         column: mouse.column,
                         row: mouse.row,
@@ -892,29 +1020,6 @@ impl App {
         });
     }
 
-    fn append_text_block(&mut self) {
-        let idx = self.editor_selected_node;
-        let node_id = match self.session.ensure_node_id(idx) {
-            Ok(id) => id,
-            Err(_) => return,
-        };
-
-        let current_content = self.session.graph.nodes[idx].content.clone();
-        let mut updated_content = current_content;
-        updated_content.push(ContentBlock::Text {
-            body: "New text block".to_string(),
-        });
-
-        let command = Command::UpdateNodeContent {
-            node_id,
-            content: updated_content,
-        };
-
-        let _ = self.session.execute_command(command);
-        self.editor_status = Some("Appended text block".to_string());
-        self.sync_editor_selection_bounds();
-    }
-
     fn add_node_after_selected(&mut self) {
         let base_index = self.editor_selected_node;
         let mut suffix = self.session.graph.nodes.len() + 1;
@@ -934,6 +1039,7 @@ impl App {
         if self.session.execute_command(command).is_ok() {
             self.editor_selected_node =
                 (base_index + 1).min(self.session.graph.nodes.len().saturating_sub(1));
+            self.editor_selected_block = 0;
             self.sync_editor_list_viewport();
             let _ = self
                 .session
@@ -963,6 +1069,7 @@ impl App {
     fn editor_select_next(&mut self) {
         let max = self.session.graph.nodes.len().saturating_sub(1);
         self.editor_selected_node = (self.editor_selected_node + 1).min(max);
+        self.editor_selected_block = 0;
         self.sync_editor_list_viewport();
         let _ = self
             .session
@@ -972,6 +1079,7 @@ impl App {
 
     fn editor_select_prev(&mut self) {
         self.editor_selected_node = self.editor_selected_node.saturating_sub(1);
+        self.editor_selected_block = 0;
         self.sync_editor_list_viewport();
         let _ = self
             .session
@@ -979,10 +1087,75 @@ impl App {
             .goto(self.editor_selected_node, &self.session.graph);
     }
 
+    fn editor_select_next_block(&mut self) {
+        let count = self.selected_node_block_count();
+        if count == 0 {
+            self.editor_status = Some("Selected node has no content blocks".to_string());
+            return;
+        }
+
+        self.editor_selected_block = (self.editor_selected_block + 1).min(count - 1);
+        self.editor_status = Some(format!(
+            "Selected block #{}",
+            self.editor_selected_block + 1
+        ));
+    }
+
+    fn editor_select_prev_block(&mut self) {
+        let count = self.selected_node_block_count();
+        if count == 0 {
+            self.editor_status = Some("Selected node has no content blocks".to_string());
+            return;
+        }
+
+        self.editor_selected_block = self.editor_selected_block.saturating_sub(1);
+        self.editor_status = Some(format!(
+            "Selected block #{}",
+            self.editor_selected_block + 1
+        ));
+    }
+
+    fn move_selected_block(&mut self, forward: bool) {
+        let count = self.selected_node_block_count();
+        if count < 2 {
+            self.editor_status = Some("Need at least two blocks to reorder".to_string());
+            return;
+        }
+
+        let from_index = self.editor_selected_block.min(count - 1);
+        let to_index = if forward {
+            (from_index + 1).min(count - 1)
+        } else {
+            from_index.saturating_sub(1)
+        };
+
+        if from_index == to_index {
+            return;
+        }
+
+        let node_index = self.editor_selected_node;
+        let node_id = match self.session.ensure_node_id(node_index) {
+            Ok(id) => id,
+            Err(_) => return,
+        };
+
+        let command = Command::MoveBlock {
+            node_id,
+            from_index,
+            to_index,
+        };
+
+        if self.session.execute_command(command).is_ok() {
+            self.editor_selected_block = to_index;
+            self.editor_status = Some(format!("Moved block to #{}", to_index + 1));
+        }
+    }
+
     fn editor_page_down(&mut self) {
         let page = self.editor_list_visible_rows().max(1);
         let max = self.session.graph.nodes.len().saturating_sub(1);
         self.editor_selected_node = (self.editor_selected_node + page).min(max);
+        self.editor_selected_block = 0;
         self.sync_editor_list_viewport();
         let _ = self
             .session
@@ -993,6 +1166,7 @@ impl App {
     fn editor_page_up(&mut self) {
         let page = self.editor_list_visible_rows().max(1);
         self.editor_selected_node = self.editor_selected_node.saturating_sub(page);
+        self.editor_selected_block = 0;
         self.sync_editor_list_viewport();
         let _ = self
             .session
@@ -1002,6 +1176,7 @@ impl App {
 
     fn editor_jump_top(&mut self) {
         self.editor_selected_node = 0;
+        self.editor_selected_block = 0;
         self.sync_editor_list_viewport();
         let _ = self
             .session
@@ -1011,6 +1186,7 @@ impl App {
 
     fn editor_jump_bottom(&mut self) {
         self.editor_selected_node = self.session.graph.nodes.len().saturating_sub(1);
+        self.editor_selected_block = 0;
         self.sync_editor_list_viewport();
         let _ = self
             .session
@@ -1126,6 +1302,7 @@ impl App {
 
         if let Some(idx) = found {
             self.editor_selected_node = idx;
+            self.editor_selected_block = 0;
             self.sync_editor_list_viewport();
             let _ = self.session.traversal.goto(idx, &self.session.graph);
             self.editor_status = Some(format!("Node search matched #{}", idx + 1));
@@ -1156,6 +1333,7 @@ impl App {
 
         if let Some(idx) = next {
             self.editor_selected_node = idx;
+            self.editor_selected_block = 0;
             self.sync_editor_list_viewport();
             let _ = self.session.traversal.goto(idx, &self.session.graph);
             let direction = if forward { "next" } else { "previous" };
@@ -1191,15 +1369,41 @@ impl App {
 
         let idx = parsed - 1;
         self.editor_selected_node = idx;
+        self.editor_selected_block = 0;
         self.sync_editor_list_viewport();
         let _ = self.session.traversal.goto(idx, &self.session.graph);
         self.editor_status = Some(format!("Jumped to node #{}", idx + 1));
+    }
+
+    fn selected_node_block_count(&self) -> usize {
+        self.session
+            .graph
+            .nodes
+            .get(self.editor_selected_node)
+            .map_or(0, |node| node.content.len())
+    }
+
+    fn selected_block_with_index(&self) -> Option<(usize, &ContentBlock)> {
+        let node = self.session.graph.nodes.get(self.editor_selected_node)?;
+        let count = node.content.len();
+        if count == 0 {
+            return None;
+        }
+
+        let index = self.editor_selected_block.min(count - 1);
+        node.content.get(index).map(|block| (index, block))
+    }
+
+    fn sync_editor_block_selection_bounds(&mut self) {
+        let max = self.selected_node_block_count().saturating_sub(1);
+        self.editor_selected_block = self.editor_selected_block.min(max);
     }
 
     fn sync_editor_selection_bounds(&mut self) {
         let max = self.session.graph.nodes.len().saturating_sub(1);
         self.editor_selected_node = self.editor_selected_node.min(max);
         self.editor_graph_selected_node = self.editor_graph_selected_node.min(max);
+        self.sync_editor_block_selection_bounds();
         self.sync_editor_list_viewport();
         self.sync_editor_graph_viewport();
     }
@@ -1375,6 +1579,7 @@ impl App {
             .editor_graph_selected_node
             .min(self.session.graph.nodes.len().saturating_sub(1));
         self.editor_selected_node = idx;
+        self.editor_selected_block = 0;
         self.sync_editor_list_viewport();
         let _ = self.session.traversal.goto(idx, &self.session.graph);
         self.editor_graph_overlay = false;
@@ -1394,36 +1599,49 @@ impl App {
         }
     }
 
-    fn start_inline_edit(&mut self, target: EditorInlineTarget) {
-        let idx = self.editor_selected_node;
-        let seed = self
-            .session
-            .graph
-            .nodes
-            .get(idx)
-            .map(|node| match target {
-                EditorInlineTarget::BodyText => node
-                    .content
-                    .iter()
-                    .find_map(|block| {
-                        if let ContentBlock::Text { body } = block {
-                            Some(body.clone())
-                        } else {
-                            None
-                        }
-                    })
+    fn start_selected_block_edit(&mut self) {
+        let Some((block_index, block)) = self.selected_block_with_index() else {
+            self.editor_status = Some("No content blocks to edit".to_string());
+            return;
+        };
+
+        let (seed, label) = match block {
+            ContentBlock::Heading { text, .. } => (text.clone(), "Heading"),
+            ContentBlock::Text { body } => (body.clone(), "Text"),
+            ContentBlock::Code { source, .. } => (source.clone(), "Code"),
+            ContentBlock::List { items, .. } => (
+                items
+                    .first()
+                    .map(|item| item.text.clone())
                     .unwrap_or_default(),
-                EditorInlineTarget::SpeakerNotes => node.speaker_notes.clone().unwrap_or_default(),
-            })
-            .unwrap_or_default();
+                "List first item",
+            ),
+            ContentBlock::Image { src, .. } => (src.clone(), "Image src"),
+            ContentBlock::Divider => {
+                self.editor_status = Some("Divider block has no editable text field".to_string());
+                return;
+            }
+            ContentBlock::Container { layout, .. } => {
+                (layout.clone().unwrap_or_default(), "Container layout")
+            }
+            ContentBlock::Extension { extension_type, .. } => {
+                (extension_type.clone(), "Extension type")
+            }
+        };
+
+        self.start_inline_edit(EditorInlineTarget::BlockField { block_index }, seed);
+        self.editor_status = Some(format!("Editing {label} (block #{})", block_index + 1));
+    }
+
+    fn start_inline_edit(&mut self, target: EditorInlineTarget, seed: String) {
+        let idx = self.editor_selected_node;
+        if self.session.graph.nodes.get(idx).is_none() {
+            return;
+        }
 
         self.editor_text_input = Some(seed);
         self.editor_inline_target = Some(target);
         self.editor_focus = EditorPaneFocus::NodeDetail;
-        self.editor_status = Some(match target {
-            EditorInlineTarget::BodyText => "Inline text edit started".to_string(),
-            EditorInlineTarget::SpeakerNotes => "Speaker notes edit started".to_string(),
-        });
     }
 
     fn handle_inline_edit_key(&mut self, code: KeyCode, modifiers: KeyModifiers) -> bool {
@@ -1433,6 +1651,10 @@ impl App {
 
         match code {
             KeyCode::Esc => {
+                self.commit_inline_edit();
+                true
+            }
+            KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
                 self.editor_text_input = None;
                 self.editor_inline_target = None;
                 self.editor_status = Some("Inline edit cancelled".to_string());
@@ -1461,32 +1683,86 @@ impl App {
         let Some(text) = self.editor_text_input.take() else {
             return;
         };
-        let target = self
-            .editor_inline_target
-            .take()
-            .unwrap_or(EditorInlineTarget::BodyText);
+        let target = match self.editor_inline_target.take() {
+            Some(target) => target,
+            None => return,
+        };
 
         let idx = self.editor_selected_node;
         match target {
-            EditorInlineTarget::BodyText => {
+            EditorInlineTarget::BlockField { block_index } => {
                 let node_id = match self.session.ensure_node_id(idx) {
                     Ok(id) => id,
                     Err(_) => return,
                 };
 
-                let mut content = self.session.graph.nodes[idx].content.clone();
-                if let Some(ContentBlock::Text { body }) = content
-                    .iter_mut()
-                    .find(|block| matches!(block, ContentBlock::Text { .. }))
-                {
-                    *body = text;
-                } else {
-                    content.insert(0, ContentBlock::Text { body: text });
-                }
+                let Some(existing) = self
+                    .session
+                    .graph
+                    .nodes
+                    .get(idx)
+                    .and_then(|node| node.content.get(block_index))
+                    .cloned()
+                else {
+                    self.editor_status = Some("Inline edit failed: block not found".to_string());
+                    return;
+                };
 
-                let command = Command::UpdateNodeContent { node_id, content };
+                let updated = match existing {
+                    ContentBlock::Heading { level, .. } => ContentBlock::Heading { level, text },
+                    ContentBlock::Text { .. } => ContentBlock::Text { body: text },
+                    ContentBlock::Code {
+                        language,
+                        highlight_lines,
+                        show_line_numbers,
+                        ..
+                    } => ContentBlock::Code {
+                        language,
+                        source: text,
+                        highlight_lines,
+                        show_line_numbers,
+                    },
+                    ContentBlock::List { ordered, mut items } => {
+                        if let Some(first) = items.first_mut() {
+                            first.text = text;
+                        } else {
+                            items.push(ListItem {
+                                text,
+                                children: Vec::new(),
+                            });
+                        }
+                        ContentBlock::List { ordered, items }
+                    }
+                    ContentBlock::Image { alt, caption, .. } => ContentBlock::Image {
+                        src: text,
+                        alt,
+                        caption,
+                    },
+                    ContentBlock::Divider => ContentBlock::Divider,
+                    ContentBlock::Container { children, .. } => {
+                        let layout = if text.trim().is_empty() {
+                            None
+                        } else {
+                            Some(text)
+                        };
+                        ContentBlock::Container { layout, children }
+                    }
+                    ContentBlock::Extension {
+                        fallback, payload, ..
+                    } => ContentBlock::Extension {
+                        extension_type: text,
+                        fallback,
+                        payload,
+                    },
+                };
+
+                let command = Command::UpdateBlock {
+                    node_id,
+                    block_index,
+                    block: updated,
+                };
                 if self.session.execute_command(command).is_ok() {
-                    self.editor_status = Some("Inline text edit applied".to_string());
+                    self.editor_status = Some(format!("Updated block #{}", block_index + 1));
                 }
             }
             EditorInlineTarget::SpeakerNotes => {
@@ -1605,6 +1881,15 @@ impl App {
         self.editor_status = Some("Transition picker: arrows or 1-9/0 + Enter".to_string());
     }
 
+    fn open_block_type_picker(&mut self) {
+        let selected = self
+            .editor_last_block_picker
+            .min(block_type_variants().len().saturating_sub(1));
+
+        self.editor_picker = Some(EditorPickerOverlay::BlockType { selected });
+        self.editor_status = Some("Block picker: arrows or 1-9/0 + Enter".to_string());
+    }
+
     fn handle_picker_key(&mut self, code: KeyCode) -> bool {
         let Some(overlay) = self.editor_picker else {
             return false;
@@ -1613,6 +1898,7 @@ impl App {
         let max_index = match overlay {
             EditorPickerOverlay::Layout { .. } => layout_variants().len().saturating_sub(1),
             EditorPickerOverlay::Transition { .. } => transition_variants().len().saturating_sub(1),
+            EditorPickerOverlay::BlockType { .. } => block_type_variants().len().saturating_sub(1),
         };
 
         match code {
@@ -1653,6 +1939,9 @@ impl App {
             EditorPickerOverlay::Transition { selected } => EditorPickerOverlay::Transition {
                 selected: bump_index(selected, max_index, forward),
             },
+            EditorPickerOverlay::BlockType { selected } => EditorPickerOverlay::BlockType {
+                selected: bump_index(selected, max_index, forward),
+            },
         });
     }
 
@@ -1665,6 +1954,10 @@ impl App {
             EditorPickerOverlay::Transition { .. } => {
                 self.editor_last_transition_picker = selected;
                 EditorPickerOverlay::Transition { selected }
+            }
+            EditorPickerOverlay::BlockType { .. } => {
+                self.editor_last_block_picker = selected;
+                EditorPickerOverlay::BlockType { selected }
             }
         });
         self.persist_editor_preferences();
@@ -1699,6 +1992,37 @@ impl App {
                     self.persist_editor_preferences();
                 }
             }
+            EditorPickerOverlay::BlockType { selected } => {
+                self.editor_last_block_picker = selected;
+                self.append_block_type(selected);
+                self.persist_editor_preferences();
+            }
+        }
+    }
+
+    fn append_block_type(&mut self, selected: usize) {
+        let idx = self.editor_selected_node;
+        let node_id = match self.session.ensure_node_id(idx) {
+            Ok(id) => id,
+            Err(_) => return,
+        };
+
+        let Some((name, template)) = block_type_variants().get(selected) else {
+            return;
+        };
+
+        let mut updated_content = self.session.graph.nodes[idx].content.clone();
+        updated_content.push(template.clone());
+
+        let command = Command::UpdateNodeContent {
+            node_id,
+            content: updated_content,
+        };
+
+        if self.session.execute_command(command).is_ok() {
+            self.editor_selected_block = self.selected_node_block_count().saturating_sub(1);
+            self.editor_status = Some(format!("Appended {name} block"));
+            self.sync_editor_selection_bounds();
         }
     }
 
@@ -1827,6 +2151,24 @@ impl App {
 }
 
 impl App {
+    fn record_navigation(&mut self, index: usize, via_branch: bool) {
+        if self.visited_nodes.last().copied() != Some(index) {
+            self.visited_nodes.push(index);
+            if self.visited_nodes.len() > 128 {
+                self.visited_nodes.remove(0);
+            }
+        }
+
+        if self.nav_path.last().map(|(last, _)| *last) != Some(index) {
+            self.nav_path.push((index, via_branch));
+            if self.nav_path.len() > 128 {
+                self.nav_path.remove(0);
+            }
+        }
+    }
+}
+
+impl App {
     fn load_editor_preferences(&mut self) {
         let prefs = load_editor_ui_prefs();
         self.editor_focus = match prefs.last_focus.as_str() {
@@ -1901,6 +2243,7 @@ impl App {
                 let index = self.editor_list_scroll_offset + row.saturating_sub(row_start) as usize;
                 if index < self.session.graph.nodes.len() {
                     self.editor_selected_node = index;
+                    self.editor_selected_block = 0;
                     self.sync_editor_list_viewport();
                     let _ = self.session.traversal.goto(index, &self.session.graph);
                 }
@@ -1947,8 +2290,10 @@ impl App {
         let option_count = match overlay {
             EditorPickerOverlay::Layout { .. } => layout_variants().len(),
             EditorPickerOverlay::Transition { .. } => transition_variants().len(),
+            EditorPickerOverlay::BlockType { .. } => block_type_variants().len(),
         };
-        let index = row.saturating_sub(inner.y) as usize;
+        let row_span = picker_row_span(overlay);
+        let index = (row.saturating_sub(inner.y) as usize) / row_span;
         if index < option_count {
             self.set_picker_selection(index);
             self.editor_status = Some(format!("Picker preview: option {}", index + 1));
@@ -1989,6 +2334,9 @@ impl App {
                 EditorPickerOverlay::Layout { .. } => layout_variants().len().saturating_sub(1),
                 EditorPickerOverlay::Transition { .. } => {
                     transition_variants().len().saturating_sub(1)
+                }
+                EditorPickerOverlay::BlockType { .. } => {
+                    block_type_variants().len().saturating_sub(1)
                 }
             };
 
@@ -2037,9 +2385,11 @@ impl App {
         let option_count = match overlay {
             EditorPickerOverlay::Layout { .. } => layout_variants().len(),
             EditorPickerOverlay::Transition { .. } => transition_variants().len(),
+            EditorPickerOverlay::BlockType { .. } => block_type_variants().len(),
         };
 
-        let index = row.saturating_sub(inner.y) as usize;
+        let row_span = picker_row_span(overlay);
+        let index = (row.saturating_sub(inner.y) as usize) / row_span;
         if index < option_count {
             self.set_picker_selection(index);
             self.apply_picker_selection();
@@ -2081,6 +2431,7 @@ impl App {
             self.editor_graph_selected_node = idx;
             self.sync_editor_graph_viewport();
             self.editor_selected_node = idx;
+            self.editor_selected_block = 0;
             self.sync_editor_list_viewport();
             let _ = self.session.traversal.goto(idx, &self.session.graph);
             self.editor_graph_overlay = false;
@@ -2213,6 +2564,75 @@ fn transition_variants() -> &'static [Transition] {
     ]
 }
 
+fn block_type_variants() -> &'static [(&'static str, ContentBlock)] {
+    static VARIANTS: std::sync::LazyLock<Vec<(&'static str, ContentBlock)>> =
+        std::sync::LazyLock::new(|| {
+            vec![
+                (
+                    "Heading",
+                    ContentBlock::Heading {
+                        level: 1,
+                        text: "New heading".to_string(),
+                    },
+                ),
+                (
+                    "Text",
+                    ContentBlock::Text {
+                        body: "New text block".to_string(),
+                    },
+                ),
+                (
+                    "Code",
+                    ContentBlock::Code {
+                        language: Some("text".to_string()),
+                        source: String::new(),
+                        highlight_lines: vec![],
+                        show_line_numbers: false,
+                    },
+                ),
+                (
+                    "List",
+                    ContentBlock::List {
+                        ordered: false,
+                        items: vec![ListItem {
+                            text: "New list item".to_string(),
+                            children: vec![],
+                        }],
+                    },
+                ),
+                (
+                    "Image",
+                    ContentBlock::Image {
+                        src: String::new(),
+                        alt: String::new(),
+                        caption: None,
+                    },
+                ),
+                ("Divider", ContentBlock::Divider),
+                (
+                    "Container",
+                    ContentBlock::Container {
+                        layout: None,
+                        children: vec![ContentBlock::Text {
+                            body: "Container child".to_string(),
+                        }],
+                    },
+                ),
+                (
+                    "Extension",
+                    ContentBlock::Extension {
+                        extension_type: "custom.unknown".to_string(),
+                        fallback: Some(Box::new(ContentBlock::Text {
+                            body: "Extension fallback".to_string(),
+                        })),
+                        payload: serde_json::Value::Object(serde_json::Map::new()),
+                    },
+                ),
+            ]
+        });
+    VARIANTS.as_slice()
+}
+
 fn bump_index(current: usize, max_index: usize, forward: bool) -> usize {
     if forward {
         (current + 1).min(max_index)
@@ -2227,6 +2647,27 @@ fn digit_to_index(code: KeyCode) -> Option<usize> {
         KeyCode::Char('0') => Some(9),
         _ => None,
     }
+}
+
+fn picker_row_span(overlay: EditorPickerOverlay) -> usize {
+    match overlay {
+        EditorPickerOverlay::BlockType { .. } => 2,
+        EditorPickerOverlay::Layout { .. } | EditorPickerOverlay::Transition { .. } => 1,
+    }
+}
+
+fn is_editor_actionable_warning(message: &str) -> bool {
+    [
+        "heading text is empty",
+        "text body is empty",
+        "code source is empty",
+        "list has no items",
+        "list item #1 is empty",
+        "image src is empty",
+        "extension type is empty",
+    ]
+    .iter()
+    .any(|pattern| message.contains(pattern))
 }
 
 fn point_in_rect(column: u16, row: u16, rect: Rect) -> bool {
@@ -2261,8 +2702,10 @@ fn centered_popup(area: Rect, width_pct: u16, height_pct: u16) -> Rect {
 #[cfg(test)]
 mod tests {
     use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+    use fireside_core::model::branch::{BranchOption, BranchPoint};
     use fireside_core::model::graph::{Graph, GraphFile};
     use fireside_core::model::node::Node;
+    use fireside_core::model::traversal::Traversal;
     use fireside_engine::PresentationSession;
 
     use super::{App, Theme};
@@ -2300,6 +2743,79 @@ mod tests {
         Graph::from_file(file).expect("graph should be valid")
     }
 
+    fn branch_graph() -> Graph {
+        let mut start = Node {
+            id: Some("start".to_string()),
+            title: None,
+            tags: Vec::new(),
+            duration: None,
+            layout: None,
+            transition: None,
+            speaker_notes: None,
+            traversal: None,
+            content: Vec::new(),
+        };
+        start.traversal = Some(Traversal {
+            next: None,
+            after: None,
+            branch_point: Some(BranchPoint {
+                id: Some("branch-0".to_string()),
+                prompt: Some("Choose path".to_string()),
+                options: vec![
+                    BranchOption {
+                        label: "Path A".to_string(),
+                        key: '1',
+                        target: "path-a".to_string(),
+                    },
+                    BranchOption {
+                        label: "Path B".to_string(),
+                        key: '2',
+                        target: "path-b".to_string(),
+                    },
+                ],
+            }),
+        });
+
+        let path_a = Node {
+            id: Some("path-a".to_string()),
+            title: None,
+            tags: Vec::new(),
+            duration: None,
+            layout: None,
+            transition: None,
+            speaker_notes: None,
+            traversal: None,
+            content: Vec::new(),
+        };
+        let path_b = Node {
+            id: Some("path-b".to_string()),
+            title: None,
+            tags: Vec::new(),
+            duration: None,
+            layout: None,
+            transition: None,
+            speaker_notes: None,
+            traversal: None,
+            content: Vec::new(),
+        };
+
+        Graph::from_file(GraphFile {
+            title: None,
+            fireside_version: None,
+            author: None,
+            date: None,
+            description: None,
+            version: None,
+            tags: Vec::new(),
+            theme: None,
+            font: None,
+            defaults: None,
+            extensions: Vec::new(),
+            nodes: vec![start, path_a, path_b],
+        })
+        .expect("branch graph should be valid")
+    }
+
     #[test]
     fn reload_graph_preserves_current_node_by_id() {
         let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 1);
@@ -2330,6 +2846,22 @@ mod tests {
         assert!(app.can_hot_reload());
         app.enter_edit_mode();
         assert!(!app.can_hot_reload());
+    }
+
+    #[test]
+    fn presenter_branch_overlay_up_down_enter_chooses_focused_option() {
+        let session = PresentationSession::new(branch_graph(), 0);
+        let mut app = App::new(session, Theme::default());
+
+        app.handle_event(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+        app.handle_event(Event::Key(KeyEvent::new(KeyCode::Up, KeyModifiers::NONE)));
+        app.handle_event(Event::Key(KeyEvent::new(
+            KeyCode::Enter,
+            KeyModifiers::NONE,
+        )));
+
+        assert_eq!(app.session.current_node().id.as_deref(), Some("path-a"));
+        assert_eq!(app.branch_focused_option, 0);
     }
 
     #[test]

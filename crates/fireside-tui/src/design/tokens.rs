@@ -90,35 +90,35 @@ pub struct DesignTokens {
 impl Default for DesignTokens {
     fn default() -> Self {
         Self {
-            // Base palette — dark terminal defaults
-            background: Color::Rgb(40, 44, 52),
-            surface: Color::Rgb(44, 49, 60),
-            primary: Color::Rgb(97, 175, 239),
-            accent: Color::Rgb(198, 120, 221),
-            muted: Color::Rgb(92, 99, 112),
-            error: Color::Rgb(224, 108, 117),
-            success: Color::Rgb(152, 195, 121),
+            // Base palette — Rosé Pine defaults
+            background: Color::Rgb(25, 23, 36),
+            surface: Color::Rgb(31, 29, 46),
+            primary: Color::Rgb(156, 207, 216),
+            accent: Color::Rgb(196, 167, 231),
+            muted: Color::Rgb(110, 106, 134),
+            error: Color::Rgb(235, 111, 146),
+            success: Color::Rgb(49, 116, 143),
 
             // On-colors
-            on_background: Color::Rgb(171, 178, 191),
-            on_surface: Color::Rgb(220, 223, 228),
-            on_primary: Color::Rgb(40, 44, 52),
+            on_background: Color::Rgb(224, 222, 244),
+            on_surface: Color::Rgb(224, 222, 244),
+            on_primary: Color::Rgb(25, 23, 36),
 
             // Typography
-            heading_h1: Color::Rgb(97, 175, 239),
-            heading_h2: Color::Rgb(152, 195, 121),
-            heading_h3: Color::Rgb(229, 192, 123),
-            body: Color::Rgb(171, 178, 191),
-            code_fg: Color::Rgb(220, 223, 228),
-            code_bg: Color::Rgb(40, 44, 52),
-            quote: Color::Rgb(92, 99, 112),
+            heading_h1: Color::Rgb(156, 207, 216),
+            heading_h2: Color::Rgb(49, 116, 143),
+            heading_h3: Color::Rgb(246, 193, 119),
+            body: Color::Rgb(224, 222, 244),
+            code_fg: Color::Rgb(224, 222, 244),
+            code_bg: Color::Rgb(38, 35, 58),
+            quote: Color::Rgb(110, 106, 134),
 
             // Chrome
-            footer: Color::Rgb(92, 99, 112),
-            border_active: Color::Rgb(97, 175, 239),
-            border_inactive: Color::Rgb(62, 68, 81),
-            toolbar_bg: Color::Rgb(33, 37, 43),
-            toolbar_fg: Color::Rgb(171, 178, 191),
+            footer: Color::Rgb(110, 106, 134),
+            border_active: Color::Rgb(156, 207, 216),
+            border_inactive: Color::Rgb(64, 61, 82),
+            toolbar_bg: Color::Rgb(31, 29, 46),
+            toolbar_fg: Color::Rgb(144, 140, 170),
 
             // Syntax
             syntax_theme: String::from("base16-ocean.dark"),
@@ -306,7 +306,7 @@ mod tests {
     #[test]
     fn default_tokens_body_on_background_contrast() {
         let tokens = DesignTokens::default();
-        // One Dark body (#abb2bf) on dark bg (#282c34) should pass AA
+        // Default body text on the default surface should pass AA
         let ratio = contrast_ratio(tokens.body, tokens.surface);
         assert!(ratio >= 4.5, "Body on surface contrast {ratio:.1} < 4.5");
     }

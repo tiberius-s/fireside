@@ -70,42 +70,42 @@ pub struct Theme {
 }
 
 impl Default for Theme {
-    /// One Dark palette — consistent Rgb values independent of the terminal's
+    /// Rosé Pine palette — consistent Rgb values independent of the terminal's
     /// own color scheme. Contrast ratios have been verified against WCAG AA.
     fn default() -> Self {
         Self {
-            // Base — One Dark dark bg (#282C34) and body text (#ABB2BF)
-            background: Color::Rgb(40, 44, 52),
-            foreground: Color::Rgb(171, 178, 191),
+            // Base — Rosé Pine dark bg (#191724) and body text (#E0DEF4)
+            background: Color::Rgb(25, 23, 36),
+            foreground: Color::Rgb(224, 222, 244),
 
-            // Surface — slightly lighter panel bg (#2C313C) and light text
-            surface: Color::Rgb(44, 49, 60),
-            on_surface: Color::Rgb(220, 223, 228),
+            // Surface — slightly lighter panel bg (#1F1D2E) and light text
+            surface: Color::Rgb(31, 29, 46),
+            on_surface: Color::Rgb(224, 222, 244),
 
-            // Headings — blue (#61AFEF), green (#98C379), gold (#E5C07B)
-            heading_h1: Color::Rgb(97, 175, 239),
-            heading_h2: Color::Rgb(152, 195, 121),
-            heading_h3: Color::Rgb(229, 192, 123),
+            // Headings — foam (#9CCFD8), pine (#31748F), gold (#F6C177)
+            heading_h1: Color::Rgb(156, 207, 216),
+            heading_h2: Color::Rgb(49, 116, 143),
+            heading_h3: Color::Rgb(246, 193, 119),
 
-            // Code blocks — same bg as main bg, light text, dim border
-            code_background: Color::Rgb(40, 44, 52),
-            code_foreground: Color::Rgb(220, 223, 228),
-            code_border: Color::Rgb(62, 68, 81),
+            // Code blocks — inset bg with light text and muted border
+            code_background: Color::Rgb(38, 35, 58),
+            code_foreground: Color::Rgb(224, 222, 244),
+            code_border: Color::Rgb(110, 106, 134),
 
             // Misc content
-            block_quote: Color::Rgb(92, 99, 112),
-            footer: Color::Rgb(92, 99, 112),
+            block_quote: Color::Rgb(110, 106, 134),
+            footer: Color::Rgb(110, 106, 134),
 
-            // Chrome — active border matches h1 blue; toolbar is darkest layer
-            border_active: Color::Rgb(97, 175, 239),
-            border_inactive: Color::Rgb(62, 68, 81),
-            toolbar_bg: Color::Rgb(33, 37, 43),
-            toolbar_fg: Color::Rgb(171, 178, 191),
+            // Chrome — active border matches h1; toolbar uses surface layer
+            border_active: Color::Rgb(156, 207, 216),
+            border_inactive: Color::Rgb(64, 61, 82),
+            toolbar_bg: Color::Rgb(31, 29, 46),
+            toolbar_fg: Color::Rgb(144, 140, 170),
 
-            // Semantic — purple, red, green
-            accent: Color::Rgb(198, 120, 221),
-            error: Color::Rgb(224, 108, 117),
-            success: Color::Rgb(152, 195, 121),
+            // Semantic — iris, rose, pine
+            accent: Color::Rgb(196, 167, 231),
+            error: Color::Rgb(235, 111, 146),
+            success: Color::Rgb(49, 116, 143),
 
             syntax_theme: String::from("base16-ocean.dark"),
         }

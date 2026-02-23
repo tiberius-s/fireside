@@ -4,6 +4,7 @@
 //! unreachable nodes, and branch point consistency.
 
 use fireside_core::model::graph::Graph;
+use fireside_core::model::{content::ContentBlock, node::Node};
 
 use crate::error::EngineError;
 
@@ -91,9 +92,168 @@ pub fn validate_graph(graph: &Graph) -> Vec<Diagnostic> {
                 }
             }
         }
+
+        diagnostics.extend(validate_node_content(node));
     }
 
     diagnostics
+}
+
+fn validate_node_content(node: &Node) -> Vec<Diagnostic> {
+    let mut diagnostics = Vec::new();
+
+    for (index, block) in node.content.iter().enumerate() {
+        for warning in validate_content_block(block) {
+            diagnostics.push(Diagnostic {
+                severity: Severity::Warning,
+                message: format!("block #{}: {}", index + 1, warning.message),
+                node_id: node.id.clone(),
+            });
+        }
+    }
+
+    diagnostics
+}
+
+/// Validate a content block for authoring quality warnings.
+///
+/// This function emits Warning-severity diagnostics only.
+#[must_use]
+pub fn validate_content_block(block: &ContentBlock) -> Vec<Diagnostic> {
+    let mut diagnostics = Vec::new();
+    validate_content_block_with_path(block, "", &mut diagnostics);
+    diagnostics
+}
+
+fn validate_content_block_with_path(
+    block: &ContentBlock,
+    path: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    let prefix = if path.is_empty() {
+        String::new()
+    } else {
+        format!("{path}: ")
+    };
+
+    match block {
+        ContentBlock::Heading { text, .. } => {
+            if text.trim().is_empty() {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}heading text is empty"),
+                    node_id: None,
+                });
+            }
+        }
+        ContentBlock::Text { body } => {
+            if body.trim().is_empty() {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}text body is empty"),
+                    node_id: None,
+                });
+            }
+        }
+        ContentBlock::Code {
+            language, source, ..
+        } => {
+            if source.trim().is_empty() {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}code source is empty"),
+                    node_id: None,
+                });
+            }
+
+            if language
+                .as_deref()
+                .is_some_and(|lang| lang.trim().is_empty())
+            {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}code language is blank"),
+                    node_id: None,
+                });
+            }
+        }
+        ContentBlock::List { items, .. } => {
+            if items.is_empty() {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}list has no items"),
+                    node_id: None,
+                });
+            }
+
+            for (item_index, item) in items.iter().enumerate() {
+                if item.text.trim().is_empty() {
+                    diagnostics.push(Diagnostic {
+                        severity: Severity::Warning,
+                        message: format!("{prefix}list item #{} is empty", item_index + 1),
+                        node_id: None,
+                    });
+                }
+            }
+        }
+        ContentBlock::Image { src, alt, .. } => {
+            if src.trim().is_empty() {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}image src is empty"),
+                    node_id: None,
+                });
+            }
+
+            if alt.trim().is_empty() {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}image alt text is empty"),
+                    node_id: None,
+                });
+            }
+        }
+        ContentBlock::Divider => {}
+        ContentBlock::Container { children, .. } => {
+            if children.is_empty() {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}container has no children"),
+                    node_id: None,
+                });
+            }
+
+            for (child_index, child) in children.iter().enumerate() {
+                let child_path = if path.is_empty() {
+                    format!("container child #{}", child_index + 1)
+                } else {
+                    format!("{path} > child #{}", child_index + 1)
+                };
+                validate_content_block_with_path(child, &child_path, diagnostics);
+            }
+        }
+        ContentBlock::Extension {
+            extension_type,
+            fallback,
+            ..
+        } => {
+            if extension_type.trim().is_empty() {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}extension type is empty"),
+                    node_id: None,
+                });
+            }
+
+            if fallback.is_none() {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    message: format!("{prefix}extension has no fallback block"),
+                    node_id: None,
+                });
+            }
+        }
+    }
 }
 
 /// Validate a graph and return an error if any Error-severity diagnostics exist.
@@ -162,5 +322,30 @@ mod tests {
         let graph = load_graph_from_str(json).unwrap();
         let diags = validate_graph(&graph);
         assert!(!diags.is_empty());
+    }
+
+    #[test]
+    fn empty_content_fields_emit_warnings() {
+        let json = r#"{
+            "nodes": [
+                {
+                    "id": "warn",
+                    "content": [
+                        { "kind": "heading", "level": 1, "text": "" },
+                        { "kind": "image", "src": "", "alt": "" }
+                    ]
+                }
+            ]
+        }"#;
+
+        let graph = load_graph_from_str(json).unwrap();
+        let diags = validate_graph(&graph);
+
+        assert!(diags.iter().any(|diag| {
+            diag.severity == Severity::Warning && diag.message.contains("heading text is empty")
+        }));
+        assert!(diags.iter().any(|diag| {
+            diag.severity == Severity::Warning && diag.message.contains("image src is empty")
+        }));
     }
 }

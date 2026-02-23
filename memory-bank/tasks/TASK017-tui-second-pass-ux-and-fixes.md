@@ -1,8 +1,8 @@
 # TASK017 — TUI Second-Pass UX and Bug Fixes
 
-**Status:** In Progress
+**Status:** Completed
 **Added:** 2026-02-22
-**Updated:** 2026-02-25
+**Updated:** 2026-02-26
 
 ## Original Request
 
@@ -116,32 +116,49 @@ Acceptance: Opening branch overlay shows first option with `▌` left accent bar
 
 ## Implementation Plan
 
+### Phase H — Rose Pine Theme + UX Polish (added 2026-02-26)
+
+- [x] **H0a**: Replace `Theme::default()` in `theme.rs` with Rose Pine RGB (20 values)
+- [x] **H0b**: Replace `DesignTokens::default()` in `design/tokens.rs` with Rose Pine (22 values)
+- [x] **H1**: Add `Branch` variant to `ModeBadgeKind`; fix badge labels to `■ PRESENT`,
+      `✎ EDITING`, `⊞ GOTO`, `⎇ BRANCH` with correct Rose Pine colours per design §3.1
+- [x] **H2**: Progress bar — `█`/`░` → `●`/`○`; `N/M` → `Node N / M`; add next-node title;
+      add `■ END` end-of-path marker; add `⎇` branch-ahead marker on segment dot
+- [x] **H3**: `render_undo_redo_chips()` in `chrome.rs`; wire into editor footer
+- [x] **H4**: Zen mode — `Action::ToggleZenMode`, `Ctrl+F` binding, `show_zen_mode: bool`
+      field on `App`, gate chrome rendering
+- [x] **H5**: Pace guide — `target_duration_secs: Option<u64>` on `App`; colour-coded timer
+      pine/gold/love based on pace ratio in `progress.rs`
+- [x] **H6**: Graph edge colour coding — 4 edge types + legend row at overlay bottom
+- [x] **H7**: New module `ui/timeline.rs` — 1-row scrollable visited-node strip, Ctrl+H toggle
+- [x] **H8**: New module `ui/breadcrumb.rs` — nav path strip, `JumpToBranchPoint` action, Ctrl+←
+
 ### Phase A — P0 Bugs (must land first)
 
-- [ ] **A1**: Remove `MouseEventKind::Up` arm in `app.rs` (1 line) → fixes double-fire
-- [ ] **A2**: Add regression test in `fireside-engine/tests/traversal_tests.rs` for
+- [x] **A1**: Remove `MouseEventKind::Up` arm in `app.rs` (1 line) → fixes double-fire
+- [x] **A2**: Add regression test in `fireside-engine/tests/traversal_tests.rs` for
       pre-branch-point next() → confirms or denies the loop hypothesis
 
 ### Phase B — Test Infrastructure (enables safe refactoring)
 
-- [ ] **B1**: Add `AppHarness` in `crates/fireside-tui/tests/harness.rs`
-- [ ] **B2**: Write golden test for `hello.json` full path
-- [ ] **B3**: Write golden test for branch-choose interaction
+- [x] **B1**: Add `AppHarness` in `crates/fireside-tui/tests/harness.rs`
+- [x] **B2**: Write golden test for `hello.json` full path
+- [x] **B3**: Write golden test for branch-choose interaction
 
 ### Phase C — Content Block Editing
 
-- [ ] **C1**: Add `Command::UpdateBlock { index: usize, block: ContentBlock }` to engine
-- [ ] **C2**: Implement `i` on any block row opens block-specific edit widget
+- [x] **C1**: Add `Command::UpdateBlock { index: usize, block: ContentBlock }` to engine
+- [x] **C2**: Implement `i` on any block row opens block-specific edit widget
       (heading, text, code, list, image, divider, extension)
-- [ ] **C3**: Fix cursor placement — textarea opens at end of content
-- [ ] **C4**: Add `J/K` block reorder with `Command::MoveBlock`
-- [ ] **C5**: Add `validate_content_block` in engine validation module
+- [x] **C3**: Fix cursor placement — textarea opens at end of content
+- [x] **C4**: Add `J/K` block reorder with `Command::MoveBlock`
+- [x] **C5**: Add `validate_content_block` in engine validation module
 
 ### Phase D — Graph & Branch Visual Improvements
 
-- [ ] **D1**: Verify TASK016 Phase 4 branch overlay focus and affordance is complete
-- [ ] **D2**: Implement block type picker with 1-line synopsis
-- [ ] **D3**: Replace graph overlay linear list with ASCII tree rendering
+- [x] **D1**: Verify TASK016 Phase 4 branch overlay focus and affordance is complete
+- [x] **D2**: Implement block type picker with 1-line synopsis
+- [x] **D3**: Replace graph overlay linear list with ASCII tree rendering
 
 ### Phase E — Penpot Design Boards (parallel with D)
 
@@ -168,56 +185,266 @@ Acceptance: Opening branch overlay shows first option with `▌` left accent bar
 
 ## Progress Tracking
 
-**Overall Status:** In Progress — 50% (Phases E+F+G complete; A–D not started)
+**Overall Status:** Completed — 100% (Phases A–H complete)
 
 ### Subtasks
 
-| ID  | Description                                     | Status      | Updated    | Notes                                          |
-| --- | ----------------------------------------------- | ----------- | ---------- | ---------------------------------------------- |
-| A1  | Remove MouseEventKind::Up arm — fix double-fire | Not Started | 2026-02-22 | 1-line fix confirmed                           |
-| A2  | Regression test for pre-branch next() loop      | Not Started | 2026-02-22 | Needs investigation first                      |
-| B1  | AppHarness test infrastructure                  | Not Started | 2026-02-22 | ratatui TestBackend                            |
-| B2  | Golden test hello.json full path                | Not Started | 2026-02-22 | Depends on B1                                  |
-| B3  | Golden test branch-choose                       | Not Started | 2026-02-22 | Depends on B1                                  |
-| C1  | Command::UpdateBlock in engine                  | Not Started | 2026-02-22 |                                                |
-| C2  | Per-block edit widgets (all 8 variants)         | Not Started | 2026-02-22 | Largest change                                 |
-| C3  | Cursor at end of content on widget open         | Not Started | 2026-02-22 |                                                |
-| C4  | J/K block reorder + Command::MoveBlock          | Not Started | 2026-02-22 |                                                |
-| C5  | validate_content_block in engine                | Not Started | 2026-02-22 |                                                |
-| D1  | Verify TASK016 Phase 4 complete                 | Not Started | 2026-02-22 |                                                |
-| D2  | Block type picker with synopsis                 | Not Started | 2026-02-22 |                                                |
-| D3  | Graph overlay ASCII tree                        | Not Started | 2026-02-22 | Largest visual change                          |
-| E1  | Penpot board 08 block edit widgets              | Complete    | 2026-02-23 | All 8 block types; verified visible            |
-| E2  | Amend Penpot board 05 picker                    | Complete    | 2026-02-23 | Picker already had synopsis rows; verified     |
-| E3  | Penpot board 09 graph tree                      | Complete    | 2026-02-23 | ASCII tree + colour-coded edges; verified      |
-| E4  | Amend board 03 branch focus state               | Complete    | 2026-02-23 | Row highlight + accent bar + nav annotation    |
-| E5  | Library 06 UI Components                        | Complete    | 2026-02-23 | Buttons/badges/chips/inputs/progress/keybinds  |
-| E6  | Library 07 Typography & Color                   | Complete    | 2026-02-23 | 8-step type scale + full palette with edge map |
-| E7  | Board 10 GotoNode Input Mode                    | Complete    | 2026-02-23 | New exploration; previously undesigned mode    |
-| E8  | Board 11 Undo/Redo Chip States                  | Complete    | 2026-02-23 | Implements UX Proposal 08 visually             |
-| E9  | Library typographies (8 styles)                 | Complete    | 2026-02-23 | Display/H1/H2/H3/Body/Small/Caption/Code       |
-| E10 | Token set fireside/core (22 tokens)             | Complete    | 2026-02-23 | 16 color + 8 font-size + 6 spacing             |
-| E11 | Token Catalog font correction                   | Complete    | 2026-02-23 | "Roboto Mono" → "JetBrains Mono"               |
-| F1  | Fix 8 typographies (all were 14px)              | Complete    | 2026-02-24 | Correct sizes: 48/32/24/20/16/14/12/14         |
-| F2  | Fix color naming + surface value                | Complete    | 2026-02-24 | 6 renames, surface #282C34→#21252B, +2 colors  |
-| F3  | Add accent-cyan + foreground tokens             | Complete    | 2026-02-24 | 36 total tokens                                |
-| F4  | Delete duplicate empty board                    | Complete    | 2026-02-24 | Was 0-children copy of board 10                |
-| F5  | Create 31 reusable components                   | Complete    | 2026-02-24 | 10 categories, all with flex layouts           |
-| F6  | Fix component paths (tripled → single)          | Complete    | 2026-02-24 | path=Category, name=Variant                    |
-| F7  | Visual verification (all 31 components)         | Complete    | 2026-02-24 | Every component exported and inspected         |
-| F8  | Component Showcase board                        | Complete    | 2026-02-24 | All 31 organized by category with labels       |
-| G1  | Fetch Rose Pine palette (3 variants+highlights) | Complete    | 2026-02-25 | From ghostty + neovim repos                    |
-| G2  | Create 45 library colors (rp-{variant}/{role})  | Complete    | 2026-02-25 | 15 per variant                                 |
-| G3  | Create 3 Rose Pine token sets                   | Complete    | 2026-02-25 | rosepine/main, moon, dawn (15 tokens each)     |
-| G4  | Build Rose Pine visual boards                   | Complete    | 2026-02-25 | Overview, 3 swatches, TUI map, 2 previews      |
-| G5  | Create 4 new Penpot pages                       | Complete    | 2026-02-25 | Empty; cross-page API limitation discovered    |
-| G6  | UX boards 01–09 (original proposals)            | Complete    | 2026-02-25 | All 9 mockups implemented                      |
-| G7  | Generate 8 new UX proposals (10–17)             | Complete    | 2026-02-25 | From TUI codebase audit                        |
-| G8  | UX boards 10–17 (new proposals)                 | Complete    | 2026-02-25 | All 8 mockups created                          |
-| G9  | Fix z-order across all 17 boards                | Complete    | 2026-02-25 | Area-based sorting: large rects→back           |
-| G10 | Visual verification of all boards               | Complete    | 2026-02-25 | Exported and confirmed rendering               |
+| ID  | Description                                     | Status   | Updated    | Notes                                          |
+| --- | ----------------------------------------------- | -------- | ---------- | ---------------------------------------------- |
+| A1  | Remove MouseEventKind::Up arm — fix double-fire | Complete | 2026-02-26 | Up-click dispatch removed from event handler   |
+| A2  | Regression test for pre-branch next() loop      | Complete | 2026-02-26 | Added traversal_tests.rs case and validated    |
+| B1  | AppHarness test infrastructure                  | Complete | 2026-02-26 | Added reusable TestBackend harness             |
+| B2  | Golden test hello.json full path                | Complete | 2026-02-26 | Full traversal id path snapshot assertion      |
+| B3  | Golden test branch-choose                       | Complete | 2026-02-26 | Branch a/b behavior + rendered output assert   |
+| C1  | Command::UpdateBlock in engine                  | Complete | 2026-02-26 | Added command + undo/redo tests                |
+| C2  | Per-block edit widgets (all 8 variants)         | Complete | 2026-02-26 | `i` edits selected block primary field         |
+| C3  | Cursor at end of content on widget open         | Complete | 2026-02-26 | Seeded input opens with caret at end           |
+| C4  | J/K block reorder + Command::MoveBlock          | Complete | 2026-02-26 | Ctrl+j/k select; Alt+j/k reorder               |
+| C5  | validate_content_block in engine                | Complete | 2026-02-26 | Added warning validation + integration         |
+| D1  | Verify TASK016 Phase 4 complete                 | Complete | 2026-02-26 | Branch keyboard focus/choose test added        |
+| D2  | Block type picker with synopsis                 | Complete | 2026-02-26 | 8 block types + one-line synopsis rows         |
+| D3  | Graph overlay ASCII tree                        | Complete | 2026-02-26 | Tree-row overlay replaces linear list          |
+| H0a | theme.rs Rose Pine RGB defaults                 | Complete | 2026-02-26 | Default theme palette migrated to Rose Pine    |
+| H0b | design/tokens.rs Rose Pine defaults             | Complete | 2026-02-26 | 22 token values; run contrast tests after      |
+| H1  | chrome.rs Branch badge variant + prefix icons   | Complete | 2026-02-26 | Added Branch variant and icon-prefixed labels  |
+| H2  | progress.rs dots, next-node, END marker         | Complete | 2026-02-26 | UX-02; 5 self-contained changes                |
+| H3  | chrome.rs render_undo_redo_chips()              | Complete | 2026-02-26 | UX-08; new function + editor footer wire-up    |
+| H4  | Zen mode (event/keybindings/app.rs)             | Complete | 2026-02-26 | Ctrl+F action + chrome gating implemented      |
+| H5  | Pace guide in progress.rs                       | Complete | 2026-02-26 | Target timer + pace labels/colors implemented  |
+| H6  | graph.rs edge colour coding + legend            | Complete | 2026-02-26 | Theme-mapped edge colors + bottom legend row   |
+| H7  | ui/timeline.rs session timeline strip           | Complete | 2026-02-26 | Timeline module wired with Ctrl+H toggle       |
+| H8  | ui/breadcrumb.rs breadcrumb navigation          | Complete | 2026-02-26 | Breadcrumb + Ctrl+Left branch-point jump       |
+| E1  | Penpot board 08 block edit widgets              | Complete | 2026-02-23 | All 8 block types; verified visible            |
+| E2  | Amend Penpot board 05 picker                    | Complete | 2026-02-23 | Picker already had synopsis rows; verified     |
+| E3  | Penpot board 09 graph tree                      | Complete | 2026-02-23 | ASCII tree + colour-coded edges; verified      |
+| E4  | Amend board 03 branch focus state               | Complete | 2026-02-23 | Row highlight + accent bar + nav annotation    |
+| E5  | Library 06 UI Components                        | Complete | 2026-02-23 | Buttons/badges/chips/inputs/progress/keybinds  |
+| E6  | Library 07 Typography & Color                   | Complete | 2026-02-23 | 8-step type scale + full palette with edge map |
+| E7  | Board 10 GotoNode Input Mode                    | Complete | 2026-02-23 | New exploration; previously undesigned mode    |
+| E8  | Board 11 Undo/Redo Chip States                  | Complete | 2026-02-23 | Implements UX Proposal 08 visually             |
+| E9  | Library typographies (8 styles)                 | Complete | 2026-02-23 | Display/H1/H2/H3/Body/Small/Caption/Code       |
+| E10 | Token set fireside/core (22 tokens)             | Complete | 2026-02-23 | 16 color + 8 font-size + 6 spacing             |
+| E11 | Token Catalog font correction                   | Complete | 2026-02-23 | "Roboto Mono" → "JetBrains Mono"               |
+| F1  | Fix 8 typographies (all were 14px)              | Complete | 2026-02-24 | Correct sizes: 48/32/24/20/16/14/12/14         |
+| F2  | Fix color naming + surface value                | Complete | 2026-02-24 | 6 renames, surface #282C34→#21252B, +2 colors  |
+| F3  | Add accent-cyan + foreground tokens             | Complete | 2026-02-24 | 36 total tokens                                |
+| F4  | Delete duplicate empty board                    | Complete | 2026-02-24 | Was 0-children copy of board 10                |
+| F5  | Create 31 reusable components                   | Complete | 2026-02-24 | 10 categories, all with flex layouts           |
+| F6  | Fix component paths (tripled → single)          | Complete | 2026-02-24 | path=Category, name=Variant                    |
+| F7  | Visual verification (all 31 components)         | Complete | 2026-02-24 | Every component exported and inspected         |
+| F8  | Component Showcase board                        | Complete | 2026-02-24 | All 31 organized by category with labels       |
+| G1  | Fetch Rose Pine palette (3 variants+highlights) | Complete | 2026-02-25 | From ghostty + neovim repos                    |
+| G2  | Create 45 library colors (rp-{variant}/{role})  | Complete | 2026-02-25 | 15 per variant                                 |
+| G3  | Create 3 Rose Pine token sets                   | Complete | 2026-02-25 | rosepine/main, moon, dawn (15 tokens each)     |
+| G4  | Build Rose Pine visual boards                   | Complete | 2026-02-25 | Overview, 3 swatches, TUI map, 2 previews      |
+| G5  | Create 4 new Penpot pages                       | Complete | 2026-02-25 | Empty; cross-page API limitation discovered    |
+| G6  | UX boards 01–09 (original proposals)            | Complete | 2026-02-25 | All 9 mockups implemented                      |
+| G7  | Generate 8 new UX proposals (10–17)             | Complete | 2026-02-25 | From TUI codebase audit                        |
+| G8  | UX boards 10–17 (new proposals)                 | Complete | 2026-02-25 | All 8 mockups created                          |
+| G9  | Fix z-order across all 17 boards                | Complete | 2026-02-25 | Area-based sorting: large rects→back           |
+| G10 | Visual verification of all boards               | Complete | 2026-02-25 | Exported and confirmed rendering               |
 
 ## Progress Log
+
+### 2026-02-26 (D1 + D3 completion)
+
+Completed the final pending code phase for TASK017 by closing both D1 and D3.
+
+**Implemented:**
+
+- D3 graph overlay rework in `fireside-tui/src/ui/graph.rs`: replaced the linear topology
+  list with a tree-row renderer based on discovered traversal children (`next`, `after`,
+  `branch`, `goto`) and depth-aware ASCII connectors.
+- D3 viewport integration: switched overlay windowing and mouse row mapping to row-based
+  tree indexing so keyboard + mouse selection tracks rendered tree rows correctly.
+- D1 verification hardening: added presenter branch overlay keyboard behavior test in
+  `fireside-tui/src/app.rs` to validate Up/Down focus movement and Enter selection routing.
+
+**Validation run:**
+
+- `cargo test -p fireside-tui` ✅
+- `cargo test -p fireside-engine` ✅
+
+### 2026-02-26 (C1–C5 wave + independent QA)
+
+Implemented the content-editing phase end-to-end with command-layer support, inline block
+editing UX, reorder controls, and validation warning surfacing.
+
+**Implemented:**
+
+- C1/C4 engine command surface: added `Command::UpdateBlock` and `Command::MoveBlock`
+  in `fireside-engine/src/commands.rs` with full inverse generation for undo/redo and
+  dedicated roundtrip tests.
+- C5 validation: added `validate_content_block()` in
+  `fireside-engine/src/validation.rs`, integrated into `validate_graph()`, and added warning
+  fixture tests for empty heading/image fields.
+- C2/C3 editor UX: in `fireside-tui/src/app.rs` added selected block state, type-specific
+  `i` edit flow (heading/text/code/list/image/container/extension; divider no-op),
+  Esc-or-Enter commit and Ctrl+C cancel, plus selected block rendering and warning panel wiring.
+- Reorder controls: mapped `Ctrl+j/k` to block selection and `Alt+j/k` to block move via
+  new action variants and keybinding mappings.
+
+**Independent QA follow-up fixes:**
+
+- Filtered editor warning display to actionable fields for current inline edit flow.
+- Reset selected block to first block on node changes to avoid accidental cross-node edits.
+- Updated help copy so `a` reads as append block (not append text).
+
+**Validation run:**
+
+- `cargo test -p fireside-tui` ✅
+- `cargo test -p fireside-engine` ✅
+
+### 2026-02-26 (B1–B3 + D2 wave + independent QA)
+
+Implemented the next coding wave focused on test infrastructure and picker UX.
+
+**Implemented:**
+
+- B1 AppHarness: added reusable harness at `crates/fireside-tui/tests/harness.rs` with
+  fixture loading (`for_graph`, `for_hello`), action driving (`press`), current-node helper,
+  and deterministic frame capture (`render_text`) via Ratatui `TestBackend`.
+- B2/B3 golden tests: added `crates/fireside-tui/tests/harness_golden.rs` with:
+  - full hello traversal path snapshot assertion
+  - branch choose a/b behavior assertion and rendered-frame presence check
+- D2 picker UX: converted `EditorAppendTextBlock` flow into block-type picker overlay,
+  added `EditorPickerOverlay::BlockType`, persisted picker index, appended templates for all
+  8 block kinds, and rendered one-line synopsis rows per block type in `ui/editor.rs`.
+
+**Independent QA blocker + fix:**
+
+- Blocker: mouse click row-mapping in two-line block picker rows selected wrong options.
+  Fix: introduced row-span aware mapping for picker mouse drag/click paths in `app.rs`.
+
+**Validation run:**
+
+- `cargo check -p fireside-tui -p fireside-cli -p fireside-engine` ✅
+- `cargo test -p fireside-tui --test harness_golden` ✅
+
+### 2026-02-26 (H6/H7/H8 wave + independent QA)
+
+Implemented the next UX wave (H6/H7/H8), then ran independent QA and fixed one blocker.
+
+**Implemented:**
+
+- H6 graph edge colour coding: updated edge role mapping in `ui/graph.rs` to semantic
+  theme colours (next=active border, branch=gold, after=accent, goto=error) and moved
+  legend into the bottom overlay row.
+- H7 session timeline: added new `ui/timeline.rs` module, `Action::ToggleTimeline`,
+  `Ctrl+H` keybinding, presenter integration, and help overlay entry.
+- H8 breadcrumb trail: added new `ui/breadcrumb.rs` module, `Action::JumpToBranchPoint`,
+  `Ctrl+←` keybinding, app navigation-path tracking, and presenter integration.
+
+**Independent QA blocker + fix:**
+
+- Blocker: `Ctrl+←` initially jumped to last branch destination rather than last branch-point
+  node. Fixed by resolving jump target from navigation history entries that are actual branch
+  point nodes in graph state.
+
+**Validation run:**
+
+- `cargo check -p fireside-tui -p fireside-cli -p fireside-engine` ✅
+- `cargo test -p fireside-tui presenting_ctrl_h_toggles_timeline` ✅
+- `cargo test -p fireside-tui presenting_ctrl_left_jumps_to_branch_point` ✅
+- `cargo test -p fireside-tui summarize_edge_lines_classifies_next_after_branch_and_goto` ✅
+- `cargo test -p fireside-engine --test traversal_tests` ✅
+
+### 2026-02-26 (H4/H5 wave + independent QA)
+
+Implemented Zen mode (H4), pace guide (H5), and completed A2 validation, then ran an
+independent QA subagent and applied a blocker fix.
+
+**Implemented:**
+
+- H4 Zen mode: added `Action::ToggleZenMode`, mapped `Ctrl+F` in presenter mode,
+  added `show_zen_mode` state in `App`, threaded `show_chrome` into presenter state,
+  and gated mode/goto badges + progress/footer chrome when zen is active.
+- H5 pace guide: added `target_duration_secs` state and setter on `App`, passed through
+  presenter view to progress rendering, and rendered pace-formatted timer output with
+  semantic color states (`success`, `heading_h3`, `error`).
+- CLI plumbing: added `--target-minutes` on `fireside present` and propagated to
+  `run_presentation(...)` as seconds.
+- Help overlay: documented `Ctrl+f` as zen toggle.
+
+**Independent QA blocker + fix:**
+
+- Blocker: explicit `--target-minutes` could be hidden by user settings if timer/progress
+  were disabled. Fix: force-enable timer/progress when target duration is provided in
+  `run_presentation(...)`.
+
+**Validation run:**
+
+- `cargo check -p fireside-tui -p fireside-cli -p fireside-engine` ✅
+- `cargo test -p fireside-tui pace_label_thresholds` ✅
+- `cargo test -p fireside-tui pace_color_uses_theme_roles` ✅
+- `cargo test -p fireside-engine --test traversal_tests` ✅
+
+### 2026-02-26 (implementation + QA wave)
+
+Implemented and validated the first coding wave from TASK017 (A1 + H0–H3), then ran
+an independent QA review and applied follow-up fixes.
+
+**Implemented:**
+
+- A1: Removed `MouseEventKind::Up(MouseButton::Left)` click dispatch in `app.rs` to fix
+  double-advance on mouse click.
+- H0a/H0b: Migrated `Theme::default()` and `DesignTokens::default()` from One Dark values
+  to Rose Pine defaults per implementation guidelines.
+- H1: Added `ModeBadgeKind::Branch` and updated badge labels to icon-prefixed variants.
+  Presenter now shows branch badge at branch points.
+- H2: Upgraded footer progress bar to `●`/`○`, `Node N / M`, next-node text, and `■ END`
+  marker when no next node is available.
+- H3: Added shared `render_undo_redo_chips()` in `chrome.rs` and reused it in editor footer.
+
+**Independent QA results and fix:**
+
+- QA identified a theming consistency blocker: hard-coded branch/end colours in chrome/progress.
+  Fixed by switching those colours to theme-driven values (`theme.error`) to preserve theme
+  overrides and avoid literal RGB bypass.
+
+**Validation run:**
+
+- `cargo check -p fireside-tui -p fireside-engine` ✅
+- `cargo test -p fireside-engine --test traversal_tests` ✅
+- `cargo test -p fireside-tui mode_badge_width_tracks_exact_label_lengths` ✅
+- `cargo test -p fireside-tui undo_redo_chip_styles_reflect_enabled_state` ✅
+
+### 2026-02-26
+
+Completed full TUI codebase audit and produced a phased implementation plan for the
+Rose Pine theme update and UX improvements from the design system.
+
+**Audit findings — files examined:**
+
+- `theme.rs` (231 lines): `Theme::default()` confirmed still using **One Dark** RGB values.
+  Must be the first change — every downstream colour reference depends on this.
+- `design/tokens.rs` (351 lines): `DesignTokens::default()` also still One Dark. Both files
+  need updating before any visual work is meaningful.
+- `chrome.rs` (133 lines): `ModeBadgeKind` has only 3 variants (Presenting/Editing/GotoNode)
+  — missing `Branch`. Mode badge labels are plain strings (`"PRESENTING"`, `"EDITING"`,
+  `"GOTO"`) — missing the design-spec prefix icons (`■ PRESENT`, `✎ EDITING`, `⊞ GOTO`,
+  `⎇ BRANCH`). No `render_undo_redo_chips()` function.
+- `progress.rs` (183 lines): Uses `█`/`░` dots (must be `●`/`○`). Position counter is
+  `N/M` (must be `Node N / M`). Missing next-node title, `■ END` end-of-path marker, and
+  pace guide.
+- `event.rs` (107 lines): 39 actions. No `ToggleZenMode`, no `ToggleTimeline`, no
+  `JumpToBranchPoint`.
+- `keybindings.rs` (98 lines): No Ctrl+F, Ctrl+H, or Ctrl+← bindings.
+- `app.rs` (2497 lines): `AppMode` enum has Presenting/Editing/GotoNode/Quitting — no
+  Branch variant (branch is inferred from session state). App struct has `show_progress_bar`
+  and `show_elapsed_timer` flags but no `show_zen_mode`, `visited_nodes`, or `nav_path`
+  fields. `view()` dispatches to `render_editor` for Editing, `render_presenter` for all
+  other modes.
+
+**Phased plan (now tracked as subtasks H0a–H8):**
+
+- **Phase 0 (H0a/H0b)**: Rose Pine theme + token update — foundation for everything
+- **Phase 1 (A1/A2)**: P0 bug fixes — mouse double-fire removal + branch loop regression test
+- **Phase 2 (H1–H3)**: Polish existing components — badge, progress bar, undo/redo chips
+- **Phase 3 (H4–H5)**: New state + actions — zen mode (Ctrl+F) and pace guide
+- **Phase 4 (H6)**: Graph edge colour coding
+- **Phase 5 (H7–H8)**: New modules — session timeline + breadcrumb navigation
+- **Phase 6 (B–D)**: Content block editing + test infrastructure (largest effort)
 
 ### 2026-02-25
 

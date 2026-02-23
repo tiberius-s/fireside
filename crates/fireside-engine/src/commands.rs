@@ -23,6 +23,26 @@ pub enum Command {
         content: Vec<ContentBlock>,
     },
 
+    /// Update a specific content block in a node.
+    UpdateBlock {
+        /// Target node ID.
+        node_id: NodeId,
+        /// Zero-based block index.
+        block_index: usize,
+        /// New block value.
+        block: ContentBlock,
+    },
+
+    /// Move a content block within a node.
+    MoveBlock {
+        /// Target node ID.
+        node_id: NodeId,
+        /// Source zero-based block index.
+        from_index: usize,
+        /// Destination zero-based block index.
+        to_index: usize,
+    },
+
     /// Add a new node to the graph.
     AddNode {
         /// The node ID for the new node.
@@ -175,6 +195,67 @@ fn apply_command(graph: &mut Graph, command: &Command) -> Result<Command, Engine
             Ok(Command::UpdateNodeContent {
                 node_id: node_id.clone(),
                 content: previous,
+            })
+        }
+        Command::UpdateBlock {
+            node_id,
+            block_index,
+            block,
+        } => {
+            let idx = graph.index_of(node_id).ok_or_else(|| {
+                EngineError::CommandError(format!("node id '{node_id}' not found"))
+            })?;
+
+            let node = graph
+                .nodes
+                .get_mut(idx)
+                .ok_or_else(|| EngineError::CommandError("node index out of bounds".into()))?;
+
+            let Some(previous) = node.content.get(*block_index).cloned() else {
+                return Err(EngineError::CommandError(format!(
+                    "block index {} out of bounds for node '{node_id}'",
+                    block_index
+                )));
+            };
+
+            node.content[*block_index] = block.clone();
+
+            Ok(Command::UpdateBlock {
+                node_id: node_id.clone(),
+                block_index: *block_index,
+                block: previous,
+            })
+        }
+        Command::MoveBlock {
+            node_id,
+            from_index,
+            to_index,
+        } => {
+            let idx = graph.index_of(node_id).ok_or_else(|| {
+                EngineError::CommandError(format!("node id '{node_id}' not found"))
+            })?;
+
+            let node = graph
+                .nodes
+                .get_mut(idx)
+                .ok_or_else(|| EngineError::CommandError("node index out of bounds".into()))?;
+
+            let len = node.content.len();
+            if *from_index >= len || *to_index >= len {
+                return Err(EngineError::CommandError(format!(
+                    "move indices out of bounds for node '{node_id}'"
+                )));
+            }
+
+            if from_index != to_index {
+                let block = node.content.remove(*from_index);
+                node.content.insert(*to_index, block);
+            }
+
+            Ok(Command::MoveBlock {
+                node_id: node_id.clone(),
+                from_index: *to_index,
+                to_index: *from_index,
             })
         }
         Command::AddNode {
@@ -408,5 +489,82 @@ mod tests {
         assert!(history.redo(&mut graph).expect("redo should succeed"));
         assert_eq!(graph.nodes.len(), 3);
         assert!(graph.index_of("n3").is_some());
+    }
+
+    #[test]
+    fn update_block_roundtrips_with_undo_redo() {
+        let mut graph = graph_with_ids();
+        let mut history = CommandHistory::new();
+
+        history
+            .apply_command(
+                &mut graph,
+                Command::UpdateBlock {
+                    node_id: "n1".to_string(),
+                    block_index: 0,
+                    block: ContentBlock::Text {
+                        body: "changed".to_string(),
+                    },
+                },
+            )
+            .expect("update block should succeed");
+
+        assert_eq!(
+            graph.nodes[0].content,
+            vec![ContentBlock::Text {
+                body: "changed".to_string()
+            }]
+        );
+
+        assert!(history.undo(&mut graph).expect("undo should succeed"));
+        assert_eq!(
+            graph.nodes[0].content,
+            vec![ContentBlock::Text {
+                body: "one".to_string()
+            }]
+        );
+    }
+
+    #[test]
+    fn move_block_roundtrips_with_undo_redo() {
+        let mut graph = load_graph_from_str(
+            r#"{
+            "nodes": [
+              {
+                "id": "n1",
+                "content": [
+                  {"kind":"text","body":"one"},
+                  {"kind":"text","body":"two"}
+                ]
+              }
+            ]
+          }"#,
+        )
+        .expect("graph should parse");
+        let mut history = CommandHistory::new();
+
+        history
+            .apply_command(
+                &mut graph,
+                Command::MoveBlock {
+                    node_id: "n1".to_string(),
+                    from_index: 0,
+                    to_index: 1,
+                },
+            )
+            .expect("move block should succeed");
+
+        let first_body = match &graph.nodes[0].content[0] {
+            ContentBlock::Text { body } => body,
+            _ => panic!("expected text block"),
+        };
+        assert_eq!(first_body, "two");
+
+        assert!(history.undo(&mut graph).expect("undo should succeed"));
+        let first_body_after_undo = match &graph.nodes[0].content[0] {
+            ContentBlock::Text { body } => body,
+            _ => panic!("expected text block"),
+        };
+        assert_eq!(first_body_after_undo, "one");
     }
 }

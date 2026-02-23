@@ -45,6 +45,10 @@ enum Command {
         /// Open directly in editor mode instead of presentation mode.
         #[arg(short, long)]
         edit: bool,
+
+        /// Optional target duration in minutes for pace guidance in the footer timer.
+        #[arg(long)]
+        target_minutes: Option<u64>,
     },
 
     /// Open a Fireside project directory.
@@ -118,8 +122,15 @@ fn main() -> Result<()> {
             theme,
             start,
             edit,
+            target_minutes,
         }) => {
-            run_presentation(&file, theme.as_deref(), start, edit)?;
+            run_presentation(
+                &file,
+                theme.as_deref(),
+                start,
+                edit,
+                target_minutes.map(|minutes| minutes.saturating_mul(60)),
+            )?;
         }
         Some(Command::Open { dir, theme }) => {
             run_project(&dir, theme.as_deref())?;

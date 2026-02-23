@@ -11,6 +11,7 @@ use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
 use crate::app::{EditorPaneFocus, EditorPickerOverlay};
 use crate::design::tokens::Breakpoint;
 use crate::theme::Theme;
+use crate::ui::chrome::render_undo_redo_chips;
 use crate::ui::graph::{GraphOverlayViewState, render_graph_overlay};
 use crate::ui::help::{HelpMode, render_help_overlay};
 use fireside_core::model::layout::Layout as NodeLayout;
@@ -22,6 +23,8 @@ pub struct EditorViewState<'a> {
     pub list_scroll_offset: usize,
     pub focus: EditorPaneFocus,
     pub inline_text_input: Option<&'a str>,
+    pub selected_block_index: Option<usize>,
+    pub block_warning_messages: &'a [String],
     pub search_input: Option<&'a str>,
     pub index_jump_input: Option<&'a str>,
     pub status: Option<&'a str>,
@@ -215,13 +218,20 @@ pub fn render_editor(
                 )]),
                 Line::from(vec![
                     key("i"),
-                    hint(" inline"),
+                    hint(" edit block"),
                     sep(),
                     key("a"),
                     hint(" append"),
                     sep(),
                     key("d"),
                     hint(" delete"),
+                ]),
+                Line::from(vec![
+                    key("Ctrl+j/k"),
+                    hint(" block ±"),
+                    sep(),
+                    key("Alt+j/k"),
+                    hint(" move block"),
                 ]),
                 Line::from(vec![
                     key("n"),
@@ -321,19 +331,49 @@ pub fn render_editor(
         ]));
     } else {
         for (idx, block) in node.content.iter().enumerate() {
+            let is_selected = view_state.selected_block_index == Some(idx);
             detail_lines.push(Line::from(vec![
                 Span::styled(
                     format!("  {} ", block_type_glyph(block)),
-                    Style::default().fg(theme.heading_h2),
+                    Style::default()
+                        .fg(theme.heading_h2)
+                        .add_modifier(if is_selected {
+                            Modifier::BOLD
+                        } else {
+                            Modifier::empty()
+                        }),
                 ),
                 Span::styled(
                     format!("{:>2}. ", idx + 1),
-                    Style::default().fg(theme.footer),
+                    Style::default().fg(if is_selected {
+                        theme.heading_h1
+                    } else {
+                        theme.footer
+                    }),
                 ),
                 Span::styled(
                     truncate(&block_summary(block), 74),
-                    Style::default().fg(theme.foreground),
+                    Style::default().fg(if is_selected {
+                        theme.on_surface
+                    } else {
+                        theme.foreground
+                    }),
                 ),
+                Span::styled(
+                    if is_selected { "  ← selected" } else { "" },
+                    Style::default().fg(theme.heading_h1),
+                ),
+            ]));
+        }
+    }
+
+    if !view_state.block_warning_messages.is_empty() {
+        detail_lines.push(Line::default());
+        detail_lines.push(section_header(theme, "BLOCK WARNINGS"));
+        for warning in view_state.block_warning_messages.iter().take(3) {
+            detail_lines.push(Line::from(vec![
+                Span::styled("  ! ", Style::default().fg(theme.error)),
+                Span::styled(truncate(warning, 70), Style::default().fg(theme.error)),
             ]));
         }
     }
@@ -373,7 +413,7 @@ pub fn render_editor(
     if let Some(buffer) = view_state.inline_text_input {
         detail_lines.push(Line::default());
         detail_lines.push(Line::from(Span::styled(
-            "Inline Text Editor  Enter=commit  Esc=cancel",
+            "Inline Editor  Enter/Esc=commit  Ctrl+C=cancel",
             Style::default().fg(theme.heading_h2),
         )));
         detail_lines.push(Line::from(Span::styled(
@@ -428,25 +468,7 @@ pub fn render_editor(
 
     // Undo/redo chips
     status_spans.push(Span::styled("  ", Style::default().bg(theme.toolbar_bg)));
-    let undo_style = if can_undo {
-        Style::default().fg(theme.heading_h2).bg(theme.toolbar_bg)
-    } else {
-        Style::default()
-            .fg(theme.footer)
-            .bg(theme.toolbar_bg)
-            .add_modifier(Modifier::DIM)
-    };
-    let redo_style = if can_redo {
-        Style::default().fg(theme.heading_h2).bg(theme.toolbar_bg)
-    } else {
-        Style::default()
-            .fg(theme.footer)
-            .bg(theme.toolbar_bg)
-            .add_modifier(Modifier::DIM)
-    };
-    status_spans.push(Span::styled("[Z undo]", undo_style));
-    status_spans.push(Span::styled(" ", Style::default().bg(theme.toolbar_bg)));
-    status_spans.push(Span::styled("[Y redo]", redo_style));
+    status_spans.extend(render_undo_redo_chips(can_undo, can_redo, theme));
 
     // Active search/jump prompt
     if let Some(search) = view_state.search_input {
@@ -796,7 +818,7 @@ fn render_picker_overlay(
     let popup = centered_popup(area, 55, 65);
     frame.render_widget(Clear, popup);
 
-    let (title, variants, selected): (&str, Vec<String>, usize) = match overlay {
+    let (title, variants, selected): (&str, Vec<(String, Option<String>)>, usize) = match overlay {
         EditorPickerOverlay::Layout { selected } => (
             " Layout Picker ",
             vec![
@@ -813,7 +835,7 @@ fn render_picker_overlay(
                 "blank",
             ]
             .into_iter()
-            .map(str::to_string)
+            .map(|value| (value.to_string(), None))
             .collect(),
             selected,
         ),
@@ -830,8 +852,25 @@ fn render_picker_overlay(
                 "typewriter",
             ]
             .into_iter()
-            .map(str::to_string)
+            .map(|value| (value.to_string(), None))
             .collect(),
+            selected,
+        ),
+        EditorPickerOverlay::BlockType { selected } => (
+            " Block Type Picker ",
+            vec![
+                ("heading".to_string(), Some("Large title block".to_string())),
+                ("text".to_string(), Some("Paragraph body text".to_string())),
+                ("code".to_string(), Some("Syntax-highlighted source".to_string())),
+                ("list".to_string(), Some("Bullet or numbered items".to_string())),
+                ("image".to_string(), Some("Image source + alt text".to_string())),
+                ("divider".to_string(), Some("Horizontal separator".to_string())),
+                ("container".to_string(), Some("Nested child blocks".to_string())),
+                (
+                    "extension".to_string(),
+                    Some("Custom typed payload".to_string()),
+                ),
+            ],
             selected,
         ),
     };
@@ -846,7 +885,7 @@ fn render_picker_overlay(
     let rows = variants
         .iter()
         .enumerate()
-        .map(|(idx, value)| {
+        .flat_map(|(idx, (value, synopsis))| {
             let marker = if idx == selected { "›" } else { " " };
             let shortcut = if idx < 9 {
                 (idx + 1).to_string()
@@ -855,13 +894,22 @@ fn render_picker_overlay(
             } else {
                 "-".to_string()
             };
-            Line::from(vec![
+            let mut lines = vec![Line::from(vec![
                 Span::styled(
                     format!(" {marker} {shortcut:>2} "),
                     Style::default().fg(theme.heading_h2),
                 ),
                 Span::styled(value.clone(), Style::default().fg(theme.foreground)),
-            ])
+            ])];
+
+            if let Some(summary) = synopsis {
+                lines.push(Line::from(vec![
+                    Span::raw("      "),
+                    Span::styled(summary.clone(), Style::default().fg(theme.footer)),
+                ]));
+            }
+
+            lines
         })
         .collect::<Vec<_>>();
 

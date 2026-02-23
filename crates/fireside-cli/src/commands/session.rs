@@ -30,6 +30,7 @@ pub fn run_presentation(
     theme_name: Option<&str>,
     start_node: usize,
     start_in_edit: bool,
+    target_duration_secs: Option<u64>,
 ) -> Result<()> {
     let graph = load_graph(file).context("loading graph")?;
     let settings = load_settings();
@@ -45,8 +46,9 @@ pub fn run_presentation(
     // Set the save target so that switching to editor mode mid-presentation
     // and pressing `w` works correctly — same as `run_editor()` does.
     app.set_editor_target_path(file.to_path_buf());
-    app.set_show_progress_bar(settings.show_progress);
-    app.set_show_elapsed_timer(settings.show_timer);
+    app.set_show_progress_bar(settings.show_progress || target_duration_secs.is_some());
+    app.set_show_elapsed_timer(settings.show_timer || target_duration_secs.is_some());
+    app.set_target_duration_secs(target_duration_secs);
     if start_in_edit {
         app.enter_edit_mode();
     }

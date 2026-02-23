@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [TASK017] TUI Second-Pass UX and Bug Fixes — Phases E+F+G (Penpot design) complete; Phases A–D (code) not started
+- None
 
 ## Pending
 
@@ -10,7 +10,8 @@
 
 ## Completed
 
-Prior tasks TASK001–TASK016 completed and archived (task files removed).
+- [TASK017] TUI Second-Pass UX and Bug Fixes — Phases A–H complete (code + design)
+- Prior tasks TASK001–TASK016 completed and archived (task files removed).
 
 ## Abandoned
 

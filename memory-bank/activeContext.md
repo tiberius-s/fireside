@@ -2,7 +2,7 @@
 
 ## Current State (as of 2026-02-26)
 
-The **Fireside Improvement Initiative** (6 phases) is **100% complete**. The project is in a clean, stable, well-documented state. All CI jobs are green. The **Penpot design system** has been fully recoloured to Rosé Pine, deduplicated, and reorganized into a single cohesive 9-section document. A comprehensive **TUI Implementation Guidelines** document (`memory-bank/tui-implementation-guidelines.md`) is ready for coding agents.
+The **Fireside Improvement Initiative** (6 phases) is **100% complete**. The project is in a clean, stable, well-documented state. All CI jobs are green. The **Penpot design system** has been fully recoloured to Rosé Pine, deduplicated, and reorganized into a single cohesive 9-section document. A comprehensive **TUI Implementation Guidelines** document (`memory-bank/tui-implementation-guidelines.md`) is ready for coding agents. A **full codebase audit** has been completed and a phased implementation plan (Phase H + existing A–D) is tracked in TASK017.
 
 ### What is fully working right now
 
@@ -49,14 +49,56 @@ The **Fireside Improvement Initiative** (6 phases) is **100% complete**. The pro
 
 ## Next Steps / Open Questions
 
-1. **Theme::default() → Rose Pine** — The `Theme::default()` still uses One Dark colours. Apply the mapping from `memory-bank/tui-implementation-guidelines.md` §1.4 to update it. This is the highest-priority code change.
-2. **TASK017 Phases A–D (code)** — Mouse double-fire fix (A1), branch loop investigation (A2), test harness (B), content block editing (C), graph/branch visual improvements (D). All have implementation-ready flow specs (F1–F9).
-3. **UX Improvements 01–17** — Full implementation specs in `memory-bank/tui-implementation-guidelines.md` §5, with priority ordering in §9.
-4. **Protocol `0.2.0` planning** — What additive fields or new block kinds should go into the next minor?
-5. **Performance profiling** — No profiling has been done. A flamegraph pass on `App::update` + render could surface regressions.
+**Immediate coding pass:**
+
+1. **TASK017 is complete** — no remaining mandatory code items in phases A–H.
+2. **Optional polish backlog** — richer per-block field editing beyond primary-field
+   inline widgets can be scheduled as a follow-up task if requested.
+
+**Longer-horizon:**
+
+- Protocol `0.2.0` planning — additive fields, new block kinds.
+- Performance profiling — flamegraph pass on `App::update` + render pipeline.
 
 ## Recent Changes (most recent first)
 
+- 2026-02-26: **D1 + D3 completed; TASK017 now 100% complete** — Verified branch overlay
+  affordances with an explicit presenter interaction test (Up/Down focus + Enter selection),
+  and replaced graph overlay linear rendering with a tree-row ASCII topology renderer in
+  `ui/graph.rs` (depth-aware connectors, edge-kind markers, row-based viewport/mouse mapping).
+  Regression run passed for both `fireside-tui` and `fireside-engine` crates.
+
+- 2026-02-26: **C1–C5 wave implemented + QA-cleared** — Added engine block-level commands
+  (`UpdateBlock`, `MoveBlock`) with undo/redo tests, implemented block-level validation
+  warnings (`validate_content_block`) and graph integration, and wired selected-block editing
+  flow in TUI (`i` edits selected block field, Esc/Enter commit, Ctrl+C cancel). Added
+  block selection/reorder keybindings (`Ctrl+j/k`, `Alt+j/k`), selected-block highlighting,
+  and warning display in editor details. Independent QA follow-up fixes: warning filtering
+  to actionable fields, block selection reset on node changes, and help text alignment.
+
+- 2026-02-26: **B1–B3 + D2 wave implemented + QA-cleared** — Added reusable AppHarness test
+  utility (`tests/harness.rs`), added golden integration tests for full hello traversal and
+  branch choose behavior (`tests/harness_golden.rs`), and implemented a block-type picker with
+  8 type options and one-line synopsis rows in editor mode. Independent QA found one blocker
+  in picker mouse row mapping for two-line options; fixed with row-span aware index mapping.
+- 2026-02-26: **H6/H7/H8 wave implemented + QA-cleared** — Implemented graph edge colour
+  coding + bottom legend row, added new timeline module (`Ctrl+H` toggle), and added new
+  breadcrumb module with branch-point jump action (`Ctrl+←`). Independent QA found one blocker
+  (jump target resolving to branch destination instead of branch-point node), which was fixed by
+  selecting the last visited node that is itself a branch point.
+- 2026-02-26: **H4/H5 wave implemented + QA-cleared** — Added zen mode (`Ctrl+F`) with
+  presenter chrome gating, added pace guide pipeline (`--target-minutes` CLI → session →
+  app → presenter → progress bar), added pace thresholds/tests, and completed A2 traversal
+  regression test validation. Independent QA blocker (target duration hidden by timer/progress
+  settings) was fixed by forcing timer/progress visibility when target duration is provided.
+- 2026-02-26: **TUI codebase audit + implementation plan** — Full audit of 8 source files
+  (`theme.rs`, `design/tokens.rs`, `chrome.rs`, `progress.rs`, `event.rs`, `keybindings.rs`,
+  `app.rs`, `config/keybindings.rs`) against the TUI implementation guidelines. Key findings:
+  `Theme::default()` and `DesignTokens::default()` are still One Dark; `ModeBadgeKind` missing
+  `Branch` variant and prefix icons; progress bar uses wrong dot characters and missing UX-02
+  features; `Action` enum missing `ToggleZenMode`/`ToggleTimeline`/`JumpToBranchPoint`.
+  Produced 6-phase implementation plan (H0a through H8) tracked as TASK017 subtasks. Plan
+  consolidates guidelines §9 priority ordering with existing TASK017 A–D phases.
 - 2026-02-26: **Penpot design system consolidation** — Complete recolour from Atom One Dark
   to Rosé Pine across all 46 boards (~1100 colour changes). Deleted 15 redundant boards
   (old Explorations superseded by UX boards, duplicate Library boards). Reorganized all

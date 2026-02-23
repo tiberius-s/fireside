@@ -80,6 +80,24 @@ const KEYBINDINGS: &[HelpEntry] = &[
         modes: MODE_PRESENTING,
     },
     HelpEntry {
+        section: "Display",
+        key: "Ctrl+f",
+        desc: "Toggle zen mode",
+        modes: MODE_PRESENTING,
+    },
+    HelpEntry {
+        section: "Display",
+        key: "Ctrl+h",
+        desc: "Toggle timeline",
+        modes: MODE_PRESENTING,
+    },
+    HelpEntry {
+        section: "Branching",
+        key: "Ctrl+←",
+        desc: "Jump to last branch point",
+        modes: MODE_PRESENTING,
+    },
+    HelpEntry {
         section: "Editor",
         key: "e / Esc",
         desc: "Enter / exit editor mode",
@@ -106,13 +124,25 @@ const KEYBINDINGS: &[HelpEntry] = &[
     HelpEntry {
         section: "Editor",
         key: "i / o",
-        desc: "Inline edit text / speaker notes",
+        desc: "Edit selected block / speaker notes",
+        modes: MODE_EDITING,
+    },
+    HelpEntry {
+        section: "Editor",
+        key: "Ctrl+j / Ctrl+k",
+        desc: "Select next / previous content block",
+        modes: MODE_EDITING,
+    },
+    HelpEntry {
+        section: "Editor",
+        key: "Alt+j / Alt+k",
+        desc: "Move selected content block down / up",
         modes: MODE_EDITING,
     },
     HelpEntry {
         section: "Editor",
         key: "a / n / d",
-        desc: "Append text, add node, remove node",
+        desc: "Append block, add node, remove node",
         modes: MODE_EDITING,
     },
     HelpEntry {

@@ -13,6 +13,7 @@ pub enum ModeBadgeKind {
     Presenting,
     Editing,
     GotoNode,
+    Branch,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -26,17 +27,19 @@ pub enum FlashKind {
 impl ModeBadgeKind {
     fn label(self) -> &'static str {
         match self {
-            Self::Presenting => "PRESENTING",
-            Self::Editing => "EDITING",
-            Self::GotoNode => "GOTO",
+            Self::Presenting => "■ PRESENT",
+            Self::Editing => "✎ EDITING",
+            Self::GotoNode => "⊞ GOTO",
+            Self::Branch => "⎇ BRANCH",
         }
     }
 
     fn color(self, theme: &Theme) -> ratatui::style::Color {
         match self {
-            Self::Presenting => theme.heading_h1,
+            Self::Presenting => theme.heading_h2,
             Self::Editing => theme.accent,
             Self::GotoNode => theme.heading_h3,
+            Self::Branch => theme.error,
         }
     }
 }
@@ -65,7 +68,7 @@ pub fn render_mode_badge(frame: &mut Frame, area: Rect, kind: ModeBadgeKind, the
     let block = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::default().fg(color))
-        .style(Style::default().bg(theme.surface));
+        .style(Style::default().bg(theme.border_inactive));
     let inner = block.inner(badge);
 
     frame.render_widget(block, badge);
@@ -77,6 +80,40 @@ pub fn render_mode_badge(frame: &mut Frame, area: Rect, kind: ModeBadgeKind, the
         .alignment(Alignment::Center),
         inner,
     );
+}
+
+/// Build undo/redo status chips for the editor footer.
+#[must_use]
+pub fn render_undo_redo_chips(can_undo: bool, can_redo: bool, theme: &Theme) -> Vec<Span<'static>> {
+    let undo_style = if can_undo {
+        Style::default()
+            .fg(theme.heading_h1)
+            .bg(theme.toolbar_bg)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+            .fg(theme.footer)
+            .bg(theme.border_inactive)
+            .add_modifier(Modifier::DIM)
+    };
+
+    let redo_style = if can_redo {
+        Style::default()
+            .fg(theme.accent)
+            .bg(theme.toolbar_bg)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+            .fg(theme.footer)
+            .bg(theme.border_inactive)
+            .add_modifier(Modifier::DIM)
+    };
+
+    vec![
+        Span::styled("[Z undo]", undo_style),
+        Span::raw(" "),
+        Span::styled("[Y redo]", redo_style),
+    ]
 }
 
 pub fn render_flash_message(
@@ -129,4 +166,38 @@ pub fn render_quit_confirmation_banner(frame: &mut Frame, area: Rect, theme: &Th
         .block(Block::default().style(Style::default().bg(theme.toolbar_bg))),
         area,
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ModeBadgeKind, mode_badge_width, render_undo_redo_chips};
+    use crate::theme::Theme;
+    use ratatui::style::Modifier;
+
+    #[test]
+    fn mode_badge_width_tracks_exact_label_lengths() {
+        assert_eq!(mode_badge_width(ModeBadgeKind::Presenting), 13);
+        assert_eq!(mode_badge_width(ModeBadgeKind::Editing), 13);
+        assert_eq!(mode_badge_width(ModeBadgeKind::GotoNode), 10);
+        assert_eq!(mode_badge_width(ModeBadgeKind::Branch), 12);
+    }
+
+    #[test]
+    fn undo_redo_chip_styles_reflect_enabled_state() {
+        let theme = Theme::default();
+        let active = render_undo_redo_chips(true, true, &theme);
+        let disabled = render_undo_redo_chips(false, false, &theme);
+
+        assert_eq!(active[0].style.fg, Some(theme.heading_h1));
+        assert!(active[0].style.add_modifier.contains(Modifier::BOLD));
+        assert_eq!(active[2].style.fg, Some(theme.accent));
+        assert!(active[2].style.add_modifier.contains(Modifier::BOLD));
+
+        assert_eq!(disabled[0].style.fg, Some(theme.footer));
+        assert_eq!(disabled[0].style.bg, Some(theme.border_inactive));
+        assert!(disabled[0].style.add_modifier.contains(Modifier::DIM));
+        assert_eq!(disabled[2].style.fg, Some(theme.footer));
+        assert_eq!(disabled[2].style.bg, Some(theme.border_inactive));
+        assert!(disabled[2].style.add_modifier.contains(Modifier::DIM));
+    }
 }

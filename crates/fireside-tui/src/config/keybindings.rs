@@ -17,6 +17,14 @@ pub fn map_key_to_action(key: KeyEvent, mode: &AppMode) -> Option<Action> {
     }
 
     match key.code {
+        // Timeline + breadcrumb navigation
+        KeyCode::Char('h') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            Some(Action::ToggleTimeline)
+        }
+        KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            Some(Action::JumpToBranchPoint)
+        }
+
         // Navigation
         KeyCode::Right | KeyCode::Char(' ') | KeyCode::Enter => Some(Action::NextNode),
         KeyCode::Char('l') => Some(Action::NextNode),
@@ -31,6 +39,11 @@ pub fn map_key_to_action(key: KeyEvent, mode: &AppMode) -> Option<Action> {
 
         // Speaker notes
         KeyCode::Char('s') => Some(Action::ToggleSpeakerNotes),
+
+        // Zen mode
+        KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            Some(Action::ToggleZenMode)
+        }
 
         // Mode
         KeyCode::Char('e') => Some(Action::EnterEditMode),
@@ -48,6 +61,24 @@ pub fn map_key_to_action(key: KeyEvent, mode: &AppMode) -> Option<Action> {
 }
 
 fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
+    if key.modifiers.contains(KeyModifiers::ALT) {
+        return match key.code {
+            KeyCode::Up | KeyCode::Char('k') => Some(Action::EditorMoveBlockUp),
+            KeyCode::Down | KeyCode::Char('j') => Some(Action::EditorMoveBlockDown),
+            _ => None,
+        };
+    }
+
+    if key.modifiers.contains(KeyModifiers::CONTROL) {
+        return match key.code {
+            KeyCode::Up | KeyCode::Char('k') => Some(Action::EditorSelectPrevBlock),
+            KeyCode::Down | KeyCode::Char('j') => Some(Action::EditorSelectNextBlock),
+            KeyCode::Char('s') => Some(Action::EditorSaveGraph),
+            KeyCode::Char('c') => Some(Action::Quit),
+            _ => None,
+        };
+    }
+
     match key.code {
         KeyCode::Char('j') | KeyCode::Down => Some(Action::EditorSelectNextNode),
         KeyCode::Char('k') | KeyCode::Up => Some(Action::EditorSelectPrevNode),
@@ -71,15 +102,11 @@ fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
         KeyCode::Char('d') => Some(Action::EditorRemoveNode),
         KeyCode::Char('v') => Some(Action::EditorToggleGraphView),
         KeyCode::Char('w') => Some(Action::EditorSaveGraph),
-        KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-            Some(Action::EditorSaveGraph)
-        }
         KeyCode::Char('u') => Some(Action::EditorUndo),
         KeyCode::Char('r') => Some(Action::EditorRedo),
         KeyCode::Esc => Some(Action::ExitEditMode),
         KeyCode::Char('?') => Some(Action::ToggleHelp),
         KeyCode::Char('q') => Some(Action::Quit),
-        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => Some(Action::Quit),
         _ => None,
     }
 }
@@ -94,5 +121,27 @@ fn map_goto_mode_key(key: KeyEvent) -> Option<Action> {
         KeyCode::Enter => Some(Action::GotoConfirm),
         KeyCode::Esc => Some(Action::GotoCancel),
         _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::map_key_to_action;
+    use crate::app::AppMode;
+    use crate::event::Action;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+
+    #[test]
+    fn presenting_ctrl_h_toggles_timeline() {
+        let key = KeyEvent::new(KeyCode::Char('h'), KeyModifiers::CONTROL);
+        let action = map_key_to_action(key, &AppMode::Presenting);
+        assert_eq!(action, Some(Action::ToggleTimeline));
+    }
+
+    #[test]
+    fn presenting_ctrl_left_jumps_to_branch_point() {
+        let key = KeyEvent::new(KeyCode::Left, KeyModifiers::CONTROL);
+        let action = map_key_to_action(key, &AppMode::Presenting);
+        assert_eq!(action, Some(Action::JumpToBranchPoint));
     }
 }
