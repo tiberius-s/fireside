@@ -2,7 +2,7 @@
 
 **Status:** In Progress
 **Added:** 2026-02-22
-**Updated:** 2026-02-23
+**Updated:** 2026-02-25
 
 ## Original Request
 
@@ -149,9 +149,26 @@ Acceptance: Opening branch overlay shows first option with `▌` left accent bar
 - [ ] **E2**: Amend "05 — Editor Mode" board to show picker with synopsis
 - [ ] **E3**: Create "09 — Graph Tree View" board
 
+### Phase F — Design System Overhaul
+
+- [x] **F1–F8**: Typography fixes, color fixes, token additions, component library (31 components), showcase board
+
+### Phase G — Rose Pine Palette & UX Proposal Boards
+
+- [x] **G1**: Fetch all 3 Rose Pine variants (Main, Moon, Dawn) + highlight colors
+- [x] **G2**: Create 45 library colors (`rp-{variant}/{role}`, 15 per variant)
+- [x] **G3**: Create 3 token sets (`rosepine/main`, `rosepine/moon`, `rosepine/dawn`)
+- [x] **G4**: Build Rose Pine visual boards (overview, 3 swatches, TUI mapping, 2 previews)
+- [x] **G5**: Create 4 new Penpot pages (empty — cross-page API limitation)
+- [x] **G6**: Implement UX boards 01–09 (original proposals)
+- [x] **G7**: Generate 8 new UX proposals (10–17) from TUI codebase audit
+- [x] **G8**: Create UX boards 10–17 (new proposals)
+- [x] **G9**: Fix z-order across all 17 UX boards (area-based sorting)
+- [x] **G10**: Visual verification of all boards via export
+
 ## Progress Tracking
 
-**Overall Status:** In Progress — 30% (Phases E+F complete; A–D not started)
+**Overall Status:** In Progress — 50% (Phases E+F+G complete; A–D not started)
 
 ### Subtasks
 
@@ -189,8 +206,62 @@ Acceptance: Opening branch overlay shows first option with `▌` left accent bar
 | F6  | Fix component paths (tripled → single)          | Complete    | 2026-02-24 | path=Category, name=Variant                    |
 | F7  | Visual verification (all 31 components)         | Complete    | 2026-02-24 | Every component exported and inspected         |
 | F8  | Component Showcase board                        | Complete    | 2026-02-24 | All 31 organized by category with labels       |
+| G1  | Fetch Rose Pine palette (3 variants+highlights) | Complete    | 2026-02-25 | From ghostty + neovim repos                    |
+| G2  | Create 45 library colors (rp-{variant}/{role})  | Complete    | 2026-02-25 | 15 per variant                                 |
+| G3  | Create 3 Rose Pine token sets                   | Complete    | 2026-02-25 | rosepine/main, moon, dawn (15 tokens each)     |
+| G4  | Build Rose Pine visual boards                   | Complete    | 2026-02-25 | Overview, 3 swatches, TUI map, 2 previews      |
+| G5  | Create 4 new Penpot pages                       | Complete    | 2026-02-25 | Empty; cross-page API limitation discovered    |
+| G6  | UX boards 01–09 (original proposals)            | Complete    | 2026-02-25 | All 9 mockups implemented                      |
+| G7  | Generate 8 new UX proposals (10–17)             | Complete    | 2026-02-25 | From TUI codebase audit                        |
+| G8  | UX boards 10–17 (new proposals)                 | Complete    | 2026-02-25 | All 8 mockups created                          |
+| G9  | Fix z-order across all 17 boards                | Complete    | 2026-02-25 | Area-based sorting: large rects→back           |
+| G10 | Visual verification of all boards               | Complete    | 2026-02-25 | Exported and confirmed rendering               |
 
 ## Progress Log
+
+### 2026-02-25
+
+Completed Phase G — Rose Pine palette integration and 17 UX proposal boards:
+
+**Rose Pine palette (G1–G4)**: Fetched all 3 Rose Pine variants (Main, Moon, Dawn) from
+the `rose-pine/ghostty` repo, plus highlight colors from `rose-pine/neovim` `palette.lua`.
+Created 45 library colors with `rp-{variant}/{role}` naming (15 per variant: base, surface,
+overlay, muted, subtle, text, love, gold, rose, pine, foam, iris, highlight-low/med/high).
+Created 3 token sets (`rosepine/main`, `rosepine/moon`, `rosepine/dawn`) with 15 tokens
+each named `rp.{role}`. Built 7 visual boards: overview, 3 palette swatches with semantic
+role descriptions, TUI colour mapping table, and 2 TUI preview mockups (Main dark + Dawn
+light).
+
+**New pages (G5)**: Created 4 new Penpot pages (Screens & Layouts, UX Proposals &
+Explorations, Rose Pine Palette, Flows & Architecture). IMPORTANT API LIMITATION: discovered
+that `penpot.openPage()` only changes the UI and does NOT change the script execution
+context. `penpot.root` and `penpot.currentPage` always return the original page. Cross-page
+`insertChild` silently fails. All content therefore remains on the Design System page,
+organized spatially with section dividers.
+
+**UX implementation boards 01–09 (G6)**: Created all 9 original UX proposal mockups using
+Rose Pine colours (base background #191724, text #e0def4). Boards include: 01 Persistent
+Mode Indicator (coloured badges), 02 Progress Bar Upgrade (next-node preview), 03 Branch
+Overlay Affordance (key chips with focus), 04 Metadata Selectors (chip rows for layout/
+theme), 05 Context-Preserving Help (slide-in panel), 06 Graph Edge Colour Coding (foam/
+gold/pine/love legend), 07 GotoNode Visual Feedback (autocomplete dropdown), 08 Undo/Redo
+Visual State (3-state chips), 09 Compact Breakpoint (responsive layouts).
+
+**New UX proposals 10–17 (G7–G8)**: Launched TUI codebase audit subagent covering all 5
+app modes, keybindings, layout system, feedback mechanisms, and accessibility gaps.
+Generated 8 new proposals: 10 Breadcrumb Navigation Trail, 11 Node Preview on Hover/Focus,
+12 Command Palette (VS Code-style), 13 Session Timeline & History, 14 Focus/Zen Mode,
+15 Presenter Timer & Pace Guide, 16 Content Block Minimap, 17 Micro-Interactions & Polish.
+All have complexity ratings (LOW/MEDIUM/HIGH) and before/after mockups.
+
+**Z-order fix (G9)**: Discovered critical bug: `insertChild(0, element)` puts each new
+child at BOTTOM of z-stack, causing background rectangles to cover content. Fixed with
+area-based sorting: rectangles sorted by area descending (larger=further back), text and
+ellipses always on top. Applied via `shape.setParentIndex(i)` across all 17 boards.
+
+**API learnings**: `penpot.openPage()` does NOT change execution context (cross-page
+limitation). Use `insertChild(board.children.length, element)` instead of `insertChild(0,
+element)` for correct z-order in future board creation.
 
 ### 2026-02-24
 

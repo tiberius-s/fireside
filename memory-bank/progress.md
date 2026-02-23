@@ -1,6 +1,6 @@
 # Progress
 
-## What Works (as of 2026-02-20)
+## What Works (as of 2026-02-25)
 
 ### Protocol layer
 
@@ -31,11 +31,24 @@
 - Full crate deep-dive set: `fireside-core`, `fireside-engine`, `fireside-tui` (4 articles), `fireside-cli`.
 - Learn Rust with Fireside: 9 pages (overview + 8 chapters).
 
+### Penpot Design System
+
+- **Palette**: Rosé Pine (all One Dark traces removed). 45 library colors (`rp-main/*`, `rp-moon/*`, `rp-dawn/*`, 15 each).
+- **81 design tokens**: 36 `fireside/core` + 15 `rosepine/main` + 15 `rosepine/moon` + 15 `rosepine/dawn`.
+- **8 typographies**: Display/H1/H2/H3/Body/Small/Caption/Code (Source Sans Pro + JetBrains Mono).
+- **31 reusable components**: Button (4), Mode Badge (4), Status Chip (3), Keybinding Chip (1), Input (3), Progress Bar (1), Block Type (8), Content Block (3), Footer Bar (1), Branch Option (3).
+- **17 UX proposal boards**: 9 implementation boards (01–09) + 8 new proposals (10–17), all Rosé Pine.
+- **7 Rose Pine visual boards**: Overview, 3 palette swatches, TUI colour mapping, 2 TUI previews.
+- **9-section layout**: Design Foundation, Components, Screen Layouts, Navigation & State, Responsive Breakpoints, Accessibility, UX Improvements, New UX Proposals, Rose Pine Palette Reference.
+- **TUI Implementation Guidelines**: `memory-bank/tui-implementation-guidelines.md` — comprehensive coding agent reference with colour mapping, component specs, UX priorities, architecture rules.
+
 ## What's Left / Known Gaps
 
+- **TASK017 Phases A–D (code)** — Mouse double-fire fix, branch loop investigation, test harness, content block editing, graph/branch visual improvements. All have implementation-ready flow specs (F1–F9).
 - **Protocol `0.2.0` planning** — No timeline set. Candidates: export block types, richer extension API, audio/media blocks.
 - **Export formats (HTML/PDF)** — Explicitly deferred to `1.0.0` horizon.
 - **WCAG contrast enforcement on import** — `contrast_ratio` exists in `DesignTokens` but no validation warning on theme import.
 - **Profiling** — No flamegraph/perf analysis has been done. Render pipeline and `App::update` are candidates.
-- **Protocol vocabulary drift** — Occasional legacy terms in UI copy; not blocking but worth a pass.
-
+- **Penpot prototype flows** — 17 UX boards exist but no interactive prototype linking them.
+- **Theme::default() → Rose Pine** — Code still uses One Dark. Mapping ready in `memory-bank/tui-implementation-guidelines.md` §1.4.
+- **17 UX proposals (01–17)** — Designed in Penpot with full specs in implementation guidelines. Priority order: Theme update → UX-01 → UX-02 → UX-08 → UX-03 → UX-17 → UX-14 → UX-15 → UX-06 → UX-07 → UX-05 → UX-09 → UX-04 → UX-13 → UX-10 → UX-11 → UX-12 → UX-16.

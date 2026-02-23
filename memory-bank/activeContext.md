@@ -1,8 +1,8 @@
 # Active Context
 
-## Current State (as of 2026-02-23)
+## Current State (as of 2026-02-26)
 
-The **Fireside Improvement Initiative** (6 phases) is **100% complete**. The project is in a clean, stable, well-documented state. All CI jobs are green.
+The **Fireside Improvement Initiative** (6 phases) is **100% complete**. The project is in a clean, stable, well-documented state. All CI jobs are green. The **Penpot design system** has been fully recoloured to Rosé Pine, deduplicated, and reorganized into a single cohesive 9-section document. A comprehensive **TUI Implementation Guidelines** document (`memory-bank/tui-implementation-guidelines.md`) is ready for coding agents.
 
 ### What is fully working right now
 
@@ -17,6 +17,7 @@ The **Fireside Improvement Initiative** (6 phases) is **100% complete**. The pro
 | CI (rust.yml lint/test/MSRV, docs.yml, models.yml, audit.yml)                     | ✅ All green |
 | Git hooks (pre-commit fmt, pre-push clippy+test)                                  | ✅ Installed |
 | Docs site (45 pages: spec, schemas, guides, crates deep-dives, Learn Rust series) | ✅ Complete  |
+| Penpot design system (Rose Pine palette, 31 components, 17 UX boards, 9 sections) | ✅ Complete  |
 
 ### Key architectural decisions now locked
 
@@ -48,13 +49,40 @@ The **Fireside Improvement Initiative** (6 phases) is **100% complete**. The pro
 
 ## Next Steps / Open Questions
 
-1. **Protocol `0.2.0` planning** — What additive fields or new block kinds should go into the next minor? Export capabilities (HTML/PDF), richer extension ecosystem, or audio/media block types are candidates.
-2. **UX polish pass** — The branch fan-out layout in the graph overlay and presentation transition polish could use another pass before the `1.0.0` push.
-3. **Performance profiling** — No profiling has been done. The `LazyLock` for syntect assets and redraw gating are the primary optimizations currently. A flamegraph pass on `App::update` + render could surface regressions.
-4. **Accessibility** — The WCAG contrast check is implemented in `DesignTokens` but not enforced on import. A validation warning for insufficient contrast themes would be a good addition.
+1. **Theme::default() → Rose Pine** — The `Theme::default()` still uses One Dark colours. Apply the mapping from `memory-bank/tui-implementation-guidelines.md` §1.4 to update it. This is the highest-priority code change.
+2. **TASK017 Phases A–D (code)** — Mouse double-fire fix (A1), branch loop investigation (A2), test harness (B), content block editing (C), graph/branch visual improvements (D). All have implementation-ready flow specs (F1–F9).
+3. **UX Improvements 01–17** — Full implementation specs in `memory-bank/tui-implementation-guidelines.md` §5, with priority ordering in §9.
+4. **Protocol `0.2.0` planning** — What additive fields or new block kinds should go into the next minor?
+5. **Performance profiling** — No profiling has been done. A flamegraph pass on `App::update` + render could surface regressions.
 
 ## Recent Changes (most recent first)
 
+- 2026-02-26: **Penpot design system consolidation** — Complete recolour from Atom One Dark
+  to Rosé Pine across all 46 boards (~1100 colour changes). Deleted 15 redundant boards
+  (old Explorations superseded by UX boards, duplicate Library boards). Reorganized all
+  content into 9 cohesive sections with dividers (Design Foundation, Components, Screen
+  Layouts, Navigation & State Machine, Responsive Breakpoints, Accessibility, UX
+  Improvements, New UX Proposals, Rose Pine Palette Reference). Fixed text clipping on UX-12
+  and UX-16 boards. Repositioned 31 component instances. Created comprehensive TUI
+  Implementation Guidelines document (`memory-bank/tui-implementation-guidelines.md`) with
+  Rose Pine colour mapping, component specs, UX improvement priorities, and architecture
+  rules for coding agents.
+- 2026-02-25: **Rose Pine palette + 17 UX boards in Penpot** — Major Penpot design system
+  expansion session. Fetched all 3 Rose Pine variants (Main, Moon, Dawn) including highlight
+  colors. Created 45 library colors (`rp-{variant}/{role}`) and 3 token sets
+  (`rosepine/main`, `rosepine/moon`, `rosepine/dawn`, 15 tokens each). Built 7 Rose Pine
+  visual boards (overview, 3 palette swatches, TUI colour mapping, 2 TUI previews). Created
+  4 new Penpot pages (Screens & Layouts, UX Proposals & Explorations, Rose Pine Palette,
+  Flows & Architecture) — note: cross-page API limitation means all content remains on the
+  Design System page. Implemented 9 original UX proposals as mockup boards (01–09:
+  Persistent Mode Indicator, Progress Bar Upgrade, Branch Overlay Affordance, Metadata
+  Selectors, Context-Preserving Help, Graph Edge Colour Coding, GotoNode Visual Feedback,
+  Undo/Redo Visual State, Compact Breakpoint). Generated 8 new UX proposals from TUI
+  codebase audit (10–17: Breadcrumb Navigation Trail, Node Preview on Hover, Command
+  Palette, Session Timeline, Focus/Zen Mode, Presenter Timer & Pace Guide, Content Block
+  Minimap, Micro-Interactions & Polish). Fixed critical z-order bug across all 17 boards
+  (area-based sorting: large rects→back, text→front). All boards visually verified via
+  export.
 - 2026-02-24: **Penpot design system overhaul** — Deep audit and rebuild of the entire
   Penpot component library. Fixed all 8 typographies (were all 14px; now correct at
   48/32/24/20/16/14/12/14). Fixed color naming inconsistencies (6 renames, 1 value fix:
