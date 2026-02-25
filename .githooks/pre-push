@@ -27,6 +27,17 @@ if ! cargo clippy --workspace --quiet -- -D warnings 2>&1; then
 fi
 
 echo "✅ Clippy OK."
+echo "🔍 pre-push: running docs check..."
+
+# mirror CI's doc step to catch rustdoc warnings early
+if ! RUSTDOCFLAGS=-D warnings cargo doc --workspace --no-deps --quiet 2>&1; then
+  echo ""
+  echo "❌ Documentation warnings/errors; fix them before pushing."
+  exit 1
+fi
+
+echo "✅ Docs OK."
+
 echo "🔍 pre-push: running tests..."
 
 if cargo nextest run --workspace --quiet 2>/dev/null; then

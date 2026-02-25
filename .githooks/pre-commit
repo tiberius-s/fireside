@@ -16,3 +16,23 @@ if ! cargo fmt --check --quiet 2>&1; then
 fi
 
 echo "✅ Formatting OK."
+
+echo "🔍 pre-commit: running clippy..."
+
+if ! cargo clippy --workspace --quiet -- -D warnings 2>&1; then
+  echo ""
+  echo "❌ Clippy errors. Fix them before committing."
+  exit 1
+fi
+
+echo "✅ Clippy OK."
+
+echo "🔍 pre-commit: running docs check..."
+
+if ! RUSTDOCFLAGS=-D warnings cargo doc --workspace --no-deps --quiet 2>&1; then
+  echo ""
+  echo "❌ Documentation warnings/errors; fix them before committing."
+  exit 1
+fi
+
+echo "✅ Docs OK."
