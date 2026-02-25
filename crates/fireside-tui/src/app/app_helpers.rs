@@ -77,7 +77,9 @@ pub(super) fn update_block_metadata_from_inline_text(
     text: String,
 ) -> Result<ContentBlock, String> {
     match existing {
-        ContentBlock::Heading { text: heading_text, .. } => {
+        ContentBlock::Heading {
+            text: heading_text, ..
+        } => {
             let trimmed = text.trim();
             let Ok(level) = trimmed.parse::<u8>() else {
                 return Err("Heading level must be a number from 1 to 6".to_string());
@@ -91,9 +93,9 @@ pub(super) fn update_block_metadata_from_inline_text(
                 text: heading_text,
             })
         }
-        ContentBlock::Text { body } => {
-            Err(format!("Text block has no editable metadata field (body: {body})"))
-        }
+        ContentBlock::Text { body } => Err(format!(
+            "Text block has no editable metadata field (body: {body})"
+        )),
         ContentBlock::Code {
             source,
             highlight_lines,

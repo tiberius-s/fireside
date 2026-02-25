@@ -10,10 +10,10 @@ use std::path::Path;
 
 use fireside_core::model::content::{ContentBlock, ListItem};
 
-use crate::design::tokens::DesignTokens;
-use crate::theme::Theme;
 use super::blocks_extension::render_known_extension;
 use super::blocks_image::render_image_placeholder;
+use crate::design::tokens::DesignTokens;
+use crate::theme::Theme;
 
 use super::code::highlight_code;
 
@@ -273,7 +273,6 @@ fn render_list<'a>(
     lines
 }
 
-
 fn render_divider(width: u16, tokens: &DesignTokens) -> Vec<Line<'static>> {
     let style = Style::default().fg(tokens.border_inactive);
     vec![Line::from(Span::styled(
@@ -430,7 +429,6 @@ fn compose_side_by_side<'a>(
 
     lines
 }
-
 
 fn line_to_plain_text(line: &Line<'_>) -> String {
     line.spans
