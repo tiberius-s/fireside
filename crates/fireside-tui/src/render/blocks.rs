@@ -7,13 +7,13 @@
 //!
 //! | Module             | Variants handled                            |
 //! |--------------------|---------------------------------------------|
-//! | [`blocks_heading`] | `Heading`                                   |
-//! | [`blocks_text`]    | `Text`                                      |
-//! | [`blocks_code`]    | `Code`                                      |
-//! | [`blocks_list`]    | `List`                                      |
-//! | [`blocks_divider`] | `Divider`                                   |
-//! | [`blocks_image`]   | `Image`                                     |
-//! | [`blocks_extension`] | `Extension`                               |
+//! | `blocks_heading`   | `Heading`                                   |
+//! | `blocks_text`      | `Text`                                      |
+//! | `blocks_code`      | `Code`                                      |
+//! | `blocks_list`      | `List`                                      |
+//! | `blocks_divider`   | `Divider`                                   |
+//! | `blocks_image`     | `Image`                                     |
+//! | `blocks_extension` | `Extension`                                 |
 //! | (this module)      | `Container`, dispatch, plain-text utilities |
 
 use ratatui::style::Style;

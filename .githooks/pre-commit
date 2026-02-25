@@ -7,21 +7,27 @@
 
 set -euo pipefail
 
+# Track whether we had to auto-fix anything
+NEEDS_RESTAGE=false
+
 echo "🔍 pre-commit: checking formatting..."
 
 if ! cargo fmt --check --quiet 2>&1; then
+  echo "  ℹ️  Auto-fixing formatting issues..."
+  cargo fmt --quiet
+  echo "  ⚠️  Formatting was auto-fixed. Please review and re-stage the files:"
+  git diff --name-only
   echo ""
-  echo "❌ Formatting issues found. Run 'cargo fmt' to fix them, then re-stage."
-  exit 1
+  NEEDS_RESTAGE=true
 fi
 
 echo "✅ Formatting OK."
 
 echo "🔍 pre-commit: running clippy..."
 
-if ! cargo clippy --workspace --quiet -- -D warnings 2>&1; then
+if ! cargo clippy --workspace -- -D warnings 2>&1; then
   echo ""
-  echo "❌ Clippy errors. Fix them before committing."
+  echo "❌ Clippy errors found. Fix them and stage the changes before committing."
   exit 1
 fi
 
@@ -29,10 +35,20 @@ echo "✅ Clippy OK."
 
 echo "🔍 pre-commit: running docs check..."
 
-if ! RUSTDOCFLAGS=-D warnings cargo doc --workspace --no-deps --quiet 2>&1; then
+export RUSTDOCFLAGS='-D warnings'
+if ! cargo doc --workspace --no-deps --quiet 2>&1; then
   echo ""
-  echo "❌ Documentation warnings/errors; fix them before committing."
+  echo "❌ Documentation warnings/errors found. Fix them and stage the changes before committing."
   exit 1
 fi
+unset RUSTDOCFLAGS
 
 echo "✅ Docs OK."
+
+if [ "$NEEDS_RESTAGE" = true ]; then
+  echo ""
+  echo "⚠️  Files were auto-formatted. Please review, stage them, and commit again:"
+  echo "    git add <files>"
+  echo "    git commit"
+  exit 1
+fi

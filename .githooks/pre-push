@@ -30,13 +30,48 @@ echo "✅ Clippy OK."
 echo "🔍 pre-push: running docs check..."
 
 # mirror CI's doc step to catch rustdoc warnings early
-if ! RUSTDOCFLAGS=-D warnings cargo doc --workspace --no-deps --quiet 2>&1; then
+export RUSTDOCFLAGS="-D warnings"
+if ! cargo doc --workspace --no-deps --quiet 2>&1; then
   echo ""
   echo "❌ Documentation warnings/errors; fix them before pushing."
   exit 1
 fi
+unset RUSTDOCFLAGS
 
 echo "✅ Docs OK."
+
+# ensure the commits we're about to push are themselves lint-clean
+# (this protects against pushing from a clone where the hooks weren't enabled)
+echo "🔍 pre-push: linting commits being pushed..."
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # skip deletes
+  if [ "${local_sha}" = "0000000000000000000000000000000000000000" ]; then
+    continue
+  fi
+  echo "  checking $local_ref ($local_sha)"
+  tmpdir=$(mktemp -d)
+  git worktree add -q "$tmpdir" "$local_sha"
+  pushd "$tmpdir" >/dev/null
+  if ! cargo fmt --check --quiet 2>&1; then
+    echo ""
+    echo "❌ Formatting issues in commit $local_sha";
+    exit 1
+  fi
+  if ! cargo clippy --workspace --quiet -- -D warnings 2>&1; then
+    echo ""
+    echo "❌ Clippy errors in commit $local_sha";
+    exit 1
+  fi
+  if ! RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --quiet 2>&1; then
+    echo ""
+    echo "❌ Documentation warnings/errors in commit $local_sha";
+    exit 1
+  fi
+  popd >/dev/null
+  git worktree remove -q "$tmpdir"
+done
+
+echo "✅ pushed commits are lint-clean."
 
 echo "🔍 pre-push: running tests..."
 

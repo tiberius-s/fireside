@@ -3,9 +3,9 @@
 //! Commands represent atomic operations on a graph that can be applied,
 //! undone, and redone.  The module is split into three focused submodules:
 //!
-//! - [`types`] — the [`Command`] enum (all variants with their fields)
-//! - [`apply`] — the pure `apply_command` function (private implementation)
-//! - [`history`] — [`CommandHistory`], the undo/redo stack
+//! - [`Command`] — the enum (all variants with their fields)
+//! - Internal `apply` module — the pure implementation
+//! - [`CommandHistory`] — the undo/redo stack
 
 mod apply;
 mod history;
