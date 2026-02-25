@@ -185,27 +185,6 @@ fn pace_label(elapsed_secs: u64, target_secs: u64) -> &'static str {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{pace_color, pace_label};
-    use crate::theme::Theme;
-
-    #[test]
-    fn pace_label_thresholds() {
-        assert_eq!(pace_label(300, 600), "● On pace");
-        assert_eq!(pace_label(630, 600), "● Slightly behind");
-        assert_eq!(pace_label(720, 600), "● Over");
-    }
-
-    #[test]
-    fn pace_color_uses_theme_roles() {
-        let theme = Theme::default();
-        assert_eq!(pace_color(300, 600, &theme), theme.success);
-        assert_eq!(pace_color(630, 600, &theme), theme.heading_h3);
-        assert_eq!(pace_color(720, 600, &theme), theme.error);
-    }
-}
-
 fn resolve_next_node_index(session: &PresentationSession, current: usize) -> Option<usize> {
     let node = &session.graph.nodes[current];
 
@@ -277,4 +256,25 @@ fn any_node_in_bucket_is_branch(
             .get(idx)
             .is_some_and(|node| node.branch_point().is_some())
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{pace_color, pace_label};
+    use crate::theme::Theme;
+
+    #[test]
+    fn pace_label_thresholds() {
+        assert_eq!(pace_label(300, 600), "● On pace");
+        assert_eq!(pace_label(630, 600), "● Slightly behind");
+        assert_eq!(pace_label(720, 600), "● Over");
+    }
+
+    #[test]
+    fn pace_color_uses_theme_roles() {
+        let theme = Theme::default();
+        assert_eq!(pace_color(300, 600, &theme), theme.success);
+        assert_eq!(pace_color(630, 600, &theme), theme.heading_h3);
+        assert_eq!(pace_color(720, 600, &theme), theme.error);
+    }
 }
