@@ -1,3 +1,8 @@
+---
+name: protocol-change
+description: 'Execute a complete, end-to-end additive protocol change for the Fireside format — from TypeSpec model edit through Rust structs, documentation, examples, and verification gates.'
+---
+
 # Protocol Change Skill
 
 Execute a complete, end-to-end additive protocol change for the Fireside format — from

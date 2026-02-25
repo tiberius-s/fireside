@@ -1,3 +1,8 @@
+---
+name: adr
+description: 'Generate Architecture Decision Records (ADRs) for the Fireside project.'
+---
+
 # ADR Skill
 
 Generate Architecture Decision Records (ADRs) for the Fireside project.
