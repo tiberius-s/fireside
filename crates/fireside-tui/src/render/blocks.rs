@@ -2,20 +2,36 @@
 //!
 //! Each [`ContentBlock`] variant is converted into one or more ratatui `Line`s
 //! for composition by the layout engine.
+//!
+//! Individual renderers live in focused sibling modules:
+//!
+//! | Module             | Variants handled                            |
+//! |--------------------|---------------------------------------------|
+//! | [`blocks_heading`] | `Heading`                                   |
+//! | [`blocks_text`]    | `Text`                                      |
+//! | [`blocks_code`]    | `Code`                                      |
+//! | [`blocks_list`]    | `List`                                      |
+//! | [`blocks_divider`] | `Divider`                                   |
+//! | [`blocks_image`]   | `Image`                                     |
+//! | [`blocks_extension`] | `Extension`                               |
+//! | (this module)      | `Container`, dispatch, plain-text utilities |
 
-use ratatui::style::{Modifier, Style};
+use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 use serde_json::Value;
 use std::path::Path;
 
-use fireside_core::model::content::{ContentBlock, ListItem};
+use fireside_core::model::content::ContentBlock;
 
+use super::blocks_code::render_code as render_code_block;
+use super::blocks_divider::render_divider;
 use super::blocks_extension::render_known_extension;
+use super::blocks_heading::render_heading;
 use super::blocks_image::render_image_placeholder;
+use super::blocks_list::render_list;
+use super::blocks_text::{fit_to_width, line_to_plain_text, render_text};
 use crate::design::tokens::DesignTokens;
 use crate::theme::Theme;
-
-use super::code::highlight_code;
 
 /// Render a single content block into a list of styled `Line`s.
 #[must_use]
@@ -24,7 +40,7 @@ pub fn render_block<'a>(block: &'a ContentBlock, theme: &Theme, width: u16) -> V
     render_block_with_tokens(block, &tokens, width, None)
 }
 
-fn render_block_with_tokens<'a>(
+pub(super) fn render_block_with_tokens<'a>(
     block: &'a ContentBlock,
     tokens: &DesignTokens,
     width: u16,
@@ -38,7 +54,7 @@ fn render_block_with_tokens<'a>(
             source,
             highlight_lines,
             show_line_numbers,
-        } => render_code(
+        } => render_code_block(
             language.as_deref(),
             source,
             highlight_lines,
@@ -79,6 +95,7 @@ pub fn render_node_content<'a>(
     render_node_content_with_base(blocks, theme, width, None)
 }
 
+/// Render all content blocks with an optional base directory for image paths.
 #[must_use]
 pub fn render_node_content_with_base<'a>(
     blocks: &'a [ContentBlock],
@@ -90,7 +107,7 @@ pub fn render_node_content_with_base<'a>(
     render_node_content_with_tokens(blocks, &tokens, width, base_dir)
 }
 
-fn render_node_content_with_tokens<'a>(
+pub(super) fn render_node_content_with_tokens<'a>(
     blocks: &'a [ContentBlock],
     tokens: &DesignTokens,
     width: u16,
@@ -106,180 +123,7 @@ fn render_node_content_with_tokens<'a>(
     lines
 }
 
-fn render_heading<'a>(
-    level: u8,
-    text: &'a str,
-    tokens: &DesignTokens,
-    width: u16,
-) -> Vec<Line<'a>> {
-    let color = match level {
-        1 => tokens.heading_h1,
-        2 => tokens.heading_h2,
-        _ => tokens.heading_h3,
-    };
-
-    let style = Style::default().fg(color).add_modifier(Modifier::BOLD);
-
-    let prefix = match level {
-        1 => "",
-        2 => "  ",
-        3 => "    ",
-        _ => "      ",
-    };
-
-    let mut lines = vec![Line::from(vec![
-        Span::raw(prefix),
-        Span::styled(text.to_owned(), style),
-    ])];
-
-    if level <= 2 {
-        let dash = if level == 1 { '═' } else { '─' };
-        let rule_width = width.saturating_sub(prefix.len() as u16).max(10) as usize;
-        lines.push(Line::from(vec![
-            Span::raw(prefix),
-            Span::styled(
-                dash.to_string().repeat(rule_width),
-                Style::default().fg(tokens.border_inactive),
-            ),
-        ]));
-    }
-
-    lines
-}
-
-fn render_text<'a>(text: &'a str, tokens: &DesignTokens, width: u16) -> Vec<Line<'a>> {
-    let style = Style::default().fg(tokens.body);
-    let wrapped = textwrap::wrap(text, width.max(1) as usize);
-    wrapped
-        .into_iter()
-        .map(|line| Line::from(Span::styled(line.into_owned(), style)))
-        .collect()
-}
-
-fn render_code<'a>(
-    language: Option<&str>,
-    source: &'a str,
-    highlight_lines: &[u32],
-    show_line_numbers: bool,
-    tokens: &DesignTokens,
-    width: u16,
-) -> Vec<Line<'a>> {
-    let has_line_directives = show_line_numbers || !highlight_lines.is_empty();
-    if !has_line_directives
-        && let Some(lang) = language
-        && let Some(highlighted) = highlight_code(source, lang, &tokens.syntax_theme)
-    {
-        return add_code_chrome(highlighted, language, tokens, width);
-    }
-
-    let mut code_lines = Vec::new();
-    for (index, raw_line) in source.lines().enumerate() {
-        let line_number = (index + 1) as u32;
-        let is_highlighted = highlight_lines.contains(&line_number);
-
-        let mut line_style = Style::default().fg(tokens.code_fg).bg(tokens.code_bg);
-
-        if is_highlighted {
-            line_style = line_style.add_modifier(Modifier::BOLD);
-        }
-
-        let mut spans = Vec::new();
-        if show_line_numbers {
-            spans.push(Span::styled(
-                format!("{line_number:>3} │ "),
-                Style::default().fg(tokens.muted).bg(tokens.code_bg),
-            ));
-        }
-
-        if is_highlighted {
-            spans.push(Span::styled("▎ ", Style::default().fg(tokens.success)));
-        }
-
-        spans.push(Span::styled(raw_line.to_owned(), line_style));
-        code_lines.push(Line::from(spans));
-    }
-
-    add_code_chrome(code_lines, language, tokens, width)
-}
-
-fn add_code_chrome<'a>(
-    code_lines: Vec<Line<'a>>,
-    language: Option<&str>,
-    tokens: &DesignTokens,
-    width: u16,
-) -> Vec<Line<'a>> {
-    let lang_label = language.unwrap_or("code");
-    let content_width = width.max(20) as usize;
-    let border_inner_width = content_width.saturating_sub(2).max(10);
-
-    let mut lines = Vec::new();
-    let title = format!(" {lang_label} ");
-    let top_fill = border_inner_width.saturating_sub(title.chars().count());
-    lines.push(Line::from(vec![Span::styled(
-        format!("┌{title}{}┐", "─".repeat(top_fill)),
-        Style::default().fg(tokens.border_inactive),
-    )]));
-
-    for line in code_lines {
-        lines.push(line);
-    }
-
-    lines.push(Line::from(vec![Span::styled(
-        format!("└{}┘", "─".repeat(border_inner_width)),
-        Style::default().fg(tokens.border_inactive),
-    )]));
-
-    lines
-}
-
-fn render_list<'a>(
-    ordered: bool,
-    items: &'a [ListItem],
-    tokens: &DesignTokens,
-    depth: usize,
-) -> Vec<Line<'a>> {
-    let mut lines = Vec::new();
-    let style = Style::default().fg(tokens.body);
-
-    let bullet = match depth {
-        0 => "•",
-        1 => "◦",
-        _ => "▪",
-    };
-
-    for (i, item) in items.iter().enumerate() {
-        let guide = if depth == 0 {
-            String::new()
-        } else {
-            "│ ".repeat(depth)
-        };
-
-        let marker = if ordered {
-            format!("{guide}{}. ", i + 1)
-        } else {
-            format!("{guide}{bullet} ")
-        };
-
-        lines.push(Line::from(vec![
-            Span::styled(marker, style.add_modifier(Modifier::DIM)),
-            Span::styled(item.text.clone(), style),
-        ]));
-
-        if !item.children.is_empty() {
-            lines.extend(render_list(false, &item.children, tokens, depth + 1));
-        }
-    }
-
-    lines
-}
-
-fn render_divider(width: u16, tokens: &DesignTokens) -> Vec<Line<'static>> {
-    let style = Style::default().fg(tokens.border_inactive);
-    vec![Line::from(Span::styled(
-        "─".repeat(width.max(1) as usize),
-        style,
-    ))]
-}
+// ── Container variants ──────────────────────────────────────────────────────
 
 fn render_container<'a>(
     layout: Option<&str>,
@@ -299,7 +143,7 @@ fn render_container<'a>(
                     format!("[container: {layout_hint}]"),
                     Style::default()
                         .fg(tokens.muted)
-                        .add_modifier(Modifier::DIM),
+                        .add_modifier(ratatui::style::Modifier::DIM),
                 )));
             }
             lines.extend(render_node_content_with_tokens(
@@ -322,7 +166,7 @@ fn render_extension<'a>(
         format!("[extension: {extension_type}]"),
         Style::default()
             .fg(tokens.heading_h3)
-            .add_modifier(Modifier::DIM),
+            .add_modifier(ratatui::style::Modifier::DIM),
     )])];
 
     if let Some(mut known_lines) = render_known_extension(extension_type, payload, tokens, width) {
@@ -346,7 +190,7 @@ fn render_extension<'a>(
             "fallback:",
             Style::default()
                 .fg(tokens.muted)
-                .add_modifier(Modifier::ITALIC),
+                .add_modifier(ratatui::style::Modifier::ITALIC),
         )));
         lines.extend(render_block_with_tokens(
             fallback_block,
@@ -430,31 +274,7 @@ fn compose_side_by_side<'a>(
     lines
 }
 
-fn line_to_plain_text(line: &Line<'_>) -> String {
-    line.spans
-        .iter()
-        .map(|span| span.content.as_ref())
-        .collect::<Vec<_>>()
-        .join("")
-}
-
-fn fit_to_width(text: &str, max_chars: usize) -> String {
-    if text.chars().count() > max_chars {
-        return truncate_text(text, max_chars);
-    }
-
-    let pad = max_chars.saturating_sub(text.chars().count());
-    format!("{text}{}", " ".repeat(pad))
-}
-
-fn truncate_text(text: &str, max_chars: usize) -> String {
-    if text.chars().count() <= max_chars {
-        return text.to_string();
-    }
-
-    let short: String = text.chars().take(max_chars.saturating_sub(1)).collect();
-    format!("{short}…")
-}
+// ── Tests ────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -474,7 +294,10 @@ mod tests {
     }
 
     fn lines_to_text(lines: &[Line<'_>]) -> Vec<String> {
-        lines.iter().map(line_to_plain_text).collect()
+        lines
+            .iter()
+            .map(super::super::blocks_text::line_to_plain_text)
+            .collect()
     }
 
     #[test]
