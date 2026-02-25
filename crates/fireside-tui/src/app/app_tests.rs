@@ -753,7 +753,11 @@ fn editor_mouse_click_selects_block_in_detail_pane() {
     let detail_area = body[1];
 
     let first_block_row = detail_area.y + 1 + 9;
-    let target_row = first_block_row + 2;
+    // WYSIWYG block heights for graph_with_content_blocks():
+    //   Block 0 (Heading level 1): header(1) + text(1) + underline(1) + sep(1) = 4 rows
+    //   Block 1 (Text):            header(1) + line(1)                 + sep(1) = 3 rows
+    //   Block 2 (Code) starts at offset 4 + 3 = 7 from first_block_row
+    let target_row = first_block_row + 7;
     let target_col = detail_area.x + 4;
 
     app.handle_event(Event::Mouse(crossterm::event::MouseEvent {

@@ -1,5 +1,8 @@
 use super::*;
 
+use crate::render::blocks::render_block;
+use crate::theme::Theme;
+
 impl App {
     pub(super) fn add_node_after_selected(&mut self) {
         let base_index = self.editor_selected_node;
@@ -58,6 +61,7 @@ impl App {
             "Selected block #{}",
             self.editor_selected_block + 1
         ));
+        self.scroll_detail_to_selected_block();
     }
 
     pub(super) fn editor_select_prev_block(&mut self) {
@@ -72,6 +76,7 @@ impl App {
             "Selected block #{}",
             self.editor_selected_block + 1
         ));
+        self.scroll_detail_to_selected_block();
     }
 
     /// Delete the currently selected content block from the selected node.
@@ -103,6 +108,7 @@ impl App {
                 self.editor_selected_block = 0;
             }
             self.editor_status = Some(format!("Deleted block #{}", block_index + 1));
+            self.scroll_detail_to_selected_block();
         }
     }
 
@@ -139,6 +145,7 @@ impl App {
         if self.session.execute_command(command).is_ok() {
             self.editor_selected_block = to_index;
             self.editor_status = Some(format!("Moved block to #{}", to_index + 1));
+            self.scroll_detail_to_selected_block();
         }
     }
 
@@ -342,6 +349,8 @@ impl App {
         let clamped = index.min(total - 1);
         self.editor_selected_node = clamped;
         self.editor_selected_block = 0;
+        // Reset the WYSIWYG preview scroll when switching nodes.
+        self.editor_detail_scroll_offset = 0;
         self.sync_editor_list_viewport();
         let _ = self
             .session
@@ -569,5 +578,43 @@ impl App {
         } else {
             self.editor_status = Some(format!("Graph jump: node #{}", idx + 1));
         }
+    }
+
+    /// Scroll the WYSIWYG detail pane so the currently selected block is visible.
+    ///
+    /// Uses `render_block` to count rendered lines for all preceding blocks, then
+    /// sets `editor_detail_scroll_offset` so the selected block's header appears near
+    /// the top of the pane.  This is called whenever `editor_selected_block` changes.
+    pub(super) fn scroll_detail_to_selected_block(&mut self) {
+        let block_index = self.editor_selected_block;
+        if block_index == 0 {
+            // First block is always visible without scrolling.
+            self.editor_detail_scroll_offset = 0;
+            return;
+        }
+
+        let Some(node) = self.session.graph.nodes.get(self.editor_selected_node) else {
+            return;
+        };
+
+        // The detail pane renders a fixed preamble before the block list (editor.rs):
+        //   node title, blank, METADATA header, layout row, transition row,
+        //   id row, blocks count row, blank, SLIDE PREVIEW header  →  9 lines.
+        const PREAMBLE: usize = 9;
+
+        // Approximate detail pane width (70 % of terminal, minus gutter/border).
+        let approx_width = ((self.terminal_size.0 as usize * 70) / 100)
+            .saturating_sub(5)
+            .max(40) as u16;
+
+        let theme = Theme::default();
+        // Sum header row (1) + rendered lines + separator row (1) for each preceding block.
+        let preceding_lines: usize = node.content[..block_index]
+            .iter()
+            .map(|block| 1 + render_block(block, &theme, approx_width).len() + 1)
+            .sum();
+
+        // Leave one line of context above the selected block header.
+        self.editor_detail_scroll_offset = (PREAMBLE + preceding_lines).saturating_sub(1);
     }
 }

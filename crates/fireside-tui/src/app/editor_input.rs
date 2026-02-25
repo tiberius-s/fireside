@@ -1,5 +1,8 @@
 use super::*;
 
+use crate::render::blocks::render_block;
+use crate::theme::Theme;
+
 impl App {
     fn detail_block_index_at_row(&self, detail_area: Rect, row: u16) -> Option<usize> {
         let content = self
@@ -13,6 +16,8 @@ impl App {
             return None;
         }
 
+        // WYSIWYG preamble: node title + blank + METADATA header + layout + transition +
+        // id + block count + blank + SLIDE PREVIEW header = 9 lines before first block.
         const CONTENT_BLOCKS_FIRST_ROW: u16 = 9;
         let detail_inner_top = detail_area.y.saturating_add(1);
         let first_block_row = detail_inner_top.saturating_add(CONTENT_BLOCKS_FIRST_ROW);
@@ -20,12 +25,29 @@ impl App {
             return None;
         }
 
-        let block_index = row.saturating_sub(first_block_row) as usize;
-        if block_index < content.len() {
-            Some(block_index)
-        } else {
-            None
+        // Convert the screen row to a logical content-line index, compensating for scroll.
+        // Paragraph::scroll((N, 0)) skips N lines, so screen row R inside the panel maps to
+        // content line (R - first_block_row) + scroll_offset.
+        let screen_line = (row - first_block_row) as usize;
+        let logical_line = screen_line + self.editor_detail_scroll_offset;
+
+        // Each block in the WYSIWYG view occupies: 1 header + N rendered lines + 1 separator.
+        let approx_width = ((self.terminal_size.0 as usize * 70) / 100)
+            .saturating_sub(5)
+            .max(40) as u16;
+        let theme = Theme::default();
+        let mut current_line = 0usize;
+
+        for (idx, block) in content.iter().enumerate() {
+            let rendered_lines = render_block(block, &theme, approx_width).len();
+            let block_height = 1 + rendered_lines + 1; // header + content + separator
+            if logical_line < current_line + block_height {
+                return Some(idx);
+            }
+            current_line += block_height;
         }
+
+        None
     }
 
     pub(super) fn load_editor_preferences(&mut self) {

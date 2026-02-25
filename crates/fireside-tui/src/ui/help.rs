@@ -111,8 +111,16 @@ const KEYBINDINGS: &[HelpEntry] = &[
     },
     HelpEntry {
         section: "Editor",
-        key: "j / k, PgUp/PgDn",
-        desc: "Select or page nodes",
+        // When NodeList is focused j/k navigates nodes; when NodeDetail is focused they scroll
+        // the WYSIWYG slide preview.  The Tab key switches between panes.
+        key: "j / k",
+        desc: "Select nodes (list pane) · scroll slide preview (detail pane)",
+        modes: MODE_EDITING,
+    },
+    HelpEntry {
+        section: "Editor",
+        key: "PgUp / PgDn",
+        desc: "Page through node list",
         modes: MODE_EDITING,
     },
     HelpEntry {

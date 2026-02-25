@@ -145,6 +145,8 @@ pub struct App {
     editor_graph_selected_node: usize,
     /// Top row offset for graph overlay list viewport.
     editor_graph_scroll_offset: usize,
+    /// Top row offset for the detail pane (for scrolling rendered block content).
+    editor_detail_scroll_offset: usize,
     /// Whether compact editor mode currently shows the node list overlay.
     editor_node_list_visible: bool,
     /// Focused branch option index in presenter mode branch overlays.
@@ -228,6 +230,7 @@ impl App {
             editor_graph_overlay: false,
             editor_graph_selected_node: 0,
             editor_graph_scroll_offset: 0,
+            editor_detail_scroll_offset: 0,
             editor_node_list_visible: false,
             branch_focused_option: 0,
             active_transition: None,
@@ -377,6 +380,7 @@ impl App {
                             scroll_offset: self.editor_graph_scroll_offset,
                         }),
                         help_scroll_offset: self.help_scroll_offset,
+                        detail_scroll_offset: self.editor_detail_scroll_offset,
                         node_list_visible: self.editor_node_list_visible,
                     },
                 );

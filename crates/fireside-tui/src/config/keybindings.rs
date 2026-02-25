@@ -2,17 +2,24 @@
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::app::AppMode;
+use crate::app::{AppMode, EditorPaneFocus};
 use crate::event::Action;
 
 /// Map a key event to an action based on the current app mode.
 ///
+/// `editor_focus` is used to route keys differently when the detail pane
+/// has focus (e.g. `j/k` scroll the preview instead of selecting nodes).
+///
 /// Returns `None` for unbound keys.
 #[must_use]
-pub fn map_key_to_action(key: KeyEvent, mode: &AppMode) -> Option<Action> {
+pub fn map_key_to_action(
+    key: KeyEvent,
+    mode: &AppMode,
+    editor_focus: EditorPaneFocus,
+) -> Option<Action> {
     match mode {
         AppMode::GotoNode { .. } => return map_goto_mode_key(key),
-        AppMode::Editing => return map_edit_mode_key(key),
+        AppMode::Editing => return map_edit_mode_key(key, editor_focus),
         AppMode::Presenting | AppMode::Quitting => {}
     }
 
@@ -60,7 +67,7 @@ pub fn map_key_to_action(key: KeyEvent, mode: &AppMode) -> Option<Action> {
     }
 }
 
-fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
+fn map_edit_mode_key(key: KeyEvent, focus: EditorPaneFocus) -> Option<Action> {
     if key.modifiers.contains(KeyModifiers::ALT) {
         return match key.code {
             KeyCode::Up | KeyCode::Char('k') => Some(Action::EditorMoveBlockUp),
@@ -77,6 +84,16 @@ fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
             KeyCode::Char('c') => Some(Action::Quit),
             _ => None,
         };
+    }
+
+    // When the detail (WYSIWYG preview) pane is focused, j/k and ↑/↓ scroll
+    // the preview content rather than selecting nodes in the list.
+    if focus == EditorPaneFocus::NodeDetail {
+        match key.code {
+            KeyCode::Char('j') | KeyCode::Down => return Some(Action::EditorDetailScrollDown),
+            KeyCode::Char('k') | KeyCode::Up => return Some(Action::EditorDetailScrollUp),
+            _ => {}
+        }
     }
 
     match key.code {
@@ -143,35 +160,35 @@ fn map_goto_mode_key(key: KeyEvent) -> Option<Action> {
 #[cfg(test)]
 mod tests {
     use super::map_key_to_action;
-    use crate::app::AppMode;
+    use crate::app::{AppMode, EditorPaneFocus};
     use crate::event::Action;
     use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     #[test]
     fn presenting_ctrl_h_toggles_timeline() {
         let key = KeyEvent::new(KeyCode::Char('h'), KeyModifiers::CONTROL);
-        let action = map_key_to_action(key, &AppMode::Presenting);
+        let action = map_key_to_action(key, &AppMode::Presenting, EditorPaneFocus::NodeList);
         assert_eq!(action, Some(Action::ToggleTimeline));
     }
 
     #[test]
     fn presenting_ctrl_left_jumps_to_branch_point() {
         let key = KeyEvent::new(KeyCode::Left, KeyModifiers::CONTROL);
-        let action = map_key_to_action(key, &AppMode::Presenting);
+        let action = map_key_to_action(key, &AppMode::Presenting, EditorPaneFocus::NodeList);
         assert_eq!(action, Some(Action::JumpToBranchPoint));
     }
 
     #[test]
     fn editing_b_selects_next_block() {
         let key = KeyEvent::new(KeyCode::Char('b'), KeyModifiers::NONE);
-        let action = map_key_to_action(key, &AppMode::Editing);
+        let action = map_key_to_action(key, &AppMode::Editing, EditorPaneFocus::NodeList);
         assert_eq!(action, Some(Action::EditorSelectNextBlock));
     }
 
     #[test]
     fn editing_shift_b_selects_prev_block() {
         let key = KeyEvent::new(KeyCode::Char('B'), KeyModifiers::SHIFT);
-        let action = map_key_to_action(key, &AppMode::Editing);
+        let action = map_key_to_action(key, &AppMode::Editing, EditorPaneFocus::NodeList);
         assert_eq!(action, Some(Action::EditorSelectPrevBlock));
     }
 
@@ -181,11 +198,11 @@ mod tests {
         let next_key = KeyEvent::new(KeyCode::Char('.'), KeyModifiers::NONE);
 
         assert_eq!(
-            map_key_to_action(prev_key, &AppMode::Editing),
+            map_key_to_action(prev_key, &AppMode::Editing, EditorPaneFocus::NodeList),
             Some(Action::EditorSelectPrevBlock)
         );
         assert_eq!(
-            map_key_to_action(next_key, &AppMode::Editing),
+            map_key_to_action(next_key, &AppMode::Editing, EditorPaneFocus::NodeList),
             Some(Action::EditorSelectNextBlock)
         );
     }
@@ -196,11 +213,11 @@ mod tests {
         let down_key = KeyEvent::new(KeyCode::Char('K'), KeyModifiers::SHIFT);
 
         assert_eq!(
-            map_key_to_action(up_key, &AppMode::Editing),
+            map_key_to_action(up_key, &AppMode::Editing, EditorPaneFocus::NodeList),
             Some(Action::EditorMoveBlockUp)
         );
         assert_eq!(
-            map_key_to_action(down_key, &AppMode::Editing),
+            map_key_to_action(down_key, &AppMode::Editing, EditorPaneFocus::NodeList),
             Some(Action::EditorMoveBlockDown)
         );
     }
@@ -208,7 +225,39 @@ mod tests {
     #[test]
     fn editing_m_starts_metadata_edit() {
         let key = KeyEvent::new(KeyCode::Char('m'), KeyModifiers::NONE);
-        let action = map_key_to_action(key, &AppMode::Editing);
+        let action = map_key_to_action(key, &AppMode::Editing, EditorPaneFocus::NodeList);
         assert_eq!(action, Some(Action::EditorStartInlineMetaEdit));
+    }
+
+    #[test]
+    fn detail_focus_jk_scrolls_preview() {
+        let j_key = KeyEvent::new(KeyCode::Char('j'), KeyModifiers::NONE);
+        let k_key = KeyEvent::new(KeyCode::Char('k'), KeyModifiers::NONE);
+
+        // With NodeDetail focus, j/k should scroll the preview, not navigate nodes.
+        assert_eq!(
+            map_key_to_action(j_key, &AppMode::Editing, EditorPaneFocus::NodeDetail),
+            Some(Action::EditorDetailScrollDown)
+        );
+        assert_eq!(
+            map_key_to_action(k_key, &AppMode::Editing, EditorPaneFocus::NodeDetail),
+            Some(Action::EditorDetailScrollUp)
+        );
+    }
+
+    #[test]
+    fn list_focus_jk_selects_nodes() {
+        let j_key = KeyEvent::new(KeyCode::Char('j'), KeyModifiers::NONE);
+        let k_key = KeyEvent::new(KeyCode::Char('k'), KeyModifiers::NONE);
+
+        // With NodeList focus, j/k navigate nodes as before.
+        assert_eq!(
+            map_key_to_action(j_key, &AppMode::Editing, EditorPaneFocus::NodeList),
+            Some(Action::EditorSelectNextNode)
+        );
+        assert_eq!(
+            map_key_to_action(k_key, &AppMode::Editing, EditorPaneFocus::NodeList),
+            Some(Action::EditorSelectPrevNode)
+        );
     }
 }

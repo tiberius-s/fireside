@@ -103,6 +103,14 @@ pub fn render_graph_overlay(
     let mut state = ListState::default();
     state.select(Some(selected_row.saturating_sub(start)));
 
+    // Show viewport range in the title when the list is scrolled so the user knows where they are.
+    let total_rows = rows.len();
+    let topology_title = if total_rows > (panes[0].height.saturating_sub(2)) as usize {
+        format!(" Topology  {}-{}/{} ", start + 1, end, total_rows)
+    } else {
+        " Topology ".to_string()
+    };
+
     let list = List::new(items)
         .highlight_symbol("▶ ")
         .highlight_style(
@@ -112,23 +120,64 @@ pub fn render_graph_overlay(
         )
         .block(
             Block::default()
-                .title(" Topology ")
+                .title(topology_title)
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(theme.code_border)),
         );
 
     frame.render_stateful_widget(list, panes[0], &mut state);
 
+    // Scroll indicators: rendered on top of the list after it's been drawn.
+    // They overwrite the first/last inner content rows only when items exist above/below the viewport,
+    // giving an at-a-glance cue without cluttering the panel.
+    if panes[0].height >= 4 {
+        let indicator_style = Style::default()
+            .fg(theme.footer)
+            .add_modifier(Modifier::DIM);
+
+        if start > 0 {
+            // Items above the viewport — show "▲ N above" at the very top of inner content.
+            let rect = Rect {
+                x: panes[0].x.saturating_add(2),
+                y: panes[0].y.saturating_add(1),
+                width: panes[0].width.saturating_sub(4).min(14),
+                height: 1,
+            };
+            frame.render_widget(
+                Paragraph::new(Span::styled(format!("▲ {} above", start), indicator_style)),
+                rect,
+            );
+        }
+
+        if end < total_rows {
+            // Items below the viewport — show "▼ N more" at the very bottom of inner content.
+            let rect = Rect {
+                x: panes[0].x.saturating_add(2),
+                y: panes[0].y.saturating_add(panes[0].height.saturating_sub(2)),
+                width: panes[0].width.saturating_sub(4).min(12),
+                height: 1,
+            };
+            frame.render_widget(
+                Paragraph::new(Span::styled(
+                    format!("▼ {} more", total_rows - end),
+                    indicator_style,
+                )),
+                rect,
+            );
+        }
+    }
+
     let minimap = Paragraph::new(minimap_lines(
+        session,
+        selected,
         total,
         start,
         end,
         selected_row,
-        session.current_node_index(),
     ))
     .block(
         Block::default()
-            .title(" Mini-map ")
+            .title(" Node ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(theme.code_border)),
     )
@@ -513,40 +562,87 @@ fn node_short_label(session: &PresentationSession, index: usize, max_chars: usiz
     }
 }
 
-fn minimap_lines(
+fn minimap_lines<'a>(
+    session: &'a PresentationSession,
+    selected: usize,
     total: usize,
     start: usize,
     end: usize,
-    selected: usize,
-    current: usize,
-) -> Vec<Line<'static>> {
+    selected_row: usize,
+) -> Vec<Line<'a>> {
+    // Replaced the old bar-chart mini-map with a selected-node preview panel.
+    // When navigating the graph, what you most want to know is: what's on this slide?
+    // The viewport stats (view/sel/cur) remain at the bottom for spatial orientation.
     if total == 0 {
         return vec![Line::from("No nodes")];
     }
 
-    let mut lines = vec![
-        Line::from(format!("total: {total}")),
-        Line::from(format!("view: {}-{}", start + 1, end.max(start + 1))),
-        Line::from(format!("sel:  #{}", selected + 1)),
-        Line::from(format!("cur:  #{}", current + 1)),
-        Line::from(""),
-    ];
+    let mut lines = Vec::new();
 
-    let bar_rows = 8usize;
-    for row in 0..bar_rows {
-        let idx = ((row * total) / bar_rows).min(total.saturating_sub(1));
-        let in_window = idx >= start && idx < end;
-        let marker = if idx == selected {
-            "●"
-        } else if idx == current {
-            "◆"
-        } else if in_window {
-            "█"
+    if let Some(node) = session.graph.nodes.get(selected) {
+        // Node index badge: "#N of T"
+        lines.push(Line::from(format!("#{} / {}", selected + 1, total)));
+        lines.push(Line::from(""));
+
+        // Node id or "(no id)"
+        let id_text = node.id.as_deref().unwrap_or("(no id)");
+        // Truncate to fit the narrow panel
+        let id_short: String = id_text.chars().take(18).collect();
+        lines.push(Line::from(id_short));
+
+        // Title if present and different from id
+        if let Some(title) = node.title.as_deref() {
+            let title_short: String = title.chars().take(18).collect();
+            lines.push(Line::from(title_short));
+        }
+
+        lines.push(Line::from(""));
+
+        // Content summary: icon + block count
+        let block_count = node.content.len();
+        let icon = if node
+            .traversal
+            .as_ref()
+            .and_then(|t| t.branch_point.as_ref())
+            .is_some()
+        {
+            "⎇"
         } else {
-            "│"
+            match node.content.first() {
+                Some(fireside_core::model::content::ContentBlock::Heading { .. }) => "▸",
+                Some(fireside_core::model::content::ContentBlock::Code { .. }) => "⌥",
+                Some(fireside_core::model::content::ContentBlock::List { .. }) => "•",
+                Some(fireside_core::model::content::ContentBlock::Text { .. }) => "¶",
+                Some(fireside_core::model::content::ContentBlock::Divider) => "─",
+                Some(fireside_core::model::content::ContentBlock::Image { .. }) => "⬛",
+                _ => "∅",
+            }
         };
-        lines.push(Line::from(format!("{marker} #{:>2}", idx + 1)));
+        lines.push(Line::from(format!(
+            "{icon} {} block{}",
+            block_count,
+            if block_count == 1 { "" } else { "s" }
+        )));
+
+        // Branch options if applicable
+        if let Some(branch) = node.branch_point() {
+            lines.push(Line::from(format!("{} branches", branch.options.len())));
+        }
     }
+
+    lines.push(Line::from(""));
+
+    // Viewport orientation stats — keep these so the user knows their position.
+    let current = session.current_node_index();
+    lines.push(Line::from(format!(
+        "view {}-{}",
+        start + 1,
+        end.max(start + 1)
+    )));
+    if selected != current {
+        lines.push(Line::from(format!("cur #{}", current + 1)));
+    }
+    let _ = selected_row; // used by the list for selection tracking only
 
     lines
 }

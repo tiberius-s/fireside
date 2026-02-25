@@ -12,6 +12,7 @@ use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
 
 use crate::app::{EditorPaneFocus, EditorPickerOverlay};
 use crate::design::tokens::Breakpoint;
+use crate::render::blocks::render_block;
 use crate::theme::Theme;
 use crate::ui::chrome::render_undo_redo_chips;
 use crate::ui::editor_parts::{
@@ -37,6 +38,8 @@ pub struct EditorViewState<'a> {
     pub picker_overlay: Option<EditorPickerOverlay>,
     pub graph_overlay: Option<GraphOverlayViewState>,
     pub help_scroll_offset: usize,
+    /// Scroll offset for the WYSIWYG detail pane (rendered block content).
+    pub detail_scroll_offset: usize,
     pub node_list_visible: bool,
 }
 
@@ -128,20 +131,28 @@ pub fn render_editor(
     let list_items = (list_start..list_end)
         .map(|index| {
             let n = &session.graph.nodes[index];
-            // Type prefix icon for quick visual scanning
-            let icon = match n.content.first() {
-                Some(ContentBlock::Heading { .. }) => "▸",
-                Some(ContentBlock::Code { .. }) => "⌥",
-                Some(ContentBlock::Image { .. }) => "⬛",
-                _ if n
-                    .traversal
-                    .as_ref()
-                    .and_then(|t| t.branch_point.as_ref())
-                    .is_some() =>
-                {
-                    "⎇"
+            // Type prefix icon based on dominant content type.
+            // Priority: branch > heading > code > image > text > list > empty.
+            // This mirrors block_type_glyph so the list and detail panel are consistent.
+            let icon = if n
+                .traversal
+                .as_ref()
+                .and_then(|t| t.branch_point.as_ref())
+                .is_some()
+            {
+                "⎇"
+            } else {
+                match n.content.first() {
+                    Some(ContentBlock::Heading { .. }) => "▸",
+                    Some(ContentBlock::Code { .. }) => "⌥",
+                    Some(ContentBlock::Image { .. }) => "⬛",
+                    Some(ContentBlock::List { .. }) => "•",
+                    Some(ContentBlock::Text { .. }) => "¶",
+                    Some(ContentBlock::Divider) => "─",
+                    Some(ContentBlock::Container { .. }) => "□",
+                    Some(ContentBlock::Extension { .. }) => "⎇",
+                    None => "∅", // visually distinct empty node
                 }
-                _ => "·",
             };
             let label = format!("{} {}", icon, node_label(session, index));
             ListItem::new(Line::from(Span::styled(
@@ -285,7 +296,7 @@ pub fn render_editor(
                 ]),
                 Line::from(vec![
                     key("Tab"),
-                    hint(" focus"),
+                    hint(" list ↔ detail"),
                     sep(),
                     key("?"),
                     hint(" help"),
@@ -336,70 +347,125 @@ pub fn render_editor(
             ),
         ]),
         Line::default(),
-        section_header(theme, "CONTENT BLOCKS"),
+        section_header(
+            theme,
+            "SLIDE PREVIEW  ·  b/B select  ·  i edit  ·  x delete",
+        ),
     ];
+
+    // Width available for content rendering (subtract gutter + borders).
+    let preview_width = detail_area.width.saturating_sub(5).max(40);
 
     if node.content.is_empty() {
         detail_lines.push(Line::from(vec![
-            Span::styled("  · ", Style::default().fg(theme.footer)),
-            Span::styled("(no content blocks)", Style::default().fg(theme.footer)),
+            Span::styled("  ", Style::default()),
+            Span::styled(
+                "  ∅  No content blocks — press [a] to add one",
+                Style::default().fg(theme.footer),
+            ),
         ]));
     } else {
         for (idx, block) in node.content.iter().enumerate() {
             let is_selected = view_state.selected_block_index == Some(idx);
-            // Selected block gets a vivid left-bar glyph + background highlight for
-            // instant visual identification. Unselected blocks use the normal surface.
-            let bar = if is_selected { "▌" } else { " " };
+            let bar = if is_selected { "▌" } else { "│" };
+            let bar_color = if is_selected {
+                theme.border_active
+            } else {
+                theme.border_inactive
+            };
             let line_bg = if is_selected {
                 theme.border_inactive
             } else {
                 theme.surface
             };
+
+            // ── Block header row: glyph + number + summary/hint ─────────────
             detail_lines.push(Line::from(vec![
-                Span::styled(bar, Style::default().fg(theme.border_active).bg(line_bg)),
+                Span::styled(bar, Style::default().fg(bar_color).bg(line_bg)),
                 Span::styled(
                     format!(" {} ", block_type_glyph(block)),
                     Style::default()
-                        .fg(theme.heading_h2)
-                        .bg(line_bg)
-                        .add_modifier(if is_selected {
-                            Modifier::BOLD
-                        } else {
-                            Modifier::empty()
-                        }),
-                ),
-                Span::styled(
-                    format!("{:>2}. ", idx + 1),
-                    Style::default()
                         .fg(if is_selected {
-                            theme.heading_h1
+                            theme.border_active
                         } else {
                             theme.footer
                         })
                         .bg(line_bg),
                 ),
                 Span::styled(
-                    truncate(&block_summary(block), 68),
+                    format!("#{} ", idx + 1),
                     Style::default()
                         .fg(if is_selected {
-                            theme.on_surface
+                            theme.heading_h1
                         } else {
-                            theme.foreground
+                            theme.footer
                         })
                         .bg(line_bg)
-                        .add_modifier(if is_selected {
-                            Modifier::BOLD
-                        } else {
-                            Modifier::empty()
-                        }),
+                        .add_modifier(Modifier::BOLD),
                 ),
-                // Subtle "edit" hint only on the selected row
                 Span::styled(
-                    if is_selected { "  [i] edit" } else { "" },
-                    Style::default().fg(theme.heading_h2).bg(line_bg),
+                    if is_selected {
+                        "[i] edit  [m] meta  [x] del  [J/K] move".to_string()
+                    } else {
+                        // Compact summary for quick scanning in the header row.
+                        truncate(&block_summary(block), 48)
+                    },
+                    Style::default()
+                        .fg(if is_selected {
+                            theme.heading_h2
+                        } else {
+                            theme.footer
+                        })
+                        .bg(line_bg),
                 ),
             ]));
+
+            // ── WYSIWYG: rendered block content ──────────────────────────────
+            // Use the same renderer as the presenter so what you see here is
+            // exactly what will be shown on the slide.
+            let rendered = render_block(block, theme, preview_width);
+            for content_line in rendered {
+                // Prepend the selection gutter to each rendered line.
+                let mut spans = vec![
+                    Span::styled(bar, Style::default().fg(bar_color).bg(line_bg)),
+                    Span::styled(" ", Style::default().bg(line_bg)),
+                ];
+                for span in content_line.spans {
+                    // Tint unselected blocks slightly to distinguish from selected.
+                    spans.push(if is_selected {
+                        span
+                    } else {
+                        Span::styled(span.content, span.style.bg(theme.surface))
+                    });
+                }
+                detail_lines.push(Line::from(spans));
+            }
+
+            // Separator between blocks.
+            detail_lines.push(Line::from(Span::styled(
+                if is_selected {
+                    "▌ ─────"
+                } else {
+                    "│ "
+                },
+                Style::default().fg(bar_color),
+            )));
         }
+    }
+
+    // Show inline editor buffer inline within the preview when active.
+    if let Some(buffer) = view_state.inline_text_input {
+        detail_lines.push(Line::default());
+        detail_lines.push(Line::from(Span::styled(
+            " ✎  Inline Editor  ─  Enter/Esc=commit  Ctrl+C=cancel",
+            Style::default().fg(theme.heading_h2),
+        )));
+        detail_lines.push(Line::from(Span::styled(
+            format!(" {buffer}_"),
+            Style::default()
+                .fg(theme.on_surface)
+                .add_modifier(Modifier::BOLD | Modifier::UNDERLINED),
+        )));
     }
 
     if !view_state.block_warning_messages.is_empty() {
@@ -445,30 +511,29 @@ pub fn render_editor(
         }
     }
 
-    if let Some(buffer) = view_state.inline_text_input {
-        detail_lines.push(Line::default());
-        detail_lines.push(Line::from(Span::styled(
-            "Inline Editor  Enter/Esc=commit  Ctrl+C=cancel",
-            Style::default().fg(theme.heading_h2),
-        )));
-        detail_lines.push(Line::from(Span::styled(
-            truncate(buffer, 220),
-            Style::default()
-                .fg(theme.on_surface)
-                .add_modifier(Modifier::BOLD),
-        )));
-    }
+    // Apply scroll offset to the detail pane (WYSIWYG preview scrolling).
+    let scroll = view_state.detail_scroll_offset as u16;
+
+    let detail_title = if view_state.detail_scroll_offset > 0 {
+        format!(
+            " Slide Preview  [scroll: {}] ",
+            view_state.detail_scroll_offset
+        )
+    } else {
+        " Slide Preview  [Tab] focus ·  j/k scroll ".to_string()
+    };
 
     let detail = Paragraph::new(detail_lines)
         .block(
             Block::default()
-                .title(" Node Detail ")
+                .title(detail_title)
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(detail_border))
                 .style(Style::default().bg(theme.surface)),
         )
         .style(Style::default().fg(theme.foreground))
-        .wrap(Wrap { trim: true });
+        .scroll((scroll, 0))
+        .wrap(Wrap { trim: false });
 
     frame.render_widget(detail, detail_area);
 

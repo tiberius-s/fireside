@@ -65,10 +65,12 @@ pub fn render_mode_badge(frame: &mut Frame, area: Rect, kind: ModeBadgeKind, the
     };
 
     let color = kind.color(theme);
+    // Use toolbar_bg (darker than surface) so the badge reads as a distinct
+    // floating panel rather than blending into the surface background.
     let block = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::default().fg(color))
-        .style(Style::default().bg(theme.border_inactive));
+        .style(Style::default().bg(theme.toolbar_bg));
     let inner = block.inner(badge);
 
     frame.render_widget(block, badge);

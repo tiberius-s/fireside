@@ -138,7 +138,9 @@ pub fn render_branch_overlay(
         let (badge_fg, badge_bg) = if is_focused {
             (theme.toolbar_bg, theme.heading_h1)
         } else {
-            (theme.footer, theme.surface)
+            // Unfocused keys need to remain legible — use foreground on surface
+            // instead of the dim footer colour so options are scannable.
+            (theme.foreground, theme.surface)
         };
 
         let label_style = Style::default()

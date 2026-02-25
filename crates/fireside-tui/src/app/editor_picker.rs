@@ -220,6 +220,8 @@ impl App {
             self.editor_selected_block = self.selected_node_block_count().saturating_sub(1);
             self.editor_status = Some(format!("Appended {name} block"));
             self.sync_editor_selection_bounds();
+            // Auto-scroll the WYSIWYG preview to reveal the newly appended block.
+            self.scroll_detail_to_selected_block();
         }
     }
 }

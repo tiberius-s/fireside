@@ -79,6 +79,10 @@ pub enum Action {
     EditorMoveBlockDown,
     /// Delete the selected content block from the current node.
     EditorRemoveBlock,
+    /// Scroll the WYSIWYG detail pane down one line.
+    EditorDetailScrollDown,
+    /// Scroll the WYSIWYG detail pane up one line.
+    EditorDetailScrollUp,
     /// Start inline editing of selected node speaker notes.
     EditorStartNotesEdit,
     /// Cycle selected node layout to next variant.

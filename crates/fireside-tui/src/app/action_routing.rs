@@ -202,6 +202,19 @@ impl App {
                     self.remove_selected_block();
                 }
             }
+            // Scroll the WYSIWYG detail preview by one line.
+            Action::EditorDetailScrollDown => {
+                if self.mode == AppMode::Editing {
+                    self.editor_detail_scroll_offset =
+                        self.editor_detail_scroll_offset.saturating_add(1);
+                }
+            }
+            Action::EditorDetailScrollUp => {
+                if self.mode == AppMode::Editing {
+                    self.editor_detail_scroll_offset =
+                        self.editor_detail_scroll_offset.saturating_sub(1);
+                }
+            }
             Action::EditorStartNotesEdit => {
                 if self.mode == AppMode::Editing {
                     let seed = self
@@ -425,7 +438,7 @@ impl App {
                     return;
                 }
 
-                if let Some(action) = map_key_to_action(key, &self.mode) {
+                if let Some(action) = map_key_to_action(key, &self.mode, self.editor_focus) {
                     self.update(action);
                 }
             }

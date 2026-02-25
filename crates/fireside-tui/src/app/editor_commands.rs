@@ -42,33 +42,42 @@ impl App {
         };
 
         let (seed, label) = match block {
-            ContentBlock::Heading { level, .. } => (level.to_string(), "Heading level (1-6)"),
+            ContentBlock::Heading { level, .. } => (
+                level.to_string(),
+                "Heading level — enter 1 (largest) to 6 (smallest)",
+            ),
             ContentBlock::Text { .. } => {
-                self.editor_status = Some("Text block has no secondary metadata field".to_string());
+                self.editor_status = Some(
+                    "Text blocks have no secondary field — use [i] to edit content".to_string(),
+                );
                 return;
             }
-            ContentBlock::Code { language, .. } => {
-                (language.clone().unwrap_or_default(), "Code language")
-            }
+            ContentBlock::Code { language, .. } => (
+                language.clone().unwrap_or_default(),
+                "Code language — e.g. rust, python, js, ts, go, bash",
+            ),
             ContentBlock::List { ordered, .. } => {
                 let mode = if *ordered { "ordered" } else { "unordered" };
-                (mode.to_string(), "List mode (ordered/unordered)")
+                (mode.to_string(), "List mode — type ordered or unordered")
             }
-            ContentBlock::Image { alt, .. } => (alt.clone(), "Image alt text"),
+            ContentBlock::Image { alt, .. } => (alt.clone(), "Image alt text (accessibility)"),
             ContentBlock::Divider => {
-                self.editor_status = Some("Divider has no secondary metadata field".to_string());
+                self.editor_status = Some(
+                    "Divider blocks have no secondary field — press [x] to delete".to_string(),
+                );
                 return;
             }
-            ContentBlock::Container { layout, .. } => {
-                (layout.clone().unwrap_or_default(), "Container layout")
-            }
+            ContentBlock::Container { layout, .. } => (
+                layout.clone().unwrap_or_default(),
+                "Container layout — e.g. horizontal, vertical",
+            ),
             ContentBlock::Extension { extension_type, .. } => {
-                (extension_type.clone(), "Extension type")
+                (extension_type.clone(), "Extension type identifier")
             }
         };
 
         self.start_inline_edit(EditorInlineTarget::BlockMetadataField { block_index }, seed);
-        self.editor_status = Some(format!("Editing {label} (block #{})", block_index + 1));
+        self.editor_status = Some(format!("{label}  (block #{})", block_index + 1));
     }
 
     pub(super) fn start_inline_edit(&mut self, target: EditorInlineTarget, seed: String) {
