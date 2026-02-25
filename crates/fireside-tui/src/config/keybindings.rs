@@ -82,6 +82,12 @@ fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
     match key.code {
         KeyCode::Char('j') | KeyCode::Down => Some(Action::EditorSelectNextNode),
         KeyCode::Char('k') | KeyCode::Up => Some(Action::EditorSelectPrevNode),
+        KeyCode::Char(',') => Some(Action::EditorSelectPrevBlock),
+        KeyCode::Char('.') => Some(Action::EditorSelectNextBlock),
+        KeyCode::Char('b') => Some(Action::EditorSelectNextBlock),
+        KeyCode::Char('B') => Some(Action::EditorSelectPrevBlock),
+        KeyCode::Char('J') | KeyCode::Char('<') => Some(Action::EditorMoveBlockUp),
+        KeyCode::Char('K') | KeyCode::Char('>') => Some(Action::EditorMoveBlockDown),
         KeyCode::PageDown => Some(Action::EditorPageDown),
         KeyCode::PageUp => Some(Action::EditorPageUp),
         KeyCode::Home => Some(Action::EditorJumpTop),
@@ -92,6 +98,7 @@ fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
         KeyCode::Char('g') => Some(Action::EditorStartIndexJump),
         KeyCode::Tab => Some(Action::EditorToggleFocus),
         KeyCode::Char('i') => Some(Action::EditorStartInlineEdit),
+        KeyCode::Char('m') => Some(Action::EditorStartInlineMetaEdit),
         KeyCode::Char('o') => Some(Action::EditorStartNotesEdit),
         KeyCode::Char('l') => Some(Action::EditorOpenLayoutPicker),
         KeyCode::Char('L') => Some(Action::EditorCycleLayoutPrev),
@@ -143,5 +150,56 @@ mod tests {
         let key = KeyEvent::new(KeyCode::Left, KeyModifiers::CONTROL);
         let action = map_key_to_action(key, &AppMode::Presenting);
         assert_eq!(action, Some(Action::JumpToBranchPoint));
+    }
+
+    #[test]
+    fn editing_b_selects_next_block() {
+        let key = KeyEvent::new(KeyCode::Char('b'), KeyModifiers::NONE);
+        let action = map_key_to_action(key, &AppMode::Editing);
+        assert_eq!(action, Some(Action::EditorSelectNextBlock));
+    }
+
+    #[test]
+    fn editing_shift_b_selects_prev_block() {
+        let key = KeyEvent::new(KeyCode::Char('B'), KeyModifiers::SHIFT);
+        let action = map_key_to_action(key, &AppMode::Editing);
+        assert_eq!(action, Some(Action::EditorSelectPrevBlock));
+    }
+
+    #[test]
+    fn editing_comma_and_period_select_blocks() {
+        let prev_key = KeyEvent::new(KeyCode::Char(','), KeyModifiers::NONE);
+        let next_key = KeyEvent::new(KeyCode::Char('.'), KeyModifiers::NONE);
+
+        assert_eq!(
+            map_key_to_action(prev_key, &AppMode::Editing),
+            Some(Action::EditorSelectPrevBlock)
+        );
+        assert_eq!(
+            map_key_to_action(next_key, &AppMode::Editing),
+            Some(Action::EditorSelectNextBlock)
+        );
+    }
+
+    #[test]
+    fn editing_shift_jk_move_blocks() {
+        let up_key = KeyEvent::new(KeyCode::Char('J'), KeyModifiers::SHIFT);
+        let down_key = KeyEvent::new(KeyCode::Char('K'), KeyModifiers::SHIFT);
+
+        assert_eq!(
+            map_key_to_action(up_key, &AppMode::Editing),
+            Some(Action::EditorMoveBlockUp)
+        );
+        assert_eq!(
+            map_key_to_action(down_key, &AppMode::Editing),
+            Some(Action::EditorMoveBlockDown)
+        );
+    }
+
+    #[test]
+    fn editing_m_starts_metadata_edit() {
+        let key = KeyEvent::new(KeyCode::Char('m'), KeyModifiers::NONE);
+        let action = map_key_to_action(key, &AppMode::Editing);
+        assert_eq!(action, Some(Action::EditorStartInlineMetaEdit));
     }
 }

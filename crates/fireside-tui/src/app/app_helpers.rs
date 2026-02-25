@@ -72,6 +72,93 @@ pub(super) fn update_block_from_inline_text(existing: ContentBlock, text: String
     }
 }
 
+pub(super) fn update_block_metadata_from_inline_text(
+    existing: ContentBlock,
+    text: String,
+) -> Result<ContentBlock, String> {
+    match existing {
+        ContentBlock::Heading { text: heading_text, .. } => {
+            let trimmed = text.trim();
+            let Ok(level) = trimmed.parse::<u8>() else {
+                return Err("Heading level must be a number from 1 to 6".to_string());
+            };
+            if !(1..=6).contains(&level) {
+                return Err("Heading level must be between 1 and 6".to_string());
+            }
+
+            Ok(ContentBlock::Heading {
+                level,
+                text: heading_text,
+            })
+        }
+        ContentBlock::Text { body } => {
+            Err(format!("Text block has no editable metadata field (body: {body})"))
+        }
+        ContentBlock::Code {
+            source,
+            highlight_lines,
+            show_line_numbers,
+            ..
+        } => {
+            let language = if text.trim().is_empty() {
+                None
+            } else {
+                Some(text.trim().to_string())
+            };
+
+            Ok(ContentBlock::Code {
+                language,
+                source,
+                highlight_lines,
+                show_line_numbers,
+            })
+        }
+        ContentBlock::List { items, .. } => {
+            let normalized = text.trim().to_ascii_lowercase();
+            let ordered = match normalized.as_str() {
+                "ordered" | "true" | "yes" | "1" => true,
+                "unordered" | "false" | "no" | "0" => false,
+                _ => {
+                    return Err(
+                        "List mode must be one of: ordered, unordered, true, false, 1, 0"
+                            .to_string(),
+                    );
+                }
+            };
+
+            Ok(ContentBlock::List { ordered, items })
+        }
+        ContentBlock::Image { src, caption, .. } => Ok(ContentBlock::Image {
+            src,
+            alt: text,
+            caption,
+        }),
+        ContentBlock::Divider => Err("Divider has no editable metadata field".to_string()),
+        ContentBlock::Container { children, .. } => {
+            let layout = if text.trim().is_empty() {
+                None
+            } else {
+                Some(text.trim().to_string())
+            };
+            Ok(ContentBlock::Container { layout, children })
+        }
+        ContentBlock::Extension {
+            fallback, payload, ..
+        } => {
+            let extension_type = text.trim().to_string();
+            if extension_type.is_empty() {
+                return Err("Extension type cannot be empty".to_string());
+            }
+
+            Ok(ContentBlock::Extension {
+                extension_type,
+                fallback,
+                payload,
+            })
+        }
+    }
+}
+
 pub(super) fn score_node_id_match(candidate: &str, tokens: &[String]) -> Option<usize> {
     let mut total_score = 0usize;
     for token in tokens {

@@ -35,6 +35,42 @@ impl App {
         self.editor_status = Some(format!("Editing {label} (block #{})", block_index + 1));
     }
 
+    pub(super) fn start_selected_block_metadata_edit(&mut self) {
+        let Some((block_index, block)) = self.selected_block_with_index() else {
+            self.editor_status = Some("No content blocks to edit".to_string());
+            return;
+        };
+
+        let (seed, label) = match block {
+            ContentBlock::Heading { level, .. } => (level.to_string(), "Heading level (1-6)"),
+            ContentBlock::Text { .. } => {
+                self.editor_status = Some("Text block has no secondary metadata field".to_string());
+                return;
+            }
+            ContentBlock::Code { language, .. } => {
+                (language.clone().unwrap_or_default(), "Code language")
+            }
+            ContentBlock::List { ordered, .. } => {
+                let mode = if *ordered { "ordered" } else { "unordered" };
+                (mode.to_string(), "List mode (ordered/unordered)")
+            }
+            ContentBlock::Image { alt, .. } => (alt.clone(), "Image alt text"),
+            ContentBlock::Divider => {
+                self.editor_status = Some("Divider has no secondary metadata field".to_string());
+                return;
+            }
+            ContentBlock::Container { layout, .. } => {
+                (layout.clone().unwrap_or_default(), "Container layout")
+            }
+            ContentBlock::Extension { extension_type, .. } => {
+                (extension_type.clone(), "Extension type")
+            }
+        };
+
+        self.start_inline_edit(EditorInlineTarget::BlockMetadataField { block_index }, seed);
+        self.editor_status = Some(format!("Editing {label} (block #{})", block_index + 1));
+    }
+
     pub(super) fn start_inline_edit(&mut self, target: EditorInlineTarget, seed: String) {
         let idx = self.editor_selected_node;
         if self.session.graph.nodes.get(idx).is_none() {
@@ -123,6 +159,42 @@ impl App {
                 };
                 if self.session.execute_command(command).is_ok() {
                     self.editor_status = Some(format!("Updated block #{}", block_index + 1));
+                }
+            }
+            EditorInlineTarget::BlockMetadataField { block_index } => {
+                let node_id = match self.session.ensure_node_id(idx) {
+                    Ok(id) => id,
+                    Err(_) => return,
+                };
+
+                let Some(existing) = self
+                    .session
+                    .graph
+                    .nodes
+                    .get(idx)
+                    .and_then(|node| node.content.get(block_index))
+                    .cloned()
+                else {
+                    self.editor_status = Some("Inline edit failed: block not found".to_string());
+                    return;
+                };
+
+                let updated = match update_block_metadata_from_inline_text(existing, text) {
+                    Ok(block) => block,
+                    Err(err) => {
+                        self.editor_status = Some(err);
+                        return;
+                    }
+                };
+
+                let command = Command::UpdateBlock {
+                    node_id,
+                    block_index,
+                    block: updated,
+                };
+                if self.session.execute_command(command).is_ok() {
+                    self.editor_status =
+                        Some(format!("Updated block #{} metadata", block_index + 1));
                 }
             }
             EditorInlineTarget::SpeakerNotes => {

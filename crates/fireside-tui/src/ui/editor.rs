@@ -15,9 +15,9 @@ use crate::design::tokens::Breakpoint;
 use crate::theme::Theme;
 use crate::ui::chrome::render_undo_redo_chips;
 use crate::ui::editor_parts::{
-    adjacent_layouts, adjacent_transitions, block_summary, block_type_glyph, metadata_chip_row_layout,
-    metadata_chip_row_transition, node_label, popup_area, render_picker_overlay, section_header,
-    traversal_summary_lines, truncate,
+    adjacent_layouts, adjacent_transitions, block_summary, block_type_glyph,
+    metadata_chip_row_layout, metadata_chip_row_transition, node_label, popup_area,
+    render_picker_overlay, section_header, traversal_summary_lines, truncate,
 };
 use crate::ui::graph::{GraphOverlayViewState, render_graph_overlay};
 use crate::ui::help::{HelpMode, render_help_overlay};
@@ -225,6 +225,12 @@ pub fn render_editor(
                     key("i"),
                     hint(" edit block"),
                     sep(),
+                    key("m"),
+                    hint(" edit metadata"),
+                    sep(),
+                    key("./, b/B"),
+                    hint(" block ±"),
+                    sep(),
                     key("a"),
                     hint(" append"),
                     sep(),
@@ -232,11 +238,11 @@ pub fn render_editor(
                     hint(" delete"),
                 ]),
                 Line::from(vec![
-                    key("Ctrl+j/k"),
-                    hint(" block ±"),
+                    key("J/K"),
+                    hint(" move block"),
                     sep(),
                     key("Alt+j/k"),
-                    hint(" move block"),
+                    hint(" move block (alt)"),
                 ]),
                 Line::from(vec![
                     key("n"),
@@ -499,7 +505,7 @@ pub fn render_editor(
     // Pending exit confirmation
     if view_state.pending_exit_confirmation {
         status_spans.push(Span::styled(
-            "  Save and quit? y=yes n=no s=save-first Esc=cancel",
+            "  Unsaved changes: s=save+exit n=discard+exit Esc=cancel",
             Style::default()
                 .fg(theme.error)
                 .bg(theme.toolbar_bg)

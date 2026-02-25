@@ -20,6 +20,7 @@ use self::app_helpers::{
     block_type_variants, bump_index, centered_popup, digit_to_index, is_editor_actionable_warning,
     layout_variants, next_search_hit_from, picker_row_span, point_in_rect, prev_search_hit_from,
     score_node_id_match, search_tokens, transition_variants, update_block_from_inline_text,
+    update_block_metadata_from_inline_text,
 };
 
 use crate::config::keybindings::map_key_to_action;
@@ -55,6 +56,7 @@ pub enum EditorPaneFocus {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum EditorInlineTarget {
     BlockField { block_index: usize },
+    BlockMetadataField { block_index: usize },
     SpeakerNotes,
 }
 
@@ -433,10 +435,10 @@ impl App {
             self.pending_exit_action = Some(action);
             if self.mode == AppMode::Editing {
                 self.editor_status =
-                    Some("Unsaved changes: y=yes n=no s=save-first Esc=cancel".to_string());
+                    Some("Unsaved changes: s=save+exit n=discard+exit Esc=cancel".to_string());
             }
             self.set_flash(
-                "Unsaved changes: y=yes n=no s=save-first Esc=cancel",
+                "Unsaved changes: s=save+exit n=discard+exit Esc=cancel",
                 FlashKind::Warning,
             );
             return;
@@ -451,7 +453,15 @@ impl App {
         }
 
         match code {
-            KeyCode::Char('y') | KeyCode::Char('Y') => {
+            KeyCode::Char('y')
+            | KeyCode::Char('Y')
+            | KeyCode::Char('n')
+            | KeyCode::Char('N')
+            | KeyCode::Char('d')
+            | KeyCode::Char('D')
+            | KeyCode::Char('q')
+            | KeyCode::Char('Q')
+            | KeyCode::Enter => {
                 let action = self.pending_exit_action.take();
                 if let Some(action) = action {
                     self.apply_exit_action(action);
@@ -468,7 +478,7 @@ impl App {
                 }
                 true
             }
-            KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+            KeyCode::Esc => {
                 self.pending_exit_action = None;
                 if self.mode == AppMode::Editing {
                     self.editor_status = Some("Stayed in editor".to_string());

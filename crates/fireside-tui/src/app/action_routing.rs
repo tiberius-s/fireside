@@ -172,6 +172,11 @@ impl App {
                     self.start_selected_block_edit();
                 }
             }
+            Action::EditorStartInlineMetaEdit => {
+                if self.mode == AppMode::Editing {
+                    self.start_selected_block_metadata_edit();
+                }
+            }
             Action::EditorSelectNextBlock => {
                 if self.mode == AppMode::Editing {
                     self.editor_select_next_block();

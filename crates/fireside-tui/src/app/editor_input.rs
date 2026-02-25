@@ -1,6 +1,33 @@
 use super::*;
 
 impl App {
+    fn detail_block_index_at_row(&self, detail_area: Rect, row: u16) -> Option<usize> {
+        let content = self
+            .session
+            .graph
+            .nodes
+            .get(self.editor_selected_node)?
+            .content
+            .as_slice();
+        if content.is_empty() {
+            return None;
+        }
+
+        const CONTENT_BLOCKS_FIRST_ROW: u16 = 9;
+        let detail_inner_top = detail_area.y.saturating_add(1);
+        let first_block_row = detail_inner_top.saturating_add(CONTENT_BLOCKS_FIRST_ROW);
+        if row < first_block_row {
+            return None;
+        }
+
+        let block_index = row.saturating_sub(first_block_row) as usize;
+        if block_index < content.len() {
+            Some(block_index)
+        } else {
+            None
+        }
+    }
+
     pub(super) fn load_editor_preferences(&mut self) {
         let prefs = load_editor_ui_prefs();
         self.editor_focus = match prefs.last_focus.as_str() {
@@ -83,6 +110,11 @@ impl App {
         if point_in_rect(column, row, detail_area) {
             self.editor_focus = EditorPaneFocus::NodeDetail;
             self.persist_editor_preferences();
+
+            if let Some(block_index) = self.detail_block_index_at_row(detail_area, row) {
+                self.editor_selected_block = block_index;
+                self.editor_status = Some(format!("Selected block #{}", block_index + 1));
+            }
         }
     }
 

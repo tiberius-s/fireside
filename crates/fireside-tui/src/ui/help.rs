@@ -123,20 +123,20 @@ const KEYBINDINGS: &[HelpEntry] = &[
     },
     HelpEntry {
         section: "Editor",
-        key: "i / o",
-        desc: "Edit selected block / speaker notes",
+        key: "i / m / o",
+        desc: "Edit block text / block metadata / speaker notes",
         modes: MODE_EDITING,
     },
     HelpEntry {
         section: "Editor",
-        key: "Ctrl+j / Ctrl+k",
+        key: "./, or b/B",
         desc: "Select next / previous content block",
         modes: MODE_EDITING,
     },
     HelpEntry {
         section: "Editor",
-        key: "Alt+j / Alt+k",
-        desc: "Move selected content block down / up",
+        key: "J/K (or Alt+j/k)",
+        desc: "Move selected content block up / down",
         modes: MODE_EDITING,
     },
     HelpEntry {

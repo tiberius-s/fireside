@@ -67,6 +67,8 @@ pub enum Action {
     EditorToggleFocus,
     /// Start inline editing of selected node text content.
     EditorStartInlineEdit,
+    /// Start inline editing of selected block metadata field.
+    EditorStartInlineMetaEdit,
     /// Select next content block in selected node.
     EditorSelectNextBlock,
     /// Select previous content block in selected node.
