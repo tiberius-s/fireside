@@ -248,12 +248,13 @@ fn footer_hints(width: u16, is_branch: bool) -> (String, String) {
         );
     }
 
+    // At wide terminals, surface commonly-missed features so they're discoverable.
     (
         " [←] prev ".to_string(),
         if is_branch {
             " ⎇ BRANCH  ·  [?] help  ·  [e] edit ".to_string()
         } else {
-            " next [→]  ·  [?] help  ·  [e] edit ".to_string()
+            " next [→]  ·  [s] notes  ·  [Ctrl+F] zen  ·  [?] help  ·  [e] edit ".to_string()
         },
     )
 }

@@ -273,8 +273,13 @@ pub fn render_presenter(
 fn render_goto_badge(frame: &mut Frame, area: Rect, buffer: &str, theme: &Theme) {
     // Small badge in the top-right: `GOTO: <buffer>_`
     // Gold border (heading_h3), surface bg.
-    let text = format!(" GOTO: {buffer}_ ");
-    let badge_width = (text.chars().count() as u16 + 2).min(area.width);
+    // Shows "type number or ID prefix" hint when the buffer is empty.
+    let hint = if buffer.is_empty() {
+        " type number or ID prefix ".to_string()
+    } else {
+        format!(" GOTO: {buffer}_ ")
+    };
+    let badge_width = (hint.chars().count() as u16 + 2).min(area.width);
     let badge_height = 3u16;
     if area.width < badge_width || area.height < badge_height {
         return;
@@ -294,7 +299,7 @@ fn render_goto_badge(frame: &mut Frame, area: Rect, buffer: &str, theme: &Theme)
     frame.render_widget(block, badge);
     frame.render_widget(
         Paragraph::new(Line::from(Span::styled(
-            &text,
+            &hint,
             Style::default()
                 .fg(theme.heading_h3)
                 .add_modifier(Modifier::BOLD),
@@ -376,11 +381,25 @@ fn render_goto_autocomplete(
     frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
+/// Collect up to `limit` nodes whose IDs start with `buffer` (case-insensitive),
+/// OR — when `buffer` is all-digits — the node at the corresponding 1-based index.
 fn goto_matches<'a>(
     session: &'a PresentationSession,
     buffer: &str,
     limit: usize,
 ) -> Vec<(usize, &'a str, Option<String>)> {
+    // Numeric: return the node at the 1-based index as the sole result.
+    if let Ok(num) = buffer.parse::<usize>() {
+        let idx = num.saturating_sub(1);
+        if let Some(node) = session.graph.nodes.get(idx) {
+            let id = node.id.as_deref().unwrap_or("(no id)");
+            let title = node.title.clone();
+            return vec![(idx, id, title)];
+        }
+        return vec![];
+    }
+
+    // Text prefix: match node IDs.
     let prefix = buffer.to_ascii_lowercase();
     session
         .graph

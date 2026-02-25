@@ -65,6 +65,26 @@ pub enum Command {
         node_id: NodeId,
     },
 
+    /// Remove a specific content block from a node.
+    RemoveBlock {
+        /// Target node ID.
+        node_id: NodeId,
+        /// Zero-based index of the block to remove.
+        block_index: usize,
+    },
+
+    /// Insert a content block into a node at a specific position.
+    ///
+    /// Used as the undo inverse of `RemoveBlock`.
+    InsertBlock {
+        /// Target node ID.
+        node_id: NodeId,
+        /// Zero-based insertion index.
+        block_index: usize,
+        /// The block to insert.
+        block: ContentBlock,
+    },
+
     /// Set the traversal next override for a node.
     SetTraversalNext {
         /// Source node ID.
@@ -401,6 +421,57 @@ fn apply_command(graph: &mut Graph, command: &Command) -> Result<Command, Engine
 
             Ok(inverse)
         }
+        Command::RemoveBlock {
+            node_id,
+            block_index,
+        } => {
+            let idx = graph.index_of(node_id).ok_or_else(|| {
+                EngineError::CommandError(format!("node id '{node_id}' not found"))
+            })?;
+
+            let node = graph
+                .nodes
+                .get_mut(idx)
+                .ok_or_else(|| EngineError::CommandError("node index out of bounds".into()))?;
+
+            if *block_index >= node.content.len() {
+                return Err(EngineError::CommandError(format!(
+                    "block index {block_index} out of bounds for node '{node_id}'"
+                )));
+            }
+
+            let removed = node.content.remove(*block_index);
+
+            // Inverse: re-insert the removed block at the same position.
+            Ok(Command::InsertBlock {
+                node_id: node_id.clone(),
+                block_index: *block_index,
+                block: removed,
+            })
+        }
+        Command::InsertBlock {
+            node_id,
+            block_index,
+            block,
+        } => {
+            let idx = graph.index_of(node_id).ok_or_else(|| {
+                EngineError::CommandError(format!("node id '{node_id}' not found"))
+            })?;
+
+            let node = graph
+                .nodes
+                .get_mut(idx)
+                .ok_or_else(|| EngineError::CommandError("node index out of bounds".into()))?;
+
+            let insert_at = (*block_index).min(node.content.len());
+            node.content.insert(insert_at, block.clone());
+
+            // Inverse: remove the block we just inserted.
+            Ok(Command::RemoveBlock {
+                node_id: node_id.clone(),
+                block_index: insert_at,
+            })
+        }
     }
 }
 
@@ -566,5 +637,55 @@ mod tests {
             _ => panic!("expected text block"),
         };
         assert_eq!(first_body_after_undo, "one");
+    }
+
+    #[test]
+    fn remove_block_roundtrips_with_undo_redo() {
+        let mut graph = load_graph_from_str(
+            r#"{
+            "nodes": [
+              {
+                "id": "n1",
+                "content": [
+                  {"kind":"text","body":"first"},
+                  {"kind":"text","body":"second"}
+                ]
+              }
+            ]
+          }"#,
+        )
+        .expect("graph should parse");
+        let mut history = CommandHistory::new();
+
+        // Remove the first block.
+        history
+            .apply_command(
+                &mut graph,
+                Command::RemoveBlock {
+                    node_id: "n1".to_string(),
+                    block_index: 0,
+                },
+            )
+            .expect("remove block should succeed");
+
+        assert_eq!(graph.nodes[0].content.len(), 1);
+        let remaining = match &graph.nodes[0].content[0] {
+            ContentBlock::Text { body } => body,
+            _ => panic!("expected text block"),
+        };
+        assert_eq!(remaining, "second");
+
+        // Undo restores both blocks.
+        assert!(history.undo(&mut graph).expect("undo should succeed"));
+        assert_eq!(graph.nodes[0].content.len(), 2);
+        let first = match &graph.nodes[0].content[0] {
+            ContentBlock::Text { body } => body,
+            _ => panic!("expected text block"),
+        };
+        assert_eq!(first, "first");
+
+        // Redo removes it again.
+        assert!(history.redo(&mut graph).expect("redo should succeed"));
+        assert_eq!(graph.nodes[0].content.len(), 1);
     }
 }

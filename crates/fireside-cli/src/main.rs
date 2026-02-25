@@ -13,7 +13,7 @@ mod commands;
 use commands::fonts::list_fonts;
 use commands::project::run_project;
 use commands::scaffold::{scaffold_presentation, scaffold_project};
-use commands::session::{run_editor, run_presentation, run_welcome};
+use commands::session::{run_editor, run_presentation, run_presentation_plain, run_welcome};
 use commands::theme::import_iterm2_theme;
 use commands::validate::run_validate;
 
@@ -49,6 +49,10 @@ enum Command {
         /// Optional target duration in minutes for pace guidance in the footer timer.
         #[arg(long)]
         target_minutes: Option<u64>,
+
+        /// Export plain-text (non-TUI) representation and exit.
+        #[arg(long)]
+        plain: bool,
     },
 
     /// Open a Fireside project directory.
@@ -123,14 +127,25 @@ fn main() -> Result<()> {
             start,
             edit,
             target_minutes,
+            plain,
         }) => {
-            run_presentation(
-                &file,
-                theme.as_deref(),
-                start,
-                edit,
-                target_minutes.map(|minutes| minutes.saturating_mul(60)),
-            )?;
+            if plain {
+                run_presentation_plain(
+                    &file,
+                    theme.as_deref(),
+                    start,
+                    edit,
+                    target_minutes.map(|minutes| minutes.saturating_mul(60)),
+                )?;
+            } else {
+                run_presentation(
+                    &file,
+                    theme.as_deref(),
+                    start,
+                    edit,
+                    target_minutes.map(|minutes| minutes.saturating_mul(60)),
+                )?;
+            }
         }
         Some(Command::Open { dir, theme }) => {
             run_project(&dir, theme.as_deref())?;

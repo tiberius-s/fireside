@@ -64,7 +64,7 @@ const KEYBINDINGS: &[HelpEntry] = &[
     HelpEntry {
         section: "Navigation",
         key: "g",
-        desc: "Go to node (enter number)",
+        desc: "Go to node (type number or ID prefix, Enter to jump)",
         modes: MODE_PRESENTING,
     },
     HelpEntry {
@@ -99,9 +99,15 @@ const KEYBINDINGS: &[HelpEntry] = &[
     },
     HelpEntry {
         section: "Editor",
-        key: "e / Esc",
-        desc: "Enter / exit editor mode",
-        modes: MODE_BOTH,
+        key: "e",
+        desc: "Enter editor mode",
+        modes: MODE_PRESENTING,
+    },
+    HelpEntry {
+        section: "Editor",
+        key: "Esc",
+        desc: "Exit editor mode → presenter",
+        modes: MODE_EDITING,
     },
     HelpEntry {
         section: "Editor",
@@ -141,8 +147,8 @@ const KEYBINDINGS: &[HelpEntry] = &[
     },
     HelpEntry {
         section: "Editor",
-        key: "a / n / d",
-        desc: "Append block, add node, remove node",
+        key: "a / x / n / d",
+        desc: "Append block, delete block, add node, remove node",
         modes: MODE_EDITING,
     },
     HelpEntry {

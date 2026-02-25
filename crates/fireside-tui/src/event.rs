@@ -77,6 +77,8 @@ pub enum Action {
     EditorMoveBlockUp,
     /// Move selected content block down within selected node.
     EditorMoveBlockDown,
+    /// Delete the selected content block from the current node.
+    EditorRemoveBlock,
     /// Start inline editing of selected node speaker notes.
     EditorStartNotesEdit,
     /// Cycle selected node layout to next variant.
@@ -105,6 +107,10 @@ pub enum Action {
     EnterGotoMode,
     /// A digit was entered in go-to mode.
     GotoDigit(usize),
+    /// A non-digit character was entered in go-to mode (for ID-prefix search).
+    GotoChar(char),
+    /// Backspace was pressed in go-to mode.
+    GotoBackspace,
     /// Confirm the go-to node number.
     GotoConfirm,
     /// Cancel go-to mode.

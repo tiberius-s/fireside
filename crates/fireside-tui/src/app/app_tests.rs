@@ -509,6 +509,52 @@ fn goto_mode_cancel_preserves_current_index() {
 }
 
 #[test]
+fn goto_mode_text_id_prefix_jumps_to_matching_node() {
+    let session = PresentationSession::new(graph_with_ids(&["alpha", "beta", "gamma"]), 0);
+    let mut app = App::new(session, Theme::default());
+
+    app.update(Action::EnterGotoMode);
+    app.update(Action::GotoChar('b'));
+    app.update(Action::GotoChar('e'));
+    app.update(Action::GotoConfirm);
+
+    assert_eq!(app.mode, AppMode::Presenting);
+    assert_eq!(app.session.current_node_index(), 1);
+}
+
+#[test]
+fn goto_mode_backspace_removes_last_char() {
+    let session = PresentationSession::new(graph_with_ids(&["alpha", "beta"]), 0);
+    let mut app = App::new(session, Theme::default());
+
+    app.update(Action::EnterGotoMode);
+    // Type "bx", then backspace → "b" → confirm jumps to "beta"
+    app.update(Action::GotoChar('b'));
+    app.update(Action::GotoChar('x'));
+    app.update(Action::GotoBackspace);
+    app.update(Action::GotoConfirm);
+
+    assert_eq!(app.mode, AppMode::Presenting);
+    assert_eq!(app.session.current_node_index(), 1);
+}
+
+#[test]
+fn editor_remove_block_deletes_selected_block() {
+    let session = PresentationSession::new(graph_with_content_blocks(), 0);
+    let mut app = App::new(session, Theme::default());
+    app.enter_edit_mode();
+
+    // Select second block (index 1) and delete it.
+    app.editor_selected_block = 1;
+    let initial_count = app.session.graph.nodes[0].content.len();
+    app.update(Action::EditorRemoveBlock);
+
+    assert_eq!(app.session.graph.nodes[0].content.len(), initial_count - 1);
+    // Selection clamped to last remaining block.
+    assert!(app.editor_selected_block < app.session.graph.nodes[0].content.len());
+}
+
+#[test]
 fn exit_edit_mode_dirty_cancel_stays_in_editor() {
     let session = PresentationSession::new(graph_with_ids(&["a", "b", "c"]), 1);
     let mut app = App::new(session, Theme::default());

@@ -74,6 +74,38 @@ impl App {
         ));
     }
 
+    /// Delete the currently selected content block from the selected node.
+    pub(super) fn remove_selected_block(&mut self) {
+        let count = self.selected_node_block_count();
+        if count == 0 {
+            self.editor_status = Some("No content blocks to delete".to_string());
+            return;
+        }
+
+        let block_index = self.editor_selected_block.min(count - 1);
+        let node_index = self.editor_selected_node;
+        let node_id = match self.session.ensure_node_id(node_index) {
+            Ok(id) => id,
+            Err(_) => return,
+        };
+
+        let command = Command::RemoveBlock {
+            node_id,
+            block_index,
+        };
+
+        if self.session.execute_command(command).is_ok() {
+            // Keep the selection within bounds after removal.
+            let new_count = self.selected_node_block_count();
+            if new_count > 0 {
+                self.editor_selected_block = block_index.min(new_count - 1);
+            } else {
+                self.editor_selected_block = 0;
+            }
+            self.editor_status = Some(format!("Deleted block #{}", block_index + 1));
+        }
+    }
+
     pub(super) fn move_selected_block(&mut self, forward: bool) {
         let count = self.selected_node_block_count();
         if count < 2 {
@@ -380,9 +412,10 @@ impl App {
         }
 
         let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+        // Length(2) mirrors render_editor's status-bar row constraint.
         let sections = RatatuiLayout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .constraints([Constraint::Min(1), Constraint::Length(2)])
             .split(root);
 
         let window = graph_overlay_window(
@@ -409,7 +442,7 @@ impl App {
             let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
             let sections = RatatuiLayout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Min(1), Constraint::Length(3)])
+                .constraints([Constraint::Min(1), Constraint::Length(2)])
                 .split(root);
             let body = RatatuiLayout::default()
                 .direction(Direction::Vertical)
@@ -421,7 +454,7 @@ impl App {
         let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
         let sections = RatatuiLayout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .constraints([Constraint::Min(1), Constraint::Length(2)])
             .split(root);
         let body = RatatuiLayout::default()
             .direction(Direction::Horizontal)
@@ -435,7 +468,7 @@ impl App {
         let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
         let sections = RatatuiLayout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .constraints([Constraint::Min(1), Constraint::Length(2)])
             .split(root);
 
         graph_overlay_page_span(

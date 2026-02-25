@@ -226,7 +226,7 @@ pub fn render_editor(
                     hint(" edit block"),
                     sep(),
                     key("m"),
-                    hint(" edit metadata"),
+                    hint(" meta"),
                     sep(),
                     key("./, b/B"),
                     hint(" block ±"),
@@ -234,8 +234,11 @@ pub fn render_editor(
                     key("a"),
                     hint(" append"),
                     sep(),
+                    key("x"),
+                    hint(" delete block"),
+                    sep(),
                     key("d"),
-                    hint(" delete"),
+                    hint(" del node"),
                 ]),
                 Line::from(vec![
                     key("J/K"),
@@ -255,7 +258,8 @@ pub fn render_editor(
                     key("w"),
                     hint(" save"),
                     sep(),
-                    key("e"),
+                    // Esc exits editor mode — e is not bound in editing mode
+                    key("Esc"),
                     hint(" → present"),
                 ]),
                 Line::from(vec![]),
@@ -343,11 +347,21 @@ pub fn render_editor(
     } else {
         for (idx, block) in node.content.iter().enumerate() {
             let is_selected = view_state.selected_block_index == Some(idx);
+            // Selected block gets a vivid left-bar glyph + background highlight for
+            // instant visual identification. Unselected blocks use the normal surface.
+            let bar = if is_selected { "▌" } else { " " };
+            let line_bg = if is_selected {
+                theme.border_inactive
+            } else {
+                theme.surface
+            };
             detail_lines.push(Line::from(vec![
+                Span::styled(bar, Style::default().fg(theme.border_active).bg(line_bg)),
                 Span::styled(
-                    format!("  {} ", block_type_glyph(block)),
+                    format!(" {} ", block_type_glyph(block)),
                     Style::default()
                         .fg(theme.heading_h2)
+                        .bg(line_bg)
                         .add_modifier(if is_selected {
                             Modifier::BOLD
                         } else {
@@ -356,23 +370,33 @@ pub fn render_editor(
                 ),
                 Span::styled(
                     format!("{:>2}. ", idx + 1),
-                    Style::default().fg(if is_selected {
-                        theme.heading_h1
-                    } else {
-                        theme.footer
-                    }),
+                    Style::default()
+                        .fg(if is_selected {
+                            theme.heading_h1
+                        } else {
+                            theme.footer
+                        })
+                        .bg(line_bg),
                 ),
                 Span::styled(
-                    truncate(&block_summary(block), 74),
-                    Style::default().fg(if is_selected {
-                        theme.on_surface
-                    } else {
-                        theme.foreground
-                    }),
+                    truncate(&block_summary(block), 68),
+                    Style::default()
+                        .fg(if is_selected {
+                            theme.on_surface
+                        } else {
+                            theme.foreground
+                        })
+                        .bg(line_bg)
+                        .add_modifier(if is_selected {
+                            Modifier::BOLD
+                        } else {
+                            Modifier::empty()
+                        }),
                 ),
+                // Subtle "edit" hint only on the selected row
                 Span::styled(
-                    if is_selected { "  ← selected" } else { "" },
-                    Style::default().fg(theme.heading_h1),
+                    if is_selected { "  [i] edit" } else { "" },
+                    Style::default().fg(theme.heading_h2).bg(line_bg),
                 ),
             ]));
         }
@@ -505,7 +529,7 @@ pub fn render_editor(
     // Pending exit confirmation
     if view_state.pending_exit_confirmation {
         status_spans.push(Span::styled(
-            "  Unsaved changes: s=save+exit n=discard+exit Esc=cancel",
+            "  Unsaved changes: s=save+exit  y=discard+exit  Esc=stay",
             Style::default()
                 .fg(theme.error)
                 .bg(theme.toolbar_bg)

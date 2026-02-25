@@ -435,10 +435,10 @@ impl App {
             self.pending_exit_action = Some(action);
             if self.mode == AppMode::Editing {
                 self.editor_status =
-                    Some("Unsaved changes: s=save+exit n=discard+exit Esc=cancel".to_string());
+                    Some("Unsaved changes: s=save+exit  y=discard+exit  Esc=stay".to_string());
             }
             self.set_flash(
-                "Unsaved changes: s=save+exit n=discard+exit Esc=cancel",
+                "Unsaved changes: s=save+exit  y=discard+exit  Esc=stay",
                 FlashKind::Warning,
             );
             return;

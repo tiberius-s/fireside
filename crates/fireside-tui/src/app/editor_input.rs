@@ -55,9 +55,11 @@ impl App {
 
     pub(super) fn handle_editor_mouse_click(&mut self, column: u16, row: u16) {
         let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+        // Length(2) must match render_editor's status-bar constraint exactly so that
+        // list_area / detail_area hit boxes align with what the user sees.
         let sections = RatatuiLayout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .constraints([Constraint::Min(1), Constraint::Length(2)])
             .split(root);
         let compact = self.terminal_size.0 <= 80;
         let (list_area, detail_area) = if compact {
@@ -128,9 +130,10 @@ impl App {
         };
 
         let root = Rect::new(0, 0, self.terminal_size.0, self.terminal_size.1);
+        // Length(2) must match render_editor status-bar constraint.
         let sections = RatatuiLayout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(1), Constraint::Length(3)])
+            .constraints([Constraint::Min(1), Constraint::Length(2)])
             .split(root);
 
         let popup = centered_popup(sections[0], 55, 65);

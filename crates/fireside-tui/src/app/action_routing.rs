@@ -197,6 +197,11 @@ impl App {
                     self.move_selected_block(true);
                 }
             }
+            Action::EditorRemoveBlock => {
+                if self.mode == AppMode::Editing {
+                    self.remove_selected_block();
+                }
+            }
             Action::EditorStartNotesEdit => {
                 if self.mode == AppMode::Editing {
                     let seed = self
@@ -277,18 +282,47 @@ impl App {
                     buffer.push_str(&digit.to_string());
                 }
             }
+            // Non-digit character appended to the goto buffer (for ID-prefix search).
+            Action::GotoChar(c) => {
+                if let AppMode::GotoNode { ref mut buffer } = self.mode {
+                    buffer.push(c);
+                }
+            }
+            // Backspace trims one character from the goto buffer.
+            Action::GotoBackspace => {
+                if let AppMode::GotoNode { ref mut buffer } = self.mode {
+                    buffer.pop();
+                }
+            }
             Action::GotoConfirm => {
-                if let AppMode::GotoNode { ref buffer } = self.mode
-                    && let Ok(num) = buffer.parse::<usize>()
-                {
-                    let idx = num.saturating_sub(1);
+                if let AppMode::GotoNode { ref buffer } = self.mode {
                     let from_index = self.session.current_node_index();
-                    let _ = self.session.traversal.goto(idx, &self.session.graph);
-                    let next_index = self.session.current_node_index();
-                    if next_index != from_index {
-                        self.record_navigation(next_index, false);
+                    // If the buffer is all-digits, treat it as a 1-based node index.
+                    // Otherwise, find the first node whose ID starts with the typed text.
+                    let target = if let Ok(num) = buffer.parse::<usize>() {
+                        Some(num.saturating_sub(1))
+                    } else {
+                        let buf = buffer.clone();
+                        self.session
+                            .graph
+                            .nodes
+                            .iter()
+                            .enumerate()
+                            .find(|(_, n)| {
+                                n.id.as_deref()
+                                    .map(|id| id.starts_with(buf.as_str()))
+                                    .unwrap_or(false)
+                            })
+                            .map(|(i, _)| i)
+                    };
+                    if let Some(idx) = target {
+                        let _ = self.session.traversal.goto(idx, &self.session.graph);
+                        let next_index = self.session.current_node_index();
+                        if next_index != from_index {
+                            self.record_navigation(next_index, false);
+                        }
+                        self.start_transition_if_needed(from_index);
                     }
-                    self.start_transition_if_needed(from_index);
                 }
                 self.mode = AppMode::Presenting;
             }

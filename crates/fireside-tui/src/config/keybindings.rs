@@ -105,6 +105,7 @@ fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
         KeyCode::Char('t') => Some(Action::EditorOpenTransitionPicker),
         KeyCode::Char('T') => Some(Action::EditorCycleTransitionPrev),
         KeyCode::Char('a') => Some(Action::EditorAppendTextBlock),
+        KeyCode::Char('x') => Some(Action::EditorRemoveBlock),
         KeyCode::Char('n') => Some(Action::EditorAddNode),
         KeyCode::Char('d') => Some(Action::EditorRemoveNode),
         KeyCode::Char('v') => Some(Action::EditorToggleGraphView),
@@ -119,12 +120,20 @@ fn map_edit_mode_key(key: KeyEvent) -> Option<Action> {
 }
 
 /// Map keys in go-to-node mode.
+///
+/// Accepts digits for numeric index jumps AND word characters / hyphens for
+/// ID-prefix searches. The `GotoConfirm` handler resolves the buffer as a
+/// 1-based numeric index first, then falls back to node-ID prefix matching.
 fn map_goto_mode_key(key: KeyEvent) -> Option<Action> {
     match key.code {
         KeyCode::Char(c) if c.is_ascii_digit() => {
             let digit = usize::from((c as u8) - b'0');
             Some(Action::GotoDigit(digit))
         }
+        KeyCode::Char(c) if c.is_alphanumeric() || c == '-' || c == '_' || c == '.' => {
+            Some(Action::GotoChar(c))
+        }
+        KeyCode::Backspace => Some(Action::GotoBackspace),
         KeyCode::Enter => Some(Action::GotoConfirm),
         KeyCode::Esc => Some(Action::GotoCancel),
         _ => None,

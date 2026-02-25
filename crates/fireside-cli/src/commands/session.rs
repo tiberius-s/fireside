@@ -19,6 +19,50 @@ use fireside_tui::{Action, App};
 
 use super::project::resolve_project_entry;
 
+/// Export a plain-text, non-interactive representation of the graph to stdout.
+/// Useful for CI, recording, or headless inspection.
+pub fn run_presentation_plain(
+    file: &Path,
+    _theme_name: Option<&str>,
+    start_node: usize,
+    _start_in_edit: bool,
+    _target_duration_secs: Option<u64>,
+) -> Result<()> {
+    let graph = load_graph(file).context("loading graph")?;
+
+    // Header
+    if let Some(title) = graph.metadata.title.as_deref() {
+        println!("Title: {}", title);
+    }
+    if let Some(author) = graph.metadata.author.as_deref() {
+        println!("Author: {}", author);
+    }
+    if let Some(desc) = graph.metadata.description.as_deref() {
+        println!();
+        println!("{}", desc);
+    }
+    println!();
+
+    let start_idx = start_node.saturating_sub(1).min(graph.nodes.len());
+    for (i, node) in graph.nodes.iter().enumerate().skip(start_idx) {
+        let num = i + 1;
+        let title = node.title.as_deref().unwrap_or("(no title)");
+        println!("--- Node {}: {} ---", num, title);
+
+        for block in &node.content {
+            // Print a stable JSON representation of the block for headless export
+            match serde_json::to_string_pretty(block) {
+                Ok(s) => println!("{}", s),
+                Err(e) => println!("<error serializing block: {}>", e),
+            }
+            println!();
+        }
+        println!();
+    }
+
+    Ok(())
+}
+
 /// Run the interactive presentation.
 ///
 /// When `start_in_edit` is `true` the TUI opens directly in editor mode,

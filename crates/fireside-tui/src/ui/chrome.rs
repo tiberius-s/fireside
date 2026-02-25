@@ -150,18 +150,19 @@ pub fn render_quit_confirmation_banner(frame: &mut Frame, area: Rect, theme: &Th
         return;
     }
 
+    // [y]/[n]/Enter = discard and exit; [s] = save first; [Esc] = stay.
+    // "Save and quit?" was misleading because [y] discards — use clear framing.
     frame.render_widget(
         Paragraph::new(Line::from(vec![
             Span::styled(
-                " Save and quit? ",
+                " Unsaved changes! ",
                 Style::default()
                     .fg(theme.error)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled("[y]es  ", Style::default().fg(theme.heading_h2)),
-            Span::styled("[n]o  ", Style::default().fg(theme.heading_h2)),
-            Span::styled("[s]ave first  ", Style::default().fg(theme.heading_h2)),
-            Span::styled("[Esc] cancel", Style::default().fg(theme.footer)),
+            Span::styled("[y] discard+exit  ", Style::default().fg(theme.heading_h2)),
+            Span::styled("[s] save+exit  ", Style::default().fg(theme.success)),
+            Span::styled("[Esc] stay", Style::default().fg(theme.footer)),
         ]))
         .block(Block::default().style(Style::default().bg(theme.toolbar_bg))),
         area,
