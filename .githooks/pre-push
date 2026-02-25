@@ -50,7 +50,8 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   fi
   echo "  checking $local_ref ($local_sha)"
   tmpdir=$(mktemp -d)
-  git worktree add -q "$tmpdir" "$local_sha"
+  # `-q` option not available on some git versions (e.g. older macOS); ignore errors
+  git worktree add "$tmpdir" "$local_sha" 2>/dev/null || git worktree add "$tmpdir" "$local_sha"
   pushd "$tmpdir" >/dev/null
   if ! cargo fmt --check --quiet 2>&1; then
     echo ""
@@ -68,7 +69,8 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     exit 1
   fi
   popd >/dev/null
-  git worktree remove -q "$tmpdir"
+  # drop the temporary worktree; avoid -q which may not exist
+  git worktree remove "$tmpdir" >/dev/null 2>&1 || git worktree remove "$tmpdir"
 done
 
 echo "✅ pushed commits are lint-clean."
