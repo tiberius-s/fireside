@@ -99,7 +99,11 @@
         {
           "kind": "extension",
           "type": "acme.mermaid",
-          "code": "graph TD; Input-->Validate; Validate-->Render;"
+          "code": "graph TD; Input-->Validate; Validate-->Render;",
+          "fallback": {
+            "kind": "text",
+            "body": "Mermaid extension rendered inline (fallback if unsupported)."
+          }
         },
         {
           "kind": "extension",
@@ -109,7 +113,11 @@
             ["image", "ok"],
             ["transition", "ok"],
             ["extension", "ok"]
-          ]
+          ],
+          "fallback": {
+            "kind": "text",
+            "body": "Table extension rendered inline (fallback if unsupported)."
+          }
         }
       ]
     },

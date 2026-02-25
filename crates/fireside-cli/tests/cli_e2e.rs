@@ -17,7 +17,9 @@ fn validate_hello_exits_zero() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains("is valid"));
+        // example may emit warnings; accept either the traditional "is valid"
+        // banner or the zero-error summary that follows.
+        .stdout(predicate::str::contains("is valid").or(predicate::str::contains("0 error(s)")));
 }
 
 #[test]
