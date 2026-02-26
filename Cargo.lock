@@ -661,12 +661,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "diff"
-version = "0.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
-
-[[package]]
 name = "difflib"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -902,7 +896,6 @@ dependencies = [
 name = "fireside-core"
 version = "0.1.0"
 dependencies = [
- "pretty_assertions",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
@@ -914,7 +907,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "fireside-core",
- "pretty_assertions",
  "serde_json",
  "thiserror 2.0.18",
  "tracing",
@@ -931,7 +923,6 @@ dependencies = [
  "font-kit",
  "image",
  "plist",
- "pretty_assertions",
  "ratatui",
  "serde",
  "serde_json",
@@ -1892,16 +1883,6 @@ checksum = "d0de1b847b39c8131db0467e9df1ff60e6d0562ab8e9a16e568ad0fdb372e2f2"
 dependencies = [
  "predicates-core",
  "termtree",
-]
-
-[[package]]
-name = "pretty_assertions"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ae130e2f271fbc2ac3a40fb1d07180839cdbbe443c7a27e1e3c13c5cac0116d"
-dependencies = [
- "diff",
- "yansi",
 ]
 
 [[package]]
@@ -3223,12 +3204,6 @@ name = "y4m"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a5a4b21e1a62b67a2970e6831bc091d7b87e119e7f9791aef9702e3bef04448"
-
-[[package]]
-name = "yansi"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
 
 [[package]]
 name = "yeslogic-fontconfig-sys"

@@ -2,21 +2,6 @@
 name: 'raptor-mini'
 model: 'Raptor mini (Preview)'
 description: 'Optimized guidance for Raptor-mini in VS Code: token-efficient workflows, tool-first approach, and rapid iteration cycles.'
-tools:
-  [
-    'read',
-    'search',
-    'context7/*',
-    'agent/runSubagent',
-    'edit/*',
-    'execute/runInTerminal',
-    'execute/runTests',
-    'execute/getTerminalOutput',
-    'execute/awaitTerminal',
-    'execute/killTerminal',
-    'get_errors',
-    'get_changed_files',
-  ]
 ---
 
 # Raptor-mini Agent Guide
