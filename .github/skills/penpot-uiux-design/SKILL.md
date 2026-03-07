@@ -7,6 +7,31 @@ description: 'Comprehensive guide for creating professional UI/UX designs in Pen
 
 Create professional, user-centered designs in Penpot using the `penpot/penpot-mcp` MCP server and proven UI/UX principles.
 
+## Scope Boundary
+
+This skill is the Penpot execution playbook.
+
+Use it when the work is primarily about creating, editing, inspecting, or
+validating designs inside Penpot.
+
+For Fireside, this skill is best used to:
+
+- inspect the existing design system,
+- create or revise boards,
+- update components and tokens,
+- export visual references,
+- translate approved UX direction into Penpot artifacts.
+
+Do not use this skill by itself as the main TUI usability auditor. For that,
+use `SE: UX Designer` for broad UX/TUI direction or `SE: TUI Auditor` for a
+focused audit of the implemented terminal experience.
+
+In short:
+
+- `SE: UX Designer` identifies and frames the UX problem.
+- `SE: TUI Auditor` inspects the live TUI and prioritizes issues.
+- `penpot-uiux-design` executes and validates the Penpot design work.
+
 ## Available MCP Tools
 
 | Tool | Purpose |

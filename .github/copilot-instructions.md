@@ -72,3 +72,32 @@ cargo run -- present docs/examples/hello.json   # smoke run
 | `refactor`           | Structural code improvements without behaviour change    |
 | `protocol-change`    | Additive TypeSpec → Rust → docs → tests cascade          |
 | `penpot-uiux-design` | UI/UX design work in Penpot                              |
+
+## Agents and Skills
+
+Use these deliberately so research, audits, design work, and implementation do
+not blur together.
+
+### Agents
+
+| Agent             | Use when                                                                 |
+| ----------------- | ------------------------------------------------------------------------ |
+| `SE: UX Designer` | Broad UX, UI, and TUI direction; flow critique; design intent; usability framing |
+| `SE: TUI Auditor` | Focused audit of the implemented TUI; reproduce jank; prioritize concrete fixes |
+| `Rust-Expert`     | Rust crate APIs, idioms, MSRV checks, crate-boundary validation          |
+| `Context7-Expert` | Up-to-date external library or framework documentation                   |
+
+### Routing Rules
+
+- Use `SE: UX Designer` when the problem is "what should this experience do and why is it hard to use?"
+- Use `SE: TUI Auditor` when the problem is "what is wrong with the current TUI behavior and how do we fix it?"
+- Use `penpot-uiux-design` when the work is primarily inside Penpot: boards, components, tokens, exports, and visual validation.
+- Use `Rust-Expert` when the hard part is Rust implementation details rather than UX direction.
+- Use `Context7-Expert` when advice depends on current third-party APIs or best practices.
+
+### Preferred Flow For TUI Work
+
+1. `SE: UX Designer` for framing or redesign direction.
+2. `SE: TUI Auditor` for concrete behavior review and fix prioritization.
+3. `penpot-uiux-design` for Penpot execution and visual validation.
+4. `Rust-Expert` for implementation details that need crate or idiom verification.
