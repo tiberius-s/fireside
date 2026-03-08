@@ -349,7 +349,7 @@ pub fn render_editor(
         Line::default(),
         section_header(
             theme,
-            "SLIDE PREVIEW  ·  b/B select  ·  i edit  ·  x delete",
+            "BLOCKS  ·  b/B select  ·  [↵/i] edit  ·  a add  ·  x delete  ·  J/K move",
         ),
     ];
 
@@ -367,56 +367,53 @@ pub fn render_editor(
     } else {
         for (idx, block) in node.content.iter().enumerate() {
             let is_selected = view_state.selected_block_index == Some(idx);
+
+            // Selection gutter: thick accent bar when selected, thin dim bar otherwise.
             let bar = if is_selected { "▌" } else { "│" };
             let bar_color = if is_selected {
                 theme.border_active
             } else {
                 theme.border_inactive
             };
-            let line_bg = if is_selected {
-                theme.border_inactive
+
+            // Content background: selected blocks use surface (neutral) so
+            // the gutter ▌ is the primary selection indicator.
+            let line_bg = theme.surface;
+
+            // Header background for the selected block's label row: use the
+            // active border colour as a full-width band to make selection unmistakable.
+            let header_bg = if is_selected {
+                theme.border_active
             } else {
                 theme.surface
+            };
+            let header_fg = if is_selected {
+                theme.toolbar_bg
+            } else {
+                theme.footer
             };
 
             // ── Block header row: glyph + number + summary/hint ─────────────
             detail_lines.push(Line::from(vec![
-                Span::styled(bar, Style::default().fg(bar_color).bg(line_bg)),
+                Span::styled(bar, Style::default().fg(bar_color).bg(header_bg)),
                 Span::styled(
                     format!(" {} ", block_type_glyph(block)),
-                    Style::default()
-                        .fg(if is_selected {
-                            theme.border_active
-                        } else {
-                            theme.footer
-                        })
-                        .bg(line_bg),
+                    Style::default().fg(header_fg).bg(header_bg),
                 ),
                 Span::styled(
                     format!("#{} ", idx + 1),
                     Style::default()
-                        .fg(if is_selected {
-                            theme.heading_h1
-                        } else {
-                            theme.footer
-                        })
-                        .bg(line_bg)
+                        .fg(header_fg)
+                        .bg(header_bg)
                         .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled(
                     if is_selected {
-                        "[i] edit  [m] meta  [x] del  [J/K] move".to_string()
+                        "[↵/i] edit  [m] meta  [x] del  [J/K] move".to_string()
                     } else {
-                        // Compact summary for quick scanning in the header row.
                         truncate(&block_summary(block), 48)
                     },
-                    Style::default()
-                        .fg(if is_selected {
-                            theme.heading_h2
-                        } else {
-                            theme.footer
-                        })
-                        .bg(line_bg),
+                    Style::default().fg(header_fg).bg(header_bg),
                 ),
             ]));
 
@@ -431,11 +428,15 @@ pub fn render_editor(
                     Span::styled(" ", Style::default().bg(line_bg)),
                 ];
                 for span in content_line.spans {
-                    // Tint unselected blocks slightly to distinguish from selected.
+                    // Dim unselected block content to visually recede behind
+                    // the selected block.
                     spans.push(if is_selected {
                         span
                     } else {
-                        Span::styled(span.content, span.style.bg(theme.surface))
+                        Span::styled(
+                            span.content,
+                            span.style.bg(theme.surface).add_modifier(Modifier::DIM),
+                        )
                     });
                 }
                 detail_lines.push(Line::from(spans));
@@ -516,11 +517,11 @@ pub fn render_editor(
 
     let detail_title = if view_state.detail_scroll_offset > 0 {
         format!(
-            " Slide Preview  [scroll: {}] ",
+            " Block Editor  [scroll: {}] ",
             view_state.detail_scroll_offset
         )
     } else {
-        " Slide Preview  [Tab] focus ·  j/k scroll ".to_string()
+        " Block Editor  [Tab] focus  ·  j/k scroll  ·  b/B select ".to_string()
     };
 
     let detail = Paragraph::new(detail_lines)

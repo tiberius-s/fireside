@@ -12,12 +12,22 @@ use unicode_width::UnicodeWidthStr;
 use crate::design::tokens::DesignTokens;
 
 /// Render a body string into word-wrapped styled lines.
+///
+/// Lines are indented by two spaces so paragraph text stands apart from
+/// block chrome (headings, code borders, list bullets).
 pub(super) fn render_text<'a>(text: &'a str, tokens: &DesignTokens, width: u16) -> Vec<Line<'a>> {
     let style = Style::default().fg(tokens.body);
-    let wrapped = textwrap::wrap(text, width.max(1) as usize);
+    const INDENT: &str = "  ";
+    let wrap_width = (width.max(4) as usize).saturating_sub(INDENT.len()).max(1);
+    let wrapped = textwrap::wrap(text, wrap_width);
     wrapped
         .into_iter()
-        .map(|line| Line::from(Span::styled(line.into_owned(), style)))
+        .map(|line| {
+            Line::from(vec![
+                Span::raw(INDENT),
+                Span::styled(line.into_owned(), style),
+            ])
+        })
         .collect()
 }
 

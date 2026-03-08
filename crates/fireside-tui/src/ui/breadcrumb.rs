@@ -1,4 +1,12 @@
-//! Breadcrumb navigation trail for presenter mode.
+//! Navigation Context Bar for presenter mode.
+//!
+//! Renders a single-row bar that answers three questions a presenter needs:
+//! "Where have I been?  Where am I now?  What's coming next?"
+//!
+//! ```text
+//!  ◂ intro · basics  │  3 / 12 — Introduction to Fireside  │  → advanced-topics
+//!  └ history (muted)    └ current (foam bold)                  └ lookahead (subtle)
+//! ```
 
 use fireside_engine::PresentationSession;
 use ratatui::Frame;
@@ -10,7 +18,12 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::theme::Theme;
 
-/// Render a breadcrumb trail from navigation history.
+/// Render the navigation context bar.
+///
+/// The bar has three visual zones separated by `│` dividers:
+/// - **Left** (history): last 1–2 visited nodes in `footer` colour.
+/// - **Centre** (position): `N / M — Title` with N/M in `toolbar_fg` and title in `heading_h1` bold.
+/// - **Right** (lookahead): next node label, or `⎇ BRANCH` in gold, or `■ end` when at last node.
 pub fn render_breadcrumb(
     frame: &mut Frame,
     area: Rect,
@@ -23,77 +36,122 @@ pub fn render_breadcrumb(
         return;
     }
 
-    let mut path = Vec::new();
-    for (idx, branch_step) in nav_path.iter().copied() {
-        if path.last().is_none_or(|(last_idx, _)| *last_idx != idx) {
-            path.push((idx, branch_step));
+    let total = session.graph.nodes.len();
+    let position = format!(" {}/{total} ", current_index + 1);
+
+    // ── Centre zone: position + title ────────────────────────────────────
+    let max_title_chars = (area.width as usize)
+        .saturating_sub(position.width() + 30)
+        .clamp(8, 40);
+    let current_title = node_short_label(session, current_index, max_title_chars);
+
+    // ── Left zone: last 1–2 ancestors from nav_path ───────────────────────
+    // Collect unique path entries, excluding current.
+    let mut ancestors: Vec<usize> = Vec::new();
+    for (idx, _) in nav_path.iter().rev() {
+        if *idx != current_index && ancestors.last() != Some(idx) {
+            ancestors.push(*idx);
+            if ancestors.len() == 2 {
+                break;
+            }
         }
     }
-    if path.last().map(|(idx, _)| *idx) != Some(current_index) {
-        path.push((current_index, false));
+    ancestors.reverse();
+
+    // ── Right zone: peek at what comes next ───────────────────────────────
+    let current_node = &session.graph.nodes[current_index];
+    let next_info = if current_node.branch_point().is_some() {
+        // Branch ahead: warn the presenter in gold.
+        NextInfo::Branch
+    } else if let Some(target_id) = current_node.next_override() {
+        if let Some(idx) = session.graph.index_of(target_id) {
+            NextInfo::Node(idx)
+        } else {
+            NextInfo::End
+        }
+    } else if let Some(target_id) = current_node.after_target() {
+        if let Some(idx) = session.graph.index_of(target_id) {
+            NextInfo::Node(idx)
+        } else {
+            NextInfo::End
+        }
+    } else if current_index + 1 < total {
+        NextInfo::Node(current_index + 1)
+    } else {
+        NextInfo::End
+    };
+
+    // ── Assemble spans ────────────────────────────────────────────────────
+    let div = || Span::styled("  │  ", Style::default().fg(theme.footer));
+
+    let mut spans = Vec::new();
+    spans.push(Span::raw(" "));
+
+    // Left: history
+    if ancestors.is_empty() {
+        spans.push(Span::styled("◂", Style::default().fg(theme.footer)));
+    } else {
+        spans.push(Span::styled("◂ ", Style::default().fg(theme.footer)));
+        for (i, &idx) in ancestors.iter().enumerate() {
+            if i > 0 {
+                spans.push(Span::styled(" · ", Style::default().fg(theme.footer)));
+            }
+            let label = node_short_label(session, idx, 12);
+            spans.push(Span::styled(label, Style::default().fg(theme.footer)));
+        }
     }
 
-    let mut spans = vec![Span::styled(
-        " path: ",
+    spans.push(div());
+
+    // Centre: position + title
+    spans.push(Span::styled(
+        position,
         Style::default().fg(theme.toolbar_fg),
-    )];
+    ));
+    spans.push(Span::styled("— ", Style::default().fg(theme.footer)));
+    spans.push(Span::styled(
+        current_title,
+        Style::default()
+            .fg(theme.heading_h1)
+            .add_modifier(Modifier::BOLD),
+    ));
 
-    let mut used = 6usize;
-    let max_width = usize::from(area.width);
+    spans.push(div());
 
-    let mut rev_segments = Vec::new();
-    // Adaptive label width: distribute available space across path segments.
-    // Each segment is label + 3 chars for "  ›" separator.
-    let path_len = path.len().max(1);
-    let per_label_max = ((max_width.saturating_sub(6)) / path_len)
-        .saturating_sub(3)
-        .clamp(6, 24);
-    for (i, (idx, branch_step)) in path.iter().enumerate().rev() {
-        let label = node_short_label(session, *idx, per_label_max);
-        let seg_len = label.width() + if i == 0 { 0 } else { 3 };
-        if used + seg_len > max_width && !rev_segments.is_empty() {
-            break;
+    // Right: lookahead
+    match next_info {
+        NextInfo::Node(idx) => {
+            let label = node_short_label(session, idx, 16);
+            spans.push(Span::styled("→ ", Style::default().fg(theme.toolbar_fg)));
+            spans.push(Span::styled(label, Style::default().fg(theme.toolbar_fg)));
         }
-        rev_segments.push((i, *idx, *branch_step, label));
-        used += seg_len;
-    }
-    rev_segments.reverse();
-
-    if rev_segments.len() < path.len() {
-        spans.push(Span::styled("… ", Style::default().fg(theme.footer)));
-    }
-
-    for (pos, (_orig_pos, idx, _branch_step, label)) in rev_segments.iter().enumerate() {
-        if pos > 0 {
-            let prev_is_branch = rev_segments[pos].2;
+        NextInfo::Branch => {
             spans.push(Span::styled(
-                if prev_is_branch { "⎇ " } else { "→ " },
-                if prev_is_branch {
-                    Style::default().fg(theme.heading_h3)
-                } else {
-                    Style::default().fg(theme.footer)
-                },
+                "⎇ BRANCH",
+                Style::default()
+                    .fg(theme.heading_h3)
+                    .add_modifier(Modifier::BOLD),
             ));
         }
-
-        let style = if *idx == current_index {
-            Style::default()
-                .fg(theme.heading_h1)
-                .add_modifier(Modifier::BOLD)
-        } else {
-            Style::default().fg(theme.foreground)
-        };
-        spans.push(Span::styled(label.clone(), style));
-        if pos + 1 < rev_segments.len() {
-            spans.push(Span::raw(" "));
+        NextInfo::End => {
+            spans.push(Span::styled("■ end", Style::default().fg(theme.footer)));
         }
     }
+
+    spans.push(Span::raw(" "));
 
     frame.render_widget(
         Paragraph::new(Line::from(spans))
             .block(Block::default().style(Style::default().bg(theme.toolbar_bg))),
         area,
     );
+}
+
+/// What comes after the current node.
+enum NextInfo {
+    Node(usize),
+    Branch,
+    End,
 }
 
 fn node_short_label(session: &PresentationSession, index: usize, max_chars: usize) -> String {

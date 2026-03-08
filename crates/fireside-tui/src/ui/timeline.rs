@@ -38,7 +38,7 @@ pub fn render_timeline(
 
     let mut spans = Vec::new();
     spans.push(Span::styled(
-        " timeline: ",
+        " ⏱ visited: ",
         Style::default().fg(theme.toolbar_fg),
     ));
 

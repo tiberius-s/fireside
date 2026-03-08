@@ -68,7 +68,10 @@ pub(super) fn render_code<'a>(
 
 /// Wrap `code_lines` with a box-drawing chrome header/footer.
 ///
-/// The header shows the language name as a label; the footer closes the box.
+/// The header uses a filled double-line top border (`╔═ lang ═╗`) with the
+/// language name in gold (`heading_h3`) so code blocks visually pop against
+/// dark slide backgrounds.  The box border colour is pine (`heading_h2`)
+/// rather than the near-invisible `border_inactive` default.
 pub(super) fn add_code_chrome<'a>(
     code_lines: Vec<Line<'a>>,
     language: Option<&str>,
@@ -79,22 +82,36 @@ pub(super) fn add_code_chrome<'a>(
     let content_width = width.max(20) as usize;
     let border_inner_width = content_width.saturating_sub(2).max(10);
 
-    let mut lines = Vec::new();
+    // Pine for the border frame; gold for the language tab.
+    let border_style = Style::default().fg(tokens.heading_h2);
+    let lang_style = Style::default()
+        .fg(tokens.heading_h3)
+        .add_modifier(Modifier::BOLD);
+
     let title = format!(" {lang_label} ");
     let top_fill = border_inner_width.saturating_sub(title.chars().count());
-    lines.push(Line::from(vec![Span::styled(
-        format!("┌{title}{}┐", "─".repeat(top_fill)),
-        Style::default().fg(tokens.border_inactive),
-    )]));
 
-    for line in code_lines {
-        lines.push(line);
+    let mut lines = Vec::new();
+
+    // Top: ╔═ lang ══...══╗
+    lines.push(Line::from(vec![
+        Span::styled("╔═", border_style),
+        Span::styled(title, lang_style),
+        Span::styled(format!("{}╗", "═".repeat(top_fill)), border_style),
+    ]));
+
+    for mut line in code_lines {
+        // Prepend a 1-space gutter inside the box so code doesn't touch the border.
+        let mut spans = vec![Span::styled("║ ", border_style)];
+        spans.append(&mut line.spans);
+        lines.push(Line::from(spans));
     }
 
-    lines.push(Line::from(vec![Span::styled(
-        format!("└{}┘", "─".repeat(border_inner_width)),
-        Style::default().fg(tokens.border_inactive),
-    )]));
+    // Bottom: ╚══...══╝
+    lines.push(Line::from(Span::styled(
+        format!("╚{}╝", "═".repeat(border_inner_width)),
+        border_style,
+    )));
 
     lines
 }

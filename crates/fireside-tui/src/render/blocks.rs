@@ -117,6 +117,10 @@ pub(super) fn render_node_content_with_tokens<'a>(
     for (i, block) in blocks.iter().enumerate() {
         if i > 0 {
             lines.push(Line::default());
+            // Extra blank line before prominent headings for visual breathing room.
+            if matches!(block, ContentBlock::Heading { level, .. } if *level <= 2) {
+                lines.push(Line::default());
+            }
         }
         lines.extend(render_block_with_tokens(block, tokens, width, base_dir));
     }

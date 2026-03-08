@@ -4,7 +4,7 @@
 //! depth-sensitive bullet glyphs (`•`, `◦`, `▪`) and recursive nesting
 //! for child items.
 
-use ratatui::style::{Modifier, Style};
+use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 
 use fireside_core::model::content::ListItem;
@@ -14,7 +14,8 @@ use crate::design::tokens::DesignTokens;
 /// Render an ordered or unordered list at the given nesting depth.
 ///
 /// Call with `depth = 0` for top-level lists; the function recurses for
-/// children.
+/// children.  Bullets and numbers are coloured in the accent palette to
+/// visually separate them from item text.
 pub(super) fn render_list<'a>(
     ordered: bool,
     items: &'a [ListItem],
@@ -22,7 +23,14 @@ pub(super) fn render_list<'a>(
     depth: usize,
 ) -> Vec<Line<'a>> {
     let mut lines = Vec::new();
-    let style = Style::default().fg(tokens.body);
+    let item_style = Style::default().fg(tokens.body);
+
+    // Accent colour for markers decreases with nesting depth.
+    let marker_style = match depth {
+        0 => Style::default().fg(tokens.heading_h2),
+        1 => Style::default().fg(tokens.heading_h3),
+        _ => Style::default().fg(tokens.muted),
+    };
 
     let bullet = match depth {
         0 => "•",
@@ -30,22 +38,20 @@ pub(super) fn render_list<'a>(
         _ => "▪",
     };
 
-    for (i, item) in items.iter().enumerate() {
-        let guide = if depth == 0 {
-            String::new()
-        } else {
-            "│ ".repeat(depth)
-        };
+    // 2 spaces of base indent + 2 per extra depth level.
+    let indent: String = "  ".repeat(depth + 1);
 
-        let marker = if ordered {
-            format!("{guide}{}. ", i + 1)
+    for (i, item) in items.iter().enumerate() {
+        let glyph = if ordered {
+            format!("{}. ", i + 1)
         } else {
-            format!("{guide}{bullet} ")
+            format!("{bullet} ")
         };
 
         lines.push(Line::from(vec![
-            Span::styled(marker, style.add_modifier(Modifier::DIM)),
-            Span::styled(item.text.clone(), style),
+            Span::raw(indent.clone()),
+            Span::styled(glyph, marker_style),
+            Span::styled(item.text.clone(), item_style),
         ]));
 
         if !item.children.is_empty() {
