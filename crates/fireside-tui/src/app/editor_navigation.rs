@@ -567,7 +567,7 @@ impl App {
 
         if enter_present_mode {
             self.mode = AppMode::Presenting;
-            self.editor_text_input = None;
+            self.editor_textarea = None;
             self.editor_inline_target = None;
             self.editor_picker = None;
             self.editor_search_input = None;

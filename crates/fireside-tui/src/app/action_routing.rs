@@ -225,7 +225,12 @@ impl App {
                         .get(self.editor_selected_node)
                         .and_then(|node| node.speaker_notes.clone())
                         .unwrap_or_default();
-                    self.start_inline_edit(EditorInlineTarget::SpeakerNotes, seed);
+                    self.start_inline_edit(
+                        EditorInlineTarget::SpeakerNotes,
+                        seed,
+                        true,
+                        "Speaker notes",
+                    );
                     self.editor_status = Some("Editing speaker notes".to_string());
                 }
             }
@@ -393,7 +398,7 @@ impl App {
                 if self.mode == AppMode::Editing
                     && key.code == KeyCode::Char('n')
                     && self.terminal_size.0 <= 80
-                    && self.editor_text_input.is_none()
+                    && self.editor_textarea.is_none()
                     && self.editor_search_input.is_none()
                     && self.editor_index_jump_input.is_none()
                 {
@@ -422,9 +427,7 @@ impl App {
                     return;
                 }
 
-                if self.mode == AppMode::Editing
-                    && self.handle_inline_edit_key(key.code, key.modifiers)
-                {
+                if self.mode == AppMode::Editing && self.handle_inline_edit_key(key) {
                     self.needs_redraw = true;
                     return;
                 }

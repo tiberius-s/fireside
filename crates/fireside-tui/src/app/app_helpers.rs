@@ -37,15 +37,34 @@ pub(super) fn update_block_from_inline_text(existing: ContentBlock, text: String
             highlight_lines,
             show_line_numbers,
         },
-        ContentBlock::List { ordered, mut items } => {
-            if let Some(first) = items.first_mut() {
-                first.text = text;
+        ContentBlock::List { ordered, items } => {
+            // The seed was all items joined by "\n"; split them back out.
+            // Keep existing children for the first item; new items start childless.
+            let mut existing_items = items;
+            let new_lines: Vec<&str> = text.lines().collect();
+            let updated_items: Vec<ListItem> = new_lines
+                .into_iter()
+                .enumerate()
+                .map(|(i, line)| {
+                    if let Some(existing) = existing_items.get_mut(i) {
+                        ListItem {
+                            text: line.to_string(),
+                            children: std::mem::take(&mut existing.children),
+                        }
+                    } else {
+                        ListItem {
+                            text: line.to_string(),
+                            children: Vec::new(),
+                        }
+                    }
+                })
+                .filter(|item| !item.text.is_empty())
+                .collect();
+            let items = if updated_items.is_empty() {
+                existing_items
             } else {
-                items.push(ListItem {
-                    text,
-                    children: Vec::new(),
-                });
-            }
+                updated_items
+            };
             ContentBlock::List { ordered, items }
         }
         ContentBlock::Image { alt, caption, .. } => ContentBlock::Image {

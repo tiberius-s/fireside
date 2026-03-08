@@ -164,14 +164,14 @@ fn inline_notes_edit_ctrl_c_cancels_without_mutation() {
     app.enter_edit_mode();
 
     app.update(Action::EditorStartNotesEdit);
-    assert!(app.editor_text_input.is_some());
+    assert!(app.editor_textarea.is_some());
 
     app.handle_event(Event::Key(KeyEvent::new(
         KeyCode::Char('c'),
         KeyModifiers::CONTROL,
     )));
 
-    assert!(app.editor_text_input.is_none());
+    assert!(app.editor_textarea.is_none());
     assert_eq!(
         app.session.graph.nodes[0].speaker_notes.as_deref(),
         Some("Original notes")
@@ -261,7 +261,10 @@ fn editor_m_starts_metadata_edit_for_selected_block() {
         KeyModifiers::NONE,
     )));
 
-    assert_eq!(app.editor_text_input.as_deref(), Some("rust"));
+    assert_eq!(
+        app.editor_textarea.as_ref().map(|ta| ta.first_line()),
+        Some("rust")
+    );
     let status = app.editor_status.as_deref().unwrap_or_default();
     assert!(status.contains("Code language"));
 }

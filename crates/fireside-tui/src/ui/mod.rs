@@ -11,5 +11,6 @@ pub mod graph;
 pub mod help;
 pub mod presenter;
 pub mod progress;
+pub mod textarea;
 pub mod timeline;
 pub(crate) mod transitions;

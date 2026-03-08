@@ -29,6 +29,8 @@ pub struct EditorViewState<'a> {
     pub list_scroll_offset: usize,
     pub focus: EditorPaneFocus,
     pub inline_text_input: Option<&'a str>,
+    /// Active text area reference; rendered as a centred popup.
+    pub editing_textarea: Option<&'a crate::ui::textarea::TextArea>,
     pub selected_block_index: Option<usize>,
     pub block_warning_messages: &'a [String],
     pub search_input: Option<&'a str>,
@@ -454,18 +456,15 @@ pub fn render_editor(
         }
     }
 
-    // Show inline editor buffer inline within the preview when active.
-    if let Some(buffer) = view_state.inline_text_input {
+    // Inline editor indication: when a textarea is active, append a small hint
+    // in the detail pane.  The real editing happens in the popup overlay.
+    if view_state.inline_text_input.is_some() {
         detail_lines.push(Line::default());
         detail_lines.push(Line::from(Span::styled(
-            " ✎  Inline Editor  ─  Enter/Esc=commit  Ctrl+C=cancel",
-            Style::default().fg(theme.heading_h2),
-        )));
-        detail_lines.push(Line::from(Span::styled(
-            format!(" {buffer}_"),
+            " ✎  Editing — see popup overlay",
             Style::default()
-                .fg(theme.on_surface)
-                .add_modifier(Modifier::BOLD | Modifier::UNDERLINED),
+                .fg(theme.heading_h2)
+                .add_modifier(Modifier::ITALIC),
         )));
     }
 
@@ -637,4 +636,33 @@ pub fn render_editor(
     if let Some(graph_overlay) = view_state.graph_overlay {
         render_graph_overlay(frame, sections[0], session, theme, graph_overlay);
     }
+
+    // ── Textarea edit popup (highest z-order) ─────────────────────────────
+    if let Some(textarea) = view_state.editing_textarea {
+        use crate::ui::textarea::render_textarea_popup;
+        let popup = textarea_popup_area(sections[0]);
+        render_textarea_popup(frame, textarea, theme, popup);
+    }
+}
+
+/// Compute a centred popup area sized for the block-edit text area.
+fn textarea_popup_area(area: ratatui::layout::Rect) -> ratatui::layout::Rect {
+    use ratatui::layout::{Constraint, Direction};
+    let vert = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage(15),
+            Constraint::Percentage(70),
+            Constraint::Percentage(15),
+        ])
+        .split(area);
+    let horiz = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage(5),
+            Constraint::Percentage(90),
+            Constraint::Percentage(5),
+        ])
+        .split(vert[1]);
+    horiz[1]
 }

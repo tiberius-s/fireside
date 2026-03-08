@@ -115,8 +115,12 @@ pub struct App {
     pub editor_focus: EditorPaneFocus,
     /// Optional path where editor saves the current graph.
     pub editor_target_path: Option<PathBuf>,
-    /// Active inline text input buffer.
-    pub editor_text_input: Option<String>,
+    /// Active multi-line text area for block editing (replaces the old single-line buffer).
+    pub editor_textarea: Option<crate::ui::textarea::TextArea>,
+    /// Whether the active text area accepts newlines (code/text/notes) or commits on Enter.
+    pub editor_textarea_multiline: bool,
+    /// Human-readable label shown in the editor popup title bar.
+    pub editor_textarea_label: String,
     /// Last editor status message.
     pub editor_status: Option<String>,
     /// Active inline edit target for current text buffer.
@@ -217,7 +221,9 @@ impl App {
             editor_selected_block: 0,
             editor_focus: EditorPaneFocus::NodeList,
             editor_target_path: None,
-            editor_text_input: None,
+            editor_textarea: None,
+            editor_textarea_multiline: false,
+            editor_textarea_label: String::new(),
             editor_status: None,
             editor_inline_target: None,
             pending_exit_action: None,
@@ -370,7 +376,11 @@ impl App {
                         selected_index: self.editor_selected_node,
                         list_scroll_offset: self.editor_list_scroll_offset,
                         focus: self.editor_focus,
-                        inline_text_input: self.editor_text_input.as_deref(),
+                        inline_text_input: self
+                            .editor_textarea
+                            .as_ref()
+                            .map(|_| self.editor_textarea_label.as_str()),
+                        editing_textarea: self.editor_textarea.as_ref(),
                         selected_block_index,
                         block_warning_messages: &block_warning_messages,
                         search_input: self.editor_search_input.as_deref(),
@@ -508,7 +518,7 @@ impl App {
         match action {
             PendingExitAction::ExitEditor => {
                 self.mode = AppMode::Presenting;
-                self.editor_text_input = None;
+                self.editor_textarea = None;
                 self.editor_inline_target = None;
                 self.persist_editor_preferences();
                 let _ = self

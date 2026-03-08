@@ -187,7 +187,7 @@ impl App {
     }
 
     pub(super) fn handle_editor_mouse_scroll(&mut self, direction: MouseScrollDirection) {
-        if self.editor_text_input.is_some() {
+        if self.editor_textarea.is_some() {
             return;
         }
 

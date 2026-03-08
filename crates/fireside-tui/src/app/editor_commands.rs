@@ -1,3 +1,7 @@
+use crossterm::event::KeyEvent;
+
+use crate::ui::textarea::TextArea;
+
 use super::*;
 
 impl App {
@@ -7,32 +11,42 @@ impl App {
             return;
         };
 
-        let (seed, label) = match block {
-            ContentBlock::Heading { text, .. } => (text.clone(), "Heading"),
-            ContentBlock::Text { body } => (body.clone(), "Text"),
-            ContentBlock::Code { source, .. } => (source.clone(), "Code"),
+        let (seed, label, multiline) = match block {
+            ContentBlock::Heading { text, .. } => (text.clone(), "Heading text", false),
+            ContentBlock::Text { body } => (body.clone(), "Text body", true),
+            ContentBlock::Code { source, .. } => (source.clone(), "Code source", true),
+            // All list items — one per line; split back on commit.
             ContentBlock::List { items, .. } => (
                 items
-                    .first()
-                    .map(|item| item.text.clone())
-                    .unwrap_or_default(),
-                "List first item",
+                    .iter()
+                    .map(|i| i.text.as_str())
+                    .collect::<Vec<_>>()
+                    .join("\n"),
+                "List items  (one per line)",
+                true,
             ),
-            ContentBlock::Image { src, .. } => (src.clone(), "Image src"),
+            ContentBlock::Image { src, .. } => (src.clone(), "Image src", false),
             ContentBlock::Divider => {
                 self.editor_status = Some("Divider block has no editable text field".to_string());
                 return;
             }
-            ContentBlock::Container { layout, .. } => {
-                (layout.clone().unwrap_or_default(), "Container layout")
-            }
+            ContentBlock::Container { layout, .. } => (
+                layout.clone().unwrap_or_default(),
+                "Container layout",
+                false,
+            ),
             ContentBlock::Extension { extension_type, .. } => {
-                (extension_type.clone(), "Extension type")
+                (extension_type.clone(), "Extension type", false)
             }
         };
 
-        self.start_inline_edit(EditorInlineTarget::BlockField { block_index }, seed);
-        self.editor_status = Some(format!("Editing {label} (block #{})", block_index + 1));
+        self.start_inline_edit(
+            EditorInlineTarget::BlockField { block_index },
+            seed,
+            multiline,
+            label,
+        );
+        self.editor_status = Some(format!("Editing block #{}", block_index + 1));
     }
 
     pub(super) fn start_selected_block_metadata_edit(&mut self) {
@@ -76,62 +90,71 @@ impl App {
             }
         };
 
-        self.start_inline_edit(EditorInlineTarget::BlockMetadataField { block_index }, seed);
+        self.start_inline_edit(
+            EditorInlineTarget::BlockMetadataField { block_index },
+            seed,
+            false,
+            label,
+        );
         self.editor_status = Some(format!("{label}  (block #{})", block_index + 1));
     }
 
-    pub(super) fn start_inline_edit(&mut self, target: EditorInlineTarget, seed: String) {
+    pub(super) fn start_inline_edit(
+        &mut self,
+        target: EditorInlineTarget,
+        seed: String,
+        multiline: bool,
+        label: &str,
+    ) {
         let idx = self.editor_selected_node;
         if self.session.graph.nodes.get(idx).is_none() {
             return;
         }
 
-        self.editor_text_input = Some(seed);
+        let textarea = TextArea::new(&seed, multiline, label);
+
+        self.editor_textarea = Some(textarea);
+        self.editor_textarea_multiline = multiline;
+        self.editor_textarea_label = label.to_string();
         self.editor_inline_target = Some(target);
         self.editor_focus = EditorPaneFocus::NodeDetail;
     }
 
-    pub(super) fn handle_inline_edit_key(
-        &mut self,
-        code: KeyCode,
-        modifiers: KeyModifiers,
-    ) -> bool {
-        let Some(buffer) = self.editor_text_input.as_mut() else {
+    /// Handle a key event while a textarea is active.
+    ///
+    /// Returns `true` when the key was consumed (preventing further dispatch).
+    pub(super) fn handle_inline_edit_key(&mut self, key: KeyEvent) -> bool {
+        if self.editor_textarea.is_none() {
             return false;
-        };
+        }
 
-        match code {
+        match key.code {
             KeyCode::Esc => {
                 self.commit_inline_edit();
                 true
             }
-            KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
-                self.editor_text_input = None;
+            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.editor_textarea = None;
                 self.editor_inline_target = None;
-                self.editor_status = Some("Inline edit cancelled".to_string());
+                self.editor_status = Some("Edit cancelled".to_string());
                 true
             }
-            KeyCode::Enter => {
+            // Enter commits for single-line fields; inserts a newline for multiline.
+            KeyCode::Enter if !self.editor_textarea_multiline => {
                 self.commit_inline_edit();
                 true
             }
-            KeyCode::Backspace => {
-                buffer.pop();
+            _ => {
+                if let Some(ta) = self.editor_textarea.as_mut() {
+                    ta.input(key);
+                }
                 true
             }
-            KeyCode::Char(ch)
-                if !modifiers.contains(KeyModifiers::CONTROL)
-                    && !modifiers.contains(KeyModifiers::ALT) =>
-            {
-                buffer.push(ch);
-                true
-            }
-            _ => true,
         }
     }
 
     fn commit_inline_edit(&mut self) {
-        let Some(text) = self.editor_text_input.take() else {
+        let Some(textarea) = self.editor_textarea.take() else {
             return;
         };
         let target = match self.editor_inline_target.take() {
@@ -139,6 +162,8 @@ impl App {
             None => return,
         };
 
+        // Join lines back, preserving newlines for multiline blocks.
+        let text = textarea.text();
         let idx = self.editor_selected_node;
         match target {
             EditorInlineTarget::BlockField { block_index } => {
@@ -155,7 +180,7 @@ impl App {
                     .and_then(|node| node.content.get(block_index))
                     .cloned()
                 else {
-                    self.editor_status = Some("Inline edit failed: block not found".to_string());
+                    self.editor_status = Some("Edit failed: block not found".to_string());
                     return;
                 };
 
@@ -184,11 +209,13 @@ impl App {
                     .and_then(|node| node.content.get(block_index))
                     .cloned()
                 else {
-                    self.editor_status = Some("Inline edit failed: block not found".to_string());
+                    self.editor_status = Some("Edit failed: block not found".to_string());
                     return;
                 };
 
-                let updated = match update_block_metadata_from_inline_text(existing, text) {
+                // Metadata fields are always single-line; take only first line.
+                let first_line = text.lines().next().unwrap_or("").to_string();
+                let updated = match update_block_metadata_from_inline_text(existing, first_line) {
                     Ok(block) => block,
                     Err(err) => {
                         self.editor_status = Some(err);
