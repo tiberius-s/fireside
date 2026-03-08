@@ -29,7 +29,7 @@ use super::blocks_extension::render_known_extension;
 use super::blocks_heading::render_heading;
 use super::blocks_image::render_image_placeholder;
 use super::blocks_list::render_list;
-use super::blocks_text::{fit_to_width, line_to_plain_text, render_text};
+use super::blocks_text::render_text;
 use crate::design::tokens::DesignTokens;
 use crate::theme::Theme;
 
@@ -252,27 +252,40 @@ fn render_container_split_vertical<'a>(
     lines
 }
 
+/// Compose two columns of already-rendered [`Line`]s side-by-side, preserving
+/// all span styles.
+///
+/// Left column is padded to `col_width` display columns before the `│` divider
+/// is inserted.  Right column spans follow directly after the divider.
 fn compose_side_by_side<'a>(
     left: Vec<Line<'a>>,
     right: Vec<Line<'a>>,
     col_width: usize,
     tokens: &DesignTokens,
 ) -> Vec<Line<'a>> {
+    use unicode_width::UnicodeWidthStr;
+
     let rows = left.len().max(right.len());
+    let sep = Span::styled(" │ ", Style::default().fg(tokens.border_inactive));
     let mut lines = Vec::with_capacity(rows);
 
     for row in 0..rows {
-        let left_text = left.get(row).map_or_else(String::new, line_to_plain_text);
-        let right_text = right.get(row).map_or_else(String::new, line_to_plain_text);
-        let merged = format!(
-            "{} │ {}",
-            fit_to_width(&left_text, col_width),
-            fit_to_width(&right_text, col_width)
-        );
-        lines.push(Line::from(Span::styled(
-            merged,
-            Style::default().fg(tokens.body),
-        )));
+        let left_line = left.get(row).cloned().unwrap_or_default();
+        let right_line = right.get(row).cloned().unwrap_or_default();
+
+        // Measure display width of the left column's content.
+        let left_width: usize = left_line.spans.iter().map(|s| s.content.width()).sum();
+
+        // Pad left column to col_width so the separator stays aligned.
+        let pad = col_width.saturating_sub(left_width);
+
+        let mut spans = left_line.spans;
+        if pad > 0 {
+            spans.push(Span::raw(" ".repeat(pad)));
+        }
+        spans.push(sep.clone());
+        spans.extend(right_line.spans);
+        lines.push(Line::from(spans));
     }
 
     lines
@@ -300,7 +313,13 @@ mod tests {
     fn lines_to_text(lines: &[Line<'_>]) -> Vec<String> {
         lines
             .iter()
-            .map(super::super::blocks_text::line_to_plain_text)
+            .map(|line| {
+                line.spans
+                    .iter()
+                    .map(|s| s.content.as_ref())
+                    .collect::<Vec<_>>()
+                    .join("")
+            })
             .collect()
     }
 
