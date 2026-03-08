@@ -7,6 +7,7 @@
 
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
+use unicode_width::UnicodeWidthStr;
 
 use crate::design::tokens::DesignTokens;
 
@@ -32,20 +33,33 @@ pub(super) fn line_to_plain_text(line: &Line<'_>) -> String {
 
 /// Pad or truncate `text` so that it occupies exactly `max_chars` columns.
 pub(super) fn fit_to_width(text: &str, max_chars: usize) -> String {
-    if text.chars().count() > max_chars {
+    if text.width() > max_chars {
         return truncate_text(text, max_chars);
     }
 
-    let pad = max_chars.saturating_sub(text.chars().count());
+    let pad = max_chars.saturating_sub(text.width());
     format!("{text}{}", " ".repeat(pad))
 }
 
 /// Truncate `text` to `max_chars` columns, appending `…` if needed.
 pub(super) fn truncate_text(text: &str, max_chars: usize) -> String {
-    if text.chars().count() <= max_chars {
+    if text.width() <= max_chars {
         return text.to_string();
     }
 
-    let short: String = text.chars().take(max_chars.saturating_sub(1)).collect();
+    // Take chars until their cumulative display width exceeds max_chars - 1.
+    let mut width = 0usize;
+    let short: String = text
+        .chars()
+        .take_while(|c| {
+            let w = unicode_width::UnicodeWidthChar::width(*c).unwrap_or(0);
+            if width + w < max_chars {
+                width += w;
+                true
+            } else {
+                false
+            }
+        })
+        .collect();
     format!("{short}…")
 }

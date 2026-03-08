@@ -56,7 +56,8 @@ pub fn branch_overlay_rect(area: Rect, option_count: u16) -> Rect {
 /// Render branch point chooser overlay for the current node.
 ///
 /// The overlay covers the full `area` with a dim background block, then
-/// places a centred dialog on top.
+/// places a centred dialog on top.  When options overflow the available
+/// height, the body scrolls and scroll indicators are shown.
 pub fn render_branch_overlay(
     frame: &mut Frame,
     area: Rect,
@@ -64,6 +65,7 @@ pub fn render_branch_overlay(
     graph: &Graph,
     theme: &Theme,
     focused_option: usize,
+    scroll_offset: usize,
 ) {
     let Some(branch_point) = node.branch_point() else {
         return;
@@ -180,7 +182,56 @@ pub fn render_branch_overlay(
         }
     }
 
-    frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), body_area);
+    frame.render_widget(
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: false })
+            .scroll((scroll_offset as u16, 0)),
+        body_area,
+    );
+
+    // ── Scroll indicators ─────────────────────────────────────────────────
+    // Show ▲/▼ when there are options above/below the visible viewport.
+    // Each option occupies 3 body lines (badge, description, separator);
+    // the header occupies 4 lines (blank, prompt, hint, blank).
+    let header_lines = 4usize;
+    let lines_per_option = 3usize;
+    let total_body_lines = header_lines + branch_point.options.len() * lines_per_option;
+    let viewport_lines = body_area.height as usize;
+    if scroll_offset > 0 {
+        let above_str = format!("▲ {} above", scroll_offset / lines_per_option);
+        frame.render_widget(
+            Paragraph::new(Line::from(Span::styled(
+                above_str,
+                Style::default().fg(theme.footer),
+            ))),
+            Rect {
+                x: body_area.x,
+                y: body_area.y,
+                width: body_area.width,
+                height: 1,
+            },
+        );
+    }
+    let scrolled_end = scroll_offset + viewport_lines;
+    if scrolled_end < total_body_lines {
+        let remaining = (total_body_lines.saturating_sub(scrolled_end)) / lines_per_option;
+        if remaining > 0 {
+            let below_str = format!("▼ {} more", remaining);
+            let indicator_y = body_area.y + body_area.height.saturating_sub(1);
+            frame.render_widget(
+                Paragraph::new(Line::from(Span::styled(
+                    below_str,
+                    Style::default().fg(theme.footer),
+                ))),
+                Rect {
+                    x: body_area.x,
+                    y: indicator_y,
+                    width: body_area.width,
+                    height: 1,
+                },
+            );
+        }
+    }
 
     // ── Footer: all key hints ─────────────────────────────────────────────
     let mut footer_parts: Vec<String> = branch_point

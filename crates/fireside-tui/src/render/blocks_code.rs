@@ -53,7 +53,13 @@ pub(super) fn render_code<'a>(
             spans.push(Span::styled("▎ ", Style::default().fg(tokens.success)));
         }
 
-        spans.push(Span::styled(raw_line.to_owned(), line_style));
+        spans.push(Span::styled(
+            raw_line
+                .chars()
+                .take((width as usize).saturating_sub(2))
+                .collect::<String>(),
+            line_style,
+        ));
         code_lines.push(Line::from(spans));
     }
 

@@ -10,11 +10,9 @@ use ratatui::layout::Rect;
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Paragraph};
+use unicode_width::UnicodeWidthStr;
 
 use crate::theme::Theme;
-
-/// Maximum number of visible segment dots regardless of total node count.
-const MAX_SEGMENTS: usize = 30;
 
 /// Render the progress bar in the footer area.
 ///
@@ -23,8 +21,7 @@ const MAX_SEGMENTS: usize = 30;
 ///  [←] prev   ○ ○ ● ○ ○ ○ ○   Node 3 / 7   → Next Topic   [→] next
 /// ```
 /// Each `●` / `○` is one segment coloured in `border_active` / `border_inactive`.
-/// When no next node is available, an end marker is shown as `■ END`.
-/// When there are more nodes than `MAX_SEGMENTS`, multiple nodes share a segment.
+/// When there are more nodes than available space, multiple nodes share a segment.
 pub fn render_progress_bar(
     frame: &mut Frame,
     area: Rect,
@@ -58,22 +55,28 @@ pub fn render_progress_bar(
 
     let timer_str = if show_timer {
         if let Some(target_secs) = target_duration_secs {
-            let elapsed_minutes = elapsed_secs / 60;
-            let elapsed_seconds = elapsed_secs % 60;
-            let target_minutes = target_secs / 60;
-            let target_seconds = target_secs % 60;
+            let fmt_time = |secs: u64| -> String {
+                if secs >= 3600 {
+                    format!("{}:{:02}:{:02}", secs / 3600, (secs % 3600) / 60, secs % 60)
+                } else {
+                    format!("{:02}:{:02}", secs / 60, secs % 60)
+                }
+            };
             format!(
-                " {:02}:{:02} / {:02}:{:02} {} ",
-                elapsed_minutes,
-                elapsed_seconds,
-                target_minutes,
-                target_seconds,
+                " {} / {} {} ",
+                fmt_time(elapsed_secs),
+                fmt_time(target_secs),
                 pace_label(elapsed_secs, target_secs)
             )
+        } else if elapsed_secs >= 3600 {
+            format!(
+                " {}:{:02}:{:02} ",
+                elapsed_secs / 3600,
+                (elapsed_secs % 3600) / 60,
+                elapsed_secs % 60
+            )
         } else {
-            let minutes = elapsed_secs / 60;
-            let seconds = elapsed_secs % 60;
-            format!(" {:02}:{:02} ", minutes, seconds)
+            format!(" {:02}:{:02} ", elapsed_secs / 60, elapsed_secs % 60)
         }
     } else {
         String::new()
@@ -81,21 +84,22 @@ pub fn render_progress_bar(
 
     // ── Segment calculation ───────────────────────────────────────────────
     // Available width for the segment dots sits between the fixed elements.
-    let fixed_chars = left_hint.chars().count()
-        + right_hint.chars().count()
-        + position_str.chars().count()
-        + next_str.chars().count()
-        + timer_str.chars().count();
+    let fixed_chars = left_hint.width()
+        + right_hint.width()
+        + position_str.width()
+        + next_str.width()
+        + timer_str.width();
     let area_width = area.width as usize;
     let segment_space = area_width.saturating_sub(fixed_chars);
 
     // Each visible segment occupies 1 char; gaps between segments are 1 space.
     // n segments need n + (n-1) = 2n-1 chars → n = (space+1)/2.
+    // Scale to available space with no hard cap: more room = more dots.
     let segment_count = if total == 0 {
         0
     } else {
         let n = segment_space.div_ceil(2);
-        n.max(1).min(total).min(MAX_SEGMENTS)
+        n.max(1).min(total)
     };
 
     // Which segment corresponds to the current node?
@@ -205,37 +209,43 @@ fn resolve_next_node_index(session: &PresentationSession, current: usize) -> Opt
 }
 
 fn footer_hints(width: u16, is_branch: bool) -> (String, String) {
-    if width <= 80 {
-        return (
-            " ← ? ".to_string(),
-            if is_branch {
-                " ⎇ ".to_string()
-            } else {
-                " → e ".to_string()
-            },
-        );
-    }
+    // Build hints progressively — always show nav arrows, add features as width permits.
+    let left = " [←] prev ".to_string();
 
-    if width < 120 {
-        return (
-            " [←] prev ".to_string(),
-            if is_branch {
-                " ⎇ BRANCH ".to_string()
-            } else {
-                " [→] next  [?] help ".to_string()
-            },
-        );
-    }
-
-    // At wide terminals, surface commonly-missed features so they're discoverable.
-    (
-        " [←] prev ".to_string(),
+    let right = if width <= 60 {
+        if is_branch {
+            " ⎇ ".to_string()
+        } else {
+            " [→] ".to_string()
+        }
+    } else if width <= 80 {
+        if is_branch {
+            " ⎇ BRANCH ".to_string()
+        } else {
+            " [→] next ".to_string()
+        }
+    } else if width <= 100 {
+        if is_branch {
+            " ⎇ BRANCH  [?] help ".to_string()
+        } else {
+            " [→] next  [?] help ".to_string()
+        }
+    } else if width < 120 {
+        if is_branch {
+            " ⎇ BRANCH  [?] help  [e] edit ".to_string()
+        } else {
+            " [→] next  [?] help  [e] edit ".to_string()
+        }
+    } else {
+        // At wide terminals, surface commonly-missed features so they're discoverable.
         if is_branch {
             " ⎇ BRANCH  ·  [?] help  ·  [e] edit ".to_string()
         } else {
             " next [→]  ·  [s] notes  ·  [Ctrl+F] zen  ·  [?] help  ·  [e] edit ".to_string()
-        },
-    )
+        }
+    };
+
+    (left, right)
 }
 
 fn any_node_in_bucket_is_branch(

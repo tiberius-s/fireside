@@ -38,6 +38,7 @@ impl App {
                 let from_index = self.session.current_node_index();
                 let _ = self.session.traversal.choose(key, &self.session.graph);
                 self.branch_focused_option = 0;
+                self.branch_scroll_offset = 0;
                 let next_index = self.session.current_node_index();
                 if next_index != from_index {
                     self.record_navigation(next_index, true);
@@ -601,17 +602,20 @@ impl App {
     fn handle_presenter_branch_keys(&mut self, code: KeyCode) -> bool {
         let Some(branch) = self.session.current_node().branch_point() else {
             self.branch_focused_option = 0;
+            self.branch_scroll_offset = 0;
             return false;
         };
 
         match code {
             KeyCode::Up | KeyCode::Char('k') => {
                 self.branch_focused_option = self.branch_focused_option.saturating_sub(1);
+                self.branch_scroll_to_focused(branch.options.len());
                 true
             }
             KeyCode::Down | KeyCode::Char('j') => {
                 let max = branch.options.len().saturating_sub(1);
                 self.branch_focused_option = (self.branch_focused_option + 1).min(max);
+                self.branch_scroll_to_focused(branch.options.len());
                 true
             }
             KeyCode::Enter => {
@@ -622,6 +626,7 @@ impl App {
                         .traversal
                         .choose(option.key, &self.session.graph);
                     self.branch_focused_option = 0;
+                    self.branch_scroll_offset = 0;
                     self.start_transition_if_needed(from_index);
                     return true;
                 }
@@ -629,6 +634,33 @@ impl App {
             }
             _ => false,
         }
+    }
+
+    /// Scroll the branch overlay so `branch_focused_option` is always visible.
+    ///
+    /// Each option takes 3 body lines; the header preamble takes 4 lines.
+    fn branch_scroll_to_focused(&mut self, total_options: usize) {
+        const HEADER_LINES: usize = 4;
+        const LINES_PER_OPTION: usize = 3;
+        // Estimated viewport height — use a conservative value; the real clamp
+        // happens in the renderer, so a generous estimate is fine here.
+        const VIEWPORT_LINES: usize = 15;
+
+        let focused_line = HEADER_LINES + self.branch_focused_option * LINES_PER_OPTION;
+        let total_lines = HEADER_LINES + total_options * LINES_PER_OPTION;
+
+        // Scroll down if focused option is below the visible area.
+        if focused_line + LINES_PER_OPTION > self.branch_scroll_offset + VIEWPORT_LINES {
+            self.branch_scroll_offset =
+                (focused_line + LINES_PER_OPTION).saturating_sub(VIEWPORT_LINES);
+        }
+        // Scroll up if focused option is above the visible area.
+        if focused_line < self.branch_scroll_offset {
+            self.branch_scroll_offset = focused_line;
+        }
+        // Clamp to valid range.
+        let max_offset = total_lines.saturating_sub(VIEWPORT_LINES);
+        self.branch_scroll_offset = self.branch_scroll_offset.min(max_offset);
     }
 
     fn start_transition_if_needed(&mut self, from_index: usize) {
@@ -650,6 +682,12 @@ impl App {
         if kind == Transition::None {
             self.active_transition = None;
             return;
+        }
+
+        // If a transition is already running, complete it instantly before
+        // starting the new one — prevents visual jumpiness from rapid key presses.
+        if self.active_transition.is_some() {
+            self.active_transition = None;
         }
 
         self.active_transition = Some(ActiveTransition {

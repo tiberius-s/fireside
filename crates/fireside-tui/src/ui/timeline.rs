@@ -32,7 +32,7 @@ pub fn render_timeline(
         sequence.push(current_index);
     }
 
-    let max_items = usize::from((area.width / 8).max(3));
+    let max_items = usize::from((area.width / 5).max(3));
     let start = sequence.len().saturating_sub(max_items);
     let slice = &sequence[start..];
 

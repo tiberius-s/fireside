@@ -40,7 +40,7 @@ pub fn render_graph_overlay(
     theme: &Theme,
     view_state: GraphOverlayViewState,
 ) {
-    let popup = centered_popup(area, 74, 76);
+    let popup = graph_overlay_rect(area);
     frame.render_widget(Clear, popup);
 
     let block = Block::default()
@@ -357,7 +357,17 @@ fn summarize_edge_lines(session: &PresentationSession, node: &Node, index: usize
 }
 
 pub fn graph_overlay_rect(area: Rect) -> Rect {
-    centered_popup(area, 74, 76)
+    // Adaptive sizing: use more space on small terminals, constrain on wide ones.
+    // Min 60 cols, max 140 cols; height 76–84% depending on terminal size.
+    let width_pct: u16 = if area.width <= 100 {
+        88
+    } else if area.width <= 160 {
+        80
+    } else {
+        70
+    };
+    let height_pct: u16 = if area.height <= 30 { 90 } else { 80 };
+    centered_popup(area, width_pct, height_pct)
 }
 
 pub fn graph_overlay_list_panel_rect(area: Rect) -> Rect {

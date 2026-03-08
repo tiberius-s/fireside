@@ -8,6 +8,7 @@ use ratatui::layout::{Constraint, Direction, Layout as RatatuiLayout, Rect};
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
+use unicode_width::UnicodeWidthStr;
 
 use fireside_core::model::layout::Layout;
 use fireside_core::model::node::Node;
@@ -58,6 +59,8 @@ pub struct PresenterViewState<'a> {
     pub goto_buffer: Option<&'a str>,
     /// Focused branch option index when branch overlay is visible.
     pub branch_focused_option: usize,
+    /// Scroll offset (body lines) for the branch overlay.
+    pub branch_scroll_offset: usize,
     /// Optional transient flash message shown above the footer.
     pub flash_message: Option<(&'a str, FlashKind)>,
     /// Whether quit confirmation is currently pending.
@@ -144,6 +147,7 @@ pub fn render_presenter(
             &session.graph,
             theme,
             view_state.branch_focused_option,
+            view_state.branch_scroll_offset,
         );
     }
 
@@ -280,7 +284,7 @@ fn render_goto_badge(frame: &mut Frame, area: Rect, buffer: &str, theme: &Theme)
     } else {
         format!(" GOTO: {buffer}_ ")
     };
-    let badge_width = (hint.chars().count() as u16 + 2).min(area.width);
+    let badge_width = (hint.width() as u16 + 2).min(area.width);
     let badge_height = 3u16;
     if area.width < badge_width || area.height < badge_height {
         return;
@@ -435,10 +439,22 @@ fn goto_matches<'a>(
 }
 
 fn truncate_line(text: &str, max_chars: usize) -> String {
-    if text.chars().count() <= max_chars {
+    if text.width() <= max_chars {
         return text.to_owned();
     }
-    let clipped: String = text.chars().take(max_chars.saturating_sub(1)).collect();
+    let mut width = 0usize;
+    let clipped: String = text
+        .chars()
+        .take_while(|c| {
+            let w = unicode_width::UnicodeWidthChar::width(*c).unwrap_or(0);
+            if width + w < max_chars {
+                width += w;
+                true
+            } else {
+                false
+            }
+        })
+        .collect();
     format!("{clipped}…")
 }
 

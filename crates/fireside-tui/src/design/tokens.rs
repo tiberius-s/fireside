@@ -121,7 +121,7 @@ impl Default for DesignTokens {
             toolbar_fg: Color::Rgb(144, 140, 170),
 
             // Syntax
-            syntax_theme: String::from("base16-ocean.dark"),
+            syntax_theme: String::from("base16-mocha.dark"),
         }
     }
 }

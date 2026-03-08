@@ -112,9 +112,9 @@ pub fn render_undo_redo_chips(can_undo: bool, can_redo: bool, theme: &Theme) -> 
     };
 
     vec![
-        Span::styled("[Z undo]", undo_style),
+        Span::styled("[u undo]", undo_style),
         Span::raw(" "),
-        Span::styled("[Y redo]", redo_style),
+        Span::styled("[r redo]", redo_style),
     ]
 }
 

@@ -6,6 +6,7 @@ use ratatui::layout::Rect;
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Paragraph};
+use unicode_width::UnicodeWidthStr;
 
 use crate::theme::Theme;
 
@@ -41,9 +42,15 @@ pub fn render_breadcrumb(
     let max_width = usize::from(area.width);
 
     let mut rev_segments = Vec::new();
+    // Adaptive label width: distribute available space across path segments.
+    // Each segment is label + 3 chars for "  ›" separator.
+    let path_len = path.len().max(1);
+    let per_label_max = ((max_width.saturating_sub(6)) / path_len)
+        .saturating_sub(3)
+        .clamp(6, 24);
     for (i, (idx, branch_step)) in path.iter().enumerate().rev() {
-        let label = node_short_label(session, *idx, 12);
-        let seg_len = label.chars().count() + if i == 0 { 0 } else { 3 };
+        let label = node_short_label(session, *idx, per_label_max);
+        let seg_len = label.width() + if i == 0 { 0 } else { 3 };
         if used + seg_len > max_width && !rev_segments.is_empty() {
             break;
         }
@@ -97,13 +104,22 @@ fn node_short_label(session: &PresentationSession, index: usize, max_chars: usiz
         .and_then(|node| node.id.as_deref().or(node.title.as_deref()))
         .map_or_else(|| format!("#{}", index + 1), ToOwned::to_owned);
 
-    if label.chars().count() <= max_chars {
+    if label.width() <= max_chars {
         label
     } else {
-        let mut out = label
+        let mut width = 0usize;
+        let mut out: String = label
             .chars()
-            .take(max_chars.saturating_sub(1))
-            .collect::<String>();
+            .take_while(|c| {
+                let w = unicode_width::UnicodeWidthChar::width(*c).unwrap_or(0);
+                if width + w < max_chars {
+                    width += w;
+                    true
+                } else {
+                    false
+                }
+            })
+            .collect();
         out.push('…');
         out
     }

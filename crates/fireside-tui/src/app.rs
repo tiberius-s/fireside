@@ -151,6 +151,8 @@ pub struct App {
     editor_node_list_visible: bool,
     /// Focused branch option index in presenter mode branch overlays.
     branch_focused_option: usize,
+    /// Scroll offset (in body lines) for the branch overlay when options overflow.
+    branch_scroll_offset: usize,
     /// Active presenter transition animation.
     active_transition: Option<ActiveTransition>,
     /// Optional base directory for resolving relative content assets.
@@ -233,6 +235,7 @@ impl App {
             editor_detail_scroll_offset: 0,
             editor_node_list_visible: false,
             branch_focused_option: 0,
+            branch_scroll_offset: 0,
             active_transition: None,
             document_base_dir: None,
             show_progress_bar: true,
@@ -416,6 +419,7 @@ impl App {
                             None
                         },
                         branch_focused_option: self.branch_focused_option,
+                        branch_scroll_offset: self.branch_scroll_offset,
                         flash_message: self.visible_flash(),
                         pending_exit_confirmation: self.pending_exit_action.is_some(),
                     },
