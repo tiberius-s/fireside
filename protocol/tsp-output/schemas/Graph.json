@@ -1,0 +1,47 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "Graph.json",
+    "type": "object",
+    "properties": {
+        "fireside-version": {
+            "$ref": "Versions.json",
+            "description": "Protocol version for this document."
+        },
+        "title": {
+            "type": "string",
+            "description": "The graph's display name."
+        },
+        "author": {
+            "type": "string",
+            "description": "The graph creator's name."
+        },
+        "date": {
+            "type": "string",
+            "description": "Creation or presentation date (ISO 8601 recommended)."
+        },
+        "description": {
+            "type": "string",
+            "description": "A brief summary of the graph's purpose."
+        },
+        "version": {
+            "type": "string",
+            "description": "Semantic version of this graph document."
+        },
+        "defaults": {
+            "$ref": "NodeDefaults.json",
+            "description": "Default values applied to all nodes unless overridden."
+        },
+        "nodes": {
+            "type": "array",
+            "items": {
+                "$ref": "Node.json"
+            },
+            "minItems": 1,
+            "description": "The ordered array of nodes forming the graph."
+        }
+    },
+    "required": [
+        "nodes"
+    ],
+    "description": "A Graph is the top-level document — a self-contained directed graph\nof content nodes.\n\n## Structure\n1. **Metadata** — Title, author, and descriptive fields\n2. **Defaults** — Default view mode and transition for all nodes\n3. **Nodes** — An ordered array of node objects\n\n## Entry Point\nThe first node (index 0) is the graph's entry point.\n\n## Validation\n- All Node IDs MUST be unique within the graph\n- All traversal targets MUST reference valid Node IDs\n- BranchPoints MUST contain at least one option\n- Nodes SHOULD be reachable from the entry point"
+}

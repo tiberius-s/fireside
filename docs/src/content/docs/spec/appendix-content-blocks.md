@@ -1,6 +1,6 @@
 ---
 title: 'Appendix C — Content Block Reference'
-description: 'Non-normative reference for core blocks and extension block patterns.'
+description: 'Non-normative reference for core blocks.'
 ---
 
 :::note
@@ -16,7 +16,7 @@ For section titles and hierarchy.
 
 ### `text`
 
-For prose and inline markdown-compatible narrative text.
+For prose and narrative text.
 
 ### `code`
 
@@ -25,11 +25,11 @@ For source examples with optional `language`, `highlight-lines`, and
 
 ### `list`
 
-For ordered/unordered bullet structures.
+For ordered or unordered item lists.
 
 ### `image`
 
-For visual assets with optional `alt` and `caption`.
+For visual assets with optional `alt`, `caption`, `width`, and `height`.
 
 ### `divider`
 
@@ -39,45 +39,14 @@ For visual separation between block groups.
 
 For nested composition.
 
-| Property   | Type             | Required |
-| ---------- | ---------------- | -------- |
-| `kind`     | `"container"`    | Yes      |
-| `children` | `ContentBlock[]` | Yes      |
-| `layout`   | `string?`        | No       |
-
-## Extension Block Pattern
-
-Extensions are explicit typed blocks.
-
-| Property   | Type            | Required |
-| ---------- | --------------- | -------- |
-| `kind`     | `"extension"`   | Yes      |
-| `type`     | `string`        | Yes      |
-| `fallback` | `ContentBlock?` | No       |
-| `...`      | `unknown`       | No       |
-
-### Example: Table Extension
-
-```json
-{
-  "kind": "extension",
-  "type": "acme.table",
-  "headers": ["Name", "Role"],
-  "rows": [
-    ["Alice", "Engineer"],
-    ["Bob", "Designer"]
-  ],
-  "fallback": {
-    "kind": "list",
-    "ordered": false,
-    "items": ["Name: Alice, Role: Engineer", "Name: Bob, Role: Designer"]
-  }
-}
-```
+| Property   | Type             | Required            |
+| ---------- | ---------------- | ------------------- |
+| `kind`     | `"container"`    | Yes                 |
+| `children` | `ContentBlock[]` | Yes (`minItems: 1`) |
+| `layout`   | `string?`        | No                  |
 
 ## Rendering Notes
 
 - Render core blocks directly.
-- For unsupported extensions, render `fallback`.
-- If fallback is absent, render a visible placeholder.
 - Preserve block order in node content arrays.
+- Treat container `layout` as a local arrangement hint, not a global theme.

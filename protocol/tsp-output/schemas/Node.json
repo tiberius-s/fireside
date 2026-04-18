@@ -1,0 +1,51 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "Node.json",
+    "type": "object",
+    "properties": {
+        "id": {
+            "$ref": "NodeId.json",
+            "minLength": 1,
+            "description": "Unique identifier for this node. Required."
+        },
+        "title": {
+            "type": "string",
+            "description": "Human-readable node title for navigation UIs."
+        },
+        "view-mode": {
+            "$ref": "ViewMode.json",
+            "description": "Presentation frame mode for this node."
+        },
+        "transition": {
+            "$ref": "Transition.json",
+            "description": "Pacing intent when entering this node."
+        },
+        "speaker-notes": {
+            "type": "string",
+            "description": "Notes visible only to the presenter, not the audience."
+        },
+        "traversal": {
+            "anyOf": [
+                {
+                    "$ref": "NodeId.json"
+                },
+                {
+                    "$ref": "Traversal.json"
+                }
+            ],
+            "description": "How the presenter leaves this node.\n\nString: shorthand for a next edge (equivalent to `{ \"next\": \"<id>\" }`)\nObject: full Traversal with next or branch-point\nAbsent: terminal node (dead end)"
+        },
+        "content": {
+            "type": "array",
+            "items": {
+                "$ref": "ContentBlock.json"
+            },
+            "description": "The content blocks displayed at this node."
+        }
+    },
+    "required": [
+        "id",
+        "content"
+    ],
+    "description": "A Node is a vertex in the graph — a discrete unit of content\nthat a presenter visits.\n\n## Traversal\n\nThe `traversal` field accepts either:\n- A NodeId string (shorthand for a simple next edge)\n- A Traversal object (for branching or explicit next)\n- Absent (terminal node — dead end)\n\nThere is no implicit sequential fallback. Every edge in the graph\nis explicit. Array order is for document organization only.\n\n## Resolution Order\nView mode and transition use cascading resolution:\n1. Node-level value (explicit)\n2. Graph-level defaults\n3. Built-in default"
+}

@@ -3,29 +3,31 @@ title: 'Domain Vocabulary'
 description: 'Technical and conversational terminology for Fireside concepts.'
 ---
 
-## Technical Layer
+## Canonical Terms
 
-| Term         | Meaning                          |
-| ------------ | -------------------------------- |
-| Graph        | Complete directed graph document |
-| Node         | Traversable unit of content      |
-| NodeId       | Node identifier string           |
-| ContentBlock | Discriminated content unit       |
-| BranchPoint  | Decision point with options      |
-| BranchOption | Single branch choice             |
-| Traversal    | Exit behavior from a node        |
-| Engine       | Runtime that presents a document |
+| Term | Meaning |
+| --- | --- |
+| Graph | The complete Fireside document |
+| Node | A traversable content unit |
+| NodeId | The node identifier string |
+| ContentBlock | A discriminated content unit |
+| Traversal | The explicit exit behavior from a node |
+| BranchPoint | A decision point with options |
+| BranchOption | One branch choice at a decision point |
+| ViewMode | A presentation frame hint |
+| Transition | A pacing hint when entering a node |
+| Engine | A runtime that presents a document |
 
 ## Conversational Layer
 
-| Conversational | Technical    |
-| -------------- | ------------ |
-| Session        | Graph        |
-| Moment         | Node         |
-| Block          | ContentBlock |
-| Question       | BranchPoint  |
-| Answer         | BranchOption |
-| Flow           | Traversal    |
+| Conversational | Technical |
+| --- | --- |
+| Session | Graph |
+| Moment | Node |
+| Block | ContentBlock |
+| Question | BranchPoint |
+| Answer | BranchOption |
+| Flow | Traversal |
 
 ## Traversal Verbs
 
@@ -33,3 +35,8 @@ description: 'Technical and conversational terminology for Fireside concepts.'
 - Choose
 - Goto
 - Back
+
+## Ubiquitous Language Notes
+
+Use the canonical terms in protocol text, schemas, and engine APIs.
+Use conversational aliases in tutorials and onboarding guides only.

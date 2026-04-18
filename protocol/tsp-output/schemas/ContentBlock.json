@@ -1,0 +1,28 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "ContentBlock.json",
+    "anyOf": [
+        {
+            "$ref": "HeadingBlock.json"
+        },
+        {
+            "$ref": "TextBlock.json"
+        },
+        {
+            "$ref": "CodeBlock.json"
+        },
+        {
+            "$ref": "ListBlock.json"
+        },
+        {
+            "$ref": "ImageBlock.json"
+        },
+        {
+            "$ref": "DividerBlock.json"
+        },
+        {
+            "$ref": "ContainerBlock.json"
+        }
+    ],
+    "description": "A ContentBlock is an atomic content element within a Node.\n\nContent blocks use a tagged discriminated union keyed by the `kind` field.\nEach variant represents a distinct type of presentable content.\n\nConforming engines MUST support all 7 block kinds.\n\nBlock order within a node's `content` array is significant. Blocks\nMUST be rendered in array order."
+}

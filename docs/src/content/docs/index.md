@@ -4,53 +4,44 @@ title: 'The Fireside Protocol'
 description: 'A portable format for branching presentations and lessons.'
 ---
 
-> **Version:** 0.1.0
+Fireside is a portable, implementation-independent protocol for graph-structured
+presentations.
 
-Fireside is a portable, implementation-independent format for branching
-presentations and lessons. Documents are directed graphs of nodes containing
-content blocks and traversal metadata.
+The canonical source of truth is the spec set under `spec/`:
 
-## Choose by Goal
-
-### Tutorial
-
-Learn by building a complete session:
-
-- [Your First Fireside Session](guides/getting-started/)
-
-### How-to Guides
-
-Solve specific authoring problems:
-
-- [Branching Adventures](guides/branching-adventures/)
-- [For Designers](guides/for-designers/)
-
-### Reference
-
-Look up protocol definitions and schema details:
-
-- [Specification](spec/introduction/)
-- [Graph schema](schemas/graph/)
-- [Node schema](schemas/node/)
-- [Content blocks schema](schemas/content-blocks/)
+- [Mental models](spec/mental-models/)
+- [Introduction](spec/introduction/)
+- [Data model](spec/data-model/)
+- [Traversal](spec/traversal/)
+- [Serialization](spec/serialization/)
+- [Validation](spec/validation/)
+- [Content blocks](spec/appendix-content-blocks/)
+- [Engine guidance](spec/appendix-engine-guidelines/)
 - [Domain vocabulary](reference/domain-vocabulary/)
-- [Data model quick reference](reference/data-model-quick-reference/)
+- [Quick reference](reference/data-model-quick-reference/)
 
-### Explanation
+## Start Here
 
-Understand design rationale and tradeoffs:
+If you are new to Fireside, read these in order:
 
-- [Design Decisions](explanation/design-decisions/)
+1. [Mental models](spec/mental-models/)
+2. [Introduction](spec/introduction/)
+3. [Data model](spec/data-model/)
+4. [Traversal](spec/traversal/)
+5. [Getting started](guides/getting-started/)
 
-## Protocol Snapshot
+## What Fireside Gives You
 
-- Wire format: kebab-case JSON properties
-- Block discriminator: `kind`
-- Core block kinds: `heading`, `text`, `code`, `list`, `image`, `divider`,
-  `container`
-- Extension block: `kind: "extension"` with explicit `type`
-- Traversal operations: Next, Choose, Goto, Back
-- Media type: `application/json`
-- Schema dialect: JSON Schema 2020-12
+- Explicit graph edges instead of hidden linear flow
+- Branching, revisiting, and rejoining without special cases
+- A small core vocabulary that works across runtimes
+- JSON Schema for machine validation
+- Clear terminology for authors, presenters, and engine authors
 
-Now that we have a specification, we can define and design engines that implement it. The next chapter defines normative traversal algorithms and state rules for Next, Choose, Goto, and Back operations.
+## What Fireside Does Not Define
+
+- Themes and visual chrome
+- Editor UI or keybindings
+- Animation libraries
+- File loading and saving strategies
+- Platform-specific rendering choices

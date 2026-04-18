@@ -8,11 +8,20 @@ description: 'Compact reference for Fireside Graph, Node, ContentBlock, and trav
 `Graph` contains metadata plus `nodes`.
 
 - `nodes` is required and must contain at least one node.
-- `defaults` can provide graph-wide `layout` and `transition` defaults.
+- `defaults` can provide graph-wide `view-mode` and `transition` defaults.
+
+## Core Types
+
+| Type | Notes |
+| --- | --- |
+| `Graph` | Top-level document |
+| `Node` | Traversable content unit |
+| `Traversal` | Explicit exit behavior |
+| `BranchPoint` | Decision point |
+| `BranchOption` | One branch choice |
+| `ContentBlock` | Renderable content block |
 
 ## ContentBlock Kinds
-
-Core kinds:
 
 - `heading`
 - `text`
@@ -21,10 +30,6 @@ Core kinds:
 - `image`
 - `divider`
 - `container`
-
-Extension kind:
-
-- `extension` with required `type`
 
 ## Traversal Operations
 
@@ -35,11 +40,12 @@ Extension kind:
 
 ## Enums
 
-Layout:
-`default`, `center`, `split-horizontal`, `split-vertical`, `fullscreen`,
-`align-left`, `align-right`, `focus-code`, `agenda`, `compare`, `image-left`,
-`image-right`.
+View mode:
+
+- `default`
+- `fullscreen`
 
 Transition:
-`none`, `fade`, `slide-left`, `slide-right`, `slide-up`, `slide-down`,
-`dissolve`, `matrix`.
+
+- `none`
+- `fade`

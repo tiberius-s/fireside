@@ -1,0 +1,16 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "Traversal.json",
+    "type": "object",
+    "properties": {
+        "next": {
+            "$ref": "NodeId.json",
+            "description": "Override the next target. Navigate to this node on next().\nMUST NOT coexist with branch-point."
+        },
+        "branch-point": {
+            "$ref": "BranchPoint.json",
+            "description": "Present a BranchPoint with multiple options.\nThe presenter must choose before continuing. next() is blocked.\nMUST NOT coexist with next."
+        }
+    },
+    "description": "Traversal defines how a presenter moves away from the current node.\n\nThis is the object form, used when branching is needed. For simple\nnext-node edges, use the string shorthand on Node.traversal instead.\n\nA Traversal MUST NOT have both `next` and `branch-point`. Validators\nMUST reject this as contradictory."
+}

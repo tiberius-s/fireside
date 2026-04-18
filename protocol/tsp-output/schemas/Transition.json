@@ -1,0 +1,10 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "Transition.json",
+    "type": "string",
+    "enum": [
+        "none",
+        "fade"
+    ],
+    "description": "Pacing intent when transitioning between nodes.\n\nTransitions express pacing intent, not animation style. Engines\nchoose how to render each value. Unsupported transitions SHOULD\nfall back to \"none\"."
+}

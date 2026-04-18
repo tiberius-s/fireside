@@ -5,7 +5,7 @@
     "properties": {
         "label": {
             "type": "string",
-            "description": "Display label for this option (e.g., \"Fight the dragon\")."
+            "description": "Display label for this option."
         },
         "key": {
             "type": "string",

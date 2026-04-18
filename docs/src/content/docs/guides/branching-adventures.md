@@ -1,10 +1,9 @@
 ---
 title: 'Branching Adventures'
-description: 'How to model non-linear Sessions with three practical branching patterns in Fireside 0.1.0.'
+description: 'How to model non-linear sessions with three practical branching patterns in Fireside 0.1.0.'
 ---
 
-Use this guide when you need to design branching flow intentionally, not by
-trial and error.
+Use this guide when you want to shape branching flow deliberately.
 
 ## Before You Start
 
@@ -26,26 +25,26 @@ continuation node.
 
 ```text
 intro -> question -> topic-a -> summary
-                \-> topic-b --^
+                 \-> topic-b --^
 ```
 
 ### Why it works
 
 - `question` contains a `branch-point`
-- each branch node sets `traversal.next` to `summary`
+- each branch node sets `traversal` to `summary`
 - convergence is explicit and deterministic
 
 ### Example
 
 ```json
 {
-  "$schema": "https://fireside.dev/schemas/0.1.0/Graph.json",
+  "fireside-version": "0.1.0",
   "title": "Branch and Rejoin",
   "nodes": [
     {
       "id": "intro",
       "content": [{ "kind": "heading", "level": 1, "text": "Welcome" }],
-      "traversal": { "next": "question" }
+      "traversal": "question"
     },
     {
       "id": "question",
@@ -62,12 +61,12 @@ intro -> question -> topic-a -> summary
     },
     {
       "id": "topic-a",
-      "traversal": { "next": "summary" },
+      "traversal": "summary",
       "content": [{ "kind": "text", "body": "Details for Topic A." }]
     },
     {
       "id": "topic-b",
-      "traversal": { "next": "summary" },
+      "traversal": "summary",
       "content": [{ "kind": "text", "body": "Details for Topic B." }]
     },
     {
@@ -95,14 +94,14 @@ hub -> spoke-a -> hub
 ### Why it works
 
 - `hub` is a menu node with a `branch-point`
-- each spoke ends with `traversal.next: "hub"`
+- each spoke ends with `traversal` back to `hub`
 - one option exits to `done`
 
 ### Example
 
 ```json
 {
-  "$schema": "https://fireside.dev/schemas/0.1.0/Graph.json",
+  "fireside-version": "0.1.0",
   "title": "Hub and Spoke",
   "nodes": [
     {
@@ -126,17 +125,17 @@ hub -> spoke-a -> hub
     },
     {
       "id": "pyramids",
-      "traversal": { "next": "hub" },
+      "traversal": "hub",
       "content": [{ "kind": "text", "body": "Pyramids overview." }]
     },
     {
       "id": "nile",
-      "traversal": { "next": "hub" },
+      "traversal": "hub",
       "content": [{ "kind": "text", "body": "Nile overview." }]
     },
     {
       "id": "hieroglyphics",
-      "traversal": { "next": "hub" },
+      "traversal": "hub",
       "content": [{ "kind": "text", "body": "Hieroglyphics overview." }]
     },
     {
@@ -170,7 +169,7 @@ crossroads -> cave -> dragon -> ending-a
 
 ```json
 {
-  "$schema": "https://fireside.dev/schemas/0.1.0/Graph.json",
+  "fireside-version": "0.1.0",
   "title": "Open World",
   "nodes": [
     {
@@ -189,32 +188,32 @@ crossroads -> cave -> dragon -> ending-a
     },
     {
       "id": "cave",
-      "traversal": { "next": "dragon" },
+      "traversal": "dragon",
       "content": [{ "kind": "text", "body": "You enter the cave." }]
     },
     {
       "id": "dragon",
-      "traversal": { "next": "ending-a" },
+      "traversal": "ending-a",
       "content": [{ "kind": "text", "body": "A dragon appears." }]
     },
     {
       "id": "forest",
-      "traversal": { "next": "hermit" },
+      "traversal": "hermit",
       "content": [{ "kind": "text", "body": "The forest is quiet." }]
     },
     {
       "id": "hermit",
-      "traversal": { "next": "ending-b" },
+      "traversal": "ending-b",
       "content": [{ "kind": "text", "body": "A hermit offers advice." }]
     },
     {
       "id": "river",
-      "traversal": { "next": "bridge" },
+      "traversal": "bridge",
       "content": [{ "kind": "text", "body": "You follow the river." }]
     },
     {
       "id": "bridge",
-      "traversal": { "next": "ending-c" },
+      "traversal": "ending-c",
       "content": [{ "kind": "text", "body": "A narrow bridge sways." }]
     },
     {
@@ -241,14 +240,10 @@ crossroads -> cave -> dragon -> ending-a
 
 ## Common Mistakes
 
-- Branch options targeting missing node IDs
-- Hub flows with no explicit exit option
-- Rejoin patterns relying on implicit array order instead of explicit `next`
+- branch options targeting missing node IDs
+- hub flows with no explicit exit option
+- rejoin patterns relying on implicit array order instead of explicit `next`
 
 ## Validate Before Publishing
 
-Run protocol validation and then run the session:
-
-```bash
-cargo run -- present my-session.fireside.json
-```
+Run protocol validation and then present the session.

@@ -7,9 +7,30 @@ description: 'Scope, conformance language, design principles, and terminology fo
 
 Fireside defines a portable format for branching presentations and lessons.
 Documents are directed graphs whose nodes contain typed content blocks and
-traversal hints.
+explicit traversal rules.
 
-The protocol is renderer-agnostic and runtime-agnostic.
+The protocol is renderer-agnostic and runtime-agnostic. It describes what
+content exists, how nodes connect, and how presenters move through the graph.
+
+If you want the conceptual model first, read [Mental models](./mental-models/).
+
+## What Fireside is for
+
+Fireside is for content that benefits from:
+
+- branching decisions
+- revisits and backtracking
+- reusable subflows
+- explicit rejoin points
+- graph-shaped presentations instead of linear slide stacks
+
+## What Fireside is not for
+
+- visual theme design
+- animation inventory
+- editor behavior
+- file management
+- platform-specific chrome
 
 ## Conformance
 
@@ -18,20 +39,28 @@ A conforming engine for `0.1.0`:
 1. Parses and validates Fireside JSON documents.
 2. Implements traversal semantics (`Next`, `Choose`, `Goto`, `Back`).
 3. Renders all seven core block kinds.
-4. Handles unsupported extension blocks via fallback behavior.
+4. Preserves the protocol's traversal and history rules.
 
 ## Design Principles
 
 - Portability first
 - Predictable traversal
 - Minimal mandatory core
-- Safe extensibility
-- Accessibility-aware rendering intent
+- Explicit edges over implicit sequence
+- Protocol semantics before implementation detail
 
 ## Terminology
 
-Normative chapters use technical terms (`Graph`, `Node`, `ContentBlock`).
-Guides may use conversational aliases (`Session`, `Moment`, `Block`).
+Normative chapters use the technical terms in the glossary:
+
+- `Graph`
+- `Node`
+- `ContentBlock`
+- `Traversal`
+- `BranchPoint`
+- `BranchOption`
+
+Guides may use conversational aliases when they help onboarding.
 
 ## Wire Format Baseline
 
@@ -39,3 +68,10 @@ Guides may use conversational aliases (`Session`, `Moment`, `Block`).
 - Kebab-case core property names
 - `kind` as ContentBlock discriminator
 - JSON Schema 2020-12 machine-readable contract
+
+## Entry points for readers
+
+- [Data model](./data-model/)
+- [Traversal](./traversal/)
+- [Serialization](./serialization/)
+- [Validation](./validation/)

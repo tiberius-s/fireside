@@ -1,203 +1,121 @@
 {
-  "$schema": "../../models/tsp-output/schemas/Graph.json",
   "fireside-version": "0.1.0",
-  "title": "Hello, Fireside!",
+  "title": "Hello, Fireside",
   "author": "Jane Developer",
-  "date": "2026-02-19",
-  "description": "Comprehensive smoke test deck for transitions, image loading, containers, and extensions.",
-  "version": "0.1.0",
-  "tags": ["intro", "smoke", "visual"],
-  "theme": "default",
-  "font": "JetBrains Mono",
+  "date": "2026-04-18",
+  "description": "Canonical example demonstrating core protocol features.",
   "defaults": {
-    "layout": "default",
-    "transition": "fade"
+    "view-mode": "default",
+    "transition": "none"
   },
   "nodes": [
     {
-      "id": "title",
-      "title": "Title",
-      "layout": "center",
-      "transition": "fade",
+      "id": "intro",
+      "traversal": "features",
       "content": [
-        { "kind": "heading", "level": 1, "text": "Hello, Fireside!" },
-        { "kind": "text", "body": "Portable branching presentations in JSON." },
-        { "kind": "text", "body": "This deck is used for runtime smoke testing." }
+        {
+          "kind": "container",
+          "layout": "center",
+          "children": [
+            { "kind": "heading", "level": 1, "text": "Hello, Fireside" },
+            { "kind": "text", "body": "A portable format for graph-structured presentations." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "features",
+      "traversal": "choose",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Core Features" },
+        {
+          "kind": "list",
+          "items": [
+            "Graph-native traversal with explicit edges",
+            "Branching with decision points",
+            "7 content block types",
+            "Two-tier validation (schema + semantic)"
+          ]
+        },
+        { "kind": "divider" },
+        { "kind": "text", "body": "Every edge is explicit. No implicit sequential fallback." }
+      ]
+    },
+    {
+      "id": "choose",
+      "traversal": {
+        "branch-point": {
+          "prompt": "What would you like to explore?",
+          "options": [
+            { "label": "Code demo", "key": "a", "target": "code-demo" },
+            { "label": "Layout demo", "key": "b", "target": "layout-demo" },
+            { "label": "Finish", "key": "c", "target": "thanks" }
+          ]
+        }
+      },
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Pick a Path" },
+        { "kind": "text", "body": "Branching is a first-class protocol concept." }
       ]
     },
     {
       "id": "code-demo",
-      "layout": "fullscreen",
-      "transition": "slide-left",
+      "view-mode": "fullscreen",
+      "traversal": "thanks",
       "content": [
-        { "kind": "heading", "level": 2, "text": "Code + Highlight" },
+        { "kind": "heading", "level": 2, "text": "Code Block" },
         {
           "kind": "code",
           "language": "rust",
-          "source": "fn main() {\n    let message = \"Hello from Fireside!\";\n    println!(\"{message}\");\n}",
-          "highlight-lines": [2],
+          "source": "fn main() {\n    let graph = Graph::load(\"hello.json\")?;\n    let engine = Engine::new(graph);\n    engine.present()\n}",
+          "highlight-lines": [2, 3],
           "show-line-numbers": true
         }
-      ]
+      ],
+      "speaker-notes": "Demonstrate fullscreen view mode with code."
     },
     {
-      "id": "image-success",
-      "layout": "center",
-      "transition": "slide-right",
+      "id": "layout-demo",
+      "traversal": "thanks",
       "content": [
-        { "kind": "heading", "level": 2, "text": "Image Metadata (Success)" },
-        {
-          "kind": "image",
-          "src": "assets/sample.ppm",
-          "alt": "8x8 generated smoke-test sample",
-          "caption": "Renderer should display detected width × height."
-        }
-      ]
-    },
-    {
-      "id": "image-fallback",
-      "layout": "center",
-      "transition": "wipe",
-      "content": [
-        { "kind": "heading", "level": 2, "text": "Image Fallback (Missing File)" },
-        {
-          "kind": "image",
-          "src": "assets/missing-sample.ppm",
-          "alt": "missing image",
-          "caption": "Renderer should keep running and show fallback details."
-        }
-      ]
-    },
-    {
-      "id": "container-splits",
-      "transition": "dissolve",
-      "content": [
-        { "kind": "heading", "level": 2, "text": "Container Layout Hints" },
+        { "kind": "heading", "level": 2, "text": "Container Layouts" },
         {
           "kind": "container",
-          "layout": "split-horizontal",
+          "layout": "columns",
           "children": [
-            { "kind": "text", "body": "left: split-horizontal should render side-by-side" },
-            { "kind": "text", "body": "right: with column separator" }
+            {
+              "kind": "text",
+              "body": "**Left column** — containers with `layout: \"columns\"` arrange children side by side."
+            },
+            {
+              "kind": "text",
+              "body": "**Right column** — replaces node-level split layouts with an explicit, composable pattern."
+            }
           ]
         },
+        { "kind": "divider" },
         {
           "kind": "container",
-          "layout": "split-vertical",
+          "layout": "center",
           "children": [
-            { "kind": "text", "body": "top: split-vertical" },
-            { "kind": "text", "body": "bottom: separated with a divider line" }
+            { "kind": "text", "body": "Centering is a container concern, not a view mode." }
           ]
         }
       ]
-    },
-    {
-      "id": "extension-known",
-      "transition": "matrix",
-      "content": [
-        { "kind": "heading", "level": 2, "text": "Extension Rendering (Known)" },
-        {
-          "kind": "extension",
-          "type": "acme.mermaid",
-          "code": "graph TD; Input-->Validate; Validate-->Render;",
-          "fallback": {
-            "kind": "text",
-            "body": "Mermaid extension rendered inline (fallback if unsupported)."
-          }
-        },
-        {
-          "kind": "extension",
-          "type": "acme.table",
-          "headers": ["kind", "status"],
-          "rows": [
-            ["image", "ok"],
-            ["transition", "ok"],
-            ["extension", "ok"]
-          ],
-          "fallback": {
-            "kind": "text",
-            "body": "Table extension rendered inline (fallback if unsupported)."
-          }
-        }
-      ]
-    },
-    {
-      "id": "extension-unknown",
-      "transition": "typewriter",
-      "content": [
-        { "kind": "heading", "level": 2, "text": "Extension Rendering (Unknown + Fallback)" },
-        {
-          "kind": "extension",
-          "type": "vendor.custom-widget",
-          "payload": { "mode": "experimental", "version": 1 },
-          "fallback": {
-            "kind": "text",
-            "body": "Fallback content is displayed when extension type is unsupported."
-          }
-        }
-      ]
-    },
-    {
-      "id": "branch-demo",
-      "layout": "center",
-      "transition": "fade",
-      "content": [
-        { "kind": "heading", "level": 2, "text": "Choose Your Path" },
-        {
-          "kind": "text",
-          "body": "Press a, b, or c to branch; use back to return."
-        }
-      ],
-      "traversal": {
-        "branch-point": {
-          "id": "topic-choice",
-          "prompt": "What would you like to explore?",
-          "options": [
-            { "label": "Themes", "key": "a", "target": "themes" },
-            { "label": "Blocks", "key": "b", "target": "blocks" },
-            { "label": "Skip", "key": "c", "target": "thanks" }
-          ]
-        }
-      }
-    },
-    {
-      "id": "themes",
-      "transition": "slide-left",
-      "content": [
-        { "kind": "heading", "level": 2, "text": "Themes" },
-        {
-          "kind": "list",
-          "items": [
-            "Semantic token mapping",
-            "CLI, document, and default precedence",
-            "Terminal-native palettes"
-          ]
-        }
-      ],
-      "traversal": { "next": "thanks" }
-    },
-    {
-      "id": "blocks",
-      "transition": "slide-right",
-      "content": [
-        { "kind": "heading", "level": 2, "text": "Core Blocks" },
-        {
-          "kind": "list",
-          "ordered": true,
-          "items": ["heading", "text", "code", "list", "image", "divider", "container", "extension"]
-        }
-      ],
-      "traversal": { "next": "thanks" }
     },
     {
       "id": "thanks",
-      "layout": "center",
-      "transition": "dissolve",
+      "transition": "fade",
       "content": [
-        { "kind": "heading", "level": 1, "text": "Thanks" },
-        { "kind": "text", "body": "Smoke test complete if all transitions and blocks render." }
-      ],
-      "speaker-notes": "Validate branch options and transition pacing before ending session."
+        {
+          "kind": "container",
+          "layout": "center",
+          "children": [
+            { "kind": "heading", "level": 1, "text": "Thanks!" },
+            { "kind": "text", "body": "Four operations. Seven blocks. Explicit edges." }
+          ]
+        }
+      ]
     }
   ]
 }

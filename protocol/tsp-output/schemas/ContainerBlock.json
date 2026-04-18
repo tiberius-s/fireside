@@ -24,5 +24,5 @@
         "kind",
         "children"
     ],
-    "description": "A generic container for nested content blocks.\n\nReplaces the previous `fragment` and `columns` block types with a single\nunified container. The `layout` hint controls arrangement:\n\n- `\"stack\"` (default) — vertical stacking, progressive reveal\n- `\"columns\"` — side-by-side column arrangement\n- `\"rows\"` — horizontal row arrangement\n\nEngines MAY support additional layout hints through extension-defined values."
+    "description": "A container for nested content blocks with layout control.\n\nContainer layout hints control how children are arranged:\n\n- `\"stack\"` (default) — vertical stacking, top-aligned\n- `\"columns\"` — side-by-side arrangement, left to right in array order\n- `\"center\"` — centered vertically and horizontally\n\nThere is no protocol limit on nesting depth. Engines MAY impose\npractical limits."
 }

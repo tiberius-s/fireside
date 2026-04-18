@@ -14,36 +14,46 @@ At minimum, an engine maintains:
 
 - `current`: the active node ID
 - `history`: stack of previously visited node IDs
-- `index`: mapping from node IDs to node positions
+- `index`: mapping from node IDs to nodes
 
-A node may include:
+A node may include either:
 
-- `traversal.next` override
-- `traversal.branch-point` with options
+- a string `traversal` shorthand for a simple next edge
+- a `Traversal` object with `next` or `branch-point`
+- no traversal field, which means terminal
+
+There is no implicit sequential fallback. Array order is only document
+organization.
+
+## Branch-point precedence
+
+If a node has a branch point, `Next` is blocked. The engine MUST wait
+for `Choose`.
 
 ## Operation: Next
 
-`Next` advances from the current node using deterministic precedence.
+`Next` advances from the current node using explicit traversal.
 
 ### Algorithm
 
 1. Let `node` be the current node.
-2. If `node.traversal.branch-point` exists, `Next` MUST NOT auto-advance.
-   The engine remains at `node` until a valid `Choose` or `Back` operation.
-3. If `node.traversal.next` exists:
+2. If `node.traversal.branch-point` exists, `Next` is invalid.
+3. If `node.traversal` is a string:
+   - validate target node ID
+   - push `node.id` onto `history`
+   - set `current` to the target
+   - return
+4. If `node.traversal.next` exists:
    - validate target node ID
    - push `node.id` onto `history`
    - set `current` to `traversal.next`
    - return
-4. Otherwise, resolve implicit sequence:
-   - find the next node in array order (`nodes[i+1]`)
-   - if present, push `node.id` to `history` and move there
-   - if absent, the graph is complete and traversal ends
+5. Otherwise, remain on the current node.
 
 ### Precedence
 
 ```text
-branch-point gate -> traversal.next -> nodes[i+1] -> complete
+branch-point gate -> explicit next edge -> terminal
 ```
 
 ## Operation: Choose
@@ -99,14 +109,21 @@ A conforming engine MUST satisfy all invariants:
 4. Failed operations MUST NOT mutate history.
 5. History entries are node IDs, not array indices.
 
-## Branch-Point Rendering Rules
+## Branch return wiring
 
-When current node has a branch point:
+When a branch path should rejoin the main flow, the branch endpoint
+sets its own explicit `traversal` target.
 
-1. Render node content normally.
-2. Render branch prompt and options.
-3. Accept `Choose` and `Back`.
-4. `Next` SHOULD either no-op or show branch selection guidance.
+```json
+{
+  "id": "branch-end",
+  "traversal": "rejoin",
+  "content": []
+}
+```
+
+Each endpoint wires its own return. That keeps nested branches, shared
+nodes, and cycles explicit.
 
 ## Graph Patterns
 
@@ -119,7 +136,7 @@ graph LR
   A[Node 1] --> B[Node 2] --> C[Node 3] --> D[Node 4]
 ```
 
-Uses implicit `nodes[i+1]` progression.
+Uses explicit next edges.
 
 ### Branch and Rejoin
 
@@ -132,8 +149,8 @@ graph TD
   R --> N[Continue]
 ```
 
-Implementation: branch options target branch nodes, and branch termini set
-`traversal.next` to the same resume node.
+Implementation: branch options target branch nodes, and branch termini
+set `traversal.next` to the same resume node.
 
 ### Hub and Spoke
 
@@ -170,6 +187,7 @@ A conforming engine MUST reject or safely handle:
 - unknown `traversal.next` target IDs
 - duplicate node IDs
 - malformed branch-point options
+- invalid `next` on a node with a branch point
 
 Recommended behavior is fail-fast validation before presentation starts.
 
@@ -179,6 +197,6 @@ An engine conforms to traversal semantics when it:
 
 - implements `Next`, `Choose`, `Goto`, `Back`
 - enforces branch-point gating for implicit `Next`
-- resolves `traversal.next` before implicit sequence
+- resolves explicit traversal before any terminal no-op
 - preserves history invariants
 - validates node targets before navigation

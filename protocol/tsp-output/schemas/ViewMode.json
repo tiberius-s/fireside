@@ -1,0 +1,10 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "ViewMode.json",
+    "type": "string",
+    "enum": [
+        "default",
+        "fullscreen"
+    ],
+    "description": "Presentation frame mode for a node.\n\nView mode controls how much screen real estate content gets. It does\nnot control content arrangement — that is the container block's job.\n\nEngines SHOULD allow the presenter to toggle view modes at any time.\nThe node-level value is the initial suggestion, not a constraint.\n\nResolution order:\n1. Node-level view-mode (explicit)\n2. Graph-level defaults\n3. Built-in default (\"default\")"
+}

@@ -3,25 +3,24 @@ title: 'Your First Fireside Session'
 description: 'Build a small branching Fireside document with core blocks and a container.'
 ---
 
-This guide creates a minimal but complete branching session.
+This guide builds a small session you can read and present immediately.
 
-## What You Will Build
+## What you will make
 
-A three-node document that includes:
+A four-node graph with:
 
-1. Intro node
-2. Branch question node
-3. Two branch outcomes
+1. an opening node
+2. a branch point
+3. two branch outcomes
+4. a shared ending
 
-It also demonstrates a `container` block and an `extension` fallback pattern.
-
-## Step 1: Start a Document
+## Start with the graph
 
 Create `my-session.fireside.json`:
 
 ```json
 {
-  "$schema": "https://fireside.dev/schemas/0.1.0/Graph.json",
+  "fireside-version": "0.1.0",
   "title": "My First Fireside Session",
   "nodes": [
     {
@@ -30,46 +29,59 @@ Create `my-session.fireside.json`:
         { "kind": "heading", "level": 1, "text": "Welcome" },
         { "kind": "text", "body": "Fireside sessions are branching graphs." }
       ],
-      "traversal": { "next": "decision" }
+      "traversal": "decision"
     },
     {
       "id": "decision",
       "content": [
         {
           "kind": "container",
-          "layout": "stack",
+          "layout": "center",
           "children": [
             { "kind": "heading", "level": 2, "text": "Pick a path" },
-            { "kind": "text", "body": "Choose technical depth or business summary." }
+            {
+              "kind": "text",
+              "body": "Choose technical detail or a broader summary."
+            }
           ]
         }
       ],
       "traversal": {
         "branch-point": {
-          "prompt": "Where do we go next?",
+          "prompt": "Where do you want to go next?",
           "options": [
-            { "label": "Technical", "target": "technical", "key": "t" },
-            { "label": "Business", "target": "business", "key": "b" }
+            { "label": "Technical", "key": "t", "target": "technical" },
+            { "label": "Summary", "key": "s", "target": "summary" }
           ]
         }
       }
     },
     {
       "id": "technical",
-      "content": [{ "kind": "code", "language": "rust", "source": "println!(\"hello\");" }]
-    },
-    {
-      "id": "business",
+      "view-mode": "fullscreen",
+      "transition": "fade",
+      "traversal": "summary",
       "content": [
         {
-          "kind": "extension",
-          "type": "acme.metric-card",
-          "value": "42%",
-          "label": "Adoption uplift",
-          "fallback": {
-            "kind": "text",
-            "body": "Adoption uplift: 42%"
-          }
+          "kind": "code",
+          "language": "rust",
+          "source": "fn main() {\n    println!(\"Hello, Fireside!\");\n}"
+        }
+      ]
+    },
+    {
+      "id": "summary",
+      "content": [
+        {
+          "kind": "container",
+          "layout": "center",
+          "children": [
+            { "kind": "heading", "level": 1, "text": "Thanks" },
+            {
+              "kind": "text",
+              "body": "That was a tiny graph with an explicit rejoin."
+            }
+          ]
         }
       ]
     }
@@ -77,25 +89,30 @@ Create `my-session.fireside.json`:
 }
 ```
 
-## Step 2: Run It
+## Read the shape
 
-Use the reference engine:
+- `intro` goes to `decision`
+- `decision` blocks `next` and waits for `choose`
+- both branch outcomes wire back to `summary`
+- `summary` ends the flow
 
-```bash
-cargo run -- present my-session.fireside.json
-```
+## Why this structure works
 
-## Step 3: Navigate
+The graph is easy to explain:
 
-Try these operations:
+- one entry node
+- one decision node
+- one branch node
+- one shared ending
 
-- `Next`
-- `Choose` (branch options)
-- `Back`
-- `Goto` (by node ID)
+That is the smallest useful branching Fireside session.
 
-## Next Steps
+## Run it
 
-- Add `layout` hints like `focus-code` or `compare`.
-- Add images and lists to enrich branch outcomes.
-- Add more extension types with robust fallback blocks.
+Use the reference engine or validator once you are ready to test the file.
+
+## What to try next
+
+- add another branch point inside `technical`
+- swap the `container` from `center` to `stack`
+- change `summary` to a terminal node with no traversal

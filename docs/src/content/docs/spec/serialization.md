@@ -13,6 +13,7 @@ This chapter defines the canonical wire format and transport expectations.
 - The root value MUST be a JSON object.
 - Property order is not significant.
 - Documents MAY be minified or pretty-printed.
+- Array order is significant where the data model says it is significant.
 
 ## Property and Enum Naming
 
@@ -34,20 +35,8 @@ Enum values also use kebab-case.
 
 ```json
 {
-  "layout": "split-horizontal",
-  "transition": "slide-left"
-}
-```
-
-## `$schema` Field
-
-A document MAY include `$schema` for self-description.
-Tools SHOULD use the URI as the schema identifier for validation behavior.
-
-```json
-{
-  "$schema": "https://fireside.dev/schemas/0.1.0/Graph.json",
-  "nodes": [{ "content": [{ "kind": "heading", "level": 1, "text": "Hello" }] }]
+  "view-mode": "fullscreen",
+  "transition": "fade"
 }
 ```
 
@@ -78,16 +67,11 @@ Engines MUST NOT require a specific extension if content is valid JSON.
 - Engines SHOULD tolerate a UTF-8 BOM.
 - Engines SHOULD normalize Node ID comparisons to NFC.
 
-## Minimal Valid Document
-
-```json
-{
-  "nodes": [{ "content": [] }]
-}
-```
-
 ## Schema Relationship
 
 TypeSpec is the source-of-truth model.
-JSON Schema 2020-12 files generated from TypeSpec are the normative machine-
-readable contract for validation tooling.
+JSON Schema 2020-12 files generated from TypeSpec are the machine-readable
+contract for validation tooling.
+
+Protocol authors should treat the generated schemas as the validation surface
+and the TypeSpec source as the design surface.

@@ -3,14 +3,14 @@
     "$id": "NodeDefaults.json",
     "type": "object",
     "properties": {
-        "layout": {
-            "$ref": "Layout.json",
-            "description": "Default layout for all nodes."
+        "view-mode": {
+            "$ref": "ViewMode.json",
+            "description": "Default view mode for all nodes."
         },
         "transition": {
             "$ref": "Transition.json",
             "description": "Default transition for all nodes."
         }
     },
-    "description": "Default values applied to all nodes in a graph unless\noverridden at the node level."
+    "description": "Default values applied to all nodes unless overridden at the node level."
 }
