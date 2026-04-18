@@ -2,11 +2,21 @@
   "name": "@fireside/typespec",
   "version": "0.1.0",
   "description": "Fireside Protocol domain model definitions in TypeSpec",
+  "type": "module",
   "private": true,
+  "main": "dist/src/index.js",
+  "exports": {
+    ".": {
+      "typespec": "./main.tsp",
+      "default": "./dist/src/index.js"
+    }
+  },
   "scripts": {
-    "build": "npm run clean && tsp compile .",
+    "build": "tsc -p . && npm run clean:schemas && tsp compile .",
     "watch": "tsp compile . --watch",
-    "clean": "rm -rf tsp-output"
+    "clean": "rm -rf dist tsp-output",
+    "clean:schemas": "rm -rf tsp-output",
+    "validate": "node validate.mjs"
   },
   "keywords": [
     "fireside",
@@ -17,8 +27,11 @@
   "author": "Tiberius Silivestru <tiberius.silivestru@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@typespec/compiler": "^1.9.0",
-    "@typespec/json-schema": "^1.9.0",
+    "@typespec/compiler": "^1.11.0",
+    "@typespec/json-schema": "^1.11.0",
     "@typespec/versioning": "latest"
+  },
+  "devDependencies": {
+    "typescript": "~5.7.0"
   }
 }

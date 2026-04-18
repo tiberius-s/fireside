@@ -1,5 +1,6 @@
 import "@typespec/json-schema";
 import "@typespec/versioning";
+import "./dist/src/index.js";
 
 using TypeSpec.JsonSchema;
 using Versioning;
@@ -26,6 +27,7 @@ using Versioning;
 @versioned(Versions)
 namespace Fireside;
 
+/** Supported protocol versions. */
 enum Versions {
   v0_1_0: "0.1.0",
 }

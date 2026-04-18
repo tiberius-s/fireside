@@ -5,3 +5,6 @@ options:
     file-type: json
     int64-strategy: string
     emitter-output-dir: "{output-dir}/schemas"
+linter:
+  extends:
+    - "@fireside/typespec/recommended"

@@ -65,10 +65,6 @@ fireside/
 └── crates/                  # Rust reference implementation (rebuilding)
 ```
 
-## Protocol Version
-
-**0.1.0**
-
 ## Build
 
 ```bash

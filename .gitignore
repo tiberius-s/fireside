@@ -26,6 +26,10 @@ docs/.vite/
 
 # TypeSpec build artifacts
 models/node_modules/
+protocol/node_modules/
+protocol/linter/node_modules/
+protocol/tsp-output/
+protocol/dist/
 
 # Root frontend artifacts (accidental local generation)
 .astro/
