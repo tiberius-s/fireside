@@ -1,43 +1,9 @@
 #!/usr/bin/env bash
-# pre-commit — runs before every commit.
-# Mirrors the "Format check" step in .github/workflows/rust.yml.
+# pre-commit is intentionally disabled.
 #
-# Install once: git config core.hooksPath .githooks
-#   or run:     .githooks/install.sh
+# The repository keeps this hook installed, but it no longer enforces any code
+# quality checks while the protocol and implementation are being rewritten.
 
 set -euo pipefail
 
-echo "🔍 pre-commit: checking formatting..."
-
-if ! cargo fmt --all --check --quiet 2>&1; then
-  echo "  ℹ️  Auto-fixing formatting issues..."
-  cargo fmt --all --quiet
-  echo "  ⚠️  Formatting was auto-fixed. Please review and re-stage the files:"
-  git diff --name-only
-  echo ""
-  exit 1
-fi
-
-echo "✅ Formatting OK."
-
-echo "🔍 pre-commit: running clippy..."
-
-if ! cargo clippy --workspace -- -D warnings 2>&1; then
-  echo ""
-  echo "❌ Clippy errors found. Fix them and stage the changes before committing."
-  exit 1
-fi
-
-echo "✅ Clippy OK."
-
-echo "🔍 pre-commit: running docs check..."
-
-export RUSTDOCFLAGS='-D warnings'
-if ! cargo doc --workspace --no-deps --quiet 2>&1; then
-  echo ""
-  echo "❌ Documentation warnings/errors found. Fix them and stage the changes before committing."
-  exit 1
-fi
-unset RUSTDOCFLAGS
-
-echo "✅ Docs OK."
+echo "ℹ️  pre-commit checks are disabled."

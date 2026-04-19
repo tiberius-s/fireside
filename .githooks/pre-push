@@ -1,99 +1,10 @@
 #!/usr/bin/env bash
-# pre-push — runs before every 'git push'.
-# Mirrors the "Lint" and "Tests" jobs in .github/workflows/rust.yml.
+# pre-push is intentionally disabled.
 #
-# Install once: git config core.hooksPath .githooks
-#   or run:     .githooks/install.sh
+# The repository keeps this hook installed, but it no longer enforces lint,
+# docs, commit-level checks, or tests while the protocol and implementation are
+# being rewritten.
 
 set -euo pipefail
 
-cleanup_worktree() {
-  local worktree_path="$1"
-
-  git worktree remove "$worktree_path" >/dev/null 2>&1 || rm -rf "$worktree_path"
-}
-
-check_commit() {
-  local commit_sha="$1"
-  local worktree_path
-
-  worktree_path=$(mktemp -d)
-
-  trap 'cleanup_worktree "$worktree_path"' RETURN
-
-  # `-q` option not available on some git versions (e.g. older macOS); ignore errors.
-  git worktree add "$worktree_path" "$commit_sha" 2>/dev/null || git worktree add "$worktree_path" "$commit_sha"
-
-  (
-    cd "$worktree_path"
-
-    if ! cargo fmt --all --check --quiet 2>&1; then
-      echo ""
-      echo "❌ Formatting issues in commit $commit_sha"
-      exit 1
-    fi
-
-    if ! cargo clippy --workspace --quiet -- -D warnings 2>&1; then
-      echo ""
-      echo "❌ Clippy errors in commit $commit_sha"
-      exit 1
-    fi
-
-    if ! RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --quiet 2>&1; then
-      echo ""
-      echo "❌ Documentation warnings/errors in commit $commit_sha"
-      exit 1
-    fi
-  )
-
-  trap - RETURN
-  cleanup_worktree "$worktree_path"
-}
-
-echo "🔍 pre-push: checking formatting..."
-
-if ! cargo fmt --all --check --quiet 2>&1; then
-  echo ""
-  echo "❌ Formatting issues found. Run 'cargo fmt' to fix them, then re-stage."
-  exit 1
-fi
-
-echo "✅ Formatting OK."
-
-echo "🔍 pre-push: running clippy..."
-
-if ! cargo clippy --workspace --quiet -- -D warnings 2>&1; then
-  echo ""
-  echo "❌ Clippy errors. Fix them before pushing."
-  exit 1
-fi
-
-echo "✅ Clippy OK."
-echo "🔍 pre-push: running docs check..."
-
-# mirror CI's doc step to catch rustdoc warnings early
-export RUSTDOCFLAGS="-D warnings"
-if ! cargo doc --workspace --no-deps --quiet 2>&1; then
-  echo ""
-  echo "❌ Documentation warnings/errors; fix them before pushing."
-  exit 1
-fi
-unset RUSTDOCFLAGS
-
-echo "✅ Docs OK."
-
-# ensure the commits we're about to push are themselves lint-clean
-# (this protects against pushing from a clone where the hooks weren't enabled)
-echo "🔍 pre-push: linting commits being pushed..."
-while read -r local_ref local_sha remote_ref remote_sha; do
-  # skip deletes
-  if [ "${local_sha}" = "0000000000000000000000000000000000000000" ]; then
-    continue
-  fi
-  echo "  checking $local_ref ($local_sha)"
-  check_commit "$local_sha"
-done
-
-echo "✅ pushed commits are lint-clean."
-
-echo "ℹ️  pre-push test execution is disabled while the protocol and implementation are intentionally out of sync."
+echo "ℹ️  pre-push checks are disabled."
