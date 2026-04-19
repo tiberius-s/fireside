@@ -3,12 +3,25 @@ title: '§4 Validation'
 description: 'Schema and graph-integrity validation rules for Fireside documents.'
 ---
 
-Validation has two layers: schema validation and semantic checks.
+Validation has two layers: schema validation and semantic checks. The first
+checks whether the document has the right shape. The second checks whether the
+graph actually makes sense as a Fireside document.
+
+```mermaid
+flowchart LR
+  A[Parse JSON] --> B[Validate against Graph.json]
+  B --> C[Run graph integrity checks]
+  C --> D[Load document or report diagnostics]
+```
 
 ## Layer 1: Schema Validation
 
 A conforming document MUST validate against the generated `Graph.json`
 schema (JSON Schema 2020-12).
+
+At this layer, validation is structural. It does not ask whether a traversal
+target is sensible in context; it asks whether the JSON matches the declared
+shape of the protocol.
 
 Schema validation enforces:
 
@@ -23,18 +36,21 @@ Schema validation enforces:
 
 After schema validation, tools SHOULD validate semantic integrity.
 
+This second layer is where graph-specific errors become visible. A document can
+be structurally valid JSON and still be unusable because it points to missing
+nodes or declares contradictory traversal rules.
+
 ### Required Checks
 
 1. Node IDs are unique.
 2. All traversal targets reference existing Node IDs.
 3. `branch-point.options` contains at least one option.
-4. Branch option `key` values are unique per branch point when present.
-5. A node MUST NOT have both `next` and `branch-point`.
-6. A node with a branch point MUST NOT use string traversal shorthand.
+4. A `Traversal` object MUST NOT contain both `next` and `branch-point`.
 
 ### Recommended Checks
 
 - Unreachable node detection from entry node.
+- Branch option `key` values that collide within one branch point.
 - Self-loop warnings for authoring diagnostics.
 - Duplicate labels or confusing branch prompts.
 - Cycles that are likely accidental.
@@ -56,6 +72,9 @@ Core kinds (`heading`, `text`, `code`, `list`, `image`, `divider`,
 | Info     | Optional best-practice feedback.               | Surface in logs.       |
 
 ## Failure Handling
+
+Good validation is only partly about rejecting bad documents. It is also about
+making failures easy to fix.
 
 - Parse failures: return explicit location and parser message.
 - Schema failures: return failing path and rule.

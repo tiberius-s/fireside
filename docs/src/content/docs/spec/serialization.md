@@ -6,18 +6,23 @@ description: 'JSON wire format, naming conventions, encoding, and schema relatio
 Fireside documents are serialized as UTF-8 JSON.
 This chapter defines the canonical wire format and transport expectations.
 
+The goal of this chapter is to separate the document model from its JSON
+representation. The data model says what the protocol means; serialization says
+how that meaning appears on the wire.
+
 ## Canonical Format
 
-- Conforming engines MUST accept JSON documents that validate against
-  `Graph.json`.
-- The root value MUST be a JSON object.
-- Property order is not significant.
-- Documents MAY be minified or pretty-printed.
-- Array order is significant where the data model says it is significant.
+Conforming engines MUST accept JSON documents that validate against
+`Graph.json`. The root value must be a JSON object, property order is not
+significant, documents may be minified or pretty-printed, and array order is
+significant only where the data model says it is significant.
 
 ## Property and Enum Naming
 
 Core property names use kebab-case.
+
+The JSON snippets in this chapter are illustrative fragments. A complete
+document still has to satisfy the full `Graph.json` schema.
 
 ```json
 {
@@ -42,7 +47,7 @@ Enum values also use kebab-case.
 
 ## Media Type
 
-Fireside uses the standard JSON media type:
+When transported over HTTP, the standard JSON media type is appropriate:
 
 ```text
 application/json
@@ -52,7 +57,8 @@ When served over HTTP, payloads SHOULD include `charset=utf-8`.
 
 ## File Extensions
 
-Recommended file extensions:
+The protocol does not require a specific extension, but these are the
+recommended conventions:
 
 | Extension        | Description                                 |
 | ---------------- | ------------------------------------------- |
@@ -63,15 +69,12 @@ Engines MUST NOT require a specific extension if content is valid JSON.
 
 ## Character Encoding
 
-- Documents MUST be UTF-8 encoded.
-- Engines SHOULD tolerate a UTF-8 BOM.
-- Engines SHOULD normalize Node ID comparisons to NFC.
+Documents MUST be UTF-8 encoded. Engines SHOULD tolerate a UTF-8 BOM.
 
 ## Schema Relationship
 
-TypeSpec is the source-of-truth model.
-JSON Schema 2020-12 files generated from TypeSpec are the machine-readable
-contract for validation tooling.
+TypeSpec is the source-of-truth model. JSON Schema 2020-12 files generated from
+TypeSpec are the machine-readable contract for validation tooling.
 
 Protocol authors should treat the generated schemas as the validation surface
 and the TypeSpec source as the design surface.

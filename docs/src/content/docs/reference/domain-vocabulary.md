@@ -3,38 +3,44 @@ title: 'Domain Vocabulary'
 description: 'Technical and conversational terminology for Fireside concepts.'
 ---
 
+This page separates the protocol’s canonical vocabulary from the softer,
+onboarding-oriented terms that may appear in guides. When precision matters,
+use the canonical terms.
+
 ## Canonical Terms
 
-| Term | Meaning |
-| --- | --- |
-| Graph | The complete Fireside document |
-| Node | A traversable content unit |
-| NodeId | The node identifier string |
-| ContentBlock | A discriminated content unit |
-| Traversal | The explicit exit behavior from a node |
-| BranchPoint | A decision point with options |
-| BranchOption | One branch choice at a decision point |
-| ViewMode | A presentation frame hint |
-| Transition | A pacing hint when entering a node |
-| Engine | A runtime that presents a document |
+| Term         | Meaning                                |
+| ------------ | -------------------------------------- |
+| Graph        | The complete Fireside document         |
+| Node         | A traversable content unit             |
+| NodeId       | The node identifier string             |
+| ContentBlock | A discriminated content unit           |
+| Traversal    | The explicit exit behavior from a node |
+| BranchPoint  | A decision point with options          |
+| BranchOption | One branch choice at a decision point  |
+| ViewMode     | A presentation frame hint              |
+| Transition   | A pacing hint when entering a node     |
+| Engine       | A runtime that presents a document     |
 
 ## Conversational Layer
 
-| Conversational | Technical |
-| --- | --- |
-| Session | Graph |
-| Moment | Node |
-| Block | ContentBlock |
-| Question | BranchPoint |
-| Answer | BranchOption |
-| Flow | Traversal |
+| Conversational | Technical    |
+| -------------- | ------------ |
+| Session        | Graph        |
+| Moment         | Node         |
+| Block          | ContentBlock |
+| Question       | BranchPoint  |
+| Answer         | BranchOption |
+| Flow           | Traversal    |
 
 ## Traversal Verbs
 
-- Next
-- Choose
-- Goto
-- Back
+| Verb   | Meaning                                              |
+| ------ | ---------------------------------------------------- |
+| Next   | Follow the explicit next edge from the current node. |
+| Choose | Resolve one option at a branch point.                |
+| Goto   | Jump directly to a node by ID.                       |
+| Back   | Return to the previous node in history.              |
 
 ## Ubiquitous Language Notes
 

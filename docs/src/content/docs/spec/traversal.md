@@ -8,6 +8,10 @@ description: 'Normative traversal algorithms and state rules for Next, Choose, G
 This chapter defines how a conforming engine moves through a `Graph`.
 Traversal behavior is normative.
 
+The key idea is that traversal is always explicit. A presenter does not move to
+“whatever comes next in the file.” Each move either follows a declared edge,
+selects an option, jumps by node ID, or returns through history.
+
 ## Engine State
 
 At minimum, an engine maintains:
@@ -30,6 +34,17 @@ organization.
 If a node has a branch point, `Next` is blocked. The engine MUST wait
 for `Choose`.
 
+```mermaid
+flowchart TD
+  A[Presenter invokes Next] --> B{Current node has branch-point?}
+  B -->|Yes| C[Block Next and wait for Choose]
+  B -->|No| D{Traversal is a string?}
+  D -->|Yes| E[Navigate to target node]
+  D -->|No| F{Traversal.next exists?}
+  F -->|Yes| G[Navigate to traversal.next]
+  F -->|No| H[Remain on current node]
+```
+
 ## Operation: Next
 
 `Next` advances from the current node using explicit traversal.
@@ -50,15 +65,12 @@ for `Choose`.
    - return
 5. Otherwise, remain on the current node.
 
-### Precedence
-
-```text
-branch-point gate -> explicit next edge -> terminal
-```
-
 ## Operation: Choose
 
 `Choose` selects an option at a branch point.
+
+The operation is only valid when the current node presents a `BranchPoint`.
+Outside that case, engines should treat it as an invalid command.
 
 ### Preconditions
 
@@ -79,13 +91,13 @@ branch-point gate -> explicit next edge -> terminal
 
 `Goto` jumps to any node ID explicitly requested by the presenter.
 
+Because `Goto` is an explicit command, it bypasses branch-point gating.
+
 ### Algorithm
 
 1. Validate destination node ID exists.
 2. Push current node ID to `history`.
 3. Set `current` to destination node ID.
-
-`Goto` bypasses branch-point gating because it is an explicit navigation command.
 
 ## Operation: Back
 
@@ -108,6 +120,10 @@ A conforming engine MUST satisfy all invariants:
 3. `Back` pops one entry and pushes none.
 4. Failed operations MUST NOT mutate history.
 5. History entries are node IDs, not array indices.
+
+These invariants are what keep traversal understandable after branching and
+rejoining. They ensure that `Back` reflects the presenter’s actual path through
+the graph, not a recomputed approximation.
 
 ## Branch return wiring
 

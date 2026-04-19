@@ -3,13 +3,13 @@ title: 'Appendix B — Engine Guidelines'
 description: 'Non-normative implementation guidance for traversal, state, and rendering boundaries.'
 ---
 
-:::note
-This appendix is non-normative. It documents practical engine patterns.
-:::
+This appendix is non-normative. It documents practical runtime patterns that
+fit the Fireside protocol without extending or redefining it.
 
 ## Core Runtime Guarantees
 
-Recommended guarantees for robust engines:
+Robust engines tend to share a few operational guarantees, even though the
+protocol does not require a specific implementation architecture.
 
 1. Graph data is immutable after load and validation.
 2. State mutation happens in one update path.
@@ -18,7 +18,15 @@ Recommended guarantees for robust engines:
 
 ## Engine boundaries
 
-These are practical boundaries, not protocol requirements.
+These are practical boundaries, not protocol requirements. Keeping them clear
+usually makes engines easier to test and reason about.
+
+```mermaid
+flowchart LR
+  A[Input event] --> B[Semantic action]
+  B --> C[Traversal and state update]
+  C --> D[Render state]
+```
 
 - Keep protocol state separate from view state.
 - Keep input mapping separate from traversal semantics.
@@ -34,6 +42,6 @@ For `container` blocks:
 
 ## Input and Error Strategy
 
-- Map key events to semantic actions before state updates.
-- Keep presenter-facing failures recoverable where possible.
-- Favor placeholders over crashes for content-level issues.
+Map key events to semantic actions before state updates, keep presenter-facing
+failures recoverable where possible, and favor placeholders over crashes for
+content-level issues.

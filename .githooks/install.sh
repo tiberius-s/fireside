@@ -12,8 +12,8 @@ chmod +x "$REPO_ROOT/.githooks/pre-push"
 git -C "$REPO_ROOT" config core.hooksPath .githooks
 
 echo "✅ Git hooks installed. Active hooks:"
-echo "   • pre-commit  — cargo fmt --check"
-echo "   • pre-push    — fmt check, clippy + nextest (or cargo test)"
+echo "   • pre-commit  — fmt check, auto-fix, clippy, docs"
+echo "   • pre-push    — fmt check, clippy, docs, pushed-commit checks, tests"
 echo ""
 echo "   Skip a hook when needed: git push --no-verify"
 echo ""

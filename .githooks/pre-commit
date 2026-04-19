@@ -7,18 +7,15 @@
 
 set -euo pipefail
 
-# Track whether we had to auto-fix anything
-NEEDS_RESTAGE=false
-
 echo "🔍 pre-commit: checking formatting..."
 
-if ! cargo fmt --check --quiet 2>&1; then
+if ! cargo fmt --all --check --quiet 2>&1; then
   echo "  ℹ️  Auto-fixing formatting issues..."
-  cargo fmt --quiet
+  cargo fmt --all --quiet
   echo "  ⚠️  Formatting was auto-fixed. Please review and re-stage the files:"
   git diff --name-only
   echo ""
-  NEEDS_RESTAGE=true
+  exit 1
 fi
 
 echo "✅ Formatting OK."
@@ -44,11 +41,3 @@ fi
 unset RUSTDOCFLAGS
 
 echo "✅ Docs OK."
-
-if [ "$NEEDS_RESTAGE" = true ]; then
-  echo ""
-  echo "⚠️  Files were auto-formatted. Please review, stage them, and commit again:"
-  echo "    git add <files>"
-  echo "    git commit"
-  exit 1
-fi

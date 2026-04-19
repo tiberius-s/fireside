@@ -3,41 +3,24 @@ title: 'Appendix C — Content Block Reference'
 description: 'Non-normative reference for core blocks.'
 ---
 
-:::note
 This appendix is non-normative. It summarizes practical rendering guidance for
-content blocks defined in §2.
-:::
+the core content blocks defined in §2 and is meant to complement the formal
+data model with a quick rendering-oriented view.
 
 ## Core Blocks
 
-### `heading`
+| Kind        | Typical use                     | Key fields                                                            |
+| ----------- | ------------------------------- | --------------------------------------------------------------------- |
+| `heading`   | Titles and hierarchy            | `level`, `text`                                                       |
+| `text`      | Prose and narrative copy        | `body`                                                                |
+| `code`      | Source examples                 | `source`, optional `language`, `highlight-lines`, `show-line-numbers` |
+| `list`      | Ordered or unordered item lists | `items`, optional `ordered`                                           |
+| `image`     | Visual assets                   | `src`, optional `alt`, `caption`, `width`, `height`                   |
+| `divider`   | Visual separation               | `kind` only                                                           |
+| `container` | Nested composition              | `children`, optional `layout`                                         |
 
-For section titles and hierarchy.
-
-### `text`
-
-For prose and narrative text.
-
-### `code`
-
-For source examples with optional `language`, `highlight-lines`, and
-`show-line-numbers`.
-
-### `list`
-
-For ordered or unordered item lists.
-
-### `image`
-
-For visual assets with optional `alt`, `caption`, `width`, and `height`.
-
-### `divider`
-
-For visual separation between block groups.
-
-### `container`
-
-For nested composition.
+`container` is the only core block that nests other blocks, so it carries most
+of the layout-oriented guidance in this appendix.
 
 | Property   | Type             | Required            |
 | ---------- | ---------------- | ------------------- |
@@ -47,6 +30,6 @@ For nested composition.
 
 ## Rendering Notes
 
-- Render core blocks directly.
-- Preserve block order in node content arrays.
-- Treat container `layout` as a local arrangement hint, not a global theme.
+Render core blocks directly and preserve block order in node content arrays.
+For containers, treat `layout` as a local arrangement hint rather than a global
+theme instruction.

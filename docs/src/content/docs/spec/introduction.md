@@ -5,7 +5,7 @@ description: 'Scope, conformance language, design principles, and terminology fo
 
 ## Scope
 
-Fireside defines a portable format for branching presentations and lessons.
+Fireside defines a portable format for graph-structured presentations.
 Documents are directed graphs whose nodes contain typed content blocks and
 explicit traversal rules.
 
@@ -14,27 +14,39 @@ content exists, how nodes connect, and how presenters move through the graph.
 
 If you want the conceptual model first, read [Mental models](./mental-models/).
 
+For documentation maintenance, treat `protocol/main.tsp` as the normative
+source of truth for terminology and model shape. Treat the generated schemas in
+`protocol/tsp-output/schemas/` as the validation surface. If this
+documentation and the protocol files disagree, the docs should be updated to
+match the protocol.
+
 ## What Fireside is for
 
-Fireside is for content that benefits from:
+Fireside fits presentations that need explicit structure rather than an implied
+linear order. In practice, that means it works well when the presenter needs to
+branch, revisit earlier material, reuse subflows, or make return paths obvious
+instead of relying on hidden sequence.
 
-- branching decisions
-- revisits and backtracking
-- reusable subflows
-- explicit rejoin points
-- graph-shaped presentations instead of linear slide stacks
+## Boundaries
 
-## What Fireside is not for
+The protocol is intentionally narrow. It describes content shape and traversal,
+but it does not define product-level concerns like styling or editor behavior.
 
-- visual theme design
-- animation inventory
-- editor behavior
-- file management
-- platform-specific chrome
+In other words, Fireside covers the structure of the document and the rules
+for moving through it. It leaves the surrounding product experience to the
+implementation:
+
+- Graph structure and typed content blocks are part of the protocol.
+- Traversal semantics are part of the protocol.
+- Wire format and validation are part of the protocol.
+- Visual theme design, animation style, editor behavior, file loading and
+  saving, and platform-specific UI details are left to implementations.
 
 ## Conformance
 
-A conforming engine for `0.1.0`:
+A conforming engine for `0.1.0` has a small but strict contract. It must be
+able to load valid documents, preserve the traversal rules, and render the
+core block set.
 
 1. Parses and validates Fireside JSON documents.
 2. Implements traversal semantics (`Next`, `Choose`, `Goto`, `Back`).
@@ -43,11 +55,15 @@ A conforming engine for `0.1.0`:
 
 ## Design Principles
 
-- Portability first
-- Predictable traversal
-- Minimal mandatory core
-- Explicit edges over implicit sequence
-- Protocol semantics before implementation detail
+The specification follows a few design choices consistently.
+
+| Principle                                       | What it means in practice                                             |
+| ----------------------------------------------- | --------------------------------------------------------------------- |
+| Portability first                               | A document should move between runtimes without changing its meaning. |
+| Predictable traversal                           | Navigation behavior should be explicit and stable.                    |
+| Minimal mandatory core                          | Engines must agree on a small shared baseline.                        |
+| Explicit edges over implicit sequence           | Traversal targets are declared, not inferred from array order.        |
+| Protocol semantics before implementation detail | The spec defines behavior, not UI preferences.                        |
 
 ## Terminology
 
@@ -60,18 +76,19 @@ Normative chapters use the technical terms in the glossary:
 - `BranchPoint`
 - `BranchOption`
 
-Guides may use conversational aliases when they help onboarding.
+Guides may use conversational aliases when they help onboarding, but the
+canonical terms remain the source of truth for protocol text, schemas, and
+engine APIs.
 
 ## Wire Format Baseline
 
-- UTF-8 JSON
-- Kebab-case core property names
-- `kind` as ContentBlock discriminator
-- JSON Schema 2020-12 machine-readable contract
+At the wire level, Fireside uses UTF-8 JSON, kebab-case property names for core
+fields, `kind` as the `ContentBlock` discriminator, and JSON Schema 2020-12 as
+the machine-readable validation contract.
 
 ## Entry points for readers
 
-- [Data model](./data-model/)
-- [Traversal](./traversal/)
-- [Serialization](./serialization/)
-- [Validation](./validation/)
+From here, most readers should continue into the [Data model](./data-model/)
+chapter and then the [Traversal](./traversal/) chapter. Readers who are working
+on tooling or validation should also read [Serialization](./serialization/)
+and [Validation](./validation/).
