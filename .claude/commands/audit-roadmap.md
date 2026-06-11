@@ -1,6 +1,4 @@
 ---
-agent: 'agent'
-tools: ['edit/editFiles', 'search', 'execute/runInTerminal', 'web/fetch', 'context7/*']
 description: 'Generate a concrete improvement plan for the Fireside repo by auditing the protocol spec, verifying the Rust reference implementation, and proposing a token-efficient execution roadmap.'
 ---
 

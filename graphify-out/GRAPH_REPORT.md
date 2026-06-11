@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-06-11)
 
 ## Corpus Check
-- 175 files · ~91,583 words
+- 176 files · ~90,420 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1860 nodes · 2892 edges · 148 communities (124 shown, 24 thin omitted)
-- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 189 edges (avg confidence: 0.81)
+- 1856 nodes · 2878 edges · 155 communities (132 shown, 23 thin omitted)
+- Extraction: 93% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 187 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8587536f`
+- Built from commit: `61aac226`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -149,6 +149,12 @@
 - [[_COMMUNITY_Community 144|Community 144]]
 - [[_COMMUNITY_Community 145|Community 145]]
 - [[_COMMUNITY_Community 146|Community 146]]
+- [[_COMMUNITY_Community 151|Community 151]]
+- [[_COMMUNITY_Community 153|Community 153]]
+- [[_COMMUNITY_Community 154|Community 154]]
+- [[_COMMUNITY_Community 155|Community 155]]
+- [[_COMMUNITY_Community 156|Community 156]]
+- [[_COMMUNITY_Community 159|Community 159]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `App` - 37 edges
@@ -163,15 +169,15 @@
 10. `TextArea` - 15 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `TEA (The Elm Architecture) Discipline` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
-  crates/fireside-tui/README.md → docs/src/content/docs/spec/appendix-engine-guidelines.md
-- `Claude Fable Planning Prompt` --semantically_similar_to--> `Context7 Documentation Expert Agent`  [INFERRED] [semantically similar]
-  .claude/prompts/claude-fable-plan.prompt.md → .github/agents/context7.agent.md
-- `Honesty Rules` --semantically_similar_to--> `Context7 Documentation Expert Agent`  [INFERRED] [semantically similar]
-  .claude/skills/graphify/SKILL.md → .github/agents/context7.agent.md
 - `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
   crates/fireside-engine/README.md → docs/src/content/docs/spec/appendix-engine-guidelines.md
+- `TEA (The Elm Architecture) Discipline` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
+  crates/fireside-tui/README.md → docs/src/content/docs/spec/appendix-engine-guidelines.md
+- `Honesty Rules` --semantically_similar_to--> `Context7 Documentation Expert Agent`  [INFERRED] [semantically similar]
+  .claude/skills/graphify/SKILL.md → .github/agents/context7.agent.md
 - `Layout enum (12 variants)` --semantically_similar_to--> `ViewMode enum (default, fullscreen)`  [INFERRED] [semantically similar]
+  crates/fireside-core/README.md → docs/src/content/docs/spec/data-model.md
+- `Transition enum (8 variants, core)` --semantically_similar_to--> `Transition enum (none, fade — protocol)`  [INFERRED] [semantically similar]
   crates/fireside-core/README.md → docs/src/content/docs/spec/data-model.md
 
 ## Import Cycles
@@ -204,11 +210,11 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (148 total, 24 thin omitted)
+## Communities (155 total, 23 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
-Cohesion: 0.05
-Nodes (42): block_type_variants(), bump_index(), centered_popup(), digit_to_index(), is_subsequence(), layout_variants(), next_search_hit_from(), picker_row_span() (+34 more)
+Cohesion: 0.06
+Nodes (40): block_type_variants(), bump_index(), centered_popup(), digit_to_index(), is_subsequence(), layout_variants(), next_search_hit_from(), picker_row_span() (+32 more)
 
 ### Community 1 - "CLI Commands"
 Cohesion: 0.07
@@ -235,20 +241,20 @@ Cohesion: 0.14
 Nodes (36): Color, Frame, Graph, Line, Node, Option, PresentationSession, Rect (+28 more)
 
 ### Community 7 - "Editor Navigation"
-Cohesion: 0.12
-Nodes (4): App, ContentBlock, KeyCode, Option
+Cohesion: 0.11
+Nodes (6): search_tokens(), App, Vec, ContentBlock, KeyCode, Option
 
 ### Community 8 - "Design Templates"
 Cohesion: 0.17
 Nodes (26): Breakpoint, NodeLayout, Option, Rect, Self, all_templates_have_example_frontmatter(), all_templates_produce_valid_areas(), center_in() (+18 more)
 
 ### Community 9 - "Editor Interaction Tests"
-Cohesion: 0.06
-Nodes (25): editor_b_and_shift_b_select_blocks(), editor_m_enter_commits_heading_level_metadata(), editor_m_invalid_heading_level_sets_error_and_preserves_block(), editor_m_starts_metadata_edit_for_selected_block(), editor_mouse_click_selects_block_in_detail_pane(), editor_remove_block_deletes_selected_block(), branch_graph(), graph_with_content_blocks() (+17 more)
+Cohesion: 0.21
+Nodes (13): AppMode, editing_b_selects_next_block(), editing_m_starts_metadata_edit(), editing_shift_b_selects_prev_block(), map_edit_mode_key(), map_goto_mode_key(), map_key_to_action(), presenting_ctrl_h_toggles_timeline() (+5 more)
 
 ### Community 10 - "Action Routing"
-Cohesion: 0.30
-Nodes (14): Frame, Graph, Node, Option, Rect, String, Theme, branch_overlay_rect() (+6 more)
+Cohesion: 0.14
+Nodes (19): App, Action, KeyCode, MouseScrollDirection, Frame, Graph, Node, Option (+11 more)
 
 ### Community 11 - "Theme & Content Types"
 Cohesion: 0.08
@@ -267,8 +273,8 @@ Cohesion: 0.17
 Nodes (17): EngineError, Graph, Result, Self, back_pops_history(), choose_branch_option(), goto_out_of_bounds_errors(), goto_with_valid_index() (+9 more)
 
 ### Community 15 - "Presenter UI"
-Cohesion: 0.11
-Nodes (46): Color, Frame, Rect, Span, Theme, Vec, FlashKind, Frame (+38 more)
+Cohesion: 0.10
+Nodes (47): Frame, PresentationSession, Rect, String, Theme, Color, Frame, Rect (+39 more)
 
 ### Community 16 - "Protocol Package"
 Cohesion: 0.08
@@ -287,16 +293,16 @@ Cohesion: 0.09
 Nodes (21): dependencies, astro, astro-mermaid, @astrojs/starlight, mermaid, sharp, devDependencies, @astrojs/check (+13 more)
 
 ### Community 20 - "Node Model & Commands"
-Cohesion: 0.14
-Nodes (15): apply_command(), BranchPoint, ContentBlock, Layout, NodeId, Option, String, Transition (+7 more)
+Cohesion: 0.20
+Nodes (10): BranchPoint, ContentBlock, Layout, NodeId, Option, String, Transition, Vec (+2 more)
 
 ### Community 21 - "Presentation Session"
-Cohesion: 0.19
-Nodes (9): Command, EngineError, Graph, Node, NodeId, Result, Self, PresentationSession (+1 more)
+Cohesion: 0.17
+Nodes (10): CommandHistory, Command, EngineError, Graph, Node, NodeId, Result, Self (+2 more)
 
 ### Community 22 - "Graph Validation"
 Cohesion: 0.06
-Nodes (60): CommandHistory, add_node_roundtrips_with_undo_redo(), graph_with_ids(), move_block_roundtrips_with_undo_redo(), remove_block_roundtrips_with_undo_redo(), update_block_roundtrips_with_undo_redo(), update_content_roundtrips_with_undo_redo(), run_validate() (+52 more)
+Nodes (59): add_node_roundtrips_with_undo_redo(), graph_with_ids(), move_block_roundtrips_with_undo_redo(), remove_block_roundtrips_with_undo_redo(), update_block_roundtrips_with_undo_redo(), update_content_roundtrips_with_undo_redo(), run_validate(), Path (+51 more)
 
 ### Community 23 - "iTerm2 Theme Import"
 Cohesion: 0.17
@@ -307,12 +313,12 @@ Cohesion: 0.33
 Nodes (20): Line, Option, Theme, Transition, Vec, StyledChar, blank_line(), clip_line_at() (+12 more)
 
 ### Community 25 - "Help Overlay"
-Cohesion: 0.13
-Nodes (23): App, Action, KeyCode, MouseScrollDirection, Frame, Rect, Theme, Vec (+15 more)
+Cohesion: 0.26
+Nodes (18): Frame, Rect, Theme, Vec, build_help_rows(), centered_popup(), entry_active(), help_navigation() (+10 more)
 
 ### Community 26 - "Keybindings Config"
-Cohesion: 0.05
-Nodes (43): Common Library Patterns by Language, Context7 Documentation Expert, Core Philosophy, Critical Operating Principles, 🚨 CRITICAL RULE - READ FIRST, Detecting Versions in Workspace 🔍, Documentation Retrieval Strategy, Error Prevention Checklist (+35 more)
+Cohesion: 0.06
+Nodes (32): Context7 Documentation Expert, Core Philosophy, Critical Operating Principles, 🚨 CRITICAL RULE - READ FIRST, Documentation Retrieval Strategy, Error Prevention Checklist, ✅ Every Response Should:, Example 1: Simple API Question (+24 more)
 
 ### Community 27 - "Window Chrome UI"
 Cohesion: 0.06
@@ -387,8 +393,8 @@ Cohesion: 0.31
 Nodes (9): BranchPoint / BranchOption (core), Traversal struct (core), BranchOption, BranchPoint, Traversal (protocol type), Traversal Types, Branch-Point Gating, Choose Operation (+1 more)
 
 ### Community 45 - "Graph & Command Docs"
-Cohesion: 0.13
-Nodes (17): Graph (runtime repr), GraphFile (wire repr), `Command` and `CommandHistory`, Command / CommandHistory (undo-redo), Key Types, Loader, `PresentationSession`, The `next` Priority Chain (+9 more)
+Cohesion: 0.14
+Nodes (18): `ContentBlock`, Graph (runtime repr), `Graph` and `GraphFile`, GraphFile (wire repr), Key Types, `Layout` and `Transition`, ListItem custom deserialization, `ListItem` — Custom Deserialization (+10 more)
 
 ### Community 46 - "Editor Command Tests"
 Cohesion: 0.10
@@ -399,8 +405,8 @@ Cohesion: 0.53
 Nodes (8): Layout, Rect, apply_layout(), center_rect(), compute_areas(), NodeAreas, pad_rect(), two_column_split()
 
 ### Community 48 - "Breadcrumb UI"
-Cohesion: 0.39
-Nodes (8): Frame, PresentationSession, Rect, String, Theme, NextInfo, node_short_label(), render_breadcrumb()
+Cohesion: 0.46
+Nodes (7): Frame, PresentationSession, Rect, String, Theme, node_short_label(), render_timeline()
 
 ### Community 49 - "TypeSpec Linter Rules"
 Cohesion: 0.31
@@ -411,8 +417,8 @@ Cohesion: 0.32
 Nodes (7): BranchOption, NodeId, Option, String, Vec, BranchOption, BranchPoint
 
 ### Community 52 - "Timeline UI"
-Cohesion: 0.12
-Nodes (16): Context7 Documentation Expert Agent, Version Upgrade Checking Workflow, Verify-Before-Advising Context7 Rule, Honesty Rules, Claude Fable Planning Prompt, Goal, Important Constraints, Output Expectations (+8 more)
+Cohesion: 0.67
+Nodes (3): Protocol Spec Drift Audit, Protocol TypeSpec CI, tsp-output Commit Verification
 
 ### Community 53 - "TEA Architecture Docs"
 Cohesion: 0.14
@@ -427,8 +433,8 @@ Cohesion: 0.15
 Nodes (11): Behavioral Contract, Documentation Writer Agent, Quality Bar, Working Style, Formatting and Structure, Markdown Content Rules, Validation Requirements, No-Heredoc File Operations Rule (+3 more)
 
 ### Community 56 - "Content Block Docs"
-Cohesion: 0.20
-Nodes (11): `ContentBlock`, `Graph` and `GraphFile`, Key Types, `Layout` and `Transition`, ListItem custom deserialization, `ListItem` — Custom Deserialization, `Node`, `Traversal`, `BranchPoint`, `BranchOption` (+3 more)
+Cohesion: 0.17
+Nodes (7): editor_b_and_shift_b_select_blocks(), editor_m_enter_commits_heading_level_metadata(), editor_m_invalid_heading_level_sets_error_and_preserves_block(), editor_m_starts_metadata_edit_for_selected_block(), editor_mouse_click_selects_block_in_detail_pane(), editor_remove_block_deletes_selected_block(), graph_with_content_blocks()
 
 ### Community 57 - "Traversal Model"
 Cohesion: 0.60
@@ -439,20 +445,24 @@ Cohesion: 0.50
 Nodes (4): DesignTokens, Line, Vec, render_text()
 
 ### Community 59 - "Validate Command"
-Cohesion: 0.16
-Nodes (14): Crate Boundary Rules, 🚨 CRITICAL RULE — VERIFY BEFORE ADVISING, Error Handling Stratification, Error Handling Stratification, Fireside-Specific Rules You Must Enforce, Handoff, Mandatory Idioms, MSRV (+6 more)
+Cohesion: 0.15
+Nodes (14): Context7 Documentation Expert Agent, Version Upgrade Checking Workflow, Verify-Before-Advising Context7 Rule, 🚨 CRITICAL RULE — VERIFY BEFORE ADVISING, Error Handling Stratification, Fireside-Specific Rules You Must Enforce, Handoff, Rust Expert Agent (+6 more)
 
 ### Community 60 - "Command History Tests"
-Cohesion: 0.14
-Nodes (14): Part A - Structural extraction for code files, Part B - Semantic extraction (parallel subagents), Part C - Merge AST + semantic into final extraction, Step 0 - GitHub repos and multi-path merge (only if a URL or several paths), Step 1 - Ensure graphify is installed, Step 2.5 - Video and audio (only if video files detected), Step 2 - Detect files, Step 3 - Extract entities and relationships (+6 more)
+Cohesion: 0.20
+Nodes (10): Step 0 - GitHub repos and multi-path merge (only if a URL or several paths), Step 1 - Ensure graphify is installed, Step 2.5 - Video and audio (only if video files detected), Step 2 - Detect files, Step 4 - Build graph, cluster, analyze, generate outputs, Step 5 - Label communities, Step 6 - Generate Obsidian vault (opt-in) + HTML, Step 9 - Save manifest, update cost tracker, clean up, and report (+2 more)
+
+### Community 61 - "Claude Hooks Settings"
+Cohesion: 0.33
+Nodes (5): hooks, PostToolUse, PreToolUse, permissions, allow
 
 ### Community 91 - "Community 91"
 Cohesion: 0.15
 Nodes (12): ADR Format (Nygard-style), ADR Skill, Consequences section, Context section, Decision section, Example ADR, Numbering and Filing, Nygard ADR Format (+4 more)
 
 ### Community 92 - "Community 92"
-Cohesion: 0.15
-Nodes (12): `App` State, Application Modes, Dependencies, Design Philosophy: TEA (The Elm Architecture), Editor Mode, fireside-tui, Keybindings, Module Map (+4 more)
+Cohesion: 0.12
+Nodes (15): `App` State, Application Modes, Dependencies, Design Philosophy: TEA (The Elm Architecture), Editor Mode, fireside-tui, Keybindings, Markdown Rendering (+7 more)
 
 ### Community 93 - "Community 93"
 Cohesion: 0.20
@@ -588,7 +598,7 @@ Nodes (5): Content Structure, Fireside Docs, Local Development, Stack, Validate 
 
 ### Community 126 - "Community 126"
 Cohesion: 0.33
-Nodes (5): Core expectations, Implementation rules, Maintainability checklist, Planning rules, Rust Best Practices for Fireside
+Nodes (5): Canonical rules, Core expectations, Maintainability checklist, Planning rules, Rust Best Practices for Fireside
 
 ### Community 127 - "Community 127"
 Cohesion: 0.33
@@ -646,14 +656,38 @@ Nodes (3): For git commit hook, For native CLAUDE.md integration, graphify refer
 Cohesion: 0.50
 Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphify reference: incremental update and cluster-only
 
+### Community 151 - "Community 151"
+Cohesion: 0.20
+Nodes (9): Claude Fable Planning Prompt, Goal, Important Constraints, Output Expectations, Part A — Audit the protocol spec and find gaps, Part B — Evaluate the Rust reference implementation and UX, Part C — Produce a concrete, phased plan, Repository Context (+1 more)
+
+### Community 153 - "Community 153"
+Cohesion: 0.25
+Nodes (7): Build and Test Commands, Crate Boundary Rules, Error Handling Stratification, Fireside Engineering Constraints, Mandatory Idioms, MSRV, Source of Truth
+
+### Community 154 - "Community 154"
+Cohesion: 0.25
+Nodes (7): Appendix B — Engine Guidelines, Container Rendering Guidance, Core Runtime Guarantees, Engine boundaries, Input and Error Strategy, Back Operation, History Invariants
+
+### Community 155 - "Community 155"
+Cohesion: 0.47
+Nodes (5): branch_graph(), graph_with_ids(), presenter_branch_overlay_up_down_enter_chooses_focused_option(), Graph, Event
+
+### Community 156 - "Community 156"
+Cohesion: 0.53
+Nodes (5): apply_command(), Command, EngineError, Graph, Result
+
+### Community 159 - "Community 159"
+Cohesion: 0.50
+Nodes (4): Part A - Structural extraction for code files, Part B - Semantic extraction (parallel subagents), Part C - Merge AST + semantic into final extraction, Step 3 - Extract entities and relationships
+
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **676 isolated node(s):** `PreToolUse`, `allow`, `install.sh script`, `default`, `MD013` (+671 more)
+- **675 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+670 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **24 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -661,11 +695,11 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `render_editor()` connect `Editor Detail Pane` to `Block Rendering Types`, `TUI App Core`, `Graph Overlay UI`, `Presenter UI`, `Textarea Widget`, `Help Overlay`?**
-  _High betweenness centrality (0.054) - this node is a cross-community bridge._
-- **Why does `Event` connect `Editor Interaction Tests` to `Help Overlay`, `Textarea Widget`, `TUI App Core`, `CLI Commands`?**
-  _High betweenness centrality (0.043) - this node is a cross-community bridge._
+  _High betweenness centrality (0.052) - this node is a cross-community bridge._
+- **Why does `Event` connect `Community 155` to `CLI Commands`, `TUI App Core`, `Editor Interaction Tests`, `Action Routing`, `Textarea Widget`?**
+  _High betweenness centrality (0.045) - this node is a cross-community bridge._
 - **Why does `load_graph()` connect `Graph Validation` to `CLI Commands`, `TUI Test Harness`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+  _High betweenness centrality (0.045) - this node is a cross-community bridge._
 - **Are the 16 inferred relationships involving `load_graph()` (e.g. with `run_editor()` and `run_event_loop()`) actually correct?**
   _`load_graph()` has 16 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 14 inferred relationships involving `load_graph_from_str()` (e.g. with `graph_with_ids()` and `move_block_roundtrips_with_undo_redo()`) actually correct?**

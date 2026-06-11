@@ -8,21 +8,17 @@ applyTo: 'crates/**/*.rs'
 
 Use these rules whenever the task involves Rust code, crate design, or implementation planning.
 
+## Canonical rules
+
+The canonical rules live in `/AGENTS.md` — load and enforce them. They cover the MSRV,
+the crate boundary table, the mandatory idioms (no `unwrap()`/`expect()` in library code,
+TEA invariant, index rebuild, kebab-case serde), and the error handling stratification.
+
 ## Core expectations
 
 - Prefer small, focused functions and clear module boundaries.
-- Keep business logic in `fireside-engine`, protocol types in `fireside-core`, and UI/rendering in `fireside-tui`.
 - Do not move logic across crate boundaries just to make a quick fix.
 - Prefer readability, explicit types, and predictable control flow over clever abstractions.
-
-## Implementation rules
-
-- Do not use `unwrap()` or `expect()` in library code.
-- Return typed `Result`/`Option` values instead of panicking.
-- Use `thiserror` for typed library errors and `anyhow` only at CLI/application boundaries.
-- Preserve the existing TEA invariant in `fireside-tui`: mutation happens only in `App::update`.
-- Rebuild or update graph indexes when structural graph mutations occur.
-- Use existing naming and serde conventions, especially kebab-case wire format.
 
 ## Planning rules
 

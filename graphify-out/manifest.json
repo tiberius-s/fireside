@@ -1,12 +1,12 @@
 {
   ".claude/settings.json": {
-    "mtime": 1781122811.8109174,
-    "ast_hash": "bfee062c3962c14264fd704e975a6b38",
-    "semantic_hash": "bfee062c3962c14264fd704e975a6b38"
+    "mtime": 1781192891.0870068,
+    "ast_hash": "25c49debb7573e63f07dcbdcf1d14316",
+    "semantic_hash": ""
   },
   ".claude/settings.local.json": {
-    "mtime": 1781126266.859487,
-    "ast_hash": "85c39e54269d8e44549d7f7421e4be20",
+    "mtime": 1781192862.156421,
+    "ast_hash": "2de5d244cdca2b9d7e51ff7814d2665e",
     "semantic_hash": ""
   },
   ".githooks/install.sh": {
@@ -80,9 +80,9 @@
     "semantic_hash": "373ace3c07cfa33be5b941ce257e1f17"
   },
   "crates/fireside-core/src/lib.rs": {
-    "mtime": 1771198500.5837607,
+    "mtime": 1781192927.8693733,
     "ast_hash": "5f8aa9211774d5f0e46e9a8791e2e170",
-    "semantic_hash": "5f8aa9211774d5f0e46e9a8791e2e170"
+    "semantic_hash": ""
   },
   "crates/fireside-core/src/model/branch.rs": {
     "mtime": 1771198500.7378962,
@@ -544,11 +544,6 @@
     "ast_hash": "db73b0edd7ffbc61ceac177130730865",
     "semantic_hash": "db73b0edd7ffbc61ceac177130730865"
   },
-  ".claude/prompts/claude-fable-plan.prompt.md": {
-    "mtime": 1781123211.0036194,
-    "ast_hash": "463a1a7da2dff20a8537d51b4773ba1f",
-    "semantic_hash": "463a1a7da2dff20a8537d51b4773ba1f"
-  },
   ".claude/skills/graphify/SKILL.md": {
     "mtime": 1781122811.8101223,
     "ast_hash": "41f700d6535cc2f2b6b6d0a9eecc7525",
@@ -595,9 +590,9 @@
     "semantic_hash": "0dad167a95bdb389f02fecffb60b1bc8"
   },
   ".github/agents/context7.agent.md": {
-    "mtime": 1771101006.5807593,
-    "ast_hash": "6a8bd39531ccc92445d13b96a4083a85",
-    "semantic_hash": "6a8bd39531ccc92445d13b96a4083a85"
+    "mtime": 1781190744.711474,
+    "ast_hash": "e444a6455d9391efd819b5c8a81bc214",
+    "semantic_hash": ""
   },
   ".github/agents/documentation-writer.agent.md": {
     "mtime": 1776611384.2566347,
@@ -605,14 +600,14 @@
     "semantic_hash": "67ed87a523cb958b51bf16cd7d3aaa42"
   },
   ".github/agents/rust-expert.agent.md": {
-    "mtime": 1771607675.2509117,
-    "ast_hash": "8977d7f84859878d8bcda8fedfa371e9",
-    "semantic_hash": "8977d7f84859878d8bcda8fedfa371e9"
+    "mtime": 1781190635.162504,
+    "ast_hash": "4de12fdeaf07b6c42919269bf22b4735",
+    "semantic_hash": ""
   },
   ".github/instructions/markdown.instructions.md": {
-    "mtime": 1771100822.7088296,
-    "ast_hash": "b4e98048d52133d68dea04f6f83e022c",
-    "semantic_hash": "b4e98048d52133d68dea04f6f83e022c"
+    "mtime": 1781190759.2264483,
+    "ast_hash": "dd1da19102e800374710e9193f438885",
+    "semantic_hash": ""
   },
   ".github/instructions/no-heredoc.instructions.md": {
     "mtime": 1771140249.4825468,
@@ -620,9 +615,9 @@
     "semantic_hash": "d83274f7cab8a6e408a4012a5a2609b7"
   },
   ".github/instructions/rust-best-practices.instructions.md": {
-    "mtime": 1781123211.0036268,
-    "ast_hash": "d069acc0c44272f074ca73e77d725969",
-    "semantic_hash": "d069acc0c44272f074ca73e77d725969"
+    "mtime": 1781190648.8546157,
+    "ast_hash": "6fb5c0771ed087a1d3e1cc83a923c9ce",
+    "semantic_hash": ""
   },
   ".github/prompts/documentation-writer.prompt.md": {
     "mtime": 1776611384.2471712,
@@ -665,9 +660,9 @@
     "semantic_hash": "4d1cdfa5f27e2a6a9360250bfa25e940"
   },
   "CLAUDE.md": {
-    "mtime": 1781122905.8521793,
-    "ast_hash": "b98d3f7e9adec687148385aed8f6a3ed",
-    "semantic_hash": "b98d3f7e9adec687148385aed8f6a3ed"
+    "mtime": 1781190620.1564982,
+    "ast_hash": "437ac80a154706a7fe6fa804d2a00453",
+    "semantic_hash": ""
   },
   "README.md": {
     "mtime": 1776547775.1290452,
@@ -897,6 +892,16 @@
   "plan/tasks/24-ai-automation-hooks.md": {
     "mtime": 1781189389.75224,
     "ast_hash": "5676ce690a256ea61c8917386765a8a4",
+    "semantic_hash": ""
+  },
+  ".claude/commands/audit-roadmap.md": {
+    "mtime": 1781192578.728543,
+    "ast_hash": "36e2cf803a34529ce6363872e9b9255a",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1781190615.7103,
+    "ast_hash": "2efeccbf60fc1b6400829527677fa24c",
     "semantic_hash": ""
   }
 }
