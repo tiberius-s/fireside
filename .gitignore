@@ -34,3 +34,7 @@ protocol/dist/
 # Root frontend artifacts (accidental local generation)
 .astro/
 node_modules/
+
+# graphify
+graphify-out/cost.json
+graphify-out/cache/
