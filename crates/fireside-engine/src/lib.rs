@@ -1,23 +1,19 @@
-//! Fireside Engine — document lifecycle, validation, traversal, and graph mutation.
+//! Fireside engine — the protocol's behavior, with no UI attached.
 //!
-//! This crate owns the business logic layer between the protocol model
-//! (`fireside-core`) and any frontend. It provides:
+//! Two responsibilities, both pure logic over `fireside-core` types:
 //!
-//! - **Loading**: JSON document parsing into validated `Graph` instances
-//! - **Validation**: graph integrity checks (dangling refs, duplicate IDs, etc.)
-//! - **Traversal**: state machine implementing Next, Choose, Goto, Back operations
-//! - **Session**: mutable presentation session with dirty tracking
-//! - **Commands**: graph mutation API for editor support (with undo/redo)
+//! - [`validation`]: Layer-2 semantic checks (spec §4) with
+//!   presenter-friendly diagnostics.
+//! - [`session`]: the §3 traversal state machine. Every operation returns
+//!   an [`Outcome`] so frontends can give feedback for every action.
+//!
+//! No file I/O, no rendering, no terminal — callers load text, this crate
+//! gives them a validated, navigable presentation.
 
-pub mod commands;
 pub mod error;
-pub mod loader;
 pub mod session;
-pub mod traversal;
 pub mod validation;
 
-pub use commands::{Command, CommandHistory};
 pub use error::EngineError;
-pub use loader::{load_graph, load_graph_from_str, save_graph};
-pub use session::PresentationSession;
-pub use traversal::TraversalEngine;
+pub use session::{Outcome, Session};
+pub use validation::{Diagnostic, Severity, has_errors, validate};

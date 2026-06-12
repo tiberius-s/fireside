@@ -25,7 +25,7 @@ import { resolve, basename } from "node:path";
 // ─── Diagnostic Helpers ──────────────────────────────────────────────────────
 
 /**
- * @typedef {"error" | "warning"} Severity
+ * @typedef {"error" | "warning" | "info"} Severity
  * @typedef {{ severity: Severity, rule: string, message: string, [key: string]: unknown }} Diagnostic
  */
 
@@ -64,7 +64,34 @@ function getEdges(node) {
 // ─── Rule Implementations ────────────────────────────────────────────────────
 
 /**
+ * ERROR (Layer 1): Every node must have an `id` property.
+ *
+ * The JSON Schema layer owns this requirement; checking it here first means
+ * a missing id is reported as a schema violation with its instance path
+ * instead of surfacing downstream as a confusing duplicate-id error.
+ *
+ * Spec: §4 Validation — Layer 1 (schema)
+ */
+function checkRequiredNodeIds(graph) {
+  const diagnostics = [];
+
+  for (let i = 0; i < graph.nodes.length; i++) {
+    if (graph.nodes[i]?.id == null) {
+      diagnostics.push(
+        diagnostic("error", "schema-required-property", `missing required property 'id' at /nodes/${i}`, {
+          instancePath: `/nodes/${i}`,
+          nodeIndex: i,
+        }),
+      );
+    }
+  }
+
+  return diagnostics;
+}
+
+/**
  * ERROR: All node IDs must be unique within the graph.
+ * Nodes lacking an id are skipped — checkRequiredNodeIds reports those.
  *
  * Spec: §4 Validation — Required Check 1
  */
@@ -74,6 +101,7 @@ function checkUniqueNodeIds(graph) {
 
   for (let i = 0; i < graph.nodes.length; i++) {
     const id = graph.nodes[i].id;
+    if (id == null) continue;
     if (seen.has(id)) {
       diagnostics.push(
         diagnostic("error", "unique-node-ids", `Duplicate node ID "${id}" at index ${i} (first seen at index ${seen.get(id)})`, {
@@ -279,8 +307,9 @@ function checkTrivialCycles(graph) {
 }
 
 /**
- * WARNING: Branch option targets that have no outgoing traversal.
- * These are dead ends reachable only via back().
+ * INFO: Branch option targets that have no outgoing traversal.
+ * These are terminal nodes — a legitimate ending pattern — so this is
+ * informational, not a warning. Only back() can exit a terminal node.
  *
  * Spec: §4 Validation — Recommended Check 5
  */
@@ -302,9 +331,9 @@ function checkDeadEndBranches(graph) {
       if (!targetNode.traversal) {
         diagnostics.push(
           diagnostic(
-            "warning",
+            "info",
             "dead-end-branch",
-            `Branch option "${opt.label}" in node "${node.id}" leads to "${opt.target}" which has no traversal (dead end \u2014 only back() can exit)`,
+            `Branch option "${opt.label}" in node "${node.id}" leads to terminal node "${opt.target}" (no traversal \u2014 only back() can exit). Terminal nodes are a legitimate ending; add an explicit next if this branch should rejoin.`,
             { nodeId: node.id, branchTarget: opt.target, label: opt.label },
           ),
         );
@@ -319,9 +348,10 @@ function checkDeadEndBranches(graph) {
 
 /** Run all Tier 2 semantic checks against a parsed Fireside document. */
 function validate(graph) {
-  const nodeIds = new Set(graph.nodes.map((n) => n.id));
+  const nodeIds = new Set(graph.nodes.map((n) => n.id).filter((id) => id != null));
 
   return [
+    ...checkRequiredNodeIds(graph),
     ...checkUniqueNodeIds(graph),
     ...checkValidTargets(graph, nodeIds),
     ...checkNextBranchPointConflict(graph),
@@ -346,6 +376,7 @@ Options:
   --help          Show this help
 
 Rules (errors):
+  schema-required-property   Every node must have an id (Layer 1 requirement)
   unique-node-ids            All node IDs must be unique
   valid-traversal-target     All traversal/branch targets must reference existing nodes
   next-branch-point-conflict A node must not have both next and branch-point
@@ -355,7 +386,9 @@ Rules (warnings):
   unreachable-node           Nodes should be reachable from entry point
   self-loop                  Traversal should not point to the same node
   trivial-cycle              Two-node cycles (A→B→A) are likely accidental
-  dead-end-branch            Branch targets with no traversal are dead ends
+
+Rules (info):
+  dead-end-branch            Branch targets with no traversal are terminal nodes
 
 Exit codes:
   0  No errors (warnings may still be present)
@@ -417,13 +450,14 @@ async function main() {
 
   const errors = results.filter((d) => d.severity === "error");
   const warnings = results.filter((d) => d.severity === "warning");
+  const infos = results.filter((d) => d.severity === "info");
 
   for (const d of results) {
-    const icon = d.severity === "error" ? "\u2717" : "\u26A0";
+    const icon = d.severity === "error" ? "\u2717" : d.severity === "warning" ? "\u26A0" : "\u2139";
     console.log(`  ${icon} [${d.rule}] ${d.message}`);
   }
 
-  console.log(`\n${basename(filePath)}: ${errors.length} error(s), ${warnings.length} warning(s)`);
+  console.log(`\n${basename(filePath)}: ${errors.length} error(s), ${warnings.length} warning(s), ${infos.length} info(s)`);
   process.exit(errors.length > 0 ? 1 : 0);
 }
 

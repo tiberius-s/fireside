@@ -1,83 +1,71 @@
 # Fireside
 
-A portable format for graph-structured presentations.
+A portable format for branching presentations — and a terminal presenter
+anyone can drive.
+
+## Try it
+
+```bash
+cargo run -q -- new my-first-deck
+cargo run -q -- my-first-deck.fireside.json
+```
+
+Press `Space` to move forward. Press `?` any time — the presenter teaches its
+own keys.
 
 ## What is Fireside?
 
 Fireside is a protocol for defining **branching, non-linear content** as a
-directed graph of nodes. It's designed for presentations, interactive lessons,
-and anywhere you need structured content with choices.
-
-The protocol is defined in [TypeSpec](https://typespec.io/), which generates
-JSON Schema (2020-12). Any runtime that can parse JSON and maintain a cursor
-plus a history stack can build a conforming Fireside engine.
-
-## Quick Example
-
-```json
-{
-  "fireside-version": "0.1.0",
-  "title": "My First Presentation",
-  "nodes": [
-    {
-      "id": "welcome",
-      "traversal": {
-        "branch-point": {
-          "prompt": "What interests you?",
-          "options": [
-            { "label": "Deep Dive", "key": "a", "target": "deep-dive" },
-            { "label": "Overview", "key": "b", "target": "overview" }
-          ]
-        }
-      },
-      "content": [
-        { "kind": "heading", "level": 1, "text": "Welcome!" },
-        { "kind": "text", "body": "Choose where to go next." }
-      ]
-    }
-  ]
-}
-```
-
-## Protocol
+directed graph of nodes: presentations, interactive lessons, choose-your-own
+demos. The protocol is defined in [TypeSpec](https://typespec.io/), which
+generates JSON Schema (2020-12). Any runtime that can parse JSON and maintain
+a cursor plus a history stack can build a conforming engine.
 
 - **4 operations** — next, choose, goto, back
 - **7 content blocks** — heading, text, code, list, image, divider, container
 - **Explicit edges** — no implicit sequential fallback; every traversal edge
   is visible in the document
-- **Two-tier validation** — JSON Schema for structure, semantic rules for
+- **Two-layer validation** — JSON Schema for structure, semantic rules for
   graph integrity
-- **Implementation-agnostic** — the protocol defines behavior, not rendering
 
-See [`docs/PROTOCOL-REDESIGN.md`](docs/PROTOCOL-REDESIGN.md) for the full
-design document.
+The normative spec lives in `protocol/main.tsp` and
+`docs/src/content/docs/spec/`. `docs/examples/hello.json` is the canonical
+example document.
 
-## Repository Structure
+## The CLI
+
+```text
+fireside <file>            present a deck
+fireside validate <file>   check a deck for problems, in plain language
+fireside new <name>        create a starter deck
+```
+
+## Repository structure
 
 ```text
 fireside/
-├── protocol/                # Source of truth — TypeSpec domain model
-│   ├── main.tsp             # Protocol definition
-│   └── tsp-output/schemas/  # Generated JSON Schema files
-├── docs/                    # Documentation
-│   ├── PROTOCOL-REDESIGN.md # Protocol design document
-│   └── examples/            # Example .json graph files
-└── crates/                  # Rust reference implementation (rebuilding)
+├── protocol/        # Source of truth — TypeSpec model, generated schemas,
+│                    # and the Node.js semantic validator (validate.mjs)
+├── crates/
+│   ├── fireside-core/     # protocol data model (parse/serialize)
+│   ├── fireside-engine/   # traversal state machine + validation
+│   ├── fireside-tui/      # the ratatui presenter
+│   └── fireside-cli/      # the `fireside` binary
+└── docs/            # Astro/Starlight site: spec + decision records (ADRs)
 ```
 
-## Build
+## Development
 
 ```bash
-# Generate JSON Schemas from TypeSpec
-cd protocol && npm run build
-
-# Validate an example against the schema
-ajv validate -s protocol/tsp-output/schemas/Graph.json \
-  -d docs/examples/hello.json \
-  -r 'protocol/tsp-output/schemas/!(Graph).json' \
-  --spec=draft2020
+cargo test --workspace          # full test suite
+cargo clippy --workspace        # lints
+cd protocol && npm run build    # regenerate schemas from TypeSpec
+node protocol/validate.mjs docs/examples/hello.json
 ```
+
+Engineering constraints for contributors (human or AI) are in
+[`AGENTS.md`](AGENTS.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT

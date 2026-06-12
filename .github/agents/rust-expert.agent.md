@@ -104,7 +104,7 @@ Run through this checklist before finalizing a recommendation:
 - [ ] Return types are `Result`/`Option` not raw panics
 - [ ] `#[must_use]` on return values where appropriate
 - [ ] No mutation outside `App::update` (if TUI code)
-- [ ] `rebuild_index()` called where needed (if graph code)
+- [ ] Engine ops return `Outcome` — no silent no-ops (if engine code)
 - [ ] Serde attributes use `rename_all = "kebab-case"`
 
 ---

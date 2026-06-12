@@ -1,182 +1,218 @@
-//! Fireside entry point.
+//! Fireside — present branching decks in the terminal.
 //!
-//! Parses CLI arguments and dispatches to command handlers.
+//! Three verbs, nothing else: `fireside <file>` presents, `validate`
+//! checks, `new` scaffolds. Validation always runs before presenting, so a
+//! broken deck fails loudly at the prompt instead of during the show.
 
-use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
+use fireside_core::Graph;
+use fireside_engine::{Severity, validate};
 
-mod commands;
-
-use commands::fonts::list_fonts;
-use commands::project::run_project;
-use commands::scaffold::{scaffold_presentation, scaffold_project};
-use commands::session::{run_editor, run_presentation, run_presentation_plain, run_welcome};
-use commands::theme::import_iterm2_theme;
-use commands::validate::run_validate;
-
-/// Fireside — a portable format for branching presentations and lessons.
+/// Present branching decks in the terminal.
 #[derive(Debug, Parser)]
-#[command(name = "fireside", version, about, long_about = None)]
+#[command(name = "fireside", version, about, args_conflicts_with_subcommands = true)]
 struct Cli {
-    /// Subcommand to execute.
+    /// Path to a deck (.fireside.json) — shorthand for `fireside present <file>`.
+    file: Option<PathBuf>,
+
     #[command(subcommand)]
     command: Option<Command>,
 }
 
-/// Available subcommands.
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Present a Fireside graph in the terminal.
+    /// Present a deck in the terminal.
     Present {
-        /// Path to the JSON graph file.
-        file: std::path::PathBuf,
-
-        /// Theme to use (overrides document metadata). Can be a name or path to .itermcolors/.json.
-        #[arg(short, long)]
-        theme: Option<String>,
-
-        /// Start at a specific node number (1-indexed).
-        #[arg(short = 's', long, default_value = "1")]
-        start: usize,
-
-        /// Open directly in editor mode instead of presentation mode.
-        #[arg(short, long)]
-        edit: bool,
-
-        /// Optional target duration in minutes for pace guidance in the footer timer.
-        #[arg(long)]
-        target_minutes: Option<u64>,
-
-        /// Export plain-text (non-TUI) representation and exit.
-        #[arg(long)]
-        plain: bool,
+        /// Path to the deck file.
+        file: PathBuf,
     },
 
-    /// Open a Fireside project directory.
-    Open {
-        /// Path to the project directory (must contain fireside.json).
-        dir: std::path::PathBuf,
-
-        /// Theme override.
-        #[arg(short, long)]
-        theme: Option<String>,
-    },
-
-    /// Open the node editor for a file or project.
-    Edit {
-        /// Path to a JSON file or project directory.
-        path: Option<std::path::PathBuf>,
-    },
-
-    /// Scaffold a new presentation or project.
-    New {
-        /// Name for the new presentation.
-        name: String,
-
-        /// Create a full project directory instead of a single file.
-        #[arg(short, long)]
-        project: bool,
-
-        /// Directory to create the file/project in.
-        #[arg(short, long, default_value = ".")]
-        dir: std::path::PathBuf,
-    },
-
-    /// Validate a Fireside graph for structural integrity.
+    /// Check a deck and report anything wrong, in plain language.
     Validate {
-        /// Path to the JSON graph file to validate.
-        file: std::path::PathBuf,
+        /// Path to the deck file.
+        file: PathBuf,
     },
 
-    /// List installed monospace fonts.
-    Fonts,
-
-    /// Import a terminal color scheme as a Fireside theme.
-    ///
-    /// Accepts iTerm2 `.itermcolors` plist files and VS Code JSON files from
-    /// <https://github.com/mbadolato/iTerm2-Color-Schemes/tree/master/vscode>.
-    /// The format is auto-detected from the file extension.
-    ImportTheme {
-        /// Path to the .itermcolors or VS Code .json file.
-        file: std::path::PathBuf,
-
-        /// Name for the imported theme.
-        #[arg(short, long)]
-        name: Option<String>,
+    /// Create a starter deck you can present immediately.
+    New {
+        /// A name for the deck, e.g. "team-onboarding".
+        name: String,
     },
 }
 
 fn main() -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive(tracing::Level::WARN.into()),
-        )
-        .with_writer(io::stderr)
-        .init();
-
     let cli = Cli::parse();
+    match (cli.file, cli.command) {
+        (Some(file), _) | (None, Some(Command::Present { file })) => present(&file),
+        (None, Some(Command::Validate { file })) => validate_file(&file),
+        (None, Some(Command::New { name })) => new_deck(&name),
+        (None, None) => {
+            // No arguments: teach, don't error.
+            println!("fireside — present branching decks in the terminal\n");
+            println!("  fireside <file>            present a deck");
+            println!("  fireside validate <file>   check a deck for problems");
+            println!("  fireside new <name>        create a starter deck");
+            println!("\nTry: fireside new my-first-deck");
+            Ok(())
+        }
+    }
+}
 
-    match cli.command {
-        Some(Command::Present {
-            file,
-            theme,
-            start,
-            edit,
-            target_minutes,
-            plain,
-        }) => {
-            if plain {
-                run_presentation_plain(
-                    &file,
-                    theme.as_deref(),
-                    start,
-                    edit,
-                    target_minutes.map(|minutes| minutes.saturating_mul(60)),
-                )?;
-            } else {
-                run_presentation(
-                    &file,
-                    theme.as_deref(),
-                    start,
-                    edit,
-                    target_minutes.map(|minutes| minutes.saturating_mul(60)),
-                )?;
-            }
+/// Load and parse a deck with errors a person can act on.
+fn load(path: &Path) -> Result<Graph> {
+    let text = std::fs::read_to_string(path)
+        .with_context(|| format!("could not read {}", path.display()))?;
+    Graph::from_json(&text)
+        .with_context(|| format!("{} is not a valid Fireside deck", path.display()))
+}
+
+fn present(path: &Path) -> Result<()> {
+    let graph = load(path)?;
+    let diags = validate(&graph);
+    let errors: Vec<_> = diags
+        .iter()
+        .filter(|d| d.severity == Severity::Error)
+        .collect();
+    if !errors.is_empty() {
+        eprintln!("{} cannot be presented yet:\n", path.display());
+        for d in &errors {
+            eprintln!("  ✗ {}", d.message);
         }
-        Some(Command::Open { dir, theme }) => {
-            run_project(&dir, theme.as_deref())?;
-        }
-        Some(Command::Edit { path }) => {
-            if let Some(target) = path.as_deref() {
-                run_editor(target)?;
-            } else if Path::new("fireside.json").exists() {
-                run_editor(Path::new("."))?;
-            } else {
-                run_welcome(true)?;
-            }
-        }
-        Some(Command::New { name, project, dir }) => {
-            if project {
-                scaffold_project(&name, &dir)?;
-            } else {
-                scaffold_presentation(&name, &dir)?;
-            }
-        }
-        Some(Command::Validate { file }) => {
-            run_validate(&file)?;
-        }
-        Some(Command::Fonts) => {
-            list_fonts();
-        }
-        Some(Command::ImportTheme { file, name }) => {
-            import_iterm2_theme(&file, name.as_deref())?;
-        }
-        None => run_welcome(false)?,
+        eprintln!("\nFix the above, or run `fireside validate` for the full report.");
+        std::process::exit(1);
+    }
+    fireside_tui::present(graph).context("the presenter hit a terminal error")
+}
+
+fn validate_file(path: &Path) -> Result<()> {
+    let graph = load(path)?;
+    let diags = validate(&graph);
+
+    if diags.is_empty() {
+        println!("✓ {} — no problems found", path.display());
+        return Ok(());
     }
 
+    let mut errors = 0usize;
+    let mut warnings = 0usize;
+    for d in &diags {
+        let icon = match d.severity {
+            Severity::Error => {
+                errors += 1;
+                "✗"
+            }
+            Severity::Warning => {
+                warnings += 1;
+                "⚠"
+            }
+            Severity::Info => "ℹ",
+        };
+        println!("  {icon} {}", d.message);
+    }
+    println!(
+        "\n{}: {errors} error(s), {warnings} warning(s), {} note(s)",
+        path.display(),
+        diags.len() - errors - warnings
+    );
+    if errors > 0 {
+        std::process::exit(1);
+    }
     Ok(())
+}
+
+fn new_deck(name: &str) -> Result<()> {
+    let slug: String = name
+        .trim()
+        .to_lowercase()
+        .chars()
+        .map(|c| if c.is_alphanumeric() { c } else { '-' })
+        .collect::<String>()
+        .split('-')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("-");
+    if slug.is_empty() {
+        bail!("please give the deck a name with at least one letter or digit");
+    }
+    let path = PathBuf::from(format!("{slug}.fireside.json"));
+    if path.exists() {
+        bail!("{} already exists — pick another name", path.display());
+    }
+
+    let json = starter_deck(name)?
+        .to_json_pretty()
+        .context("could not serialize the starter deck")?;
+    std::fs::write(&path, json + "\n")
+        .with_context(|| format!("could not write {}", path.display()))?;
+
+    println!("Created {}.", path.display());
+    println!("\nPresent it:   fireside {}", path.display());
+    println!("Check it:     fireside validate {}", path.display());
+    Ok(())
+}
+
+/// A three-slide starter that demonstrates the one Fireside idea people
+/// need: explicit edges, including a branch that rejoins.
+fn starter_deck(name: &str) -> Result<Graph> {
+    let json = serde_json::json!({
+        "fireside-version": "0.1.0",
+        "title": name,
+        "nodes": [
+            {
+                "id": "welcome",
+                "title": "Welcome",
+                "traversal": "pick-a-path",
+                "content": [
+                    { "kind": "container", "layout": "center", "children": [
+                        { "kind": "heading", "level": 1, "text": name },
+                        { "kind": "text", "body": "Press **Space** to move forward. Press **?** any time for help." }
+                    ]}
+                ]
+            },
+            {
+                "id": "pick-a-path",
+                "title": "Pick a path",
+                "traversal": { "branch-point": {
+                    "prompt": "Decks can branch. Where to?",
+                    "options": [
+                        { "label": "Show me content blocks", "key": "a", "target": "blocks" },
+                        { "label": "Skip to the end", "key": "b", "target": "the-end" }
+                    ]
+                }},
+                "content": [
+                    { "kind": "heading", "level": 2, "text": "A choice" },
+                    { "kind": "text", "body": "Use the arrow keys and press Enter." }
+                ]
+            },
+            {
+                "id": "blocks",
+                "title": "Content blocks",
+                "traversal": "the-end",
+                "content": [
+                    { "kind": "heading", "level": 2, "text": "Blocks" },
+                    { "kind": "list", "items": [
+                        "Headings, text with **inline markdown**",
+                        "Code with `highlight-lines`",
+                        "Lists, images, dividers, containers"
+                    ]},
+                    { "kind": "divider" },
+                    { "kind": "code", "language": "json", "source": "{ \"kind\": \"text\", \"body\": \"like this\" }" }
+                ]
+            },
+            {
+                "id": "the-end",
+                "title": "The end",
+                "content": [
+                    { "kind": "container", "layout": "center", "children": [
+                        { "kind": "heading", "level": 1, "text": "That's it" },
+                        { "kind": "text", "body": "Edit the .fireside.json file to make it yours." }
+                    ]}
+                ]
+            }
+        ]
+    });
+    serde_json::from_value(json).context("the starter deck template is broken")
 }

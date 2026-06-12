@@ -131,7 +131,7 @@
       "label": "hooks",
       "file_type": "code",
       "source_file": ".claude/settings.json",
-      "source_location": "L26",
+      "source_location": "L25",
       "_origin": "ast",
       "id": "claude_settings_hooks",
       "community": 61,
@@ -141,7 +141,7 @@
       "label": "PreToolUse",
       "file_type": "code",
       "source_file": ".claude/settings.json",
-      "source_location": "L27",
+      "source_location": "L26",
       "_origin": "ast",
       "id": "claude_settings_hooks_pretooluse",
       "community": 61,
@@ -151,7 +151,7 @@
       "label": "PostToolUse",
       "file_type": "code",
       "source_file": ".claude/settings.json",
-      "source_location": "L47",
+      "source_location": "L46",
       "_origin": "ast",
       "id": "claude_settings_hooks_posttooluse",
       "community": 61,
@@ -12181,9 +12181,9 @@
       "source_location": "L7",
       "weight": 1.0,
       "context": "import",
-      "confidence_score": 1.0,
       "source": "src_main",
-      "target": "path"
+      "target": "path",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -12426,9 +12426,9 @@
       "source_location": "L65",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "src_main_load",
-      "target": "path"
+      "target": "path",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12459,9 +12459,9 @@
       "source_location": "L72",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "src_main_present",
-      "target": "path"
+      "target": "path",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -12470,9 +12470,9 @@
       "source_location": "L90",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "src_main_validate_file",
-      "target": "path"
+      "target": "path",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -12481,9 +12481,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "context": "import",
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "path"
+      "target": "path",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -12514,9 +12514,9 @@
       "source_location": "L5",
       "weight": 1.0,
       "context": "import",
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "crates_fireside_cli_tests_cli_e2e_rs_command"
+      "target": "crates_fireside_cli_tests_cli_e2e_rs_command",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -12524,9 +12524,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L17",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "tests_cli_e2e_bare_invocation_teaches_the_three_verbs"
+      "target": "tests_cli_e2e_bare_invocation_teaches_the_three_verbs",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -12534,9 +12534,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L8",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "tests_cli_e2e_fireside"
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -12544,9 +12544,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L107",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "tests_cli_e2e_new_refuses_to_overwrite"
+      "target": "tests_cli_e2e_new_refuses_to_overwrite",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -12554,9 +12554,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L82",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "tests_cli_e2e_new_scaffolds_a_deck_that_validates_clean"
+      "target": "tests_cli_e2e_new_scaffolds_a_deck_that_validates_clean",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -12564,9 +12564,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L65",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "tests_cli_e2e_present_refuses_a_broken_deck_before_taking_the_screen"
+      "target": "tests_cli_e2e_present_refuses_a_broken_deck_before_taking_the_screen",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -12594,9 +12594,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L37",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "tests_cli_e2e_validate_missing_file_fails_with_readable_error"
+      "target": "tests_cli_e2e_validate_missing_file_fails_with_readable_error",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -12604,9 +12604,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L47",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "tests_cli_e2e_validate_reports_dangling_targets_in_plain_language"
+      "target": "tests_cli_e2e_validate_reports_dangling_targets_in_plain_language",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12615,9 +12615,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L18",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e_bare_invocation_teaches_the_three_verbs",
-      "target": "tests_cli_e2e_fireside"
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -12626,9 +12626,9 @@
       "source_location": "L8",
       "weight": 1.0,
       "context": "return_type",
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e_fireside",
-      "target": "crates_fireside_cli_tests_cli_e2e_rs_command"
+      "target": "crates_fireside_cli_tests_cli_e2e_rs_command",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12637,9 +12637,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L109",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e_new_refuses_to_overwrite",
-      "target": "tests_cli_e2e_fireside"
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12648,9 +12648,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L85",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e_new_scaffolds_a_deck_that_validates_clean",
-      "target": "tests_cli_e2e_fireside"
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12659,9 +12659,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L74",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e_present_refuses_a_broken_deck_before_taking_the_screen",
-      "target": "tests_cli_e2e_fireside"
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12670,9 +12670,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L28",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e_validate_hello_exits_zero",
-      "target": "tests_cli_e2e_fireside"
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12681,9 +12681,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L38",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e_validate_missing_file_fails_with_readable_error",
-      "target": "tests_cli_e2e_fireside"
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -12692,9 +12692,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L56",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_cli_e2e_validate_reports_dangling_targets_in_plain_language",
-      "target": "tests_cli_e2e_fireside"
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -13434,9 +13434,9 @@
       "source_location": "L105",
       "weight": 1.0,
       "context": "generic_arg",
-      "confidence_score": 1.0,
       "source": "model_mod_nodedefaults",
-      "target": "transition"
+      "target": "transition",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -13467,9 +13467,9 @@
       "source_location": "L127",
       "weight": 1.0,
       "context": "generic_arg",
-      "confidence_score": 1.0,
       "source": "model_mod_node",
-      "target": "transition"
+      "target": "transition",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -13478,9 +13478,9 @@
       "source_location": "L178",
       "weight": 1.0,
       "context": "return_type",
-      "confidence_score": 1.0,
       "source": "model_mod_node_resolved_transition",
-      "target": "transition"
+      "target": "transition",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -13649,9 +13649,9 @@
       "source_location": "L222",
       "weight": 1.0,
       "context": "generic_arg",
-      "confidence_score": 1.0,
       "source": "model_mod_branchpoint",
-      "target": "branchoption"
+      "target": "branchoption",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -13670,9 +13670,9 @@
       "source_location": "L17",
       "weight": 1.0,
       "context": "import",
-      "confidence_score": 1.0,
       "source": "crates_fireside_engine_src_lib_rs_src_lib",
-      "target": "engineerror"
+      "target": "engineerror",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -13714,9 +13714,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "context": "import",
-      "confidence_score": 1.0,
       "source": "src_session",
-      "target": "engineerror"
+      "target": "engineerror",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -13985,9 +13985,9 @@
       "source_location": "L50",
       "weight": 1.0,
       "context": "field",
-      "confidence_score": 1.0,
       "source": "src_session_session",
-      "target": "hashmap"
+      "target": "hashmap",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -14214,9 +14214,9 @@
       "source_location": "L61",
       "weight": 1.0,
       "context": "generic_arg",
-      "confidence_score": 1.0,
       "source": "src_session_session_new",
-      "target": "engineerror"
+      "target": "engineerror",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -15758,9 +15758,9 @@
       "source_location": "L11",
       "weight": 1.0,
       "context": "import",
-      "confidence_score": 1.0,
       "source": "src_app",
-      "target": "event"
+      "target": "event",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -16285,9 +16285,9 @@
       "source_location": "L139",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "src_app_app_update",
-      "target": "event"
+      "target": "event",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -16307,9 +16307,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "context": "import",
-      "confidence_score": 1.0,
       "source": "crates_fireside_tui_src_lib_rs_src_lib",
-      "target": "event"
+      "target": "event",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -16318,9 +16318,9 @@
       "source_location": "L356",
       "weight": 1.0,
       "context": "import",
-      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "event"
+      "target": "event",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -16329,9 +16329,9 @@
       "source_location": "L147",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "src_app_app_on_key",
-      "target": "keyevent"
+      "target": "keyevent",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -16729,9 +16729,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L79",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "render_blocks",
-      "target": "render_blocks_code"
+      "target": "render_blocks_code",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -16799,9 +16799,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L64",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "render_blocks",
-      "target": "render_blocks_heading"
+      "target": "render_blocks_heading",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -16819,9 +16819,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L166",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "render_blocks",
-      "target": "render_blocks_image"
+      "target": "render_blocks_image",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -16829,9 +16829,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L137",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "render_blocks",
-      "target": "render_blocks_list"
+      "target": "render_blocks_list",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -17034,9 +17034,9 @@
       "source_location": "L79",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_code",
-      "target": "crates_fireside_tui_src_render_blocks_rs_tokens"
+      "target": "crates_fireside_tui_src_render_blocks_rs_tokens",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17067,9 +17067,9 @@
       "source_location": "L64",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_heading",
-      "target": "crates_fireside_tui_src_render_blocks_rs_tokens"
+      "target": "crates_fireside_tui_src_render_blocks_rs_tokens",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17078,9 +17078,9 @@
       "source_location": "L166",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_image",
-      "target": "crates_fireside_tui_src_render_blocks_rs_tokens"
+      "target": "crates_fireside_tui_src_render_blocks_rs_tokens",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17089,9 +17089,9 @@
       "source_location": "L137",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_list",
-      "target": "crates_fireside_tui_src_render_blocks_rs_tokens"
+      "target": "crates_fireside_tui_src_render_blocks_rs_tokens",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17122,9 +17122,9 @@
       "source_location": "L79",
       "weight": 1.0,
       "context": "return_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_code",
-      "target": "crates_fireside_tui_src_render_blocks_rs_vec"
+      "target": "crates_fireside_tui_src_render_blocks_rs_vec",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17166,9 +17166,9 @@
       "source_location": "L64",
       "weight": 1.0,
       "context": "return_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_heading",
-      "target": "crates_fireside_tui_src_render_blocks_rs_vec"
+      "target": "crates_fireside_tui_src_render_blocks_rs_vec",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17177,9 +17177,9 @@
       "source_location": "L166",
       "weight": 1.0,
       "context": "return_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_image",
-      "target": "crates_fireside_tui_src_render_blocks_rs_vec"
+      "target": "crates_fireside_tui_src_render_blocks_rs_vec",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17188,9 +17188,9 @@
       "source_location": "L137",
       "weight": 1.0,
       "context": "return_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_list",
-      "target": "crates_fireside_tui_src_render_blocks_rs_vec"
+      "target": "crates_fireside_tui_src_render_blocks_rs_vec",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17221,9 +17221,9 @@
       "source_location": "L79",
       "weight": 1.0,
       "context": "generic_arg",
-      "confidence_score": 1.0,
       "source": "render_blocks_code",
-      "target": "crates_fireside_tui_src_render_blocks_rs_line"
+      "target": "crates_fireside_tui_src_render_blocks_rs_line",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17265,9 +17265,9 @@
       "source_location": "L64",
       "weight": 1.0,
       "context": "generic_arg",
-      "confidence_score": 1.0,
       "source": "render_blocks_heading",
-      "target": "crates_fireside_tui_src_render_blocks_rs_line"
+      "target": "crates_fireside_tui_src_render_blocks_rs_line",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17276,9 +17276,9 @@
       "source_location": "L166",
       "weight": 1.0,
       "context": "generic_arg",
-      "confidence_score": 1.0,
       "source": "render_blocks_image",
-      "target": "crates_fireside_tui_src_render_blocks_rs_line"
+      "target": "crates_fireside_tui_src_render_blocks_rs_line",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17287,9 +17287,9 @@
       "source_location": "L137",
       "weight": 1.0,
       "context": "generic_arg",
-      "confidence_score": 1.0,
       "source": "render_blocks_list",
-      "target": "crates_fireside_tui_src_render_blocks_rs_line"
+      "target": "crates_fireside_tui_src_render_blocks_rs_line",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17386,9 +17386,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L43",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "render_blocks_render_block",
-      "target": "render_blocks_code"
+      "target": "render_blocks_code",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -17408,9 +17408,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L36",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "render_blocks_render_block",
-      "target": "render_blocks_heading"
+      "target": "render_blocks_heading",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -17419,9 +17419,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L55",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "render_blocks_render_block",
-      "target": "render_blocks_image"
+      "target": "render_blocks_image",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17430,9 +17430,9 @@
       "source_location": "L79",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_code",
-      "target": "crates_fireside_tui_src_render_blocks_rs_option"
+      "target": "crates_fireside_tui_src_render_blocks_rs_option",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -17441,9 +17441,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L110",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "render_blocks_code",
-      "target": "render_blocks_clip"
+      "target": "render_blocks_clip",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17452,9 +17452,9 @@
       "source_location": "L166",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_image",
-      "target": "crates_fireside_tui_src_render_blocks_rs_option"
+      "target": "crates_fireside_tui_src_render_blocks_rs_option",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17485,9 +17485,9 @@
       "source_location": "L137",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_blocks_list",
-      "target": "crates_fireside_tui_src_render_blocks_rs_string"
+      "target": "crates_fireside_tui_src_render_blocks_rs_string",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18001,9 +18001,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "context": "import",
-      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "frame"
+      "target": "frame",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -18313,9 +18313,9 @@
       "source_location": "L23",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw",
-      "target": "frame"
+      "target": "frame",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -18423,9 +18423,9 @@
       "source_location": "L161",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_content",
-      "target": "frame"
+      "target": "frame",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18434,9 +18434,9 @@
       "source_location": "L235",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_footer",
-      "target": "frame"
+      "target": "frame",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18445,9 +18445,9 @@
       "source_location": "L83",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_header",
-      "target": "frame"
+      "target": "frame",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18456,9 +18456,9 @@
       "source_location": "L283",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_help",
-      "target": "frame"
+      "target": "frame",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18467,9 +18467,9 @@
       "source_location": "L316",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_map",
-      "target": "frame"
+      "target": "frame",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18478,9 +18478,9 @@
       "source_location": "L218",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_notes",
-      "target": "frame"
+      "target": "frame",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18489,9 +18489,9 @@
       "source_location": "L190",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_indicator",
-      "target": "frame"
+      "target": "frame",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18643,9 +18643,9 @@
       "source_location": "L65",
       "weight": 1.0,
       "context": "return_type",
-      "confidence_score": 1.0,
       "source": "render_mod_areas",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18654,9 +18654,9 @@
       "source_location": "L161",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_content",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18665,9 +18665,9 @@
       "source_location": "L235",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_footer",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18676,9 +18676,9 @@
       "source_location": "L83",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_header",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18687,9 +18687,9 @@
       "source_location": "L283",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_help",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18698,9 +18698,9 @@
       "source_location": "L316",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_map",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18709,9 +18709,9 @@
       "source_location": "L218",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_draw_notes",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18720,9 +18720,9 @@
       "source_location": "L190",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
       "source": "render_mod_indicator",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18731,9 +18731,9 @@
       "source_location": "L202",
       "weight": 1.0,
       "context": "generic_arg",
-      "confidence_score": 1.0,
       "source": "render_mod_notes_panel",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18742,9 +18742,9 @@
       "source_location": "L272",
       "weight": 1.0,
       "context": "return_type",
-      "confidence_score": 1.0,
       "source": "render_mod_overlay_rect",
-      "target": "rect"
+      "target": "rect",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -19378,9 +19378,9 @@
       "source_file": "crates/fireside-tui/src/theme.rs",
       "source_location": "L35",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "src_theme_tokens",
-      "target": "default"
+      "target": "default",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -24330,9 +24330,9 @@
       "source_file": "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md",
       "source_location": "L8",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "explanation_adr_004_presenter_first_rewrite",
-      "target": "explanation_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0"
+      "target": "explanation_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -24340,9 +24340,9 @@
       "source_file": "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md",
       "source_location": "L50",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "explanation_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
-      "target": "explanation_adr_004_presenter_first_rewrite_consequences"
+      "target": "explanation_adr_004_presenter_first_rewrite_consequences",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -24350,9 +24350,9 @@
       "source_file": "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md",
       "source_location": "L14",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "explanation_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
-      "target": "explanation_adr_004_presenter_first_rewrite_context"
+      "target": "explanation_adr_004_presenter_first_rewrite_context",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -24360,9 +24360,9 @@
       "source_file": "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md",
       "source_location": "L28",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "explanation_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
-      "target": "explanation_adr_004_presenter_first_rewrite_decision"
+      "target": "explanation_adr_004_presenter_first_rewrite_decision",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -24370,9 +24370,9 @@
       "source_file": "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md",
       "source_location": "L10",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "explanation_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
-      "target": "explanation_adr_004_presenter_first_rewrite_status"
+      "target": "explanation_adr_004_presenter_first_rewrite_status",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -24380,9 +24380,9 @@
       "source_file": "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md",
       "source_location": "L61",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "explanation_adr_004_presenter_first_rewrite_consequences",
-      "target": "explanation_adr_004_presenter_first_rewrite_negative_or_trade_offs"
+      "target": "explanation_adr_004_presenter_first_rewrite_negative_or_trade_offs",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -24390,9 +24390,9 @@
       "source_file": "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md",
       "source_location": "L68",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "explanation_adr_004_presenter_first_rewrite_consequences",
-      "target": "explanation_adr_004_presenter_first_rewrite_neutral_follow_up"
+      "target": "explanation_adr_004_presenter_first_rewrite_neutral_follow_up",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -24400,9 +24400,9 @@
       "source_file": "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md",
       "source_location": "L52",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "explanation_adr_004_presenter_first_rewrite_consequences",
-      "target": "explanation_adr_004_presenter_first_rewrite_positive"
+      "target": "explanation_adr_004_presenter_first_rewrite_positive",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -24630,9 +24630,9 @@
       "source_file": "docs/src/content/docs/spec/appendix-engine-extensions.md",
       "source_location": "L21",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "spec_appendix_engine_extensions",
-      "target": "spec_appendix_engine_extensions_behavior_near_the_protocol_s_edges"
+      "target": "spec_appendix_engine_extensions_behavior_near_the_protocol_s_edges",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -24640,9 +24640,9 @@
       "source_file": "docs/src/content/docs/spec/appendix-engine-extensions.md",
       "source_location": "L13",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "spec_appendix_engine_extensions",
-      "target": "spec_appendix_engine_extensions_current_extensions"
+      "target": "spec_appendix_engine_extensions_current_extensions",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",

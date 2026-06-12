@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-06-11)
 
 ## Corpus Check
-- 176 files · ~90,350 words
+- 181 files · ~96,319 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1853 nodes · 2875 edges · 160 communities (136 shown, 24 thin omitted)
-- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 187 edges (avg confidence: 0.81)
+- 2026 nodes · 3250 edges · 155 communities (135 shown, 20 thin omitted)
+- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 161 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `61aac226`
+- Built from commit: `ad7328c9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -70,14 +70,14 @@
 - [[_COMMUNITY_TEA Architecture Docs|TEA Architecture Docs]]
 - [[_COMMUNITY_CLI E2E Tests|CLI E2E Tests]]
 - [[_COMMUNITY_Documentation Standards|Documentation Standards]]
-- [[_COMMUNITY_Content Block Docs|Content Block Docs]]
+- [[_COMMUNITY_Community 56|Community 56]]
 - [[_COMMUNITY_Traversal Model|Traversal Model]]
 - [[_COMMUNITY_Text Block Rendering|Text Block Rendering]]
 - [[_COMMUNITY_Validate Command|Validate Command]]
 - [[_COMMUNITY_Command History Tests|Command History Tests]]
 - [[_COMMUNITY_Claude Hooks Settings|Claude Hooks Settings]]
 - [[_COMMUNITY_Claude Local Permissions|Claude Local Permissions]]
-- [[_COMMUNITY_TUI Errors|TUI Errors]]
+- [[_COMMUNITY_Community 63|Community 63]]
 - [[_COMMUNITY_Dangling Ref Fixture|Dangling Ref Fixture]]
 - [[_COMMUNITY_Duplicate ID Fixture|Duplicate ID Fixture]]
 - [[_COMMUNITY_Empty Graph Fixture|Empty Graph Fixture]]
@@ -85,13 +85,15 @@
 - [[_COMMUNITY_Linear Fixture|Linear Fixture]]
 - [[_COMMUNITY_Event Actions|Event Actions]]
 - [[_COMMUNITY_Command Types|Command Types]]
-- [[_COMMUNITY_Core Errors|Core Errors]]
-- [[_COMMUNITY_Engine Errors|Engine Errors]]
+- [[_COMMUNITY_Community 72|Community 72]]
+- [[_COMMUNITY_Community 73|Community 73]]
 - [[_COMMUNITY_Docs TS Config|Docs TS Config]]
 - [[_COMMUNITY_Git Hooks Install|Git Hooks Install]]
 - [[_COMMUNITY_Layout Enum|Layout Enum]]
 - [[_COMMUNITY_Transition Enum|Transition Enum]]
 - [[_COMMUNITY_Docs Content Config|Docs Content Config]]
+- [[_COMMUNITY_Model Module|Model Module]]
+- [[_COMMUNITY_Render Module|Render Module]]
 - [[_COMMUNITY_TypeSpec Diagnostics|TypeSpec Diagnostics]]
 - [[_COMMUNITY_Community 91|Community 91]]
 - [[_COMMUNITY_Community 92|Community 92]]
@@ -152,34 +154,31 @@
 - [[_COMMUNITY_Community 148|Community 148]]
 - [[_COMMUNITY_Community 149|Community 149]]
 - [[_COMMUNITY_Community 151|Community 151]]
-- [[_COMMUNITY_Community 152|Community 152]]
 - [[_COMMUNITY_Community 153|Community 153]]
-- [[_COMMUNITY_Community 154|Community 154]]
-- [[_COMMUNITY_Community 155|Community 155]]
 - [[_COMMUNITY_Community 156|Community 156]]
-- [[_COMMUNITY_Community 157|Community 157]]
-- [[_COMMUNITY_Community 158|Community 158]]
 - [[_COMMUNITY_Community 159|Community 159]]
+- [[_COMMUNITY_Community 160|Community 160]]
+- [[_COMMUNITY_Community 163|Community 163]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `App` - 37 edges
-2. `App` - 32 edges
+1. `App` - 32 edges
+2. `App` - 27 edges
 3. `load_graph()` - 22 edges
-4. `load_graph_from_str()` - 22 edges
-5. `render_block_with_tokens()` - 19 edges
-6. `render_editor()` - 19 edges
-7. `render_presenter()` - 19 edges
-8. `Graphify Skill Pipeline` - 17 edges
-9. `render_node_content_with_base()` - 15 edges
-10. `TextArea` - 15 edges
+4. `Session` - 20 edges
+5. `render_block()` - 20 edges
+6. `Diagnostic` - 19 edges
+7. `load_graph_from_str()` - 18 edges
+8. `render_editor()` - 18 edges
+9. `render_presenter()` - 18 edges
+10. `Graphify Skill Pipeline` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
-  crates/fireside-engine/README.md → docs/src/content/docs/spec/appendix-engine-guidelines.md
 - `TEA (The Elm Architecture) Discipline` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
   crates/fireside-tui/README.md → docs/src/content/docs/spec/appendix-engine-guidelines.md
 - `Honesty Rules` --semantically_similar_to--> `Context7 Documentation Expert Agent`  [INFERRED] [semantically similar]
   .claude/skills/graphify/SKILL.md → .github/agents/context7.agent.md
+- `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
+  crates/fireside-engine/README.md → docs/src/content/docs/spec/appendix-engine-guidelines.md
 - `Layout enum (12 variants)` --semantically_similar_to--> `ViewMode enum (default, fullscreen)`  [INFERRED] [semantically similar]
   crates/fireside-core/README.md → docs/src/content/docs/spec/data-model.md
 - `Transition enum (8 variants, core)` --semantically_similar_to--> `Transition enum (none, fade — protocol)`  [INFERRED] [semantically similar]
@@ -189,23 +188,23 @@
 - 1-file cycle: `crates/fireside-cli/src/commands/project.rs -> crates/fireside-cli/src/commands/project.rs`
 - 1-file cycle: `crates/fireside-cli/src/commands/scaffold.rs -> crates/fireside-cli/src/commands/scaffold.rs`
 - 1-file cycle: `crates/fireside-cli/src/commands/session.rs -> crates/fireside-cli/src/commands/session.rs`
+- 1-file cycle: `crates/fireside-tui/src/render/mod.rs -> crates/fireside-tui/src/render/mod.rs`
 - 1-file cycle: `crates/fireside-tui/tests/harness.rs -> crates/fireside-tui/tests/harness.rs`
 - 1-file cycle: `crates/fireside-cli/src/commands/theme.rs -> crates/fireside-cli/src/commands/theme.rs`
 - 1-file cycle: `crates/fireside-cli/src/commands/validate.rs -> crates/fireside-cli/src/commands/validate.rs`
 - 1-file cycle: `crates/fireside-cli/src/main.rs -> crates/fireside-cli/src/main.rs`
+- 1-file cycle: `crates/fireside-tui/src/app.rs -> crates/fireside-tui/src/app.rs`
+- 1-file cycle: `crates/fireside-core/src/model/mod.rs -> crates/fireside-core/src/model/mod.rs`
 - 1-file cycle: `crates/fireside-core/src/model/node.rs -> crates/fireside-core/src/model/node.rs`
 - 1-file cycle: `crates/fireside-core/src/model/branch.rs -> crates/fireside-core/src/model/branch.rs`
 - 1-file cycle: `crates/fireside-tui/src/theme.rs -> crates/fireside-tui/src/theme.rs`
 - 1-file cycle: `crates/fireside-core/src/model/graph.rs -> crates/fireside-core/src/model/graph.rs`
+- 1-file cycle: `crates/fireside-engine/src/loader.rs -> crates/fireside-engine/src/loader.rs`
 - 1-file cycle: `crates/fireside-tui/src/app/app_tests/mod.rs -> crates/fireside-tui/src/app/app_tests/mod.rs`
 - 1-file cycle: `crates/fireside-engine/src/commands/apply.rs -> crates/fireside-engine/src/commands/apply.rs`
 - 1-file cycle: `crates/fireside-tui/src/ui/graph.rs -> crates/fireside-tui/src/ui/graph.rs`
 - 1-file cycle: `crates/fireside-core/src/model/traversal.rs -> crates/fireside-core/src/model/traversal.rs`
 - 1-file cycle: `crates/fireside-engine/src/commands/history.rs -> crates/fireside-engine/src/commands/history.rs`
-- 1-file cycle: `crates/fireside-engine/src/session.rs -> crates/fireside-engine/src/session.rs`
-- 1-file cycle: `crates/fireside-engine/src/loader.rs -> crates/fireside-engine/src/loader.rs`
-- 1-file cycle: `crates/fireside-engine/src/traversal.rs -> crates/fireside-engine/src/traversal.rs`
-- 1-file cycle: `crates/fireside-engine/src/validation.rs -> crates/fireside-engine/src/validation.rs`
 
 ## Hyperedges (group relationships)
 - **Graphify Two-Track Extraction Pipeline** — graphify_skill_ast_extraction, graphify_skill_semantic_extraction, graphify_skill_extraction_cache, references_extraction_spec_subagent_prompt [EXTRACTED 1.00]
@@ -215,31 +214,31 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (160 total, 24 thin omitted)
+## Communities (155 total, 20 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.05
-Nodes (42): block_type_variants(), bump_index(), centered_popup(), digit_to_index(), is_subsequence(), layout_variants(), next_search_hit_from(), picker_row_span() (+34 more)
+Nodes (43): block_type_variants(), bump_index(), centered_popup(), digit_to_index(), is_subsequence(), layout_variants(), next_search_hit_from(), picker_row_span() (+35 more)
 
 ### Community 1 - "CLI Commands"
-Cohesion: 0.07
-Nodes (53): list_fonts(), ProjectConfig, resolve_project_entry(), resolve_project_entry_accepts_slides_when_nodes_missing(), resolve_project_entry_uses_nodes_over_slides(), run_project(), temp_dir(), scaffold_presentation() (+45 more)
+Cohesion: 0.06
+Nodes (61): list_fonts(), ProjectConfig, resolve_project_entry(), resolve_project_entry_accepts_slides_when_nodes_missing(), resolve_project_entry_uses_nodes_over_slides(), run_project(), temp_dir(), scaffold_presentation() (+53 more)
 
 ### Community 2 - "Block Rendering Types"
-Cohesion: 0.09
-Nodes (55): DesignTokens, Line, Vec, DesignTokens, Line, Vec, DesignTokens, Line (+47 more)
+Cohesion: 0.24
+Nodes (13): DesignTokens, Line, Option, Path, PathBuf, Result, String, Vec (+5 more)
 
 ### Community 3 - "Agent & Skill Governance"
 Cohesion: 0.10
 Nodes (27): Graphify Slash Command Trigger, AST Structural Extraction, Community Detection and Labeling, Token Cost Tracking, Semantic Extraction Cache, Fast Path Query on Existing Graph, Graphify Skill Pipeline, Semantic Extraction via Parallel Subagents (+19 more)
 
 ### Community 4 - "TUI App Core"
-Cohesion: 0.07
-Nodes (24): ActiveTransition, is_editor_actionable_warning(), FlashKind, Frame, Graph, Into, KeyCode, Option (+16 more)
+Cohesion: 0.09
+Nodes (21): Event, KeyCode, KeyEvent, Option, Self, String, ViewMode, App (+13 more)
 
 ### Community 5 - "Editor Detail Pane"
 Cohesion: 0.09
-Nodes (40): ContentBlock, EditorPickerOverlay, Frame, Line, Node, NodeLayout, PresentationSession, Rect (+32 more)
+Nodes (39): ContentBlock, EditorPickerOverlay, Frame, Line, Node, NodeLayout, PresentationSession, Rect (+31 more)
 
 ### Community 6 - "Graph Overlay UI"
 Cohesion: 0.14
@@ -254,32 +253,32 @@ Cohesion: 0.17
 Nodes (26): Breakpoint, NodeLayout, Option, Rect, Self, all_templates_have_example_frontmatter(), all_templates_produce_valid_areas(), center_in() (+18 more)
 
 ### Community 9 - "Editor Interaction Tests"
-Cohesion: 0.21
-Nodes (13): AppMode, editing_b_selects_next_block(), editing_m_starts_metadata_edit(), editing_shift_b_selects_prev_block(), map_edit_mode_key(), map_goto_mode_key(), map_key_to_action(), presenting_ctrl_h_toggles_timeline() (+5 more)
+Cohesion: 0.16
+Nodes (34): Graph, HashSet, Node, Option, Result, Self, String, Vec (+26 more)
 
 ### Community 10 - "Action Routing"
-Cohesion: 0.14
-Nodes (19): App, Action, KeyCode, MouseScrollDirection, Frame, Graph, Node, Option (+11 more)
+Cohesion: 0.13
+Nodes (20): App, Action, Event, KeyCode, MouseScrollDirection, Frame, Graph, Node (+12 more)
 
 ### Community 11 - "Theme & Content Types"
-Cohesion: 0.08
-Nodes (17): Result, Self, String, Vec, Color, Default, Option, Self (+9 more)
+Cohesion: 0.07
+Nodes (16): Result, Self, String, Vec, Default, Self, Style, D (+8 more)
 
 ### Community 12 - "Core Graph Model"
 Cohesion: 0.12
-Nodes (22): GraphFile, HashMap, Layout, Node, NodeId, Option, Result, Self (+14 more)
+Nodes (22): GraphFile, HashMap, Layout, Node, NodeDefaults, NodeId, Option, Result (+14 more)
 
 ### Community 13 - "Settings & Config"
 Cohesion: 0.17
 Nodes (23): Box, config_base_dir(), editor_prefs_path(), EditorUiPrefs, load_editor_ui_prefs(), load_settings(), load_settings_from_paths(), merge_settings_from_file() (+15 more)
 
 ### Community 14 - "Traversal Engine"
-Cohesion: 0.17
-Nodes (17): EngineError, Graph, Result, Self, back_pops_history(), choose_branch_option(), goto_out_of_bounds_errors(), goto_with_valid_index() (+9 more)
+Cohesion: 0.26
+Nodes (25): ContainerLayout, ContentBlock, Line, Option, code(), heading(), image(), list() (+17 more)
 
 ### Community 15 - "Presenter UI"
-Cohesion: 0.11
-Nodes (46): Color, Frame, Rect, Span, Theme, Vec, FlashKind, Frame (+38 more)
+Cohesion: 0.08
+Nodes (54): Frame, PresentationSession, Rect, String, Theme, Color, Frame, Rect (+46 more)
 
 ### Community 16 - "Protocol Package"
 Cohesion: 0.08
@@ -291,23 +290,23 @@ Nodes (13): Color, DesignTokens, HashMap, Option, Path, Result, Self, String (+5
 
 ### Community 18 - "Textarea Widget"
 Cohesion: 0.16
-Nodes (10): Frame, Into, KeyEvent, Rect, Self, String, Theme, Vec (+2 more)
+Nodes (10): Frame, KeyEvent, Rect, Self, String, Theme, Vec, Into (+2 more)
 
 ### Community 19 - "Docs Site Package"
 Cohesion: 0.09
 Nodes (21): dependencies, astro, astro-mermaid, @astrojs/starlight, mermaid, sharp, devDependencies, @astrojs/check (+13 more)
 
 ### Community 20 - "Node Model & Commands"
-Cohesion: 0.20
-Nodes (10): BranchPoint, ContentBlock, Layout, NodeId, Option, String, Transition, Vec (+2 more)
+Cohesion: 0.21
+Nodes (13): AppMode, editing_b_selects_next_block(), editing_m_starts_metadata_edit(), editing_shift_b_selects_prev_block(), map_edit_mode_key(), map_goto_mode_key(), map_key_to_action(), presenting_ctrl_h_toggles_timeline() (+5 more)
 
 ### Community 21 - "Presentation Session"
-Cohesion: 0.19
-Nodes (9): Command, EngineError, Graph, Node, NodeId, Result, Self, PresentationSession (+1 more)
+Cohesion: 0.10
+Nodes (26): BranchPoint, EngineError, Graph, HashMap, HashSet, Node, NodeDefaults, NodeId (+18 more)
 
 ### Community 22 - "Graph Validation"
-Cohesion: 0.19
-Nodes (20): ContentBlock, EngineError, Graph, Node, Option, Result, String, Vec (+12 more)
+Cohesion: 0.06
+Nodes (56): add_node_roundtrips_with_undo_redo(), graph_with_ids(), move_block_roundtrips_with_undo_redo(), remove_block_roundtrips_with_undo_redo(), update_block_roundtrips_with_undo_redo(), update_content_roundtrips_with_undo_redo(), run_validate(), Path (+48 more)
 
 ### Community 23 - "iTerm2 Theme Import"
 Cohesion: 0.17
@@ -366,8 +365,8 @@ Cohesion: 0.14
 Nodes (13): compilerOptions, declaration, esModuleInterop, module, moduleResolution, outDir, rootDir, skipLibCheck (+5 more)
 
 ### Community 37 - "Protocol JS Validator"
-Cohesion: 0.42
-Nodes (12): checkDeadEndBranches(), checkNextBranchPointConflict(), checkReachability(), checkSelfLoops(), checkTrivialCycles(), checkUniqueBranchKeys(), checkUniqueNodeIds(), checkValidTargets() (+4 more)
+Cohesion: 0.40
+Nodes (13): checkDeadEndBranches(), checkNextBranchPointConflict(), checkReachability(), checkRequiredNodeIds(), checkSelfLoops(), checkTrivialCycles(), checkUniqueBranchKeys(), checkUniqueNodeIds() (+5 more)
 
 ### Community 38 - "Project Cheat Sheets"
 Cohesion: 0.15
@@ -398,20 +397,20 @@ Cohesion: 0.31
 Nodes (9): BranchPoint / BranchOption (core), Traversal struct (core), BranchOption, BranchPoint, Traversal (protocol type), Traversal Types, Branch-Point Gating, Choose Operation (+1 more)
 
 ### Community 45 - "Graph & Command Docs"
-Cohesion: 0.14
-Nodes (18): `ContentBlock`, Graph (runtime repr), `Graph` and `GraphFile`, GraphFile (wire repr), Key Types, `Layout` and `Transition`, ListItem custom deserialization, `ListItem` — Custom Deserialization (+10 more)
+Cohesion: 0.13
+Nodes (17): Graph (runtime repr), GraphFile (wire repr), `Command` and `CommandHistory`, Command / CommandHistory (undo-redo), Key Types, Loader, `PresentationSession`, The `next` Priority Chain (+9 more)
 
 ### Community 46 - "Editor Command Tests"
 Cohesion: 0.10
 Nodes (20): Algorithm, Algorithm, Algorithm, Algorithm, Branch and Rejoin, Branch-point precedence, Branch return wiring, Conformance Checklist (+12 more)
 
 ### Community 47 - "Layout Rendering"
-Cohesion: 0.53
-Nodes (8): Layout, Rect, apply_layout(), center_rect(), compute_areas(), NodeAreas, pad_rect(), two_column_split()
+Cohesion: 0.20
+Nodes (13): Line, Option, String, Style, Tokens, Vec, bold_fragment_carries_bold_style(), find_closer() (+5 more)
 
 ### Community 48 - "Breadcrumb UI"
-Cohesion: 0.39
-Nodes (8): Frame, PresentationSession, Rect, String, Theme, NextInfo, node_short_label(), render_breadcrumb()
+Cohesion: 0.20
+Nodes (11): `ContentBlock`, `Graph` and `GraphFile`, Key Types, `Layout` and `Transition`, ListItem custom deserialization, `ListItem` — Custom Deserialization, `Node`, `Traversal`, `BranchPoint`, `BranchOption` (+3 more)
 
 ### Community 49 - "TypeSpec Linter Rules"
 Cohesion: 0.31
@@ -437,9 +436,9 @@ Nodes (3): PathBuf, repo_root(), validate_hello_exits_zero()
 Cohesion: 0.15
 Nodes (11): Behavioral Contract, Documentation Writer Agent, Quality Bar, Working Style, Formatting and Structure, Markdown Content Rules, Validation Requirements, No-Heredoc File Operations Rule (+3 more)
 
-### Community 56 - "Content Block Docs"
-Cohesion: 0.17
-Nodes (7): editor_b_and_shift_b_select_blocks(), editor_m_enter_commits_heading_level_metadata(), editor_m_invalid_heading_level_sets_error_and_preserves_block(), editor_m_starts_metadata_edit_for_selected_block(), editor_mouse_click_selects_block_in_detail_pane(), editor_remove_block_deletes_selected_block(), graph_with_content_blocks()
+### Community 56 - "Community 56"
+Cohesion: 0.53
+Nodes (8): Layout, Rect, apply_layout(), center_rect(), compute_areas(), NodeAreas, pad_rect(), two_column_split()
 
 ### Community 57 - "Traversal Model"
 Cohesion: 0.60
@@ -457,13 +456,37 @@ Nodes (14): Context7 Documentation Expert Agent, Version Upgrade Checking Workfl
 Cohesion: 0.20
 Nodes (10): Step 0 - GitHub repos and multi-path merge (only if a URL or several paths), Step 1 - Ensure graphify is installed, Step 2.5 - Video and audio (only if video files detected), Step 2 - Detect files, Step 4 - Build graph, cluster, analyze, generate outputs, Step 5 - Label communities, Step 6 - Generate Obsidian vault (opt-in) + HTML, Step 9 - Save manifest, update cost tracker, clean up, and report (+2 more)
 
+### Community 61 - "Claude Hooks Settings"
+Cohesion: 0.33
+Nodes (5): hooks, PostToolUse, PreToolUse, permissions, allow
+
+### Community 63 - "Community 63"
+Cohesion: 0.47
+Nodes (5): DesignTokens, Line, Vec, ListItem, render_list()
+
+### Community 72 - "Community 72"
+Cohesion: 0.50
+Nodes (4): DesignTokens, Line, Vec, render_divider()
+
+### Community 73 - "Community 73"
+Cohesion: 0.50
+Nodes (4): DesignTokens, Line, Vec, render_heading()
+
+### Community 87 - "Model Module"
+Cohesion: 0.07
+Nodes (31): CoreError, BranchOption, BranchPoint, ContentBlock, Node, NodeDefaults, NodeId, Option (+23 more)
+
+### Community 88 - "Render Module"
+Cohesion: 0.16
+Nodes (39): App, Frame, KeyCode, Line, Option, Rect, String, Tokens (+31 more)
+
 ### Community 91 - "Community 91"
 Cohesion: 0.15
 Nodes (12): ADR Format (Nygard-style), ADR Skill, Consequences section, Context section, Decision section, Example ADR, Numbering and Filing, Nygard ADR Format (+4 more)
 
 ### Community 92 - "Community 92"
-Cohesion: 0.12
-Nodes (15): `App` State, Application Modes, Dependencies, Design Philosophy: TEA (The Elm Architecture), Editor Mode, fireside-tui, Keybindings, Markdown Rendering (+7 more)
+Cohesion: 0.15
+Nodes (12): `App` State, Application Modes, Dependencies, Design Philosophy: TEA (The Elm Architecture), Editor Mode, fireside-tui, Keybindings, Module Map (+4 more)
 
 ### Community 93 - "Community 93"
 Cohesion: 0.20
@@ -658,72 +681,60 @@ Cohesion: 0.50
 Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphify reference: incremental update and cluster-only
 
 ### Community 148 - "Community 148"
-Cohesion: 0.26
-Nodes (14): PathBuf, PathBuf, load_graph(), hello_example_each_node_renders_non_empty_content_lines(), hello_example_image_success_and_fallback_render(), hello_example_loads_and_branches(), hello_example_transition_animation_ticks_to_completion(), hello_path() (+6 more)
+Cohesion: 0.22
+Nodes (8): ADR-002: Retire node-level `Layout` in favor of `view-mode` + container layouts, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
 
 ### Community 149 - "Community 149"
-Cohesion: 0.26
-Nodes (12): Graph, GraphFile, Path, Result, empty_graph_returns_error(), graph_to_file(), graph_with_branching(), load_graph_from_str() (+4 more)
+Cohesion: 0.22
+Nodes (8): ADR-001: Remove `traversal.after`, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
 
 ### Community 151 - "Community 151"
 Cohesion: 0.20
 Nodes (9): Claude Fable Planning Prompt, Goal, Important Constraints, Output Expectations, Part A — Audit the protocol spec and find gaps, Part B — Evaluate the Rust reference implementation and UX, Part C — Produce a concrete, phased plan, Repository Context (+1 more)
 
-### Community 152 - "Community 152"
-Cohesion: 0.31
-Nodes (8): CommandHistory, add_node_roundtrips_with_undo_redo(), graph_with_ids(), move_block_roundtrips_with_undo_redo(), remove_block_roundtrips_with_undo_redo(), update_block_roundtrips_with_undo_redo(), update_content_roundtrips_with_undo_redo(), Graph
-
 ### Community 153 - "Community 153"
 Cohesion: 0.25
 Nodes (7): Build and Test Commands, Crate Boundary Rules, Error Handling Stratification, Fireside Engineering Constraints, Mandatory Idioms, MSRV, Source of Truth
 
-### Community 154 - "Community 154"
-Cohesion: 0.25
-Nodes (7): Appendix B — Engine Guidelines, Container Rendering Guidance, Core Runtime Guarantees, Engine boundaries, Input and Error Strategy, Back Operation, History Invariants
-
-### Community 155 - "Community 155"
-Cohesion: 0.47
-Nodes (5): branch_graph(), graph_with_ids(), presenter_branch_overlay_up_down_enter_chooses_focused_option(), Graph, Event
-
 ### Community 156 - "Community 156"
-Cohesion: 0.53
-Nodes (5): apply_command(), Command, EngineError, Graph, Result
-
-### Community 157 - "Community 157"
-Cohesion: 0.67
-Nodes (3): run_validate(), Path, Result
-
-### Community 158 - "Community 158"
-Cohesion: 0.67
-Nodes (3): PathBuf, add_update_remove_undo_restores_original_graph_nodes(), fixture_path()
+Cohesion: 0.05
+Nodes (26): editor_b_and_shift_b_select_blocks(), editor_m_enter_commits_heading_level_metadata(), editor_m_invalid_heading_level_sets_error_and_preserves_block(), editor_m_starts_metadata_edit_for_selected_block(), editor_mouse_click_selects_block_in_detail_pane(), editor_remove_block_deletes_selected_block(), branch_graph(), graph_with_content_blocks() (+18 more)
 
 ### Community 159 - "Community 159"
 Cohesion: 0.50
 Nodes (4): Part A - Structural extraction for code files, Part B - Semantic extraction (parallel subagents), Part C - Merge AST + semantic into final extraction, Step 3 - Extract entities and relationships
+
+### Community 160 - "Community 160"
+Cohesion: 0.22
+Nodes (8): ADR-003: Non-normative engine extras, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+
+### Community 163 - "Community 163"
+Cohesion: 0.33
+Nodes (5): Additional transitions, `BranchPoint.id`, Extension content blocks, Graph metadata: `theme`, `font`, `tags`, Nested list items
 
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **673 isolated node(s):** `PreToolUse`, `allow`, `install.sh script`, `default`, `MD013` (+668 more)
+- **708 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+703 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **24 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **20 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `render_editor()` connect `Editor Detail Pane` to `Block Rendering Types`, `TUI App Core`, `Graph Overlay UI`, `Presenter UI`, `Textarea Widget`, `Help Overlay`?**
-  _High betweenness centrality (0.054) - this node is a cross-community bridge._
-- **Why does `Event` connect `Community 155` to `CLI Commands`, `TUI App Core`, `Editor Interaction Tests`, `Action Routing`, `Textarea Widget`?**
-  _High betweenness centrality (0.043) - this node is a cross-community bridge._
-- **Why does `load_graph()` connect `Community 148` to `CLI Commands`, `TUI Test Harness`, `Community 149`, `Community 157`, `Community 158`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+- **Why does `render_editor()` connect `Editor Detail Pane` to `Graph Overlay UI`, `Traversal Engine`, `Presenter UI`, `Textarea Widget`, `Help Overlay`?**
+  _High betweenness centrality (0.084) - this node is a cross-community bridge._
+- **Why does `CoreError` connect `Model Module` to `Graph Validation`?**
+  _High betweenness centrality (0.073) - this node is a cross-community bridge._
+- **Why does `Traversal` connect `Community 156` to `Graph Overlay UI`, `Model Module`?**
+  _High betweenness centrality (0.071) - this node is a cross-community bridge._
 - **Are the 16 inferred relationships involving `load_graph()` (e.g. with `run_editor()` and `run_event_loop()`) actually correct?**
   _`load_graph()` has 16 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 14 inferred relationships involving `load_graph_from_str()` (e.g. with `graph_with_ids()` and `move_block_roundtrips_with_undo_redo()`) actually correct?**
-  _`load_graph_from_str()` has 14 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 4 inferred relationships involving `render_block_with_tokens()` (e.g. with `render_divider()` and `render_heading()`) actually correct?**
-  _`render_block_with_tokens()` has 4 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 3 inferred relationships involving `render_block()` (e.g. with `.detail_block_index_at_row()` and `.scroll_detail_to_selected_block()`) actually correct?**
+  _`render_block()` has 3 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
+  _710 weakly-connected nodes found - possible documentation gaps or missing edges._

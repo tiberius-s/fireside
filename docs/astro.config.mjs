@@ -32,85 +32,55 @@ export default defineConfig({
             { label: '§2 Data Model', link: '/spec/data-model/' },
             { label: '§3 Traversal', link: '/spec/traversal/' },
             { label: '§4 Validation', link: '/spec/validation/' },
-            { label: '§5 Extensibility', link: '/spec/extensibility/' },
             { label: '§6 Serialization', link: '/spec/serialization/' },
-            { label: 'Migration', link: '/spec/migration/' },
-            { label: 'Appendix A — Design System', link: '/spec/appendix-design-system/' },
+            { label: 'Mental Models', link: '/spec/mental-models/' },
             { label: 'Appendix B — Engine Guidelines', link: '/spec/appendix-engine-guidelines/' },
             { label: 'Appendix C — Content Blocks', link: '/spec/appendix-content-blocks/' },
+            {
+              label: 'Appendix D — Engine Extensions',
+              link: '/spec/appendix-engine-extensions/',
+            },
           ],
         },
         {
           label: 'Guides',
           items: [
-            { label: 'Your First Fireside Session', link: '/guides/getting-started/' },
-            { label: 'Branching Adventures', link: '/guides/branching-adventures/' },
-            { label: 'For Designers', link: '/guides/for-designers/' },
-            { label: 'Theme Authoring', link: '/guides/theme-authoring/' },
-            { label: 'Extension Authoring', link: '/guides/extension-authoring/' },
-            {
-              label: 'Learn Rust with Fireside',
-              items: [
-                { label: 'Series Overview', link: '/guides/learn-rust/' },
-                { label: '1. Your First Data Model', link: '/guides/learn-rust/01-data-model/' },
-                { label: '2. Errors That Help', link: '/guides/learn-rust/02-errors/' },
-                {
-                  label: '3. Ownership, Borrowing, and Collections',
-                  link: '/guides/learn-rust/03-ownership/',
-                },
-                { label: '4. Traits and Polymorphism', link: '/guides/learn-rust/04-traits/' },
-                {
-                  label: "5. When Derive Isn't Enough",
-                  link: '/guides/learn-rust/05-custom-serde/',
-                },
-                { label: '6. State Machines', link: '/guides/learn-rust/06-state-machines/' },
-                {
-                  label: '7. Undo/Redo with the Command Pattern',
-                  link: '/guides/learn-rust/07-command-pattern/',
-                },
-                {
-                  label: '8. The Elm Architecture in Rust',
-                  link: '/guides/learn-rust/08-tea-architecture/',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          label: 'Crates',
-          items: [
-            { label: 'fireside-core', link: '/crates/fireside-core/' },
-            { label: 'fireside-engine', link: '/crates/fireside-engine/' },
-            {
-              label: 'fireside-tui',
-              items: [
-                { label: 'Overview', link: '/crates/fireside-tui/' },
-                { label: 'App State Machine', link: '/crates/fireside-tui/app-state-machine/' },
-                { label: 'Rendering Pipeline', link: '/crates/fireside-tui/rendering-pipeline/' },
-                {
-                  label: 'Theme & Design System',
-                  link: '/crates/fireside-tui/theme-design-system/',
-                },
-              ],
-            },
-            { label: 'fireside-cli', link: '/crates/fireside-cli/' },
+            { label: 'Your First Fireside Graph', link: '/guides/getting-started/' },
           ],
         },
         {
           label: 'Reference',
           items: [
-            { label: 'Keybindings', link: '/reference/keybindings/' },
             { label: 'Data Model Quick Reference', link: '/reference/data-model-quick-reference/' },
             { label: 'Domain Vocabulary', link: '/reference/domain-vocabulary/' },
           ],
         },
         {
-          label: 'Schemas',
-          autogenerate: { directory: 'schemas' },
-        },
-        {
           label: 'Explanation',
-          autogenerate: { directory: 'explanation' },
+          items: [
+            {
+              label: 'Architecture Decisions',
+              collapsed: true,
+              items: [
+                {
+                  label: 'ADR-001: Remove traversal.after',
+                  link: '/explanation/adr-001-remove-traversal-after/',
+                },
+                {
+                  label: 'ADR-002: Retire node-level Layout',
+                  link: '/explanation/adr-002-retire-node-layout/',
+                },
+                {
+                  label: 'ADR-003: Non-normative engine extras',
+                  link: '/explanation/adr-003-non-normative-engine-extras/',
+                },
+                {
+                  label: 'ADR-004: Presenter-first rewrite',
+                  link: '/explanation/adr-004-presenter-first-rewrite/',
+                },
+              ],
+            },
+          ],
         },
       ],
     }),

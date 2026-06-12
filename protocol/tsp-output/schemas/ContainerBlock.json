@@ -16,8 +16,9 @@
             "description": "The child content blocks within this container."
         },
         "layout": {
-            "type": "string",
-            "description": "Layout hint controlling how children are arranged."
+            "$ref": "ContainerLayout.json",
+            "default": "stack",
+            "description": "Layout hint controlling how children are arranged. Defaults to `stack`."
         }
     },
     "required": [

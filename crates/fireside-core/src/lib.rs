@@ -1,22 +1,17 @@
-//! Fireside Core — protocol model, wire-format serialization, and type invariants.
+//! Fireside core — the protocol data model, nothing more.
 //!
-//! This crate defines the canonical Fireside data model types matching the
-//! Fireside 0.1.0 protocol specification. All wire-format JSON uses kebab-case
-//! property names and the `"kind"` discriminator for content blocks.
-//!
-//! # Crate Boundaries
-//!
-//! - **No UI dependencies** — this crate is intentionally UI-agnostic.
-//! - **No validation logic** — graph integrity checks live in `fireside-engine`.
-//! - **Serde only** — serialization targets JSON wire format.
+//! This crate is a faithful Rust mirror of the Fireside 0.1.0 protocol
+//! (`protocol/main.tsp` and its generated JSON schemas): parsing,
+//! serialization, and small read-time helpers (traversal accessors and
+//! default resolution). It performs no I/O, holds no state, and contains
+//! no rendering or validation logic — semantic validation lives in
+//! `fireside-engine`, presentation in `fireside-tui`.
 
 pub mod error;
 pub mod model;
 
-pub use model::branch::{BranchOption, BranchPoint};
-pub use model::content::{ContentBlock, ListItem};
-pub use model::graph::{Graph, GraphFile, GraphMeta, NodeDefaults};
-pub use model::layout::Layout;
-pub use model::node::{Node, NodeId};
-pub use model::transition::Transition;
-pub use model::traversal::Traversal;
+pub use error::CoreError;
+pub use model::{
+    BranchOption, BranchPoint, ContainerLayout, ContentBlock, Graph, Node, NodeDefaults, NodeId,
+    Transition, Traversal, TraversalSpec, ViewMode,
+};

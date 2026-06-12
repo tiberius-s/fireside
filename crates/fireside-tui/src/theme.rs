@@ -1,231 +1,62 @@
-//! Theme definitions controlling the visual appearance of nodes.
+//! The design tokens — every color and text style in the presenter.
 //!
-//! The `Theme` struct holds Ratatui `Color` values for all UI elements.
-//! Themes are loaded from JSON files via `ThemeFile`.
+//! One polished default theme. It deliberately uses ANSI palette colors and
+//! leaves the background untouched (`Color::Reset`), so it sits well on any
+//! terminal the presenter already likes. No render code may construct a
+//! `Style` from raw colors; everything goes through [`Tokens`].
 
-use ratatui::style::Color;
-use serde::Deserialize;
+use ratatui::style::{Color, Modifier, Style};
 
-/// A complete theme definition for rendering.
-///
-/// All color fields use precise `Color::Rgb` values by default so the
-/// appearance is consistent across terminal emulators. Named colors
-/// (Cyan, Green, …) vary between emulator color schemes and should only
-/// be used in explicitly terminal-adapted theme files.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Theme {
-    // ── Base layer ─────────────────────────────────────────────────
-    /// Background color for the content area (terminal bg).
-    pub background: Color,
-    /// Default foreground (body text) color.
-    pub foreground: Color,
-
-    // ── Surface ────────────────────────────────────────────────────
-    /// Elevated surface color for panels, cards, and sidebars.
-    pub surface: Color,
-    /// Text color on `surface` backgrounds.
-    pub on_surface: Color,
-
-    // ── Headings ───────────────────────────────────────────────────
-    /// Color for H1 headings.
-    pub heading_h1: Color,
-    /// Color for H2 headings.
-    pub heading_h2: Color,
-    /// Color for H3+ headings.
-    pub heading_h3: Color,
-
-    // ── Code blocks ────────────────────────────────────────────────
-    /// Background color for code blocks.
-    pub code_background: Color,
-    /// Foreground color for code block text (base, before syntax highlighting).
-    pub code_foreground: Color,
-    /// Color for the border around code blocks.
-    pub code_border: Color,
-
-    // ── Misc content ───────────────────────────────────────────────
-    /// Color for block quote borders and text.
-    pub block_quote: Color,
-    /// Color for the footer / progress bar.
-    pub footer: Color,
-
-    // ── Chrome ─────────────────────────────────────────────────────
-    /// Border color for the focused / active panel.
-    pub border_active: Color,
-    /// Border color for unfocused panels.
-    pub border_inactive: Color,
-    /// Background color for toolbars and status bars.
-    pub toolbar_bg: Color,
-    /// Foreground color for toolbar text and key hints.
-    pub toolbar_fg: Color,
-    /// Accent color for interactive elements, badges, and highlights.
-    pub accent: Color,
-    /// Error / destructive-action color.
-    pub error: Color,
-    /// Success / positive-indicator color.
-    pub success: Color,
-
-    // ── Syntax ─────────────────────────────────────────────────────
-    /// syntect theme name for syntax highlighting.
-    pub syntax_theme: String,
+/// Semantic styles for the presenter UI.
+#[derive(Debug, Clone)]
+pub struct Tokens {
+    /// Body text.
+    pub text: Style,
+    /// De-emphasized text: hints, captions, separators, metadata.
+    pub muted: Style,
+    /// Brand accent: deck title, prompts, selection markers.
+    pub accent: Style,
+    /// Code block text.
+    pub code: Style,
+    /// Emphasized (highlighted) code lines.
+    pub code_highlight: Style,
+    /// The currently selected item in menus and pickers.
+    pub selected: Style,
+    /// Positive feedback.
+    pub success: Style,
+    /// Cautionary feedback.
+    pub warning: Style,
+    /// Failure feedback.
+    pub error: Style,
+    /// Borders and rules.
+    pub border: Style,
 }
 
-impl Default for Theme {
-    /// Rosé Pine palette — consistent Rgb values independent of the terminal's
-    /// own color scheme. Contrast ratios have been verified against WCAG AA.
+impl Default for Tokens {
     fn default() -> Self {
         Self {
-            // Base — Rosé Pine dark bg (#191724) and body text (#E0DEF4)
-            background: Color::Rgb(25, 23, 36),
-            foreground: Color::Rgb(224, 222, 244),
-
-            // Surface — slightly lighter panel bg (#1F1D2E) and light text
-            surface: Color::Rgb(31, 29, 46),
-            on_surface: Color::Rgb(224, 222, 244),
-
-            // Headings — foam (#9CCFD8), pine (#31748F), gold (#F6C177)
-            heading_h1: Color::Rgb(156, 207, 216),
-            heading_h2: Color::Rgb(49, 116, 143),
-            heading_h3: Color::Rgb(246, 193, 119),
-
-            // Code blocks — inset bg with light text and muted border
-            code_background: Color::Rgb(38, 35, 58),
-            code_foreground: Color::Rgb(224, 222, 244),
-            code_border: Color::Rgb(110, 106, 134),
-
-            // Misc content
-            block_quote: Color::Rgb(110, 106, 134),
-            footer: Color::Rgb(110, 106, 134),
-
-            // Chrome — active border matches h1; toolbar uses surface layer
-            border_active: Color::Rgb(156, 207, 216),
-            border_inactive: Color::Rgb(64, 61, 82),
-            toolbar_bg: Color::Rgb(31, 29, 46),
-            toolbar_fg: Color::Rgb(144, 140, 170),
-
-            // Semantic — iris, rose, pine
-            accent: Color::Rgb(196, 167, 231),
-            error: Color::Rgb(235, 111, 146),
-            success: Color::Rgb(49, 116, 143),
-
-            syntax_theme: String::from("base16-ocean.dark"),
+            text: Style::new(),
+            muted: Style::new().fg(Color::DarkGray),
+            accent: Style::new().fg(Color::Cyan),
+            code: Style::new().fg(Color::Gray),
+            code_highlight: Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            selected: Style::new().add_modifier(Modifier::REVERSED | Modifier::BOLD),
+            success: Style::new().fg(Color::Green),
+            warning: Style::new().fg(Color::Yellow),
+            error: Style::new().fg(Color::Red),
+            border: Style::new().fg(Color::DarkGray),
         }
     }
 }
 
-/// Raw theme file representation for JSON deserialization.
-///
-/// Color values are strings that get parsed into `ratatui::style::Color`.
-/// Only fields present in the JSON file override the base theme defaults.
-#[derive(Debug, Clone, Default, Deserialize)]
-#[serde(default)]
-pub struct ThemeFile {
-    /// Background color name or hex.
-    pub background: Option<String>,
-    /// Foreground color name or hex.
-    pub foreground: Option<String>,
-    /// Elevated surface/panel background.
-    pub surface: Option<String>,
-    /// Text on surface background.
-    pub on_surface: Option<String>,
-    /// H1 heading color.
-    pub heading_h1: Option<String>,
-    /// H2 heading color.
-    pub heading_h2: Option<String>,
-    /// H3+ heading color.
-    pub heading_h3: Option<String>,
-    /// Code block background color.
-    pub code_background: Option<String>,
-    /// Code block foreground color.
-    pub code_foreground: Option<String>,
-    /// Code block border color.
-    pub code_border: Option<String>,
-    /// Block quote color.
-    pub block_quote: Option<String>,
-    /// Footer / progress bar color.
-    pub footer: Option<String>,
-    /// Active (focused) panel border color.
-    pub border_active: Option<String>,
-    /// Inactive (unfocused) panel border color.
-    pub border_inactive: Option<String>,
-    /// Toolbar background color.
-    pub toolbar_bg: Option<String>,
-    /// Toolbar foreground/text color.
-    pub toolbar_fg: Option<String>,
-    /// Accent color for badges and interactive elements.
-    pub accent: Option<String>,
-    /// Error / warning color.
-    pub error: Option<String>,
-    /// Success / confirmation color.
-    pub success: Option<String>,
-    /// syntect theme name.
-    pub syntax_theme: Option<String>,
-}
-
-/// Parse a color string into a `ratatui::style::Color`.
-///
-/// Supports named colors (`"red"`, `"blue"`, etc.), hex colors (`"#ff0000"`),
-/// and `"reset"` for the terminal default.
-#[must_use]
-pub fn parse_color(s: &str) -> Color {
-    match s.to_lowercase().as_str() {
-        "reset" | "default" | "" => Color::Reset,
-        "black" => Color::Black,
-        "red" => Color::Red,
-        "green" => Color::Green,
-        "yellow" => Color::Yellow,
-        "blue" => Color::Blue,
-        "magenta" => Color::Magenta,
-        "cyan" => Color::Cyan,
-        "gray" | "grey" => Color::Gray,
-        "darkgray" | "darkgrey" | "dark_gray" | "dark_grey" => Color::DarkGray,
-        "lightred" | "light_red" => Color::LightRed,
-        "lightgreen" | "light_green" => Color::LightGreen,
-        "lightyellow" | "light_yellow" => Color::LightYellow,
-        "lightblue" | "light_blue" => Color::LightBlue,
-        "lightmagenta" | "light_magenta" => Color::LightMagenta,
-        "lightcyan" | "light_cyan" => Color::LightCyan,
-        "white" => Color::White,
-        hex if hex.starts_with('#') && hex.len() == 7 => {
-            let r = u8::from_str_radix(&hex[1..3], 16).unwrap_or(0);
-            let g = u8::from_str_radix(&hex[3..5], 16).unwrap_or(0);
-            let b = u8::from_str_radix(&hex[5..7], 16).unwrap_or(0);
-            Color::Rgb(r, g, b)
-        }
-        _ => Color::Reset,
-    }
-}
-
-impl ThemeFile {
-    /// Merge this theme file into a base `Theme`, overriding only specified fields.
+impl Tokens {
+    /// Style for a heading of the given level (1–6).
     #[must_use]
-    pub fn apply_to(&self, base: &Theme) -> Theme {
-        let c = |opt: &Option<String>, fallback: Color| -> Color {
-            opt.as_deref().map(parse_color).unwrap_or(fallback)
-        };
-        Theme {
-            background: c(&self.background, base.background),
-            foreground: c(&self.foreground, base.foreground),
-            surface: c(&self.surface, base.surface),
-            on_surface: c(&self.on_surface, base.on_surface),
-            heading_h1: c(&self.heading_h1, base.heading_h1),
-            heading_h2: c(&self.heading_h2, base.heading_h2),
-            heading_h3: c(&self.heading_h3, base.heading_h3),
-            code_background: c(&self.code_background, base.code_background),
-            code_foreground: c(&self.code_foreground, base.code_foreground),
-            code_border: c(&self.code_border, base.code_border),
-            block_quote: c(&self.block_quote, base.block_quote),
-            footer: c(&self.footer, base.footer),
-            border_active: c(&self.border_active, base.border_active),
-            border_inactive: c(&self.border_inactive, base.border_inactive),
-            toolbar_bg: c(&self.toolbar_bg, base.toolbar_bg),
-            toolbar_fg: c(&self.toolbar_fg, base.toolbar_fg),
-            accent: c(&self.accent, base.accent),
-            error: c(&self.error, base.error),
-            success: c(&self.success, base.success),
-            syntax_theme: self
-                .syntax_theme
-                .clone()
-                .unwrap_or_else(|| base.syntax_theme.clone()),
+    pub fn heading(&self, level: u8) -> Style {
+        match level {
+            1 => self.accent.add_modifier(Modifier::BOLD),
+            2 => self.text.add_modifier(Modifier::BOLD),
+            _ => self.text.add_modifier(Modifier::BOLD | Modifier::DIM),
         }
     }
 }

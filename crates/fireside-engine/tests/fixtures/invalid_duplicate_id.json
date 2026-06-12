@@ -1,7 +1,0 @@
-{
-  "title": "Invalid Duplicate Id",
-  "nodes": [
-    { "id": "dup", "content": [{ "kind": "text", "body": "one" }] },
-    { "id": "dup", "content": [{ "kind": "text", "body": "two" }] }
-  ]
-}

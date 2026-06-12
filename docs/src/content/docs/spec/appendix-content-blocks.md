@@ -19,6 +19,9 @@ data model with a quick rendering-oriented view.
 | `divider`   | Visual separation               | `kind` only                                                           |
 | `container` | Nested composition              | `children`, optional `layout`                                         |
 
+For `image`, `width` and `height` are measured in terminal cells: `width` in
+columns, `height` in rows. Percentage sizing is out of scope for 0.1.0.
+
 `container` is the only core block that nests other blocks, so it carries most
 of the layout-oriented guidance in this appendix.
 
@@ -26,7 +29,7 @@ of the layout-oriented guidance in this appendix.
 | ---------- | ---------------- | ------------------- |
 | `kind`     | `"container"`    | Yes                 |
 | `children` | `ContentBlock[]` | Yes (`minItems: 1`) |
-| `layout`   | `string?`        | No                  |
+| `layout`   | `"stack" \| "columns" \| "center"` | No (default `"stack"`) |
 
 ## Rendering Notes
 

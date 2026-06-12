@@ -1,32 +1,12 @@
-//! Core error types for protocol-level failures.
-//!
-//! These cover deserialization, malformed fields, and type invariant violations.
-//! Application-level and validation errors live in `fireside-engine`.
+//! Typed errors for the core crate.
 
-use std::path::PathBuf;
+use thiserror::Error;
 
-/// Errors that can occur when parsing a Fireside document.
-#[derive(Debug, thiserror::Error)]
+/// Errors produced while reading a Fireside document.
+#[derive(Debug, Error)]
 pub enum CoreError {
-    /// The file could not be read from disk.
-    #[error("failed to read file: {path}")]
-    FileRead {
-        /// Path that could not be read.
-        path: PathBuf,
-        /// Underlying I/O error.
-        #[source]
-        source: std::io::Error,
-    },
-
-    /// The JSON document could not be deserialized.
-    #[error("invalid JSON: {0}")]
-    InvalidJson(String),
-
-    /// The document contains no nodes.
-    #[error("graph contains no nodes")]
-    EmptyGraph,
-
-    /// A duplicate node ID was found.
-    #[error("duplicate node id: {0}")]
-    DuplicateNodeId(String),
+    /// The text is not valid JSON, or its shape does not match the
+    /// protocol data model.
+    #[error("not a valid Fireside document: {0}")]
+    Parse(#[from] serde_json::Error),
 }

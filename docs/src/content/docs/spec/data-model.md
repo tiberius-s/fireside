@@ -97,7 +97,7 @@ layout hint for the local arrangement of those children.
 | ---------- | ---------------- | ------------------- | --------------------------------------------------- |
 | `kind`     | `"container"`    | Yes                 | Tagged union discriminator.                         |
 | `children` | `ContentBlock[]` | Yes (`minItems: 1`) | Child block order is significant.                   |
-| `layout`   | `string?`        | No                  | Common values are `stack`, `columns`, and `center`. |
+| `layout`   | `"stack" \| "columns" \| "center"` | No (default `"stack"`) | Layout hint for arranging children. |
 
 ## Traversal Types
 

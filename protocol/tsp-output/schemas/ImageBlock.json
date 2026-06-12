@@ -23,13 +23,13 @@
             "type": "integer",
             "minimum": -2147483648,
             "maximum": 2147483647,
-            "description": "Desired display width (columns or percentage)."
+            "description": "Desired display width in terminal cells (columns).\nPercentages are out of scope for 0.1.0."
         },
         "height": {
             "type": "integer",
             "minimum": -2147483648,
             "maximum": 2147483647,
-            "description": "Desired display height (rows)."
+            "description": "Desired display height in terminal cells (rows)."
         }
     },
     "required": [

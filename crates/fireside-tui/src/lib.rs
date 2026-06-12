@@ -1,25 +1,48 @@
-//! Fireside TUI — Ratatui-based terminal presentation and editing engine.
+//! Fireside TUI — the ratatui presenter.
 //!
-//! This crate provides the terminal user interface for Fireside, implementing
-//! both present mode and (future) edit mode. It depends on `fireside-core`
-//! for protocol types and `fireside-engine` for traversal and session logic.
-//!
-//! # Architecture
-//!
-//! TEA (The Elm Architecture) pattern:
-//! ```text
-//! Event (crossterm) → Action (enum) → App::update(&mut self, action) → View (ratatui)
-//! ```
+//! One job: present a validated [`fireside_core::Graph`] in the terminal so
+//! well that someone who has never seen Fireside can run a deck. The state
+//! machine lives in [`app`] (TEA: `App::update` is the sole mutation point),
+//! drawing in [`render`], and every color in [`theme::Tokens`].
 
 pub mod app;
-pub mod config;
-pub mod design;
 pub mod error;
-pub mod event;
 pub mod render;
 pub mod theme;
-pub mod ui;
+
+use std::time::Duration;
+
+use crossterm::event;
+use fireside_core::Graph;
+use fireside_engine::Session;
 
 pub use app::App;
-pub use event::Action;
-pub use theme::Theme;
+pub use error::TuiError;
+
+/// Present a graph: set up the terminal, run the event loop, and always
+/// restore the terminal — even on error.
+///
+/// # Errors
+///
+/// Returns [`TuiError::Engine`] for an unpresentable graph and
+/// [`TuiError::Io`] for terminal failures.
+pub fn present(graph: Graph) -> Result<(), TuiError> {
+    let session = Session::new(graph)?;
+    let mut app = App::new(session);
+    let mut terminal = ratatui::init();
+    let result = event_loop(&mut terminal, &mut app);
+    ratatui::restore();
+    result
+}
+
+fn event_loop(terminal: &mut ratatui::DefaultTerminal, app: &mut App) -> Result<(), TuiError> {
+    while !app.should_quit() {
+        terminal.draw(|frame| render::draw(frame, app))?;
+        // The timeout lets expired flash messages clear without input.
+        if event::poll(Duration::from_millis(250))? {
+            let ev = event::read()?;
+            app.update(&ev);
+        }
+    }
+    Ok(())
+}

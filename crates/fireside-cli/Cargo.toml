@@ -11,17 +11,12 @@ name = "fireside"
 path = "src/main.rs"
 
 [dependencies]
+fireside-core = { workspace = true }
 fireside-engine = { workspace = true }
 fireside-tui = { workspace = true }
 clap = { workspace = true }
 anyhow = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
-ratatui = { workspace = true }
-crossterm = { workspace = true }
-serde = { workspace = true }
 serde_json = { workspace = true }
-time = { version = "0.3", features = ["std"] }
 
 [lints]
 workspace = true

@@ -1,427 +1,363 @@
-//! Content block rendering to ratatui primitives.
+//! Content blocks → styled lines.
 //!
-//! Each [`ContentBlock`] variant is converted into one or more ratatui `Line`s
-//! for composition by the layout engine.
-//!
-//! Individual renderers live in focused sibling modules:
-//!
-//! | Module             | Variants handled                            |
-//! |--------------------|---------------------------------------------|
-//! | `blocks_heading`   | `Heading`                                   |
-//! | `blocks_text`      | `Text`                                      |
-//! | `blocks_code`      | `Code`                                      |
-//! | `blocks_list`      | `List`                                      |
-//! | `blocks_divider`   | `Divider`                                   |
-//! | `blocks_image`     | `Image`                                     |
-//! | `blocks_extension` | `Extension`                                 |
-//! | (this module)      | `Container`, dispatch, plain-text utilities |
+//! Every block renders to a flat `Vec<Line>` flow at a given width. Working
+//! in lines (rather than widgets) keeps the hard parts simple: scrolling is
+//! "skip n lines", measuring is `lines.len()`, container columns are a
+//! side-by-side zip, and centering is a uniform left offset that preserves
+//! the internal alignment of code boxes and lists.
 
-use ratatui::style::Style;
+use fireside_core::{ContainerLayout, ContentBlock};
+use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
-use serde_json::Value;
-use std::path::Path;
+use unicode_width::UnicodeWidthStr;
 
-use fireside_core::model::content::ContentBlock;
+use super::markdown;
+use crate::theme::Tokens;
 
-use super::blocks_code::render_code as render_code_block;
-use super::blocks_divider::render_divider;
-use super::blocks_extension::render_known_extension;
-use super::blocks_heading::render_heading;
-use super::blocks_image::render_image_placeholder;
-use super::blocks_list::render_list;
-use super::blocks_text::render_text;
-use crate::design::tokens::DesignTokens;
-use crate::theme::Theme;
-
-/// Render a single content block into a list of styled `Line`s.
+/// Render a node's blocks to a line flow at `width` columns, with one blank
+/// line between blocks.
 #[must_use]
-pub fn render_block<'a>(block: &'a ContentBlock, theme: &Theme, width: u16) -> Vec<Line<'a>> {
-    let tokens = DesignTokens::from_theme(theme);
-    render_block_with_tokens(block, &tokens, width, None)
+pub fn render_blocks(blocks: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+    let mut lines = Vec::new();
+    for (i, block) in blocks.iter().enumerate() {
+        if i > 0 {
+            lines.push(Line::default());
+        }
+        lines.extend(render_block(block, width, tokens));
+    }
+    lines
 }
 
-pub(super) fn render_block_with_tokens<'a>(
-    block: &'a ContentBlock,
-    tokens: &DesignTokens,
-    width: u16,
-    base_dir: Option<&Path>,
-) -> Vec<Line<'a>> {
+fn render_block(block: &ContentBlock, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+    if width == 0 {
+        return Vec::new();
+    }
     match block {
-        ContentBlock::Heading { level, text } => render_heading(*level, text, tokens, width),
-        ContentBlock::Text { body } => render_text(body, tokens, width),
+        ContentBlock::Heading { level, text } => heading(*level, text, width, tokens),
+        ContentBlock::Text { body } => markdown::wrap_styled(body, width, tokens.text, tokens),
         ContentBlock::Code {
             language,
             source,
             highlight_lines,
             show_line_numbers,
-        } => render_code_block(
+        } => code(
             language.as_deref(),
             source,
-            highlight_lines,
-            *show_line_numbers,
-            tokens,
+            highlight_lines.as_deref().unwrap_or_default(),
+            show_line_numbers.unwrap_or(false),
             width,
+            tokens,
         ),
-        ContentBlock::List { ordered, items } => render_list(*ordered, items, tokens, 0),
-        ContentBlock::Image { alt, src, caption } => {
-            render_image_placeholder(alt, src, caption.as_deref(), tokens, width, base_dir)
+        ContentBlock::List { ordered, items } => {
+            list(ordered.unwrap_or(false), items, width, tokens)
         }
-        ContentBlock::Divider => render_divider(width, tokens),
-        ContentBlock::Container { layout, children } => {
-            render_container(layout.as_deref(), children, tokens, width, base_dir)
+        ContentBlock::Image { src, alt, caption, .. } => {
+            image(src, alt.as_deref(), caption.as_deref(), width, tokens)
         }
-        ContentBlock::Extension {
-            extension_type,
-            fallback,
-            payload,
-        } => render_extension(
-            extension_type,
-            payload,
-            fallback.as_deref(),
-            tokens,
-            width,
-            base_dir,
-        ),
+        ContentBlock::Divider => vec![Line::styled("─".repeat(width as usize), tokens.border)],
+        ContentBlock::Container { children, layout } => {
+            container(children, layout.unwrap_or_default(), width, tokens)
+        }
     }
 }
 
-/// Render all content blocks for a node into a flat list of lines.
-#[must_use]
-pub fn render_node_content<'a>(
-    blocks: &'a [ContentBlock],
-    theme: &Theme,
-    width: u16,
-) -> Vec<Line<'a>> {
-    render_node_content_with_base(blocks, theme, width, None)
-}
-
-/// Render all content blocks with an optional base directory for image paths.
-#[must_use]
-pub fn render_node_content_with_base<'a>(
-    blocks: &'a [ContentBlock],
-    theme: &Theme,
-    width: u16,
-    base_dir: Option<&Path>,
-) -> Vec<Line<'a>> {
-    let tokens = DesignTokens::from_theme(theme);
-    render_node_content_with_tokens(blocks, &tokens, width, base_dir)
-}
-
-pub(super) fn render_node_content_with_tokens<'a>(
-    blocks: &'a [ContentBlock],
-    tokens: &DesignTokens,
-    width: u16,
-    base_dir: Option<&Path>,
-) -> Vec<Line<'a>> {
-    let mut lines = Vec::new();
-    for (i, block) in blocks.iter().enumerate() {
-        if i > 0 {
-            lines.push(Line::default());
-            // Extra blank line before prominent headings for visual breathing room.
-            if matches!(block, ContentBlock::Heading { level, .. } if *level <= 2) {
-                lines.push(Line::default());
-            }
-        }
-        lines.extend(render_block_with_tokens(block, tokens, width, base_dir));
+fn heading(level: u8, text: &str, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+    let style = tokens.heading(level);
+    let mut lines = markdown::wrap_styled(text, width, style, tokens);
+    if level == 1 {
+        let rule_width = lines
+            .iter()
+            .map(Line::width)
+            .max()
+            .unwrap_or(0)
+            .min(width as usize);
+        lines.push(Line::styled("─".repeat(rule_width), tokens.border));
     }
     lines
 }
 
-// ── Container variants ──────────────────────────────────────────────────────
-
-fn render_container<'a>(
-    layout: Option<&str>,
-    children: &'a [ContentBlock],
-    tokens: &DesignTokens,
+fn code(
+    language: Option<&str>,
+    source: &str,
+    highlight: &[u32],
+    line_numbers: bool,
     width: u16,
-    base_dir: Option<&Path>,
-) -> Vec<Line<'a>> {
-    let layout_hint = layout.unwrap_or("").to_ascii_lowercase();
-    match layout_hint.as_str() {
-        "split-horizontal" => render_container_split_horizontal(children, tokens, width, base_dir),
-        "split-vertical" => render_container_split_vertical(children, tokens, width, base_dir),
-        _ => {
-            let mut lines = Vec::new();
-            if let Some(layout_hint) = layout {
-                lines.push(Line::from(Span::styled(
-                    format!("[container: {layout_hint}]"),
-                    Style::default()
-                        .fg(tokens.muted)
-                        .add_modifier(ratatui::style::Modifier::DIM),
-                )));
-            }
-            lines.extend(render_node_content_with_tokens(
-                children, tokens, width, base_dir,
-            ));
-            lines
+    tokens: &Tokens,
+) -> Vec<Line<'static>> {
+    let width = width as usize;
+    let label = language.unwrap_or("code");
+    let mut top = format!("─ {label} ");
+    let fill = width.saturating_sub(top.width());
+    top.push_str(&"─".repeat(fill));
+
+    let mut lines = vec![Line::styled(top, tokens.border)];
+    let total = source.lines().count();
+    let num_width = if line_numbers { total.to_string().len() } else { 0 };
+
+    for (i, raw) in source.lines().enumerate() {
+        let n = i + 1;
+        let emphasized = highlight.contains(&(n as u32));
+        let style = if emphasized { tokens.code_highlight } else { tokens.code };
+
+        let mut spans = Vec::new();
+        if line_numbers {
+            spans.push(Span::styled(format!(" {n:num_width$} │ "), tokens.muted));
+        } else {
+            spans.push(Span::styled("  ".to_owned(), tokens.muted));
         }
-    }
-}
-
-fn render_extension<'a>(
-    extension_type: &'a str,
-    payload: &Value,
-    fallback: Option<&'a ContentBlock>,
-    tokens: &DesignTokens,
-    width: u16,
-    base_dir: Option<&Path>,
-) -> Vec<Line<'a>> {
-    let mut lines = vec![Line::from(vec![Span::styled(
-        format!("[extension: {extension_type}]"),
-        Style::default()
-            .fg(tokens.heading_h3)
-            .add_modifier(ratatui::style::Modifier::DIM),
-    )])];
-
-    if let Some(mut known_lines) = render_known_extension(extension_type, payload, tokens, width) {
-        lines.push(Line::default());
-        lines.append(&mut known_lines);
-    } else if let Some(payload_keys) = payload
-        .as_object()
-        .map(|obj| obj.keys().take(5).cloned().collect::<Vec<_>>().join(", "))
-        && !payload_keys.is_empty()
-    {
-        lines.push(Line::default());
-        lines.push(Line::from(Span::styled(
-            format!("payload keys: {payload_keys}"),
-            Style::default().fg(tokens.muted),
-        )));
-    }
-
-    if let Some(fallback_block) = fallback {
-        lines.push(Line::default());
-        lines.push(Line::from(Span::styled(
-            "fallback:",
-            Style::default()
-                .fg(tokens.muted)
-                .add_modifier(ratatui::style::Modifier::ITALIC),
-        )));
-        lines.extend(render_block_with_tokens(
-            fallback_block,
-            tokens,
-            width,
-            base_dir,
-        ));
-    }
-
-    lines
-}
-
-fn render_container_split_horizontal<'a>(
-    children: &'a [ContentBlock],
-    tokens: &DesignTokens,
-    width: u16,
-    base_dir: Option<&Path>,
-) -> Vec<Line<'a>> {
-    if children.len() <= 1 {
-        return render_node_content_with_tokens(children, tokens, width, base_dir);
-    }
-
-    let mid = children.len().div_ceil(2);
-    let col_width = width.saturating_sub(3).saturating_div(2).max(10);
-    let left_lines = render_node_content_with_tokens(&children[..mid], tokens, col_width, base_dir);
-    let right_lines =
-        render_node_content_with_tokens(&children[mid..], tokens, col_width, base_dir);
-    compose_side_by_side(left_lines, right_lines, col_width as usize, tokens)
-}
-
-fn render_container_split_vertical<'a>(
-    children: &'a [ContentBlock],
-    tokens: &DesignTokens,
-    width: u16,
-    base_dir: Option<&Path>,
-) -> Vec<Line<'a>> {
-    if children.len() <= 1 {
-        return render_node_content_with_tokens(children, tokens, width, base_dir);
-    }
-
-    let mid = children.len().div_ceil(2);
-    let mut lines = render_node_content_with_tokens(&children[..mid], tokens, width, base_dir);
-    lines.push(Line::default());
-    lines.push(Line::from(Span::styled(
-        "─".repeat(width.max(10) as usize),
-        Style::default().fg(tokens.border_inactive),
-    )));
-    lines.push(Line::default());
-    lines.extend(render_node_content_with_tokens(
-        &children[mid..],
-        tokens,
-        width,
-        base_dir,
-    ));
-    lines
-}
-
-/// Compose two columns of already-rendered [`Line`]s side-by-side, preserving
-/// all span styles.
-///
-/// Left column is padded to `col_width` display columns before the `│` divider
-/// is inserted.  Right column spans follow directly after the divider.
-fn compose_side_by_side<'a>(
-    left: Vec<Line<'a>>,
-    right: Vec<Line<'a>>,
-    col_width: usize,
-    tokens: &DesignTokens,
-) -> Vec<Line<'a>> {
-    use unicode_width::UnicodeWidthStr;
-
-    let rows = left.len().max(right.len());
-    let sep = Span::styled(" │ ", Style::default().fg(tokens.border_inactive));
-    let mut lines = Vec::with_capacity(rows);
-
-    for row in 0..rows {
-        let left_line = left.get(row).cloned().unwrap_or_default();
-        let right_line = right.get(row).cloned().unwrap_or_default();
-
-        // Measure display width of the left column's content.
-        let left_width: usize = left_line.spans.iter().map(|s| s.content.width()).sum();
-
-        // Pad left column to col_width so the separator stays aligned.
-        let pad = col_width.saturating_sub(left_width);
-
-        let mut spans = left_line.spans;
-        if pad > 0 {
-            spans.push(Span::raw(" ".repeat(pad)));
-        }
-        spans.push(sep.clone());
-        spans.extend(right_line.spans);
+        let prefix = if line_numbers { num_width + 4 } else { 2 };
+        let avail = width.saturating_sub(prefix);
+        let text = clip(raw, avail);
+        spans.push(Span::styled(text, style));
         lines.push(Line::from(spans));
     }
-
+    lines.push(Line::styled("─".repeat(width), tokens.border));
     lines
 }
 
-// ── Tests ────────────────────────────────────────────────────────────────────
+/// Clip a code line to `width` columns, marking the cut with an ellipsis.
+fn clip(text: &str, width: usize) -> String {
+    if text.width() <= width {
+        return text.to_owned();
+    }
+    let mut out = String::new();
+    let mut used = 0;
+    for ch in text.chars() {
+        let w = unicode_width::UnicodeWidthChar::width(ch).unwrap_or(0);
+        if used + w + 1 > width {
+            break;
+        }
+        used += w;
+        out.push(ch);
+    }
+    out.push('…');
+    out
+}
+
+fn list(ordered: bool, items: &[String], width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+    let mut lines = Vec::new();
+    for (i, item) in items.iter().enumerate() {
+        let marker = if ordered {
+            format!("{:>2}. ", i + 1)
+        } else {
+            "  • ".to_owned()
+        };
+        let indent = marker.width();
+        let body = markdown::wrap_styled(
+            item,
+            width.saturating_sub(indent as u16),
+            tokens.text,
+            tokens,
+        );
+        for (row, line) in body.into_iter().enumerate() {
+            let lead = if row == 0 {
+                Span::styled(marker.clone(), tokens.accent)
+            } else {
+                Span::raw(" ".repeat(indent))
+            };
+            let mut spans = vec![lead];
+            spans.extend(line.spans);
+            lines.push(Line::from(spans));
+        }
+    }
+    lines
+}
+
+fn image(
+    src: &str,
+    alt: Option<&str>,
+    caption: Option<&str>,
+    width: u16,
+    tokens: &Tokens,
+) -> Vec<Line<'static>> {
+    let label = alt.unwrap_or(src);
+    let mut lines = markdown::wrap_styled(
+        &format!("[image] {label}"),
+        width,
+        tokens.muted.add_modifier(Modifier::ITALIC),
+        tokens,
+    );
+    if let Some(caption) = caption {
+        lines.extend(markdown::wrap_styled(caption, width, tokens.muted, tokens));
+    }
+    lines
+}
+
+fn container(
+    children: &[ContentBlock],
+    layout: ContainerLayout,
+    width: u16,
+    tokens: &Tokens,
+) -> Vec<Line<'static>> {
+    match layout {
+        ContainerLayout::Stack => render_blocks(children, width, tokens),
+        ContainerLayout::Columns => columns(children, width, tokens),
+        ContainerLayout::Center => center(children, width, tokens),
+    }
+}
+
+const GUTTER: u16 = 2;
+
+/// Side-by-side children: equal column widths, in array order.
+fn columns(children: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+    let n = children.len() as u16;
+    if n == 0 {
+        return Vec::new();
+    }
+    let col_width = width.saturating_sub(GUTTER * (n - 1)) / n;
+    if col_width < 8 {
+        // Too narrow to read side by side — gracefully fall back to a stack.
+        return render_blocks(children, width, tokens);
+    }
+
+    let cols: Vec<Vec<Line<'static>>> = children
+        .iter()
+        .map(|c| render_block(c, col_width, tokens))
+        .collect();
+    let rows = cols.iter().map(Vec::len).max().unwrap_or(0);
+
+    let mut lines = Vec::with_capacity(rows);
+    for row in 0..rows {
+        let mut spans = Vec::new();
+        for (i, col) in cols.iter().enumerate() {
+            if i > 0 {
+                spans.push(Span::raw(" ".repeat(GUTTER as usize)));
+            }
+            let used = match col.get(row) {
+                Some(line) => {
+                    let w = line.width();
+                    spans.extend(line.spans.iter().cloned());
+                    w
+                }
+                None => 0,
+            };
+            if i + 1 < cols.len() {
+                spans.push(Span::raw(" ".repeat((col_width as usize).saturating_sub(used))));
+            }
+        }
+        lines.push(Line::from(spans));
+    }
+    lines
+}
+
+/// Center children as a unit: the flow keeps its internal alignment and is
+/// offset to sit in the middle of the available width.
+fn center(children: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+    let inner_width = (u32::from(width) * 4 / 5) as u16;
+    let flow = render_blocks(children, inner_width.max(1), tokens);
+    let content_width = flow.iter().map(Line::width).max().unwrap_or(0);
+    let offset = (width as usize).saturating_sub(content_width) / 2;
+    flow.into_iter()
+        .map(|line| {
+            // Center each line individually so short headings/text sit in the
+            // middle, while full-width elements stay put.
+            let pad = if line.width() >= content_width {
+                offset
+            } else {
+                offset + (content_width - line.width()) / 2
+            };
+            let mut spans = vec![Span::raw(" ".repeat(pad))];
+            spans.extend(line.spans);
+            Line::from(spans)
+        })
+        .collect()
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::render::blocks_image::local_image_path;
-    use std::path::PathBuf;
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use fireside_core::Graph;
 
-    fn temp_dir(prefix: &str) -> PathBuf {
-        let unique = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("clock should be monotonic")
-            .as_nanos();
-        let path = std::env::temp_dir().join(format!("fireside-{prefix}-{unique}"));
-        std::fs::create_dir_all(&path).expect("temp dir should be created");
-        path
-    }
-
-    fn lines_to_text(lines: &[Line<'_>]) -> Vec<String> {
+    fn flat(lines: &[Line<'_>]) -> Vec<String> {
         lines
             .iter()
-            .map(|line| {
-                line.spans
-                    .iter()
-                    .map(|s| s.content.as_ref())
-                    .collect::<Vec<_>>()
-                    .join("")
-            })
+            .map(|l| l.spans.iter().map(|s| s.content.as_ref()).collect::<String>())
             .collect()
     }
 
     #[test]
-    fn container_split_horizontal_renders_columns() {
+    fn h1_gets_an_underline_rule() {
+        let block = ContentBlock::Heading { level: 1, text: "Hi".into() };
+        let lines = flat(&render_block(&block, 20, &Tokens::default()));
+        assert_eq!(lines, ["Hi", "──"]);
+    }
+
+    #[test]
+    fn code_renders_rules_line_numbers_and_clipping() {
+        let block = ContentBlock::Code {
+            language: Some("rust".into()),
+            source: "fn main() {}\nlet x = 1;".into(),
+            highlight_lines: Some(vec![2]),
+            show_line_numbers: Some(true),
+        };
+        let lines = flat(&render_block(&block, 24, &Tokens::default()));
+        assert!(lines[0].starts_with("─ rust "));
+        assert!(lines[1].contains("1 │ fn main() {}"));
+        assert!(lines[2].contains("2 │ let x = 1;"));
+        assert_eq!(lines.len(), 4);
+    }
+
+    #[test]
+    fn ordered_list_numbers_items_and_indents_wraps() {
+        let block = ContentBlock::List {
+            ordered: Some(true),
+            items: vec!["first point that wraps onto another line".into()],
+        };
+        let lines = flat(&render_block(&block, 24, &Tokens::default()));
+        assert!(lines[0].starts_with(" 1. first"));
+        assert!(lines[1].starts_with("    "));
+    }
+
+    #[test]
+    fn columns_render_side_by_side_in_array_order() {
         let block = ContentBlock::Container {
-            layout: Some("split-horizontal".to_string()),
+            layout: Some(ContainerLayout::Columns),
             children: vec![
-                ContentBlock::Text {
-                    body: "left side".to_string(),
-                },
-                ContentBlock::Text {
-                    body: "right side".to_string(),
-                },
+                ContentBlock::Text { body: "left".into() },
+                ContentBlock::Text { body: "right".into() },
             ],
         };
-
-        let tokens = DesignTokens::default();
-        let lines = render_block_with_tokens(&block, &tokens, 60, None);
-        let text = lines_to_text(&lines).join("\n");
-
-        assert!(text.contains(" │ "));
-        assert!(text.contains("left side"));
-        assert!(text.contains("right side"));
+        let lines = flat(&render_block(&block, 30, &Tokens::default()));
+        assert_eq!(lines.len(), 1);
+        let pos_l = lines[0].find("left").expect("left present");
+        let pos_r = lines[0].find("right").expect("right present");
+        assert!(pos_l < pos_r);
     }
 
     #[test]
-    fn extension_mermaid_renders_preview() {
-        let block = ContentBlock::Extension {
-            extension_type: "mermaid".to_string(),
-            fallback: None,
-            payload: serde_json::json!({"code": "graph TD; A-->B;"}),
+    fn narrow_columns_fall_back_to_stack() {
+        let block = ContentBlock::Container {
+            layout: Some(ContainerLayout::Columns),
+            children: vec![
+                ContentBlock::Text { body: "left".into() },
+                ContentBlock::Text { body: "right".into() },
+            ],
         };
-
-        let tokens = DesignTokens::default();
-        let lines = render_block_with_tokens(&block, &tokens, 80, None);
-        let text = lines_to_text(&lines).join("\n");
-
-        assert!(text.contains("mermaid diagram preview"));
-        assert!(text.contains("graph TD; A-->B;"));
+        let lines = flat(&render_block(&block, 12, &Tokens::default()));
+        assert!(lines.len() > 1);
     }
 
     #[test]
-    fn extension_mermaid_normalizes_fenced_code() {
-        let block = ContentBlock::Extension {
-            extension_type: "mermaid".to_string(),
-            fallback: None,
-            payload: serde_json::json!({"code": "```mermaid\nflowchart TD\nA-->B\n```"}),
+    fn center_offsets_content_into_the_middle() {
+        let block = ContentBlock::Container {
+            layout: Some(ContainerLayout::Center),
+            children: vec![ContentBlock::Text { body: "hi".into() }],
         };
-
-        let tokens = DesignTokens::default();
-        let lines = render_block_with_tokens(&block, &tokens, 80, None);
-        let text = lines_to_text(&lines).join("\n");
-
-        assert!(text.contains("flowchart TD"));
-        assert!(!text.contains("```mermaid"));
+        let lines = flat(&render_block(&block, 20, &Tokens::default()));
+        assert_eq!(lines[0].trim(), "hi");
+        let leading = lines[0].len() - lines[0].trim_start().len();
+        assert!((8..=10).contains(&leading), "centered, got {leading}");
     }
 
     #[test]
-    fn extension_mermaid_reports_truncation_for_large_payload() {
-        let long = "graph TD; ".repeat(600);
-        let block = ContentBlock::Extension {
-            extension_type: "acme.mermaid".to_string(),
-            fallback: None,
-            payload: serde_json::json!({"source": long}),
-        };
-
-        let tokens = DesignTokens::default();
-        let lines = render_block_with_tokens(&block, &tokens, 60, None);
-        let text = lines_to_text(&lines).join("\n");
-
-        assert!(text.contains("preview truncated for performance"));
-    }
-
-    #[test]
-    fn local_image_path_rejects_parent_traversal() {
-        let base = temp_dir("image-base");
-        let resolved = local_image_path("../../../etc/passwd", Some(&base));
-        assert!(resolved.is_none());
-    }
-
-    #[test]
-    fn local_image_path_rejects_absolute_path_outside_base_dir() {
-        let base = temp_dir("image-base-abs");
-        let resolved = local_image_path("/etc/passwd", Some(&base));
-        assert!(resolved.is_none());
-    }
-
-    #[test]
-    fn local_image_path_allows_relative_path_within_base_dir() {
-        let base = temp_dir("image-base-valid");
-        let image = base.join("valid-image.png");
-        std::fs::write(&image, b"not-an-image").expect("test file should be written");
-
-        let resolved = local_image_path("valid-image.png", Some(&base));
-        let resolved = resolved
-            .and_then(|path| path.canonicalize().ok())
-            .expect("resolved path should canonicalize");
-        let expected = image
-            .canonicalize()
-            .expect("expected image path should canonicalize");
-
-        assert_eq!(resolved, expected);
+    fn hello_json_renders_without_panicking_at_any_width() {
+        let graph = Graph::from_json(include_str!("../../../../docs/examples/hello.json"))
+            .expect("hello parses");
+        let tokens = Tokens::default();
+        for node in &graph.nodes {
+            for width in [0u16, 1, 7, 23, 80, 200] {
+                let _ = render_blocks(&node.content, width, &tokens);
+            }
+        }
     }
 }

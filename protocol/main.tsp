@@ -83,6 +83,20 @@ enum Transition {
   fade: "fade",
 }
 
+/**
+ * Layout hint controlling how a container's children are arranged.
+ */
+enum ContainerLayout {
+  /** Vertical stacking, top-aligned (default). */
+  stack: "stack",
+
+  /** Side-by-side arrangement, left to right in array order. */
+  columns: "columns",
+
+  /** Centered vertically and horizontally. */
+  center: "center",
+}
+
 // ─── Content Blocks ──────────────────────────────────────────────────────────
 
 /**
@@ -169,10 +183,13 @@ model ImageBlock {
   /** Optional caption displayed below the image. */
   caption?: string;
 
-  /** Desired display width (columns or percentage). */
+  /**
+   * Desired display width in terminal cells (columns).
+   * Percentages are out of scope for 0.1.0.
+   */
   width?: int32;
 
-  /** Desired display height (rows). */
+  /** Desired display height in terminal cells (rows). */
   height?: int32;
 }
 
@@ -200,8 +217,8 @@ model ContainerBlock {
   @minItems(1)
   children: ContentBlock[];
 
-  /** Layout hint controlling how children are arranged. */
-  layout?: string;
+  /** Layout hint controlling how children are arranged. Defaults to `stack`. */
+  layout?: ContainerLayout = ContainerLayout.stack;
 }
 
 // ─── Traversal ───────────────────────────────────────────────────────────────

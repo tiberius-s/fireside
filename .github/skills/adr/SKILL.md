@@ -107,7 +107,7 @@ When writing ADRs for Fireside, always consider:
 
 | Constraint         | Rule                                                                                          |
 | ------------------ | --------------------------------------------------------------------------------------------- |
-| Crate boundaries   | `fireside-core` must not gain I/O or UI deps. Check `copilot-instructions.md` boundary table. |
+| Crate boundaries   | `fireside-core` must not gain I/O or UI deps. Check the `AGENTS.md` boundary table.           |
 | Protocol stability | `0.1.x` changes must be additive. Any breaking change requires a version bump.                |
 | MSRV               | MSRV is **1.88**. Proposed dependencies must be MSRV-compatible.                              |
 | Wire format        | All JSON property names are kebab-case. No exceptions.                                        |

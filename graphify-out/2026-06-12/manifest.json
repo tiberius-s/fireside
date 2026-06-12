@@ -1,7 +1,7 @@
 {
   ".claude/settings.json": {
-    "mtime": 1781192929.476469,
-    "ast_hash": "15168e7f823986c2acd80bf32e7951c7",
+    "mtime": 1781282823.5794797,
+    "ast_hash": "32265ad7d8b06c73846525be2ec78656",
     "semantic_hash": ""
   },
   ".claude/settings.local.json": {
@@ -29,50 +29,15 @@
     "ast_hash": "fea677fc223fb823add6863c76e00dc4",
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
-  "crates/fireside-cli/src/commands/fonts.rs": {
-    "mtime": 1771200256.5169716,
-    "ast_hash": "878f7070960f510fc700dd7f8ee488f5",
-    "semantic_hash": "878f7070960f510fc700dd7f8ee488f5"
-  },
-  "crates/fireside-cli/src/commands/mod.rs": {
-    "mtime": 1771541264.715024,
-    "ast_hash": "81e833de2fd984201b39459a7bf3cd62",
-    "semantic_hash": "81e833de2fd984201b39459a7bf3cd62"
-  },
-  "crates/fireside-cli/src/commands/project.rs": {
-    "mtime": 1771872899.414949,
-    "ast_hash": "40a453a71eb3cf636f3169dd9424024d",
-    "semantic_hash": "40a453a71eb3cf636f3169dd9424024d"
-  },
-  "crates/fireside-cli/src/commands/scaffold.rs": {
-    "mtime": 1771541264.8771741,
-    "ast_hash": "3ac8d8efb8a639b33c186b23120afe59",
-    "semantic_hash": "3ac8d8efb8a639b33c186b23120afe59"
-  },
-  "crates/fireside-cli/src/commands/session.rs": {
-    "mtime": 1772045438.423,
-    "ast_hash": "deb09d50c383780218a86675681c681e",
-    "semantic_hash": "deb09d50c383780218a86675681c681e"
-  },
-  "crates/fireside-cli/src/commands/theme.rs": {
-    "mtime": 1771622505.7616742,
-    "ast_hash": "07e06574dad6f2a1ffbd8388113b60ef",
-    "semantic_hash": "07e06574dad6f2a1ffbd8388113b60ef"
-  },
-  "crates/fireside-cli/src/commands/validate.rs": {
-    "mtime": 1771200256.539612,
-    "ast_hash": "4b805586ac9eb02ede28a59271cb9eca",
-    "semantic_hash": "4b805586ac9eb02ede28a59271cb9eca"
-  },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1781218514.996177,
-    "ast_hash": "288ec9957f6a7ce7bb33bfeda1d5c325",
+    "mtime": 1781218519.2874918,
+    "ast_hash": "eb2ebcb3465c26458339f4aac7e4ac79",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1772042011.4886715,
-    "ast_hash": "c2748628c733e3682ddb5085c2f0dc05",
-    "semantic_hash": "c2748628c733e3682ddb5085c2f0dc05"
+    "mtime": 1781218741.544785,
+    "ast_hash": "ede1e74ee8b3924963bb0ab977439201",
+    "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
     "mtime": 1781217417.3651881,
@@ -84,70 +49,10 @@
     "ast_hash": "5dc79c38bd5571f7f2f8b1aa33dcbc81",
     "semantic_hash": ""
   },
-  "crates/fireside-core/src/model/branch.rs": {
-    "mtime": 1771198500.7378962,
-    "ast_hash": "b58f76399433a3d7d3db0d63da3a0c11",
-    "semantic_hash": "b58f76399433a3d7d3db0d63da3a0c11"
-  },
-  "crates/fireside-core/src/model/content.rs": {
-    "mtime": 1771198500.8451855,
-    "ast_hash": "ec41e48e871e9c1ee6f38075ce5de174",
-    "semantic_hash": "ec41e48e871e9c1ee6f38075ce5de174"
-  },
-  "crates/fireside-core/src/model/graph.rs": {
-    "mtime": 1771560136.2789817,
-    "ast_hash": "8b53090faa34693b64d2a736e35c612b",
-    "semantic_hash": "8b53090faa34693b64d2a736e35c612b"
-  },
-  "crates/fireside-core/src/model/layout.rs": {
-    "mtime": 1771198500.71643,
-    "ast_hash": "1565ce94ec95c11576ea3b2fd7a9fc74",
-    "semantic_hash": "1565ce94ec95c11576ea3b2fd7a9fc74"
-  },
   "crates/fireside-core/src/model/mod.rs": {
     "mtime": 1781217484.0424273,
     "ast_hash": "530de6b7033c1304f6f3ac1834a01d42",
     "semantic_hash": ""
-  },
-  "crates/fireside-core/src/model/node.rs": {
-    "mtime": 1771559384.6014462,
-    "ast_hash": "d54ecc589b524d05c2d9bc8a137bb261",
-    "semantic_hash": "d54ecc589b524d05c2d9bc8a137bb261"
-  },
-  "crates/fireside-core/src/model/transition.rs": {
-    "mtime": 1771198500.7781868,
-    "ast_hash": "3b75d91803d56b68898cc14f22e48f07",
-    "semantic_hash": "3b75d91803d56b68898cc14f22e48f07"
-  },
-  "crates/fireside-core/src/model/traversal.rs": {
-    "mtime": 1771198500.6547809,
-    "ast_hash": "a2d347df852f13f82f0d03196c63b2c1",
-    "semantic_hash": "a2d347df852f13f82f0d03196c63b2c1"
-  },
-  "crates/fireside-core/tests/content_roundtrip.rs": {
-    "mtime": 1771560975.440193,
-    "ast_hash": "8680a898a78a1d0891ea3bcd92f2b92b",
-    "semantic_hash": "8680a898a78a1d0891ea3bcd92f2b92b"
-  },
-  "crates/fireside-engine/src/commands/apply.rs": {
-    "mtime": 1772051916.319671,
-    "ast_hash": "6c0d7596594950937ab695dd8ad86f08",
-    "semantic_hash": "6c0d7596594950937ab695dd8ad86f08"
-  },
-  "crates/fireside-engine/src/commands/history.rs": {
-    "mtime": 1772051944.6833346,
-    "ast_hash": "9a2f0d08924c579a4deb51017deed34c",
-    "semantic_hash": "9a2f0d08924c579a4deb51017deed34c"
-  },
-  "crates/fireside-engine/src/commands/mod.rs": {
-    "mtime": 1772057528.1077456,
-    "ast_hash": "39dcaca4cbe7d537e461be608394a80f",
-    "semantic_hash": "39dcaca4cbe7d537e461be608394a80f"
-  },
-  "crates/fireside-engine/src/commands/types.rs": {
-    "mtime": 1772051916.3196712,
-    "ast_hash": "44091f2c09f3f81551a31c02c7416950",
-    "semantic_hash": "44091f2c09f3f81551a31c02c7416950"
   },
   "crates/fireside-engine/src/error.rs": {
     "mtime": 1781217588.0405838,
@@ -159,175 +64,25 @@
     "ast_hash": "925d5bd50e2c28df9e515058699555ad",
     "semantic_hash": ""
   },
-  "crates/fireside-engine/src/loader.rs": {
-    "mtime": 1771559384.6337574,
-    "ast_hash": "bf111ab82ab8936193965a91d112d5ae",
-    "semantic_hash": "bf111ab82ab8936193965a91d112d5ae"
-  },
   "crates/fireside-engine/src/session.rs": {
-    "mtime": 1781217623.8140345,
-    "ast_hash": "1c9384fe9e88717ff0a4b56992853be8",
+    "mtime": 1781218785.7921762,
+    "ast_hash": "ce4a864a9bfa4d0282ae8e216fd5d716",
     "semantic_hash": ""
-  },
-  "crates/fireside-engine/src/traversal.rs": {
-    "mtime": 1771560136.3414087,
-    "ast_hash": "817198516a2c86e4eb7365becf3ff2f0",
-    "semantic_hash": "817198516a2c86e4eb7365becf3ff2f0"
   },
   "crates/fireside-engine/src/validation.rs": {
-    "mtime": 1781217679.8788898,
-    "ast_hash": "e89d9dcbb767bebf9b1a005e9e5c25ed",
+    "mtime": 1781218787.4887369,
+    "ast_hash": "a56e349b637b60c64825dcbffafeb04e",
     "semantic_hash": ""
-  },
-  "crates/fireside-engine/tests/command_history.rs": {
-    "mtime": 1771560975.503271,
-    "ast_hash": "4a3b3d9b514cf1c8b465c195e9e93b64",
-    "semantic_hash": "4a3b3d9b514cf1c8b465c195e9e93b64"
-  },
-  "crates/fireside-engine/tests/fixtures/invalid_dangling_ref.json": {
-    "mtime": 1771560975.5028803,
-    "ast_hash": "f603dc5f45ca5d8bc97534394098b82e",
-    "semantic_hash": "f603dc5f45ca5d8bc97534394098b82e"
-  },
-  "crates/fireside-engine/tests/fixtures/invalid_duplicate_id.json": {
-    "mtime": 1771560975.5029144,
-    "ast_hash": "3cf9f3c532b5af1dc5afbefa1fc800ed",
-    "semantic_hash": "3cf9f3c532b5af1dc5afbefa1fc800ed"
-  },
-  "crates/fireside-engine/tests/fixtures/invalid_empty.json": {
-    "mtime": 1771560975.502932,
-    "ast_hash": "29d46028716c875815a122e9ead6f9e6",
-    "semantic_hash": "29d46028716c875815a122e9ead6f9e6"
-  },
-  "crates/fireside-engine/tests/fixtures/valid_branching.json": {
-    "mtime": 1771560975.5028634,
-    "ast_hash": "13856fd48087db539f3e9613eacf5cd8",
-    "semantic_hash": "13856fd48087db539f3e9613eacf5cd8"
-  },
-  "crates/fireside-engine/tests/fixtures/valid_linear.json": {
-    "mtime": 1771560975.502506,
-    "ast_hash": "bfa3479351eafd0d6e83fc9d85453c25",
-    "semantic_hash": "bfa3479351eafd0d6e83fc9d85453c25"
-  },
-  "crates/fireside-engine/tests/traversal_tests.rs": {
-    "mtime": 1771872558.0755925,
-    "ast_hash": "7869b51e4c31c52f26baf2ae22f93d11",
-    "semantic_hash": "7869b51e4c31c52f26baf2ae22f93d11"
-  },
-  "crates/fireside-engine/tests/validation_fixtures.rs": {
-    "mtime": 1771560975.49743,
-    "ast_hash": "daea2812c756f3774261e64aeb6614fd",
-    "semantic_hash": "daea2812c756f3774261e64aeb6614fd"
   },
   "crates/fireside-tui/src/app.rs": {
     "mtime": 1781218396.314244,
     "ast_hash": "96ed4d8cda958720507f702b15c77dd1",
     "semantic_hash": ""
   },
-  "crates/fireside-tui/src/app/action_routing.rs": {
-    "mtime": 1773002402.0541112,
-    "ast_hash": "2a41edd78e4c4a6c043174f5f91fdb88",
-    "semantic_hash": "2a41edd78e4c4a6c043174f5f91fdb88"
-  },
-  "crates/fireside-tui/src/app/app_helpers.rs": {
-    "mtime": 1773002131.60931,
-    "ast_hash": "3d8ec990c4345d0cd022e816e13e7f4b",
-    "semantic_hash": "3d8ec990c4345d0cd022e816e13e7f4b"
-  },
-  "crates/fireside-tui/src/app/app_tests/block_editing.rs": {
-    "mtime": 1772052296.2458394,
-    "ast_hash": "85ccb23f5d06f516a75123c4397e53af",
-    "semantic_hash": "85ccb23f5d06f516a75123c4397e53af"
-  },
-  "crates/fireside-tui/src/app/app_tests/editor_interaction.rs": {
-    "mtime": 1773002427.8636634,
-    "ast_hash": "30fbad8b1173a87d921403d8ea5b7ea4",
-    "semantic_hash": "30fbad8b1173a87d921403d8ea5b7ea4"
-  },
-  "crates/fireside-tui/src/app/app_tests/mod.rs": {
-    "mtime": 1772052404.7889981,
-    "ast_hash": "14cd12c1b6eb9ce40a8c4f37dda7a836",
-    "semantic_hash": "14cd12c1b6eb9ce40a8c4f37dda7a836"
-  },
-  "crates/fireside-tui/src/app/app_tests/overlays.rs": {
-    "mtime": 1772052310.4123726,
-    "ast_hash": "96d90f1aa72dc830537352448a0e1d11",
-    "semantic_hash": "96d90f1aa72dc830537352448a0e1d11"
-  },
-  "crates/fireside-tui/src/app/app_tests/presenter.rs": {
-    "mtime": 1772052404.7900584,
-    "ast_hash": "1a0851e13f367d7a68616084f903fe23",
-    "semantic_hash": "1a0851e13f367d7a68616084f903fe23"
-  },
-  "crates/fireside-tui/src/app/editor_commands.rs": {
-    "mtime": 1773002402.0602593,
-    "ast_hash": "5ba9c5c6bf4a5cb5a6a008220afad007",
-    "semantic_hash": "5ba9c5c6bf4a5cb5a6a008220afad007"
-  },
-  "crates/fireside-tui/src/app/editor_input.rs": {
-    "mtime": 1773002114.1164796,
-    "ast_hash": "2d3ba7b4fbebf9a79644403f0db725af",
-    "semantic_hash": "2d3ba7b4fbebf9a79644403f0db725af"
-  },
-  "crates/fireside-tui/src/app/editor_navigation.rs": {
-    "mtime": 1773002105.9981048,
-    "ast_hash": "62fe3e7e70b734d61df1275062aa5caf",
-    "semantic_hash": "62fe3e7e70b734d61df1275062aa5caf"
-  },
-  "crates/fireside-tui/src/app/editor_picker.rs": {
-    "mtime": 1772050783.5581355,
-    "ast_hash": "9d599d0c261c721f4a0d32a04f87f940",
-    "semantic_hash": "9d599d0c261c721f4a0d32a04f87f940"
-  },
-  "crates/fireside-tui/src/config/keybindings.rs": {
-    "mtime": 1772050180.324783,
-    "ast_hash": "d6656c81d9a5f62b4419a5e16db2a7e8",
-    "semantic_hash": "d6656c81d9a5f62b4419a5e16db2a7e8"
-  },
-  "crates/fireside-tui/src/config/mod.rs": {
-    "mtime": 1771541975.5508933,
-    "ast_hash": "ee8e4bbd6d4c3ef138f4cff70da18b77",
-    "semantic_hash": "ee8e4bbd6d4c3ef138f4cff70da18b77"
-  },
-  "crates/fireside-tui/src/config/settings.rs": {
-    "mtime": 1771553064.5401022,
-    "ast_hash": "b032e55e41f807f0dd3c5a6f02d2e880",
-    "semantic_hash": "b032e55e41f807f0dd3c5a6f02d2e880"
-  },
-  "crates/fireside-tui/src/design/fonts.rs": {
-    "mtime": 1771541975.5282896,
-    "ast_hash": "ad9919f6e71fce0bc7d9db7c338136d0",
-    "semantic_hash": "ad9919f6e71fce0bc7d9db7c338136d0"
-  },
-  "crates/fireside-tui/src/design/iterm2.rs": {
-    "mtime": 1771560517.528972,
-    "ast_hash": "d6b4ff3dba3490cadc963c0894e069ed",
-    "semantic_hash": "d6b4ff3dba3490cadc963c0894e069ed"
-  },
-  "crates/fireside-tui/src/design/mod.rs": {
-    "mtime": 1771622505.7267478,
-    "ast_hash": "d928b5d7ba0730368fe4c1c9565edabd",
-    "semantic_hash": "d928b5d7ba0730368fe4c1c9565edabd"
-  },
-  "crates/fireside-tui/src/design/templates.rs": {
-    "mtime": 1771527290.5423858,
-    "ast_hash": "2d3017ad085cd65d21e4948b3bd0791d",
-    "semantic_hash": "2d3017ad085cd65d21e4948b3bd0791d"
-  },
-  "crates/fireside-tui/src/design/vscode.rs": {
-    "mtime": 1771622505.7616708,
-    "ast_hash": "4269f93afcfa27b9b4710f13dc96b58c",
-    "semantic_hash": "4269f93afcfa27b9b4710f13dc96b58c"
-  },
   "crates/fireside-tui/src/error.rs": {
     "mtime": 1781217997.6215148,
     "ast_hash": "86eea22323a95e2b43eb6974f4c98acb",
     "semantic_hash": ""
-  },
-  "crates/fireside-tui/src/event.rs": {
-    "mtime": 1772049966.5760567,
-    "ast_hash": "05760777b2449730e7cff61b1230642a",
-    "semantic_hash": "05760777b2449730e7cff61b1230642a"
   },
   "crates/fireside-tui/src/lib.rs": {
     "mtime": 1781218351.2892947,
@@ -339,51 +94,6 @@
     "ast_hash": "9c39bd55f1e8188fa1037f44be8a1378",
     "semantic_hash": ""
   },
-  "crates/fireside-tui/src/render/blocks_code.rs": {
-    "mtime": 1773000790.0570652,
-    "ast_hash": "29747721ded5900a2c38cd780c368f4e",
-    "semantic_hash": "29747721ded5900a2c38cd780c368f4e"
-  },
-  "crates/fireside-tui/src/render/blocks_divider.rs": {
-    "mtime": 1773001109.2374825,
-    "ast_hash": "c7814ee9f3af1ee82f4932c2069f5c38",
-    "semantic_hash": "c7814ee9f3af1ee82f4932c2069f5c38"
-  },
-  "crates/fireside-tui/src/render/blocks_extension.rs": {
-    "mtime": 1771880640.3494558,
-    "ast_hash": "06db54e80c6977325fc37d3da981c761",
-    "semantic_hash": "06db54e80c6977325fc37d3da981c761"
-  },
-  "crates/fireside-tui/src/render/blocks_heading.rs": {
-    "mtime": 1773000790.0590708,
-    "ast_hash": "38834d3e361d2746ce97dfbb5d2e4215",
-    "semantic_hash": "38834d3e361d2746ce97dfbb5d2e4215"
-  },
-  "crates/fireside-tui/src/render/blocks_image.rs": {
-    "mtime": 1771880640.353115,
-    "ast_hash": "946fcbf946cdd8591ea9627a4a3abb2e",
-    "semantic_hash": "946fcbf946cdd8591ea9627a4a3abb2e"
-  },
-  "crates/fireside-tui/src/render/blocks_list.rs": {
-    "mtime": 1773000521.067758,
-    "ast_hash": "6ec03c018a5c654c4e0623a96b2ed006",
-    "semantic_hash": "6ec03c018a5c654c4e0623a96b2ed006"
-  },
-  "crates/fireside-tui/src/render/blocks_text.rs": {
-    "mtime": 1773001214.2629256,
-    "ast_hash": "b9a98157609ed99c9a078599306b589e",
-    "semantic_hash": "b9a98157609ed99c9a078599306b589e"
-  },
-  "crates/fireside-tui/src/render/code.rs": {
-    "mtime": 1771561645.190788,
-    "ast_hash": "aa611cefb6df39d272dd3bc3ae1faedb",
-    "semantic_hash": "aa611cefb6df39d272dd3bc3ae1faedb"
-  },
-  "crates/fireside-tui/src/render/layout.rs": {
-    "mtime": 1771556068.6500309,
-    "ast_hash": "beb2f07caa64401e0ef1b62b69c6ab3b",
-    "semantic_hash": "beb2f07caa64401e0ef1b62b69c6ab3b"
-  },
   "crates/fireside-tui/src/render/mod.rs": {
     "mtime": 1781218437.5746186,
     "ast_hash": "0a4e456e86bf1a4ea57f90e5c66ce0c3",
@@ -394,89 +104,9 @@
     "ast_hash": "4bbefdc46f496dcbd935d38cf7ff6389",
     "semantic_hash": ""
   },
-  "crates/fireside-tui/src/ui/branch.rs": {
-    "mtime": 1772944536.5052037,
-    "ast_hash": "b5c44b4bec3dea87873167879ba4bc09",
-    "semantic_hash": "b5c44b4bec3dea87873167879ba4bc09"
-  },
-  "crates/fireside-tui/src/ui/breadcrumb.rs": {
-    "mtime": 1773000790.0658941,
-    "ast_hash": "f14c3fe0bd3e02fa1b1d3673d2957143",
-    "semantic_hash": "f14c3fe0bd3e02fa1b1d3673d2957143"
-  },
-  "crates/fireside-tui/src/ui/chrome.rs": {
-    "mtime": 1772944276.3062649,
-    "ast_hash": "d5fe09624f983a4a669ee8a59e9d22d6",
-    "semantic_hash": "d5fe09624f983a4a669ee8a59e9d22d6"
-  },
-  "crates/fireside-tui/src/ui/editor.rs": {
-    "mtime": 1773002374.8169768,
-    "ast_hash": "9a8200a5ccb62e8dce1866a071e2fab8",
-    "semantic_hash": "9a8200a5ccb62e8dce1866a071e2fab8"
-  },
-  "crates/fireside-tui/src/ui/editor_parts.rs": {
-    "mtime": 1771880640.3989124,
-    "ast_hash": "b179a2605cb076ce76aeccf3cf20ce0a",
-    "semantic_hash": "b179a2605cb076ce76aeccf3cf20ce0a"
-  },
-  "crates/fireside-tui/src/ui/graph.rs": {
-    "mtime": 1772945750.3598752,
-    "ast_hash": "a2b6113a1ec5eb50d10e82d4140aa364",
-    "semantic_hash": "a2b6113a1ec5eb50d10e82d4140aa364"
-  },
-  "crates/fireside-tui/src/ui/help.rs": {
-    "mtime": 1772944367.903901,
-    "ast_hash": "7947ad05f44dc91a229660a66027cefc",
-    "semantic_hash": "7947ad05f44dc91a229660a66027cefc"
-  },
-  "crates/fireside-tui/src/ui/mod.rs": {
-    "mtime": 1773002304.9661646,
-    "ast_hash": "536fe055a5eac03a55b76a877a29f40e",
-    "semantic_hash": "536fe055a5eac03a55b76a877a29f40e"
-  },
-  "crates/fireside-tui/src/ui/presenter.rs": {
-    "mtime": 1772945750.3659947,
-    "ast_hash": "dcc54bb370b7995b206f2f7a7ae4032c",
-    "semantic_hash": "dcc54bb370b7995b206f2f7a7ae4032c"
-  },
-  "crates/fireside-tui/src/ui/progress.rs": {
-    "mtime": 1772945750.368897,
-    "ast_hash": "4fab886831207d4d6e846b5514e0178d",
-    "semantic_hash": "4fab886831207d4d6e846b5514e0178d"
-  },
-  "crates/fireside-tui/src/ui/textarea.rs": {
-    "mtime": 1773002402.1076841,
-    "ast_hash": "0468ee319a7b1b77d86f5c0558f49dcb",
-    "semantic_hash": "0468ee319a7b1b77d86f5c0558f49dcb"
-  },
-  "crates/fireside-tui/src/ui/timeline.rs": {
-    "mtime": 1773000526.4458885,
-    "ast_hash": "f0a1e1c5a2366adbed2adf2c99c52025",
-    "semantic_hash": "f0a1e1c5a2366adbed2adf2c99c52025"
-  },
-  "crates/fireside-tui/src/ui/transitions.rs": {
-    "mtime": 1772945750.371696,
-    "ast_hash": "efff3324635664db3ee45ef593c7d6ad",
-    "semantic_hash": "efff3324635664db3ee45ef593c7d6ad"
-  },
-  "crates/fireside-tui/tests/harness.rs": {
-    "mtime": 1771875688.458937,
-    "ast_hash": "d2843a5d79896700bee7504d5f0c133a",
-    "semantic_hash": "d2843a5d79896700bee7504d5f0c133a"
-  },
-  "crates/fireside-tui/tests/harness_golden.rs": {
-    "mtime": 1776616767.3491945,
-    "ast_hash": "82d4e66dacbfa3f6af69656f20649760",
-    "semantic_hash": "82d4e66dacbfa3f6af69656f20649760"
-  },
-  "crates/fireside-tui/tests/hello_smoke.rs": {
-    "mtime": 1776616767.3501506,
-    "ast_hash": "83aaed034e506699850237a710042f4c",
-    "semantic_hash": "83aaed034e506699850237a710042f4c"
-  },
   "docs/astro.config.mjs": {
-    "mtime": 1781196348.367135,
-    "ast_hash": "c551416e6d2c65960e241c717a5299f2",
+    "mtime": 1781218835.886225,
+    "ast_hash": "f8ab05ac33361473048f5a8a0f7bd9d3",
     "semantic_hash": ""
   },
   "docs/examples/hello.json": {
@@ -730,9 +360,9 @@
     "semantic_hash": "faa9889c67600925f0ffd3d3eef2041d"
   },
   "docs/src/content/docs/spec/data-model.md": {
-    "mtime": 1776614252.6686025,
-    "ast_hash": "591b232886b0626249ee5c8566cbf8ae",
-    "semantic_hash": "591b232886b0626249ee5c8566cbf8ae"
+    "mtime": 1781218801.4390628,
+    "ast_hash": "d30ad501e8d12967b4c2f8baa5861c2b",
+    "semantic_hash": ""
   },
   "docs/src/content/docs/spec/introduction.md": {
     "mtime": 1776614525.5916274,
@@ -915,18 +545,23 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/explanation/adr-003-non-normative-engine-extras.md": {
-    "mtime": 1781196310.7969215,
-    "ast_hash": "51ca428acfb847bac558de94670a6671",
+    "mtime": 1781218804.3038507,
+    "ast_hash": "e9c808f339a72487e68964f3514b626c",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-extensions.md": {
-    "mtime": 1781196333.3603756,
-    "ast_hash": "223e15a9b1464edb22a0622d7c62ab2f",
+    "mtime": 1781218833.826205,
+    "ast_hash": "8e5c58c6d488579ce0995041212cc21e",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/markdown.rs": {
-    "mtime": 1781218036.425057,
-    "ast_hash": "9f9036f4486256c97f49b0ba4edb7603",
+    "mtime": 1781218574.4974205,
+    "ast_hash": "e73e061b566049f49e94279deef8b193",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md": {
+    "mtime": 1781218820.0534637,
+    "ast_hash": "231fea320aeaf04e5935f0f5b808e1fd",
     "semantic_hash": ""
   }
 }
