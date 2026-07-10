@@ -38,8 +38,14 @@ pub fn present(graph: Graph) -> Result<(), TuiError> {
 fn event_loop(terminal: &mut ratatui::DefaultTerminal, app: &mut App) -> Result<(), TuiError> {
     while !app.should_quit() {
         terminal.draw(|frame| render::draw(frame, app))?;
-        // The timeout lets expired flash messages clear without input.
-        if event::poll(Duration::from_millis(250))? {
+        // The timeout lets expired flash messages clear without input; a
+        // fading slide polls fast so it brightens on time.
+        let timeout = if app.fading() {
+            Duration::from_millis(30)
+        } else {
+            Duration::from_millis(250)
+        };
+        if event::poll(timeout)? {
             let ev = event::read()?;
             app.update(&ev);
         }

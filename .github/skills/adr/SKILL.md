@@ -68,13 +68,13 @@ deciders: ['@handle1', '@handle2']
 
 ## Numbering and Filing
 
-1. **Find the next ADR number**: Look in `docs/src/content/docs/explanation/` for any existing `adr-*.md` files, or query the user if unsure. ADRs are numbered sequentially with zero-padded three digits: `ADR-001`, `ADR-002`, etc.
+1. **Find the next ADR number**: Look in `.claude/adrs/` for any existing `adr-*.md` files, or query the user if unsure. ADRs are numbered sequentially with zero-padded three digits: `ADR-001`, `ADR-002`, etc.
 
-2. **File location**: `docs/src/content/docs/explanation/adr-NNN-short-title.md`
+2. **File location**: `.claude/adrs/adr-NNN-short-title.md`
    - File names use kebab-case: `adr-001-chose-ratatui.md`
    - One ADR per file. Never append to an existing ADR.
 
-3. **Sidebar registration**: After creating the file, check `docs/astro.config.mjs` and add the new ADR to the `explanation` section of the sidebar under a collapsible "Architecture Decisions" group. Follow the existing manual ordering pattern.
+3. **Not on the docs site**: ADRs are developer artifacts. They are never published to `docs/` or registered in the Astro sidebar — the docs site covers only the protocol and how to use Fireside.
 
 ---
 

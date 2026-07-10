@@ -13,6 +13,8 @@ ratatui = { workspace = true }
 crossterm = { workspace = true }
 thiserror = { workspace = true }
 unicode-width = { workspace = true }
+syntect = { workspace = true }
+two-face = { workspace = true }
 
 [dev-dependencies]
 

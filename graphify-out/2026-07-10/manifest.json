@@ -1,12 +1,12 @@
 {
   ".claude/settings.json": {
-    "mtime": 1781284462.3780565,
-    "ast_hash": "a7630e1b23926b87b14ccc07d74e5186",
+    "mtime": 1781282961.100423,
+    "ast_hash": "ab383b19a7bc52d94a0613d6359518b0",
     "semantic_hash": ""
   },
   ".claude/settings.local.json": {
-    "mtime": 1783709075.6856835,
-    "ast_hash": "d077bad6a2269a63fb567821f3846673",
+    "mtime": 1781216074.3496966,
+    "ast_hash": "477302f6ac94f245b0995b5dd2e051eb",
     "semantic_hash": ""
   },
   ".githooks/install.sh": {
@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/app.rs": {
-    "mtime": 1783709815.6602614,
-    "ast_hash": "3058756a120822ec6ebb361ab48317a6",
+    "mtime": 1781218396.314244,
+    "ast_hash": "96ed4d8cda958720507f702b15c77dd1",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/error.rs": {
@@ -85,28 +85,28 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
-    "mtime": 1783709817.6548567,
-    "ast_hash": "b52b48df95efa611e877ff7ece94a9f6",
+    "mtime": 1781218351.2892947,
+    "ast_hash": "91f41d69304bd50d8fb469e82b2c8726",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
-    "mtime": 1783710132.8724358,
-    "ast_hash": "f987113a778a57f973a5f6cfd91f973f",
+    "mtime": 1781218398.2052734,
+    "ast_hash": "9c39bd55f1e8188fa1037f44be8a1378",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/mod.rs": {
-    "mtime": 1783710120.554558,
-    "ast_hash": "1c9438ca9e73804406135eb084ef66a2",
+    "mtime": 1781218437.5746186,
+    "ast_hash": "0a4e456e86bf1a4ea57f90e5c66ce0c3",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/theme.rs": {
-    "mtime": 1783709652.623974,
-    "ast_hash": "5006f4a6cb21202d1c89028a6bc9eef0",
+    "mtime": 1781217995.633536,
+    "ast_hash": "4bbefdc46f496dcbd935d38cf7ff6389",
     "semantic_hash": ""
   },
   "docs/astro.config.mjs": {
-    "mtime": 1783709324.3379002,
-    "ast_hash": "39c9ed782c916c4c7d87991c4d6b658a",
+    "mtime": 1781218835.886225,
+    "ast_hash": "f8ab05ac33361473048f5a8a0f7bd9d3",
     "semantic_hash": ""
   },
   "docs/examples/hello.json": {
@@ -230,8 +230,8 @@
     "semantic_hash": "67ed87a523cb958b51bf16cd7d3aaa42"
   },
   ".github/agents/rust-expert.agent.md": {
-    "mtime": 1781284667.4850063,
-    "ast_hash": "a268953bcddfb4fb812e499f1191bf5b",
+    "mtime": 1781190635.162504,
+    "ast_hash": "4de12fdeaf07b6c42919269bf22b4735",
     "semantic_hash": ""
   },
   ".github/instructions/markdown.instructions.md": {
@@ -255,9 +255,9 @@
     "semantic_hash": "cff7c566e0fd039f5323ceec49443f33"
   },
   ".github/skills/adr/SKILL.md": {
-    "mtime": 1783709336.9418092,
-    "ast_hash": "28aeb3ccfa9a08e92e79ef71a8252c7d",
-    "semantic_hash": ""
+    "mtime": 1772043417.1499884,
+    "ast_hash": "07e19581e1019e39bfccd8974a61f539",
+    "semantic_hash": "07e19581e1019e39bfccd8974a61f539"
   },
   ".github/skills/prd/SKILL.md": {
     "mtime": 1772043417.1479816,
@@ -295,29 +295,29 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1781284590.8747473,
-    "ast_hash": "a8cbeeefccb7140e42a4d80a5d79c5f2",
-    "semantic_hash": ""
+    "mtime": 1776547775.1290452,
+    "ast_hash": "58c6068e632f7e79ff02a264382c84b8",
+    "semantic_hash": "58c6068e632f7e79ff02a264382c84b8"
   },
   "crates/fireside-cli/README.md": {
-    "mtime": 1781284575.7936459,
-    "ast_hash": "54920522143df9e5e12255e40ed54577",
-    "semantic_hash": ""
+    "mtime": 1771557610.9146154,
+    "ast_hash": "599ea02262f8034c58c06e036266962b",
+    "semantic_hash": "599ea02262f8034c58c06e036266962b"
   },
   "crates/fireside-core/README.md": {
-    "mtime": 1781284565.608044,
-    "ast_hash": "b97423b0728fb5555a3da353e77f1f1a",
-    "semantic_hash": ""
+    "mtime": 1771557610.903049,
+    "ast_hash": "25e8126530530651748613b905273fd4",
+    "semantic_hash": "25e8126530530651748613b905273fd4"
   },
   "crates/fireside-engine/README.md": {
-    "mtime": 1781284568.9179099,
-    "ast_hash": "5a7638d40926b3a8018a5172ea0cdf32",
-    "semantic_hash": ""
+    "mtime": 1771557416.7308848,
+    "ast_hash": "313339ef645e1b6db4e360199a21c511",
+    "semantic_hash": "313339ef645e1b6db4e360199a21c511"
   },
   "crates/fireside-tui/README.md": {
-    "mtime": 1781284574.0670228,
-    "ast_hash": "f2a10b59348670a89ddca5583195e93f",
-    "semantic_hash": ""
+    "mtime": 1771557412.5117261,
+    "ast_hash": "be334b45961a9e194b07d8cbf58c142d",
+    "semantic_hash": "be334b45961a9e194b07d8cbf58c142d"
   },
   "docs/README.md": {
     "mtime": 1771182765.2659888,
@@ -394,9 +394,159 @@
     "ast_hash": "95de58270b165f852c9882b692084267",
     "semantic_hash": "95de58270b165f852c9882b692084267"
   },
+  "IMPROVEMENT-PLAN.md": {
+    "mtime": 1781189407.101514,
+    "ast_hash": "3bd3ebcba13c4051fd6e2eb76e33a55e",
+    "semantic_hash": ""
+  },
+  "plan/README.md": {
+    "mtime": 1781189118.2435918,
+    "ast_hash": "28c20ce2982c5cae1ebe2cfeaa93aeb2",
+    "semantic_hash": ""
+  },
+  "plan/tasks/01-workspace-hygiene.md": {
+    "mtime": 1781189128.6233485,
+    "ast_hash": "9916bb35707fb37e41f630e1d5cff1e8",
+    "semantic_hash": ""
+  },
+  "plan/tasks/02-traversal-string-shorthand.md": {
+    "mtime": 1781189139.2268806,
+    "ast_hash": "33133f770e2ecedfcba9ffb8d2b1c6b5",
+    "semantic_hash": ""
+  },
+  "plan/tasks/03-branch-option-fields.md": {
+    "mtime": 1781189147.9450018,
+    "ast_hash": "177f3f59e570f3e4a73b17949d73060b",
+    "semantic_hash": ""
+  },
+  "plan/tasks/04-content-block-fields.md": {
+    "mtime": 1781189157.5690541,
+    "ast_hash": "6a7ebf27147cb0542beef038280fb5b7",
+    "semantic_hash": ""
+  },
+  "plan/tasks/05-transition-fallback.md": {
+    "mtime": 1781189164.8797922,
+    "ast_hash": "80b6cc91caf59618bceaccc5d4e53701",
+    "semantic_hash": ""
+  },
+  "plan/tasks/06-remove-traversal-after.md": {
+    "mtime": 1781189179.0656283,
+    "ast_hash": "4a6b659e769c22272ae2284d89b389bf",
+    "semantic_hash": ""
+  },
+  "plan/tasks/07-introduce-view-mode.md": {
+    "mtime": 1781189190.6435204,
+    "ast_hash": "e4cbb095c256eaf97c10dd570493ddf6",
+    "semantic_hash": ""
+  },
+  "plan/tasks/08-require-node-id.md": {
+    "mtime": 1781189200.6972928,
+    "ast_hash": "0eb38a8ef549d9a2e205ff44fd379230",
+    "semantic_hash": ""
+  },
+  "plan/tasks/09-engine-explicit-edges.md": {
+    "mtime": 1781189211.6705325,
+    "ast_hash": "e06638cc5a611bd081aa34fbe83bf22b",
+    "semantic_hash": ""
+  },
+  "plan/tasks/10-nodeid-history.md": {
+    "mtime": 1781189220.9547975,
+    "ast_hash": "735405f4f9c1c352ef31cc27f861f335",
+    "semantic_hash": ""
+  },
+  "plan/tasks/11-validation-required-checks.md": {
+    "mtime": 1781189233.1477056,
+    "ast_hash": "db3fbdb768acfcae405da9b71dc355c3",
+    "semantic_hash": ""
+  },
+  "plan/tasks/12-scaffold-conformance.md": {
+    "mtime": 1781189250.5439856,
+    "ast_hash": "4b278b82ba0ee6cb8eea1e43cc4f8f52",
+    "semantic_hash": ""
+  },
+  "plan/tasks/13-save-roundtrip-fidelity.md": {
+    "mtime": 1781189258.3826723,
+    "ast_hash": "013f5df47339f1626e07a8befe0b4a7c",
+    "semantic_hash": ""
+  },
+  "plan/tasks/14-validate-output-parity.md": {
+    "mtime": 1781189266.9247,
+    "ast_hash": "b7b7ddaed302e196c48201c7d9151eb2",
+    "semantic_hash": ""
+  },
+  "plan/tasks/15-jsonschema-layer1-spike.md": {
+    "mtime": 1781189277.2874146,
+    "ast_hash": "c69ffa9d3e9c6c61912ef814c6cdae5d",
+    "semantic_hash": ""
+  },
+  "plan/tasks/16-ci-conformance-job.md": {
+    "mtime": 1781189287.206013,
+    "ast_hash": "dece24649b9a851736abbb477a26548b",
+    "semantic_hash": ""
+  },
+  "plan/tasks/17-tui-viewmode-containers.md": {
+    "mtime": 1781189304.0432758,
+    "ast_hash": "ef41ee4ea6cc70ec4cdb3db82fb86bcc",
+    "semantic_hash": ""
+  },
+  "plan/tasks/18-tui-traversal-ux.md": {
+    "mtime": 1781189317.2015479,
+    "ast_hash": "eb32ad787aea1fb692c6f92678ae8391",
+    "semantic_hash": ""
+  },
+  "plan/tasks/19-protocol-adrs.md": {
+    "mtime": 1781189334.026592,
+    "ast_hash": "b335aa799b8f99edb59d223a852d52e4",
+    "semantic_hash": ""
+  },
+  "plan/tasks/20-spec-fixes.md": {
+    "mtime": 1781189345.3557067,
+    "ast_hash": "3f1b8b3e8d5b707d46dd16a29d84a22e",
+    "semantic_hash": ""
+  },
+  "plan/tasks/21-shared-fixtures-and-hooks.md": {
+    "mtime": 1781189355.8419826,
+    "ast_hash": "480735ce8ff0fd79ddb986cc438e5ff2",
+    "semantic_hash": ""
+  },
+  "plan/tasks/22-ai-consolidate-constraints.md": {
+    "mtime": 1781189367.506161,
+    "ast_hash": "c23c2a291b3a316e6f1d8402c7c0e2fe",
+    "semantic_hash": ""
+  },
+  "plan/tasks/23-ai-fix-stale-files.md": {
+    "mtime": 1781189378.7974408,
+    "ast_hash": "7861fc2db3693e97f01de6a257b91ba9",
+    "semantic_hash": ""
+  },
+  "plan/tasks/24-ai-automation-hooks.md": {
+    "mtime": 1781189389.75224,
+    "ast_hash": "5676ce690a256ea61c8917386765a8a4",
+    "semantic_hash": ""
+  },
+  ".claude/commands/audit-roadmap.md": {
+    "mtime": 1781192578.728543,
+    "ast_hash": "36e2cf803a34529ce6363872e9b9255a",
+    "semantic_hash": ""
+  },
   "AGENTS.md": {
-    "mtime": 1783710175.3220108,
-    "ast_hash": "c535b739cc807b150b3a00e9506e2216",
+    "mtime": 1781190615.7103,
+    "ast_hash": "2efeccbf60fc1b6400829527677fa24c",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/explanation/adr-001-remove-traversal-after.md": {
+    "mtime": 1781196252.0879884,
+    "ast_hash": "e5b5a3e3c61f28b023712356899ce977",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/explanation/adr-002-retire-node-layout.md": {
+    "mtime": 1781196274.9616256,
+    "ast_hash": "cce5bd25c8a1a2780cb73602b8297f2d",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/explanation/adr-003-non-normative-engine-extras.md": {
+    "mtime": 1781218804.3038507,
+    "ast_hash": "e9c808f339a72487e68964f3514b626c",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-extensions.md": {
@@ -409,27 +559,7 @@
     "ast_hash": "e73e061b566049f49e94279deef8b193",
     "semantic_hash": ""
   },
-  "crates/fireside-tui/src/render/syntax.rs": {
-    "mtime": 1783709878.3759184,
-    "ast_hash": "2675453e46ab5cc914b66ccfb29038fa",
-    "semantic_hash": ""
-  },
-  ".claude/adrs/adr-001-remove-traversal-after.md": {
-    "mtime": 1781284631.6399553,
-    "ast_hash": "9d5f49b95bee014bc9b16613c740288a",
-    "semantic_hash": ""
-  },
-  ".claude/adrs/adr-002-retire-node-layout.md": {
-    "mtime": 1781284644.4347584,
-    "ast_hash": "396918163c813f9502e681618a6a717d",
-    "semantic_hash": ""
-  },
-  ".claude/adrs/adr-003-non-normative-engine-extras.md": {
-    "mtime": 1781218804.3038507,
-    "ast_hash": "e9c808f339a72487e68964f3514b626c",
-    "semantic_hash": ""
-  },
-  ".claude/adrs/adr-004-presenter-first-rewrite.md": {
+  "docs/src/content/docs/explanation/adr-004-presenter-first-rewrite.md": {
     "mtime": 1781218820.0534637,
     "ast_hash": "231fea320aeaf04e5935f0f5b808e1fd",
     "semantic_hash": ""

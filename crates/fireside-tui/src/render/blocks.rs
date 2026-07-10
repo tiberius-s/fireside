@@ -11,7 +11,7 @@ use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
 use unicode_width::UnicodeWidthStr;
 
-use super::markdown;
+use super::{markdown, syntax};
 use crate::theme::Tokens;
 
 /// Render a node's blocks to a line flow at `width` columns, with one blank
@@ -54,7 +54,7 @@ fn render_block(block: &ContentBlock, width: u16, tokens: &Tokens) -> Vec<Line<'
         ContentBlock::Image { src, alt, caption, .. } => {
             image(src, alt.as_deref(), caption.as_deref(), width, tokens)
         }
-        ContentBlock::Divider => vec![Line::styled("─".repeat(width as usize), tokens.border)],
+        ContentBlock::Divider => divider(width, tokens),
         ContentBlock::Container { children, layout } => {
             container(children, layout.unwrap_or_default(), width, tokens)
         }
@@ -63,17 +63,47 @@ fn render_block(block: &ContentBlock, width: u16, tokens: &Tokens) -> Vec<Line<'
 
 fn heading(level: u8, text: &str, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     let style = tokens.heading(level);
-    let mut lines = markdown::wrap_styled(text, width, style, tokens);
-    if level == 1 {
-        let rule_width = lines
-            .iter()
-            .map(Line::width)
-            .max()
-            .unwrap_or(0)
-            .min(width as usize);
-        lines.push(Line::styled("─".repeat(rule_width), tokens.border));
+    match level {
+        1 => {
+            let mut lines = markdown::wrap_styled(text, width, style, tokens);
+            let rule_width = lines
+                .iter()
+                .map(Line::width)
+                .max()
+                .unwrap_or(0)
+                .min(width as usize);
+            lines.push(Line::styled("─".repeat(rule_width), tokens.accent));
+            lines
+        }
+        2 => {
+            // A short accent bar marks the section without shouting.
+            let body = markdown::wrap_styled(text, width.saturating_sub(2), style, tokens);
+            body.into_iter()
+                .enumerate()
+                .map(|(row, line)| {
+                    let lead = if row == 0 {
+                        Span::styled("▎ ".to_owned(), tokens.accent)
+                    } else {
+                        Span::raw("  ".to_owned())
+                    };
+                    let mut spans = vec![lead];
+                    spans.extend(line.spans);
+                    Line::from(spans)
+                })
+                .collect()
+        }
+        _ => markdown::wrap_styled(text, width, style, tokens),
     }
-    lines
+}
+
+/// A divider is a pause, not a wall: a short centered rule.
+fn divider(width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+    let rule = usize::from((width / 3).clamp(2, 24).min(width));
+    let pad = (usize::from(width) - rule) / 2;
+    vec![Line::from(vec![
+        Span::raw(" ".repeat(pad)),
+        Span::styled("─".repeat(rule), tokens.border),
+    ])]
 }
 
 fn code(
@@ -93,26 +123,89 @@ fn code(
     let mut lines = vec![Line::styled(top, tokens.border)];
     let total = source.lines().count();
     let num_width = if line_numbers { total.to_string().len() } else { 0 };
+    let colored = syntax::highlight(language, source, tokens);
+    // When the author picked lines to highlight, focus means dimming the
+    // rest — the chosen lines keep their full colors.
+    let focused = !highlight.is_empty();
 
     for (i, raw) in source.lines().enumerate() {
         let n = i + 1;
         let emphasized = highlight.contains(&(n as u32));
-        let style = if emphasized { tokens.code_highlight } else { tokens.code };
 
         let mut spans = Vec::new();
         if line_numbers {
-            spans.push(Span::styled(format!(" {n:num_width$} │ "), tokens.muted));
+            let gutter = if emphasized {
+                tokens.accent.add_modifier(Modifier::BOLD)
+            } else {
+                tokens.muted
+            };
+            spans.push(Span::styled(format!(" {n:num_width$} │ "), gutter));
+        } else if emphasized {
+            spans.push(Span::styled("▎ ".to_owned(), tokens.accent));
         } else {
             spans.push(Span::styled("  ".to_owned(), tokens.muted));
         }
         let prefix = if line_numbers { num_width + 4 } else { 2 };
         let avail = width.saturating_sub(prefix);
-        let text = clip(raw, avail);
-        spans.push(Span::styled(text, style));
+
+        let mut content: Vec<Span<'static>> = match &colored {
+            Some(rows) => clip_spans(rows[i].clone(), avail, tokens),
+            None => {
+                let style = if emphasized { tokens.code_highlight } else { tokens.code };
+                vec![Span::styled(clip(raw, avail), style)]
+            }
+        };
+        if focused && !emphasized {
+            for span in &mut content {
+                span.style = span.style.add_modifier(Modifier::DIM);
+            }
+        }
+        spans.extend(content);
         lines.push(Line::from(spans));
     }
     lines.push(Line::styled("─".repeat(width), tokens.border));
     lines
+}
+
+/// Clip a row of styled spans to `width` columns, marking any cut with an
+/// ellipsis while preserving each span's style.
+fn clip_spans(
+    spans: Vec<Span<'static>>,
+    width: usize,
+    tokens: &Tokens,
+) -> Vec<Span<'static>> {
+    let total: usize = spans.iter().map(|s| s.content.width()).sum();
+    if total <= width {
+        return spans;
+    }
+    if width == 0 {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    let mut used = 0;
+    for span in spans {
+        let w = span.content.width();
+        if used + w < width {
+            used += w;
+            out.push(span);
+            continue;
+        }
+        let mut text = String::new();
+        for ch in span.content.chars() {
+            let cw = unicode_width::UnicodeWidthChar::width(ch).unwrap_or(0);
+            if used + cw + 1 > width {
+                break;
+            }
+            used += cw;
+            text.push(ch);
+        }
+        if !text.is_empty() {
+            out.push(Span::styled(text, span.style));
+        }
+        break;
+    }
+    out.push(Span::styled("…".to_owned(), tokens.muted));
+    out
 }
 
 /// Clip a code line to `width` columns, marking the cut with an ellipsis.
@@ -280,6 +373,24 @@ mod tests {
         let block = ContentBlock::Heading { level: 1, text: "Hi".into() };
         let lines = flat(&render_block(&block, 20, &Tokens::default()));
         assert_eq!(lines, ["Hi", "──"]);
+    }
+
+    #[test]
+    fn h2_gets_an_accent_bar() {
+        let block = ContentBlock::Heading { level: 2, text: "Section".into() };
+        let lines = flat(&render_block(&block, 20, &Tokens::default()));
+        assert_eq!(lines, ["▎ Section"]);
+    }
+
+    #[test]
+    fn divider_is_a_short_centered_rule() {
+        let lines = flat(&render_block(&ContentBlock::Divider, 30, &Tokens::default()));
+        assert_eq!(lines.len(), 1);
+        let rule = lines[0].trim();
+        assert!(rule.chars().all(|c| c == '─'), "only rule chars: {rule:?}");
+        assert!(rule.chars().count() < 30, "shorter than the full width");
+        let lead = lines[0].chars().take_while(|c| *c == ' ').count();
+        assert!((8..=12).contains(&lead), "centered, got lead {lead}");
     }
 
     #[test]

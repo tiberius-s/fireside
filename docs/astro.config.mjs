@@ -55,33 +55,6 @@ export default defineConfig({
             { label: 'Domain Vocabulary', link: '/reference/domain-vocabulary/' },
           ],
         },
-        {
-          label: 'Explanation',
-          items: [
-            {
-              label: 'Architecture Decisions',
-              collapsed: true,
-              items: [
-                {
-                  label: 'ADR-001: Remove traversal.after',
-                  link: '/explanation/adr-001-remove-traversal-after/',
-                },
-                {
-                  label: 'ADR-002: Retire node-level Layout',
-                  link: '/explanation/adr-002-retire-node-layout/',
-                },
-                {
-                  label: 'ADR-003: Non-normative engine extras',
-                  link: '/explanation/adr-003-non-normative-engine-extras/',
-                },
-                {
-                  label: 'ADR-004: Presenter-first rewrite',
-                  link: '/explanation/adr-004-presenter-first-rewrite/',
-                },
-              ],
-            },
-          ],
-        },
       ],
     }),
   ],

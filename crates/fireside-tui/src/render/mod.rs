@@ -8,16 +8,24 @@
 
 pub mod blocks;
 pub mod markdown;
+pub mod syntax;
 
 use fireside_core::ViewMode;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout, Margin, Rect};
-use ratatui::style::Modifier;
+use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, Borders, Clear, Paragraph};
+use ratatui::widgets::{Block, BorderType, Borders, Clear, Paragraph};
 
 use crate::app::{App, FlashKind, Screen};
 use crate::theme::Tokens;
+
+/// The widest comfortable reading measure for slide content, in columns.
+const MEASURE: u16 = 76;
+/// Columns of padding between the card border and the content.
+const PAD_X: u16 = 3;
+/// Rows of padding between the card border and the content.
+const PAD_Y: u16 = 1;
 
 /// Paint one frame.
 pub fn draw(frame: &mut Frame, app: &App) {
@@ -53,29 +61,60 @@ pub fn draw(frame: &mut Frame, app: &App) {
 /// `App::update` so scrolling clamps to real geometry.
 #[must_use]
 pub fn max_scroll(app: &App, width: u16, height: u16) -> u16 {
-    let (_, mut content, _) = areas(app.view_mode(), Rect::new(0, 0, width, height));
-    if let Some(notes) = notes_panel(app, content) {
-        content.height = content.height.saturating_sub(notes.height);
+    let (_, mut body, _) = areas(app.view_mode(), Rect::new(0, 0, width, height));
+    if let Some(notes) = notes_panel(app, body) {
+        body.height = body.height.saturating_sub(notes.height);
     }
-    let total = node_lines(app, content.width, &Tokens::default()).len() as u16;
-    total.saturating_sub(content.height)
+    let surf = surface(app.view_mode(), body);
+    let total = node_lines(app, surf.width, &Tokens::default()).len() as u16;
+    total.saturating_sub(surf.height)
 }
 
-/// Split the frame into header / content / footer for the view mode.
+/// Split the frame into header / body / footer for the view mode.
 fn areas(view: ViewMode, area: Rect) -> (Option<Rect>, Rect, Rect) {
     match view {
         ViewMode::Default => {
             let [header, body, footer] =
-                Layout::vertical([Constraint::Length(1), Constraint::Fill(1), Constraint::Length(1)])
+                Layout::vertical([Constraint::Length(2), Constraint::Fill(1), Constraint::Length(1)])
                     .areas(area);
-            let content = body.inner(Margin { horizontal: 3, vertical: 1 });
-            (Some(header), content, footer)
+            (Some(header), body, footer)
         }
         ViewMode::Fullscreen => {
             let [body, footer] =
                 Layout::vertical([Constraint::Fill(1), Constraint::Length(1)]).areas(area);
-            let content = body.inner(Margin { horizontal: 1, vertical: 0 });
-            (None, content, footer)
+            (None, body, footer)
+        }
+    }
+}
+
+/// The slide surface: the columns and rows content lines get, and whether a
+/// bordered card frames them. Fullscreen and too-small terminals get a bare
+/// flow at (almost) full width; the default view gets a centered card capped
+/// at a readable measure.
+struct Surface {
+    width: u16,
+    height: u16,
+    card: bool,
+}
+
+fn surface(view: ViewMode, body: Rect) -> Surface {
+    let chrome_w = 2 + 2 * PAD_X;
+    let chrome_h = 2 + 2 * PAD_Y;
+    let card = view == ViewMode::Default
+        && body.width >= chrome_w + 16
+        && body.height >= chrome_h + 3;
+    if card {
+        let card_width = body.width.min(MEASURE + chrome_w);
+        Surface {
+            width: card_width - chrome_w,
+            height: body.height - chrome_h,
+            card: true,
+        }
+    } else {
+        Surface {
+            width: body.width.saturating_sub(2),
+            height: body.height,
+            card: false,
         }
     }
 }
@@ -88,12 +127,14 @@ fn draw_header(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
     let seen = app.session().visited().len();
     let total = graph.nodes.len();
 
+    let [text_row, rule_row] =
+        Layout::vertical([Constraint::Length(1), Constraint::Length(1)]).areas(area);
     frame.render_widget(
         Paragraph::new(Line::from(vec![
             Span::raw(" "),
             Span::styled(deck.to_owned(), tokens.accent.add_modifier(Modifier::BOLD)),
         ])),
-        area,
+        text_row,
     );
     frame.render_widget(
         Paragraph::new(Line::from(vec![
@@ -101,7 +142,11 @@ fn draw_header(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
             Span::styled(format!("  ·  {seen}/{total} seen "), tokens.muted),
         ]))
         .alignment(Alignment::Right),
-        area,
+        text_row,
+    );
+    frame.render_widget(
+        Paragraph::new(Line::styled("─".repeat(rule_row.width as usize), tokens.border)),
+        rule_row,
     );
 }
 
@@ -158,32 +203,63 @@ fn node_lines(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     lines
 }
 
-fn draw_content(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
-    let lines = node_lines(app, area.width, tokens);
+fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
+    let surf = surface(app.view_mode(), body);
+    let lines = node_lines(app, surf.width, tokens);
     let total = lines.len() as u16;
+    // During a fade-in the whole slide starts dim and brightens.
+    let base = if app.fading() {
+        Style::new().add_modifier(Modifier::DIM)
+    } else {
+        Style::new()
+    };
 
-    if total <= area.height {
-        // The page fits: center it vertically, like a slide.
-        let pad = (area.height - total) / 2;
-        let target = Rect { y: area.y + pad, height: total, ..area };
-        frame.render_widget(Paragraph::new(Text::from(lines)), target);
-        return;
-    }
+    let inner = if surf.card {
+        // The slide card: horizontally centered at a readable measure,
+        // vertically centered when the content fits, filling when it scrolls.
+        let card_width = surf.width + 2 + 2 * PAD_X;
+        let inner_height = total.min(surf.height);
+        let card_height = inner_height + 2 + 2 * PAD_Y;
+        let card_area = Rect {
+            x: body.x + (body.width - card_width) / 2,
+            y: body.y + (body.height - card_height) / 2,
+            width: card_width,
+            height: card_height,
+        };
+        let block = Block::bordered()
+            .border_type(BorderType::Rounded)
+            .border_style(tokens.border.patch(base));
+        let inner = block
+            .inner(card_area)
+            .inner(Margin { horizontal: PAD_X, vertical: PAD_Y });
+        frame.render_widget(block, card_area);
+        inner
+    } else {
+        // Bare flow (fullscreen, tiny terminals): centered when it fits.
+        let width = surf.width.min(body.width);
+        let height = total.min(body.height);
+        Rect {
+            x: body.x + (body.width - width) / 2,
+            y: body.y + (body.height - height) / 2,
+            width,
+            height,
+        }
+    };
 
-    let max = total - area.height;
+    let max = total.saturating_sub(inner.height);
     let scroll = app.scroll().min(max);
     let visible: Vec<Line<'static>> = lines
         .into_iter()
         .skip(scroll as usize)
-        .take(area.height as usize)
+        .take(inner.height as usize)
         .collect();
-    frame.render_widget(Paragraph::new(Text::from(visible)), area);
+    frame.render_widget(Paragraph::new(Text::from(visible)).style(base), inner);
 
     if scroll > 0 {
-        indicator(frame, area, 0, "▲", tokens);
+        indicator(frame, inner, 0, "▲", tokens);
     }
     if scroll < max {
-        indicator(frame, area, area.height.saturating_sub(1), "▼ more (↓)", tokens);
+        indicator(frame, inner, inner.height.saturating_sub(1), "▼ more (↓)", tokens);
     }
 }
 
@@ -294,6 +370,7 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
     let rect = overlay_rect(area, 50, KEYS.len() as u16 + 4);
     frame.render_widget(Clear, rect);
     let block = Block::bordered()
+        .border_type(BorderType::Rounded)
         .border_style(tokens.border)
         .title(Span::styled(" Keys ".to_owned(), tokens.accent.add_modifier(Modifier::BOLD)));
     let inner = block.inner(rect);
@@ -319,6 +396,7 @@ fn draw_map(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &
     let rect = overlay_rect(area, 56, nodes.len() as u16 + 5);
     frame.render_widget(Clear, rect);
     let block = Block::bordered()
+        .border_type(BorderType::Rounded)
         .border_style(tokens.border)
         .title(Span::styled(
             " Map — Enter jumps ".to_owned(),
@@ -544,5 +622,109 @@ mod tests {
         let app = app();
         let s = screen(&app, 9, 3);
         assert!(s.contains("Too small"));
+    }
+
+    /// Render and return the raw buffer for style-level assertions.
+    fn buffer(app: &App, width: u16, height: u16) -> ratatui::buffer::Buffer {
+        let mut terminal = Terminal::new(TestBackend::new(width, height)).expect("backend");
+        terminal.draw(|f| draw(f, app)).expect("draw");
+        terminal.backend().buffer().clone()
+    }
+
+    /// The (x, y) of the first cell where `needle` starts on screen.
+    fn locate(buf: &ratatui::buffer::Buffer, width: u16, height: u16, needle: &str) -> (u16, u16) {
+        for y in 0..height {
+            let row: String = (0..width).map(|x| buf[(x, y)].symbol()).collect();
+            if let Some(col) = row.find(needle) {
+                let x = row[..col].chars().count() as u16;
+                return (x, y);
+            }
+        }
+        panic!("{needle:?} not on screen");
+    }
+
+    #[test]
+    fn default_view_frames_the_slide_in_a_rounded_card() {
+        let app = app();
+        let s = screen(&app, 80, 24);
+        assert!(s.contains('╭') && s.contains('╰'), "card corners visible");
+        assert!(s.contains("─────"), "header rule visible");
+    }
+
+    #[test]
+    fn wide_terminals_keep_a_readable_measure() {
+        let app = app();
+        let buf = buffer(&app, 200, 40);
+        let (x, _) = locate(&buf, 200, 40, "╭");
+        // Card is capped at MEASURE + chrome (84), centered: left edge at 58.
+        assert_eq!(x, 58, "card centered at the measure cap, not full width");
+    }
+
+    #[test]
+    fn fullscreen_uses_the_full_width_not_the_measure() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char('a')); // code-demo is fullscreen
+        let s = screen(&app, 120, 30);
+        assert!(!s.contains('╭'), "no card in fullscreen");
+        let rule_row = s
+            .lines()
+            .find(|l| l.contains("─ rust "))
+            .expect("code header rule");
+        assert!(rule_row.trim_end().chars().count() > 100, "code box spans the width");
+    }
+
+    #[test]
+    fn code_gets_syntax_colors_from_the_theme() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char('a')); // code-demo
+        let (w, h) = (100, 30);
+        let buf = buffer(&app, w, h);
+        let (x, y) = locate(&buf, w, h, "fn main");
+        assert_eq!(
+            buf[(x, y)].style().fg,
+            Some(ratatui::style::Color::Magenta),
+            "keywords use the keyword token"
+        );
+    }
+
+    #[test]
+    fn highlight_lines_dim_the_rest_and_keep_focus_bright() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char('a')); // code-demo highlights lines 2-3
+        let (w, h) = (100, 30);
+        let buf = buffer(&app, w, h);
+        let (x1, y1) = locate(&buf, w, h, "fn main");
+        assert!(
+            buf[(x1, y1)].style().add_modifier.contains(Modifier::DIM),
+            "unhighlighted line is dimmed"
+        );
+        let (x2, y2) = locate(&buf, w, h, "let graph");
+        assert!(
+            !buf[(x2, y2)].style().add_modifier.contains(Modifier::DIM),
+            "highlighted line keeps full brightness"
+        );
+    }
+
+    #[test]
+    fn fade_transition_starts_dim_and_is_only_for_fade_nodes() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' ')); // features: transition none
+        assert!(!app.fading(), "no fade on transition: none");
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char('c')); // thanks: transition fade
+        assert!(app.fading(), "fade node enters its fade window");
+        let (w, h) = (80, 24);
+        let buf = buffer(&app, w, h);
+        let (x, y) = locate(&buf, w, h, "Thanks!");
+        assert!(
+            buf[(x, y)].style().add_modifier.contains(Modifier::DIM),
+            "slide starts dim during the fade"
+        );
     }
 }

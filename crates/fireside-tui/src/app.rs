@@ -9,13 +9,16 @@
 use std::time::{Duration, Instant};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use fireside_core::ViewMode;
+use fireside_core::{Transition, ViewMode};
 use fireside_engine::{Outcome, Session};
 
 use crate::render;
 
 /// How long feedback messages stay on screen.
 const FLASH_DURATION: Duration = Duration::from_millis(3000);
+
+/// How long a slide's fade-in lasts: one dim beat, then full brightness.
+const FADE_DURATION: Duration = Duration::from_millis(90);
 
 /// Which screen the presenter is looking at.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -60,6 +63,7 @@ pub struct App {
     view_override: Option<ViewMode>,
     show_notes: bool,
     flash: Option<Flash>,
+    fade_started: Option<Instant>,
     viewport: (u16, u16),
     quit: bool,
 }
@@ -76,6 +80,7 @@ impl App {
             view_override: None,
             show_notes: false,
             flash: None,
+            fade_started: None,
             viewport: (80, 24),
             quit: false,
         }
@@ -121,6 +126,15 @@ impl App {
     #[must_use]
     pub fn should_quit(&self) -> bool {
         self.quit
+    }
+
+    /// Whether the current slide is inside its brief fade-in window. The
+    /// renderer dims the slide while this holds; the event loop polls fast
+    /// so the brighten lands on time.
+    #[must_use]
+    pub fn fading(&self) -> bool {
+        self.fade_started
+            .is_some_and(|started| started.elapsed() < FADE_DURATION)
     }
 
     /// The view mode in effect: the presenter's runtime toggle wins over the
@@ -308,6 +322,12 @@ impl App {
                 self.scroll = 0;
                 self.branch_selected = 0;
                 self.flash = None;
+                let fades = self
+                    .session
+                    .current()
+                    .resolved_transition(self.session.defaults())
+                    == Transition::Fade;
+                self.fade_started = fades.then(Instant::now);
             }
             Outcome::BlockedByBranch => {
                 self.set_flash("This slide asks for a choice — ↑↓ then Enter", FlashKind::Info);

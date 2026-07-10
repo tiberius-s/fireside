@@ -12,9 +12,10 @@ canonical document — it must parse, validate, and present correctly after
 every change.
 
 Never add a field, enum variant, or traversal behavior that is not in the
-spec. The reference engine implements protocol 0.1.0 exactly (see ADR-004);
-any extension must be specified first and registered in the spec's
-"Engine Extensions" appendix.
+spec. The reference engine implements protocol 0.1.0 exactly (see ADR-004 in
+`.claude/adrs/`); any extension must be specified first and registered in the
+spec's "Engine Extensions" appendix. ADRs are developer artifacts and live in
+`.claude/adrs/`, not on the docs site.
 
 ## Product North Star
 
@@ -39,7 +40,7 @@ The workspace MSRV is **1.88** (`resolver = "3"`, 2024 edition).
 | ----------------- | ---------------------------------------------------------------------------- | --------------------------------------------------- |
 | `fireside-core`   | `serde`, `serde_json`, `thiserror`                                           | Any I/O, UI, validation, or rendering code          |
 | `fireside-engine` | `fireside-core`, `thiserror`                                                 | File I/O, ratatui, crossterm, clap, anyhow          |
-| `fireside-tui`    | `fireside-core`, `fireside-engine`, `ratatui`, `crossterm`, `unicode-width`, `thiserror` | Direct file I/O, business logic duplication |
+| `fireside-tui`    | `fireside-core`, `fireside-engine`, `ratatui`, `crossterm`, `unicode-width`, `syntect`, `two-face`, `thiserror` | Direct file I/O, business logic duplication |
 | `fireside-cli`    | All workspace crates, `clap`, `anyhow`, `serde_json`                         | State management, rendering outside `fireside-tui`  |
 
 Any recommendation that would add a dependency violating these boundaries must

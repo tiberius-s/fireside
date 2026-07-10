@@ -16,10 +16,22 @@ pub struct Tokens {
     pub muted: Style,
     /// Brand accent: deck title, prompts, selection markers.
     pub accent: Style,
-    /// Code block text.
+    /// Code block text (plain / unrecognized tokens).
     pub code: Style,
-    /// Emphasized (highlighted) code lines.
+    /// Emphasized (highlighted) code lines when no syntax colors apply.
     pub code_highlight: Style,
+    /// Code: keywords and storage words (`fn`, `let`, `if`, `return`).
+    pub code_keyword: Style,
+    /// Code: string literals.
+    pub code_string: Style,
+    /// Code: comments.
+    pub code_comment: Style,
+    /// Code: function names at definition and call sites.
+    pub code_function: Style,
+    /// Code: type, class, and other entity names.
+    pub code_type: Style,
+    /// Code: numeric and language constants.
+    pub code_constant: Style,
     /// The currently selected item in menus and pickers.
     pub selected: Style,
     /// Positive feedback.
@@ -40,6 +52,12 @@ impl Default for Tokens {
             accent: Style::new().fg(Color::Cyan),
             code: Style::new().fg(Color::Gray),
             code_highlight: Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            code_keyword: Style::new().fg(Color::Magenta),
+            code_string: Style::new().fg(Color::Green),
+            code_comment: Style::new().fg(Color::DarkGray).add_modifier(Modifier::ITALIC),
+            code_function: Style::new().fg(Color::Blue),
+            code_type: Style::new().fg(Color::Cyan),
+            code_constant: Style::new().fg(Color::Yellow),
             selected: Style::new().add_modifier(Modifier::REVERSED | Modifier::BOLD),
             success: Style::new().fg(Color::Green),
             warning: Style::new().fg(Color::Yellow),
