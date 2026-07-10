@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-10)
 
 ## Corpus Check
-- 82 files · ~42,478 words
+- 82 files · ~43,043 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 926 nodes · 1373 edges · 68 communities (52 shown, 16 thin omitted)
+- 936 nodes · 1409 edges · 68 communities (52 shown, 16 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 33 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f7844dbf`
+- Built from commit: `8fdb7efd`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -83,13 +83,13 @@
 - [[_COMMUNITY_Community 163|Community 163]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `App` - 28 edges
-2. `app()` - 23 edges
-3. `Session` - 20 edges
-4. `render_block()` - 20 edges
-5. `Diagnostic` - 19 edges
-6. `press()` - 18 edges
-7. `screen()` - 18 edges
+1. `App` - 30 edges
+2. `app()` - 28 edges
+3. `press()` - 23 edges
+4. `screen()` - 23 edges
+5. `Session` - 20 edges
+6. `render_block()` - 20 edges
+7. `Diagnostic` - 19 edges
 8. `Graphify Skill Pipeline` - 17 edges
 9. `Node` - 14 edges
 10. `hello_session()` - 14 edges
@@ -148,7 +148,7 @@ Nodes (27): Graphify Slash Command Trigger, AST Structural Extraction, Community
 
 ### Community 4 - "TUI App Core"
 Cohesion: 0.09
-Nodes (21): KeyCode, Option, Self, String, ViewMode, App, Graph, Result (+13 more)
+Nodes (22): KeyCode, Option, Self, String, ViewMode, App, Graph, Result (+14 more)
 
 ### Community 7 - "Editor Navigation"
 Cohesion: 0.22
@@ -259,8 +259,8 @@ Cohesion: 0.07
 Nodes (31): BranchOption, CoreError, BranchPoint, ContentBlock, Node, NodeDefaults, NodeId, Option (+23 more)
 
 ### Community 88 - "Render Module"
-Cohesion: 0.14
-Nodes (48): App, KeyCode, Line, Option, String, Tokens, Vec, ViewMode (+40 more)
+Cohesion: 0.13
+Nodes (55): App, KeyCode, Line, Option, String, Tokens, Vec, ViewMode (+47 more)
 
 ### Community 93 - "Community 93"
 Cohesion: 0.20
@@ -335,7 +335,7 @@ Nodes (9): Build and Test Commands, Crate Boundary Rules, Error Handling Stratif
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **412 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+407 more)
+- **410 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+405 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -345,14 +345,14 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Presentation Session`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _414 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _412 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.14814814814814814 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**
-  _Cohesion score 0.09413067552602436 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
 - **Should `Protocol Package` be split into smaller, more focused modules?**
   _Cohesion score 0.08 - nodes in this community are weakly interconnected._

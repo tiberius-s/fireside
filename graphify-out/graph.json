@@ -2029,7 +2029,7 @@
       "label": ".new()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L74",
+      "source_location": "L76",
       "_origin": "ast",
       "id": "src_app_app_new",
       "community": 4,
@@ -2039,7 +2039,7 @@
       "label": "Self",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L74",
+      "source_location": "L76",
       "_origin": "ast",
       "id": "crates_fireside_tui_src_app_rs_self",
       "community": 4,
@@ -2049,7 +2049,7 @@
       "label": ".session()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L91",
+      "source_location": "L95",
       "_origin": "ast",
       "id": "src_app_app_session",
       "community": 4,
@@ -2059,7 +2059,7 @@
       "label": ".screen()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L97",
+      "source_location": "L101",
       "_origin": "ast",
       "id": "src_app_app_screen",
       "community": 4,
@@ -2069,7 +2069,7 @@
       "label": ".branch_selected()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L103",
+      "source_location": "L107",
       "_origin": "ast",
       "id": "src_app_app_branch_selected",
       "community": 4,
@@ -2079,7 +2079,7 @@
       "label": ".scroll()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L109",
+      "source_location": "L113",
       "_origin": "ast",
       "id": "src_app_app_scroll",
       "community": 4,
@@ -2089,17 +2089,47 @@
       "label": ".show_notes()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L115",
+      "source_location": "L119",
       "_origin": "ast",
       "id": "src_app_app_show_notes",
       "community": 4,
       "norm_label": ".show_notes()"
     },
     {
+      "label": ".show_timer()",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/app.rs",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "src_app_app_show_timer",
+      "community": 4,
+      "norm_label": ".show_timer()"
+    },
+    {
+      "label": ".elapsed()",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/app.rs",
+      "source_location": "L131",
+      "_origin": "ast",
+      "id": "src_app_app_elapsed",
+      "community": 4,
+      "norm_label": ".elapsed()"
+    },
+    {
+      "label": "Duration",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/app.rs",
+      "source_location": "L131",
+      "_origin": "ast",
+      "id": "duration",
+      "community": 4,
+      "norm_label": "duration"
+    },
+    {
       "label": ".flash()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L121",
+      "source_location": "L137",
       "_origin": "ast",
       "id": "src_app_app_flash",
       "community": 4,
@@ -2109,7 +2139,7 @@
       "label": ".should_quit()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L127",
+      "source_location": "L143",
       "_origin": "ast",
       "id": "src_app_app_should_quit",
       "community": 4,
@@ -2119,7 +2149,7 @@
       "label": ".fading()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L135",
+      "source_location": "L151",
       "_origin": "ast",
       "id": "src_app_app_fading",
       "community": 4,
@@ -2129,7 +2159,7 @@
       "label": ".view_mode()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L144",
+      "source_location": "L160",
       "_origin": "ast",
       "id": "src_app_app_view_mode",
       "community": 4,
@@ -2139,7 +2169,7 @@
       "label": ".update()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L153",
+      "source_location": "L169",
       "_origin": "ast",
       "id": "src_app_app_update",
       "community": 4,
@@ -2149,7 +2179,7 @@
       "label": "Event",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L153",
+      "source_location": "L169",
       "_origin": "ast",
       "id": "event",
       "community": 4,
@@ -2159,7 +2189,7 @@
       "label": ".on_key()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L161",
+      "source_location": "L177",
       "_origin": "ast",
       "id": "src_app_app_on_key",
       "community": 4,
@@ -2169,7 +2199,7 @@
       "label": "KeyEvent",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L161",
+      "source_location": "L177",
       "_origin": "ast",
       "id": "keyevent",
       "community": 4,
@@ -2179,7 +2209,7 @@
       "label": ".on_map_key()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L173",
+      "source_location": "L189",
       "_origin": "ast",
       "id": "src_app_app_on_map_key",
       "community": 4,
@@ -2189,7 +2219,7 @@
       "label": "KeyCode",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L173",
+      "source_location": "L189",
       "_origin": "ast",
       "id": "crates_fireside_tui_src_app_rs_keycode",
       "community": 4,
@@ -2199,7 +2229,7 @@
       "label": ".on_present_key()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L195",
+      "source_location": "L211",
       "_origin": "ast",
       "id": "src_app_app_on_present_key",
       "community": 4,
@@ -2209,7 +2239,7 @@
       "label": ".on_branch_key()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L238",
+      "source_location": "L255",
       "_origin": "ast",
       "id": "src_app_app_on_branch_key",
       "community": 4,
@@ -2219,7 +2249,7 @@
       "label": ".on_flow_key()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L287",
+      "source_location": "L304",
       "_origin": "ast",
       "id": "src_app_app_on_flow_key",
       "community": 4,
@@ -2229,7 +2259,7 @@
       "label": ".option_for_key()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L308",
+      "source_location": "L325",
       "_origin": "ast",
       "id": "src_app_app_option_for_key",
       "community": 4,
@@ -2239,7 +2269,7 @@
       "label": ".apply()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L319",
+      "source_location": "L336",
       "_origin": "ast",
       "id": "src_app_app_apply",
       "community": 4,
@@ -2249,7 +2279,7 @@
       "label": "Outcome",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L319",
+      "source_location": "L336",
       "_origin": "ast",
       "id": "outcome",
       "community": 4,
@@ -2259,7 +2289,7 @@
       "label": ".set_flash()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L350",
+      "source_location": "L367",
       "_origin": "ast",
       "id": "src_app_app_set_flash",
       "community": 4,
@@ -2269,7 +2299,7 @@
       "label": ".max_scroll()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/app.rs",
-      "source_location": "L360",
+      "source_location": "L377",
       "_origin": "ast",
       "id": "src_app_app_max_scroll",
       "community": 4,
@@ -3026,10 +3056,20 @@
       "norm_label": "line"
     },
     {
+      "label": "end_marker()",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L207",
+      "_origin": "ast",
+      "id": "render_mod_end_marker",
+      "community": 88,
+      "norm_label": "end_marker()"
+    },
+    {
       "label": "draw_content()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L206",
+      "source_location": "L227",
       "_origin": "ast",
       "id": "render_mod_draw_content",
       "community": 88,
@@ -3039,7 +3079,7 @@
       "label": "indicator()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L266",
+      "source_location": "L287",
       "_origin": "ast",
       "id": "render_mod_indicator",
       "community": 88,
@@ -3049,7 +3089,7 @@
       "label": "notes_panel()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L278",
+      "source_location": "L299",
       "_origin": "ast",
       "id": "render_mod_notes_panel",
       "community": 88,
@@ -3059,7 +3099,7 @@
       "label": "draw_notes()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L294",
+      "source_location": "L315",
       "_origin": "ast",
       "id": "render_mod_draw_notes",
       "community": 88,
@@ -3069,17 +3109,27 @@
       "label": "draw_footer()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L311",
+      "source_location": "L332",
       "_origin": "ast",
       "id": "render_mod_draw_footer",
       "community": 88,
       "norm_label": "draw_footer()"
     },
     {
+      "label": "draw_timer()",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L371",
+      "_origin": "ast",
+      "id": "render_mod_draw_timer",
+      "community": 88,
+      "norm_label": "draw_timer()"
+    },
+    {
       "label": "overlay_rect()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L348",
+      "source_location": "L388",
       "_origin": "ast",
       "id": "render_mod_overlay_rect",
       "community": 88,
@@ -3089,7 +3139,7 @@
       "label": "draw_help()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L359",
+      "source_location": "L399",
       "_origin": "ast",
       "id": "render_mod_draw_help",
       "community": 88,
@@ -3099,7 +3149,7 @@
       "label": "draw_map()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L393",
+      "source_location": "L434",
       "_origin": "ast",
       "id": "render_mod_draw_map",
       "community": 88,
@@ -3109,7 +3159,7 @@
       "label": "app()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L442",
+      "source_location": "L483",
       "_origin": "ast",
       "id": "render_mod_app",
       "community": 88,
@@ -3119,7 +3169,7 @@
       "label": "press()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L447",
+      "source_location": "L488",
       "_origin": "ast",
       "id": "render_mod_press",
       "community": 88,
@@ -3129,7 +3179,7 @@
       "label": "KeyCode",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L447",
+      "source_location": "L488",
       "_origin": "ast",
       "id": "crates_fireside_tui_src_render_mod_rs_keycode",
       "community": 88,
@@ -3139,7 +3189,7 @@
       "label": "screen()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L452",
+      "source_location": "L493",
       "_origin": "ast",
       "id": "render_mod_screen",
       "community": 88,
@@ -3149,7 +3199,7 @@
       "label": "String",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L452",
+      "source_location": "L493",
       "_origin": "ast",
       "id": "crates_fireside_tui_src_render_mod_rs_string",
       "community": 88,
@@ -3159,7 +3209,7 @@
       "label": "first_slide_shows_title_content_and_footer_contract()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L467",
+      "source_location": "L508",
       "_origin": "ast",
       "id": "render_mod_first_slide_shows_title_content_and_footer_contract",
       "community": 88,
@@ -3169,7 +3219,7 @@
       "label": "branch_point_renders_as_a_menu_with_selection()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L477",
+      "source_location": "L518",
       "_origin": "ast",
       "id": "render_mod_branch_point_renders_as_a_menu_with_selection",
       "community": 88,
@@ -3179,7 +3229,7 @@
       "label": "space_at_branch_flashes_guidance_instead_of_moving()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L490",
+      "source_location": "L531",
       "_origin": "ast",
       "id": "render_mod_space_at_branch_flashes_guidance_instead_of_moving",
       "community": 88,
@@ -3189,7 +3239,7 @@
       "label": "arrows_and_enter_choose_an_option()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L501",
+      "source_location": "L542",
       "_origin": "ast",
       "id": "render_mod_arrows_and_enter_choose_an_option",
       "community": 88,
@@ -3199,7 +3249,7 @@
       "label": "author_hotkey_jumps_straight_to_target()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L518",
+      "source_location": "L559",
       "_origin": "ast",
       "id": "render_mod_author_hotkey_jumps_straight_to_target",
       "community": 88,
@@ -3209,17 +3259,67 @@
       "label": "terminal_node_shows_end_marker_and_next_flashes()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L527",
+      "source_location": "L568",
       "_origin": "ast",
       "id": "render_mod_terminal_node_shows_end_marker_and_next_flashes",
       "community": 88,
       "norm_label": "terminal_node_shows_end_marker_and_next_flashes()"
     },
     {
+      "label": "the_ending_is_centered_not_left_aligned()",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L583",
+      "_origin": "ast",
+      "id": "render_mod_the_ending_is_centered_not_left_aligned",
+      "community": 88,
+      "norm_label": "the_ending_is_centered_not_left_aligned()"
+    },
+    {
+      "label": "t_toggles_the_elapsed_timer()",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L600",
+      "_origin": "ast",
+      "id": "render_mod_t_toggles_the_elapsed_timer",
+      "community": 88,
+      "norm_label": "t_toggles_the_elapsed_timer()"
+    },
+    {
+      "label": "timer_survives_fullscreen_and_flash()",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L613",
+      "_origin": "ast",
+      "id": "render_mod_timer_survives_fullscreen_and_flash",
+      "community": 88,
+      "norm_label": "timer_survives_fullscreen_and_flash()"
+    },
+    {
+      "label": "every_scene_renders_at_60x18()",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L626",
+      "_origin": "ast",
+      "id": "render_mod_every_scene_renders_at_60x18",
+      "community": 88,
+      "norm_label": "every_scene_renders_at_60x18()"
+    },
+    {
+      "label": "resize_event_updates_scroll_geometry()",
+      "file_type": "code",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L650",
+      "_origin": "ast",
+      "id": "render_mod_resize_event_updates_scroll_geometry",
+      "community": 88,
+      "norm_label": "resize_event_updates_scroll_geometry()"
+    },
+    {
       "label": "back_walks_the_real_path_and_start_flashes()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L541",
+      "source_location": "L665",
       "_origin": "ast",
       "id": "render_mod_back_walks_the_real_path_and_start_flashes",
       "community": 88,
@@ -3229,7 +3329,7 @@
       "label": "fullscreen_node_hides_header_and_f_toggles_back()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L552",
+      "source_location": "L676",
       "_origin": "ast",
       "id": "render_mod_fullscreen_node_hides_header_and_f_toggles_back",
       "community": 88,
@@ -3239,7 +3339,7 @@
       "label": "map_lists_slides_marks_progress_and_jumps()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L566",
+      "source_location": "L690",
       "_origin": "ast",
       "id": "render_mod_map_lists_slides_marks_progress_and_jumps",
       "community": 88,
@@ -3249,7 +3349,7 @@
       "label": "help_overlay_opens_and_any_key_closes()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L586",
+      "source_location": "L710",
       "_origin": "ast",
       "id": "render_mod_help_overlay_opens_and_any_key_closes",
       "community": 88,
@@ -3259,7 +3359,7 @@
       "label": "speaker_notes_toggle_and_absence_flashes()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L598",
+      "source_location": "L722",
       "_origin": "ast",
       "id": "render_mod_speaker_notes_toggle_and_absence_flashes",
       "community": 88,
@@ -3269,7 +3369,7 @@
       "label": "q_quits()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L614",
+      "source_location": "L738",
       "_origin": "ast",
       "id": "render_mod_q_quits",
       "community": 88,
@@ -3279,7 +3379,7 @@
       "label": "tiny_terminal_degrades_gracefully()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L621",
+      "source_location": "L745",
       "_origin": "ast",
       "id": "render_mod_tiny_terminal_degrades_gracefully",
       "community": 88,
@@ -3289,7 +3389,7 @@
       "label": "buffer()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L628",
+      "source_location": "L752",
       "_origin": "ast",
       "id": "render_mod_buffer",
       "community": 88,
@@ -3299,7 +3399,7 @@
       "label": "locate()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L635",
+      "source_location": "L759",
       "_origin": "ast",
       "id": "render_mod_locate",
       "community": 88,
@@ -3309,7 +3409,7 @@
       "label": "default_view_frames_the_slide_in_a_rounded_card()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L647",
+      "source_location": "L771",
       "_origin": "ast",
       "id": "render_mod_default_view_frames_the_slide_in_a_rounded_card",
       "community": 88,
@@ -3319,7 +3419,7 @@
       "label": "wide_terminals_keep_a_readable_measure()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L655",
+      "source_location": "L779",
       "_origin": "ast",
       "id": "render_mod_wide_terminals_keep_a_readable_measure",
       "community": 88,
@@ -3329,7 +3429,7 @@
       "label": "fullscreen_uses_the_full_width_not_the_measure()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L664",
+      "source_location": "L788",
       "_origin": "ast",
       "id": "render_mod_fullscreen_uses_the_full_width_not_the_measure",
       "community": 88,
@@ -3339,7 +3439,7 @@
       "label": "code_gets_syntax_colors_from_the_theme()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L679",
+      "source_location": "L803",
       "_origin": "ast",
       "id": "render_mod_code_gets_syntax_colors_from_the_theme",
       "community": 88,
@@ -3349,7 +3449,7 @@
       "label": "highlight_lines_dim_the_rest_and_keep_focus_bright()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L695",
+      "source_location": "L819",
       "_origin": "ast",
       "id": "render_mod_highlight_lines_dim_the_rest_and_keep_focus_bright",
       "community": 88,
@@ -3359,7 +3459,7 @@
       "label": "fade_transition_starts_dim_and_is_only_for_fade_nodes()",
       "file_type": "code",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L715",
+      "source_location": "L839",
       "_origin": "ast",
       "id": "render_mod_fade_transition_starts_dim_and_is_only_for_fade_nodes",
       "community": 88,
@@ -13720,11 +13820,21 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/app.rs",
+      "source_location": "L131",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_app",
+      "target": "src_app_app_elapsed"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/app.rs",
       "source_location": "L135",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_app_app",
-      "target": "src_app_app_fading",
-      "confidence_score": 1.0
+      "target": "src_app_app_fading"
     },
     {
       "relation": "method",
@@ -13880,6 +13990,16 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/app.rs",
+      "source_location": "L125",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_app",
+      "target": "src_app_app_show_timer"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/app.rs",
       "source_location": "L139",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -13983,6 +14103,39 @@
       "confidence_score": 1.0,
       "source": "src_app_app_new",
       "target": "crates_fireside_tui_src_app_rs_self"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/app.rs",
+      "source_location": "L131",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "src_app_app_elapsed",
+      "target": "duration"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/app.rs",
+      "source_location": "L153",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_app_fading",
+      "target": "src_app_app_elapsed"
+    },
+    {
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/lib.rs",
+      "source_location": "L13",
+      "weight": 1.0,
+      "context": "import",
+      "confidence_score": 1.0,
+      "source": "crates_fireside_tui_src_lib_rs_src_lib",
+      "target": "duration"
     },
     {
       "relation": "calls",
@@ -14479,9 +14632,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L172",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks",
-      "target": "render_blocks_clip_spans",
-      "confidence_score": 1.0
+      "target": "render_blocks_clip_spans"
     },
     {
       "relation": "contains",
@@ -14539,9 +14692,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L100",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks",
-      "target": "render_blocks_divider",
-      "confidence_score": 1.0
+      "target": "render_blocks_divider"
     },
     {
       "relation": "contains",
@@ -14549,9 +14702,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L386",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks",
-      "target": "render_blocks_divider_is_a_short_centered_rule",
-      "confidence_score": 1.0
+      "target": "render_blocks_divider_is_a_short_centered_rule"
     },
     {
       "relation": "contains",
@@ -14579,9 +14732,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L379",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks",
-      "target": "render_blocks_h2_gets_an_accent_bar",
-      "confidence_score": 1.0
+      "target": "render_blocks_h2_gets_an_accent_bar"
     },
     {
       "relation": "contains",
@@ -14824,9 +14977,9 @@
       "source_location": "L172",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "render_blocks_clip_spans",
-      "target": "crates_fireside_tui_src_render_blocks_rs_tokens",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_blocks_rs_tokens"
     },
     {
       "relation": "references",
@@ -14868,9 +15021,9 @@
       "source_location": "L100",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "render_blocks_divider",
-      "target": "crates_fireside_tui_src_render_blocks_rs_tokens",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_blocks_rs_tokens"
     },
     {
       "relation": "references",
@@ -14934,9 +15087,9 @@
       "source_location": "L172",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "render_blocks_clip_spans",
-      "target": "crates_fireside_tui_src_render_blocks_rs_vec",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_blocks_rs_vec"
     },
     {
       "relation": "references",
@@ -14978,9 +15131,9 @@
       "source_location": "L100",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "render_blocks_divider",
-      "target": "crates_fireside_tui_src_render_blocks_rs_vec",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_blocks_rs_vec"
     },
     {
       "relation": "references",
@@ -15088,9 +15241,9 @@
       "source_location": "L100",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "render_blocks_divider",
-      "target": "crates_fireside_tui_src_render_blocks_rs_line",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_blocks_rs_line"
     },
     {
       "relation": "references",
@@ -15198,9 +15351,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L387",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks_divider_is_a_short_centered_rule",
-      "target": "render_blocks_render_block",
-      "confidence_score": 1.0
+      "target": "render_blocks_render_block"
     },
     {
       "relation": "calls",
@@ -15220,9 +15373,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L381",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks_h2_gets_an_accent_bar",
-      "target": "render_blocks_render_block",
-      "confidence_score": 1.0
+      "target": "render_blocks_render_block"
     },
     {
       "relation": "calls",
@@ -15275,9 +15428,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L57",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks_render_block",
-      "target": "render_blocks_divider",
-      "confidence_score": 1.0
+      "target": "render_blocks_divider"
     },
     {
       "relation": "calls",
@@ -15330,9 +15483,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L152",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks_code",
-      "target": "render_blocks_clip_spans",
-      "confidence_score": 1.0
+      "target": "render_blocks_clip_spans"
     },
     {
       "relation": "references",
@@ -15352,9 +15505,9 @@
       "source_location": "L172",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "render_blocks_clip_spans",
-      "target": "crates_fireside_tui_src_render_blocks_rs_span",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_blocks_rs_span"
     },
     {
       "relation": "references",
@@ -15462,9 +15615,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L387",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks_divider_is_a_short_centered_rule",
-      "target": "render_blocks_flat",
-      "confidence_score": 1.0
+      "target": "render_blocks_flat"
     },
     {
       "relation": "calls",
@@ -15484,9 +15637,9 @@
       "source_file": "crates/fireside-tui/src/render/blocks.rs",
       "source_location": "L381",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_blocks_h2_gets_an_accent_bar",
-      "target": "render_blocks_flat",
-      "confidence_score": 1.0
+      "target": "render_blocks_flat"
     },
     {
       "relation": "calls",
@@ -15993,9 +16146,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L628",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "render_mod_buffer",
-      "confidence_score": 1.0
+      "target": "render_mod_buffer"
     },
     {
       "relation": "contains",
@@ -16003,9 +16156,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L679",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "render_mod_code_gets_syntax_colors_from_the_theme",
-      "confidence_score": 1.0
+      "target": "render_mod_code_gets_syntax_colors_from_the_theme"
     },
     {
       "relation": "contains",
@@ -16013,9 +16166,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L647",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "render_mod_default_view_frames_the_slide_in_a_rounded_card",
-      "confidence_score": 1.0
+      "target": "render_mod_default_view_frames_the_slide_in_a_rounded_card"
     },
     {
       "relation": "contains",
@@ -16091,11 +16244,41 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
-      "source_location": "L715",
+      "source_location": "L371",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "render_mod",
+      "target": "render_mod_draw_timer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L207",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "render_mod",
+      "target": "render_mod_end_marker"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L626",
       "weight": 1.0,
       "source": "render_mod",
-      "target": "render_mod_fade_transition_starts_dim_and_is_only_for_fade_nodes",
+      "target": "render_mod_every_scene_renders_at_60x18",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L715",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "render_mod",
+      "target": "render_mod_fade_transition_starts_dim_and_is_only_for_fade_nodes"
     },
     {
       "relation": "contains",
@@ -16123,9 +16306,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L664",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "render_mod_fullscreen_uses_the_full_width_not_the_measure",
-      "confidence_score": 1.0
+      "target": "render_mod_fullscreen_uses_the_full_width_not_the_measure"
     },
     {
       "relation": "contains",
@@ -16143,9 +16326,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L695",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "render_mod_highlight_lines_dim_the_rest_and_keep_focus_bright",
-      "confidence_score": 1.0
+      "target": "render_mod_highlight_lines_dim_the_rest_and_keep_focus_bright"
     },
     {
       "relation": "contains",
@@ -16163,9 +16346,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L635",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "render_mod_locate",
-      "confidence_score": 1.0
+      "target": "render_mod_locate"
     },
     {
       "relation": "contains",
@@ -16241,6 +16424,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L650",
+      "weight": 1.0,
+      "source": "render_mod",
+      "target": "render_mod_resize_event_updates_scroll_geometry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L374",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -16273,8 +16466,18 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L100",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "render_mod_surface",
+      "target": "render_mod_surface"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L600",
+      "weight": 1.0,
+      "source": "render_mod",
+      "target": "render_mod_t_toggles_the_elapsed_timer",
       "confidence_score": 1.0
     },
     {
@@ -16286,6 +16489,26 @@
       "confidence_score": 1.0,
       "source": "render_mod",
       "target": "render_mod_terminal_node_shows_end_marker_and_next_flashes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L583",
+      "weight": 1.0,
+      "source": "render_mod",
+      "target": "render_mod_the_ending_is_centered_not_left_aligned",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L613",
+      "weight": 1.0,
+      "source": "render_mod",
+      "target": "render_mod_timer_survives_fullscreen_and_flash",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -16303,9 +16526,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L655",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod",
-      "target": "render_mod_wide_terminals_keep_a_readable_measure",
-      "confidence_score": 1.0
+      "target": "render_mod_wide_terminals_keep_a_readable_measure"
     },
     {
       "relation": "calls",
@@ -16314,9 +16537,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L630",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_buffer",
-      "target": "render_mod_draw",
-      "confidence_score": 1.0
+      "target": "render_mod_draw"
     },
     {
       "relation": "references",
@@ -16509,6 +16732,17 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L371",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "render_mod_draw_timer",
+      "target": "frame"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L190",
       "weight": 1.0,
       "context": "parameter_type",
@@ -16569,6 +16803,17 @@
       "context": "parameter_type",
       "confidence_score": 1.0,
       "source": "render_mod_draw_notes",
+      "target": "crates_fireside_tui_src_render_mod_rs_app"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L371",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "render_mod_draw_timer",
       "target": "crates_fireside_tui_src_render_mod_rs_app"
     },
     {
@@ -16688,9 +16933,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L131",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_draw_header",
-      "target": "render_mod_areas",
-      "confidence_score": 1.0
+      "target": "render_mod_areas"
     },
     {
       "relation": "references",
@@ -16699,9 +16944,9 @@
       "source_location": "L100",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "render_mod_surface",
-      "target": "crates_fireside_tui_src_render_mod_rs_viewmode",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_mod_rs_viewmode"
     },
     {
       "relation": "references",
@@ -16773,6 +17018,17 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L371",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "render_mod_draw_timer",
+      "target": "rect"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L190",
       "weight": 1.0,
       "context": "parameter_type",
@@ -16809,9 +17065,9 @@
       "source_location": "L100",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "render_mod_surface",
-      "target": "rect",
-      "confidence_score": 1.0
+      "target": "rect"
     },
     {
       "relation": "references",
@@ -16905,6 +17161,28 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L371",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "render_mod_draw_timer",
+      "target": "crates_fireside_tui_src_render_mod_rs_tokens"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L207",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "render_mod_end_marker",
+      "target": "crates_fireside_tui_src_render_mod_rs_tokens"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L190",
       "weight": 1.0,
       "context": "parameter_type",
@@ -16961,11 +17239,55 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L200",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "render_mod_node_lines",
+      "target": "render_mod_end_marker"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L207",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "render_mod_end_marker",
+      "target": "crates_fireside_tui_src_render_mod_rs_vec"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L207",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "confidence_score": 1.0,
+      "source": "render_mod_end_marker",
+      "target": "crates_fireside_tui_src_render_mod_rs_line"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L183",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "render_mod_draw_content",
       "target": "render_mod_indicator"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L345",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "render_mod_draw_footer",
+      "target": "render_mod_draw_timer"
     },
     {
       "relation": "calls",
@@ -17040,9 +17362,9 @@
       "source_location": "L628",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "render_mod_buffer",
-      "target": "render_mod_app",
-      "confidence_score": 1.0
+      "target": "render_mod_app"
     },
     {
       "relation": "calls",
@@ -17051,9 +17373,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L680",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_code_gets_syntax_colors_from_the_theme",
-      "target": "render_mod_app",
-      "confidence_score": 1.0
+      "target": "render_mod_app"
     },
     {
       "relation": "calls",
@@ -17062,7 +17384,18 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L648",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_default_view_frames_the_slide_in_a_rounded_card",
+      "target": "render_mod_app"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L628",
+      "weight": 1.0,
+      "source": "render_mod_every_scene_renders_at_60x18",
       "target": "render_mod_app",
       "confidence_score": 1.0
     },
@@ -17073,9 +17406,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L716",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_fade_transition_starts_dim_and_is_only_for_fade_nodes",
-      "target": "render_mod_app",
-      "confidence_score": 1.0
+      "target": "render_mod_app"
     },
     {
       "relation": "calls",
@@ -17106,9 +17439,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L665",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_fullscreen_uses_the_full_width_not_the_measure",
-      "target": "render_mod_app",
-      "confidence_score": 1.0
+      "target": "render_mod_app"
     },
     {
       "relation": "calls",
@@ -17128,9 +17461,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L696",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_highlight_lines_dim_the_rest_and_keep_focus_bright",
-      "target": "render_mod_app",
-      "confidence_score": 1.0
+      "target": "render_mod_app"
     },
     {
       "relation": "calls",
@@ -17164,6 +17497,17 @@
       "confidence_score": 1.0,
       "source": "render_mod_q_quits",
       "target": "render_mod_app"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L651",
+      "weight": 1.0,
+      "source": "render_mod_resize_event_updates_scroll_geometry",
+      "target": "render_mod_app",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -17203,11 +17547,44 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L601",
+      "weight": 1.0,
+      "source": "render_mod_t_toggles_the_elapsed_timer",
+      "target": "render_mod_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L450",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "render_mod_terminal_node_shows_end_marker_and_next_flashes",
       "target": "render_mod_app"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L584",
+      "weight": 1.0,
+      "source": "render_mod_the_ending_is_centered_not_left_aligned",
+      "target": "render_mod_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L614",
+      "weight": 1.0,
+      "source": "render_mod_timer_survives_fullscreen_and_flash",
+      "target": "render_mod_app",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -17227,9 +17604,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L656",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_wide_terminals_keep_a_readable_measure",
-      "target": "render_mod_app",
-      "confidence_score": 1.0
+      "target": "render_mod_app"
     },
     {
       "relation": "calls",
@@ -17282,7 +17659,18 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L681",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_code_gets_syntax_colors_from_the_theme",
+      "target": "render_mod_press"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L631",
+      "weight": 1.0,
+      "source": "render_mod_every_scene_renders_at_60x18",
       "target": "render_mod_press",
       "confidence_score": 1.0
     },
@@ -17293,9 +17681,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L717",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_fade_transition_starts_dim_and_is_only_for_fade_nodes",
-      "target": "render_mod_press",
-      "confidence_score": 1.0
+      "target": "render_mod_press"
     },
     {
       "relation": "calls",
@@ -17315,9 +17703,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L666",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_fullscreen_uses_the_full_width_not_the_measure",
-      "target": "render_mod_press",
-      "confidence_score": 1.0
+      "target": "render_mod_press"
     },
     {
       "relation": "calls",
@@ -17337,9 +17725,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L697",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_highlight_lines_dim_the_rest_and_keep_focus_bright",
-      "target": "render_mod_press",
-      "confidence_score": 1.0
+      "target": "render_mod_press"
     },
     {
       "relation": "calls",
@@ -17379,6 +17767,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L652",
+      "weight": 1.0,
+      "source": "render_mod_resize_event_updates_scroll_geometry",
+      "target": "render_mod_press",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L414",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -17401,11 +17800,44 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L604",
+      "weight": 1.0,
+      "source": "render_mod_t_toggles_the_elapsed_timer",
+      "target": "render_mod_press",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L451",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "render_mod_terminal_node_shows_end_marker_and_next_flashes",
       "target": "render_mod_press"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L585",
+      "weight": 1.0,
+      "source": "render_mod_the_ending_is_centered_not_left_aligned",
+      "target": "render_mod_press",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L615",
+      "weight": 1.0,
+      "source": "render_mod_timer_survives_fullscreen_and_flash",
+      "target": "render_mod_press",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -17447,7 +17879,18 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L649",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_default_view_frames_the_slide_in_a_rounded_card",
+      "target": "render_mod_screen"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L629",
+      "weight": 1.0,
+      "source": "render_mod_every_scene_renders_at_60x18",
       "target": "render_mod_screen",
       "confidence_score": 1.0
     },
@@ -17480,9 +17923,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L669",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_fullscreen_uses_the_full_width_not_the_measure",
-      "target": "render_mod_screen",
-      "confidence_score": 1.0
+      "target": "render_mod_screen"
     },
     {
       "relation": "calls",
@@ -17507,6 +17950,17 @@
       "target": "render_mod_screen"
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L660",
+      "weight": 1.0,
+      "source": "render_mod_resize_event_updates_scroll_geometry",
+      "target": "render_mod_screen",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
@@ -17524,9 +17978,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L455",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_screen",
-      "target": "render_mod_buffer",
-      "confidence_score": 1.0
+      "target": "render_mod_buffer"
     },
     {
       "relation": "calls",
@@ -17555,11 +18009,44 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L602",
+      "weight": 1.0,
+      "source": "render_mod_t_toggles_the_elapsed_timer",
+      "target": "render_mod_screen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L454",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "render_mod_terminal_node_shows_end_marker_and_next_flashes",
       "target": "render_mod_screen"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L588",
+      "weight": 1.0,
+      "source": "render_mod_the_ending_is_centered_not_left_aligned",
+      "target": "render_mod_screen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-tui/src/render/mod.rs",
+      "source_location": "L617",
+      "weight": 1.0,
+      "source": "render_mod_timer_survives_fullscreen_and_flash",
+      "target": "render_mod_screen",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -17579,9 +18066,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L685",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_code_gets_syntax_colors_from_the_theme",
-      "target": "render_mod_buffer",
-      "confidence_score": 1.0
+      "target": "render_mod_buffer"
     },
     {
       "relation": "calls",
@@ -17590,9 +18077,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L723",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_fade_transition_starts_dim_and_is_only_for_fade_nodes",
-      "target": "render_mod_buffer",
-      "confidence_score": 1.0
+      "target": "render_mod_buffer"
     },
     {
       "relation": "calls",
@@ -17601,9 +18088,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L701",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_highlight_lines_dim_the_rest_and_keep_focus_bright",
-      "target": "render_mod_buffer",
-      "confidence_score": 1.0
+      "target": "render_mod_buffer"
     },
     {
       "relation": "references",
@@ -17612,9 +18099,9 @@
       "source_location": "L635",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "render_mod_locate",
-      "target": "render_mod_buffer",
-      "confidence_score": 1.0
+      "target": "render_mod_buffer"
     },
     {
       "relation": "calls",
@@ -17623,9 +18110,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L657",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_wide_terminals_keep_a_readable_measure",
-      "target": "render_mod_buffer",
-      "confidence_score": 1.0
+      "target": "render_mod_buffer"
     },
     {
       "relation": "calls",
@@ -17634,9 +18121,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L686",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_code_gets_syntax_colors_from_the_theme",
-      "target": "render_mod_locate",
-      "confidence_score": 1.0
+      "target": "render_mod_locate"
     },
     {
       "relation": "calls",
@@ -17645,9 +18132,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L724",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_fade_transition_starts_dim_and_is_only_for_fade_nodes",
-      "target": "render_mod_locate",
-      "confidence_score": 1.0
+      "target": "render_mod_locate"
     },
     {
       "relation": "calls",
@@ -17656,9 +18143,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L702",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_highlight_lines_dim_the_rest_and_keep_focus_bright",
-      "target": "render_mod_locate",
-      "confidence_score": 1.0
+      "target": "render_mod_locate"
     },
     {
       "relation": "calls",
@@ -17667,9 +18154,9 @@
       "source_file": "crates/fireside-tui/src/render/mod.rs",
       "source_location": "L658",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_mod_wide_terminals_keep_a_readable_measure",
-      "target": "render_mod_locate",
-      "confidence_score": 1.0
+      "target": "render_mod_locate"
     },
     {
       "relation": "imports_from",
@@ -17678,9 +18165,9 @@
       "source_location": "L11",
       "weight": 1.0,
       "context": "import",
+      "confidence_score": 1.0,
       "source": "render_syntax",
-      "target": "crates_fireside_tui_src_render_syntax_rs_span",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_syntax_rs_span"
     },
     {
       "relation": "imports_from",
@@ -17689,9 +18176,9 @@
       "source_location": "L10",
       "weight": 1.0,
       "context": "import",
+      "confidence_score": 1.0,
       "source": "render_syntax",
-      "target": "crates_fireside_tui_src_render_syntax_rs_style",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_syntax_rs_style"
     },
     {
       "relation": "imports_from",
@@ -17700,9 +18187,9 @@
       "source_location": "L14",
       "weight": 1.0,
       "context": "import",
+      "confidence_score": 1.0,
       "source": "render_syntax",
-      "target": "crates_fireside_tui_src_render_syntax_rs_tokens",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_syntax_rs_tokens"
     },
     {
       "relation": "contains",
@@ -17710,9 +18197,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax",
-      "target": "render_syntax_highlight",
-      "confidence_score": 1.0
+      "target": "render_syntax_highlight"
     },
     {
       "relation": "contains",
@@ -17720,9 +18207,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L130",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax",
-      "target": "render_syntax_row_text_reassembles_the_source_exactly",
-      "confidence_score": 1.0
+      "target": "render_syntax_row_text_reassembles_the_source_exactly"
     },
     {
       "relation": "contains",
@@ -17730,9 +18217,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L101",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax",
-      "target": "render_syntax_rust_keywords_strings_and_comments_get_distinct_styles",
-      "confidence_score": 1.0
+      "target": "render_syntax_rust_keywords_strings_and_comments_get_distinct_styles"
     },
     {
       "relation": "contains",
@@ -17740,9 +18227,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L68",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax",
-      "target": "render_syntax_style_for",
-      "confidence_score": 1.0
+      "target": "render_syntax_style_for"
     },
     {
       "relation": "contains",
@@ -17750,9 +18237,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax",
-      "target": "render_syntax_syntax_set",
-      "confidence_score": 1.0
+      "target": "render_syntax_syntax_set"
     },
     {
       "relation": "contains",
@@ -17760,9 +18247,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L123",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax",
-      "target": "render_syntax_unknown_language_returns_none",
-      "confidence_score": 1.0
+      "target": "render_syntax_unknown_language_returns_none"
     },
     {
       "relation": "calls",
@@ -17771,9 +18258,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax_highlight",
-      "target": "render_syntax_syntax_set",
-      "confidence_score": 1.0
+      "target": "render_syntax_syntax_set"
     },
     {
       "relation": "references",
@@ -17782,9 +18269,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "render_syntax_syntax_set",
-      "target": "syntaxset",
-      "confidence_score": 1.0
+      "target": "syntaxset"
     },
     {
       "relation": "references",
@@ -17793,9 +18280,9 @@
       "source_location": "L27",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "render_syntax_highlight",
-      "target": "crates_fireside_tui_src_render_syntax_rs_option",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_syntax_rs_option"
     },
     {
       "relation": "references",
@@ -17804,9 +18291,9 @@
       "source_location": "L27",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "render_syntax_highlight",
-      "target": "crates_fireside_tui_src_render_syntax_rs_span",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_syntax_rs_span"
     },
     {
       "relation": "references",
@@ -17815,9 +18302,9 @@
       "source_location": "L27",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "render_syntax_highlight",
-      "target": "crates_fireside_tui_src_render_syntax_rs_tokens",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_syntax_rs_tokens"
     },
     {
       "relation": "references",
@@ -17826,9 +18313,9 @@
       "source_location": "L27",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "render_syntax_highlight",
-      "target": "crates_fireside_tui_src_render_syntax_rs_vec",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_syntax_rs_vec"
     },
     {
       "relation": "calls",
@@ -17837,9 +18324,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L50",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax_highlight",
-      "target": "render_syntax_style_for",
-      "confidence_score": 1.0
+      "target": "render_syntax_style_for"
     },
     {
       "relation": "calls",
@@ -17848,9 +18335,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L133",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax_row_text_reassembles_the_source_exactly",
-      "target": "render_syntax_highlight",
-      "confidence_score": 1.0
+      "target": "render_syntax_highlight"
     },
     {
       "relation": "calls",
@@ -17859,9 +18346,9 @@
       "source_file": "crates/fireside-tui/src/render/syntax.rs",
       "source_location": "L103",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "render_syntax_rust_keywords_strings_and_comments_get_distinct_styles",
-      "target": "render_syntax_highlight",
-      "confidence_score": 1.0
+      "target": "render_syntax_highlight"
     },
     {
       "relation": "references",
@@ -17870,9 +18357,9 @@
       "source_location": "L68",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "render_syntax_style_for",
-      "target": "crates_fireside_tui_src_render_syntax_rs_tokens",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_syntax_rs_tokens"
     },
     {
       "relation": "references",
@@ -17881,9 +18368,9 @@
       "source_location": "L68",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "render_syntax_style_for",
-      "target": "crates_fireside_tui_src_render_syntax_rs_style",
-      "confidence_score": 1.0
+      "target": "crates_fireside_tui_src_render_syntax_rs_style"
     },
     {
       "relation": "references",
@@ -17892,9 +18379,9 @@
       "source_location": "L68",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "render_syntax_style_for",
-      "target": "scopestack",
-      "confidence_score": 1.0
+      "target": "scopestack"
     },
     {
       "relation": "imports_from",
@@ -19186,9 +19673,9 @@
       "source_file": ".claude/adrs/adr-001-remove-traversal-after.md",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_001_remove_traversal_after",
-      "target": "adrs_adr_001_remove_traversal_after_adr_001_remove_traversal_after",
-      "confidence_score": 1.0
+      "target": "adrs_adr_001_remove_traversal_after_adr_001_remove_traversal_after"
     },
     {
       "relation": "contains",
@@ -19196,9 +19683,9 @@
       "source_file": ".claude/adrs/adr-001-remove-traversal-after.md",
       "source_location": "L49",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_001_remove_traversal_after_adr_001_remove_traversal_after",
-      "target": "adrs_adr_001_remove_traversal_after_consequences",
-      "confidence_score": 1.0
+      "target": "adrs_adr_001_remove_traversal_after_consequences"
     },
     {
       "relation": "contains",
@@ -19206,9 +19693,9 @@
       "source_file": ".claude/adrs/adr-001-remove-traversal-after.md",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_001_remove_traversal_after_adr_001_remove_traversal_after",
-      "target": "adrs_adr_001_remove_traversal_after_context",
-      "confidence_score": 1.0
+      "target": "adrs_adr_001_remove_traversal_after_context"
     },
     {
       "relation": "contains",
@@ -19216,9 +19703,9 @@
       "source_file": ".claude/adrs/adr-001-remove-traversal-after.md",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_001_remove_traversal_after_adr_001_remove_traversal_after",
-      "target": "adrs_adr_001_remove_traversal_after_decision",
-      "confidence_score": 1.0
+      "target": "adrs_adr_001_remove_traversal_after_decision"
     },
     {
       "relation": "contains",
@@ -19226,9 +19713,9 @@
       "source_file": ".claude/adrs/adr-001-remove-traversal-after.md",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_001_remove_traversal_after_adr_001_remove_traversal_after",
-      "target": "adrs_adr_001_remove_traversal_after_status",
-      "confidence_score": 1.0
+      "target": "adrs_adr_001_remove_traversal_after_status"
     },
     {
       "relation": "contains",
@@ -19236,9 +19723,9 @@
       "source_file": ".claude/adrs/adr-001-remove-traversal-after.md",
       "source_location": "L60",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_001_remove_traversal_after_consequences",
-      "target": "adrs_adr_001_remove_traversal_after_negative_or_trade_offs",
-      "confidence_score": 1.0
+      "target": "adrs_adr_001_remove_traversal_after_negative_or_trade_offs"
     },
     {
       "relation": "contains",
@@ -19246,9 +19733,9 @@
       "source_file": ".claude/adrs/adr-001-remove-traversal-after.md",
       "source_location": "L67",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_001_remove_traversal_after_consequences",
-      "target": "adrs_adr_001_remove_traversal_after_neutral_follow_up",
-      "confidence_score": 1.0
+      "target": "adrs_adr_001_remove_traversal_after_neutral_follow_up"
     },
     {
       "relation": "contains",
@@ -19256,9 +19743,9 @@
       "source_file": ".claude/adrs/adr-001-remove-traversal-after.md",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_001_remove_traversal_after_consequences",
-      "target": "adrs_adr_001_remove_traversal_after_positive",
-      "confidence_score": 1.0
+      "target": "adrs_adr_001_remove_traversal_after_positive"
     },
     {
       "relation": "contains",
@@ -19266,9 +19753,9 @@
       "source_file": ".claude/adrs/adr-002-retire-node-layout.md",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_002_retire_node_layout",
-      "target": "adrs_adr_002_retire_node_layout_adr_002_retire_node_level_layout_in_favor_of_view_mode_container_layouts",
-      "confidence_score": 1.0
+      "target": "adrs_adr_002_retire_node_layout_adr_002_retire_node_level_layout_in_favor_of_view_mode_container_layouts"
     },
     {
       "relation": "contains",
@@ -19276,9 +19763,9 @@
       "source_file": ".claude/adrs/adr-002-retire-node-layout.md",
       "source_location": "L66",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_002_retire_node_layout_adr_002_retire_node_level_layout_in_favor_of_view_mode_container_layouts",
-      "target": "adrs_adr_002_retire_node_layout_consequences",
-      "confidence_score": 1.0
+      "target": "adrs_adr_002_retire_node_layout_consequences"
     },
     {
       "relation": "contains",
@@ -19286,9 +19773,9 @@
       "source_file": ".claude/adrs/adr-002-retire-node-layout.md",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_002_retire_node_layout_adr_002_retire_node_level_layout_in_favor_of_view_mode_container_layouts",
-      "target": "adrs_adr_002_retire_node_layout_context",
-      "confidence_score": 1.0
+      "target": "adrs_adr_002_retire_node_layout_context"
     },
     {
       "relation": "contains",
@@ -19296,9 +19783,9 @@
       "source_file": ".claude/adrs/adr-002-retire-node-layout.md",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_002_retire_node_layout_adr_002_retire_node_level_layout_in_favor_of_view_mode_container_layouts",
-      "target": "adrs_adr_002_retire_node_layout_decision",
-      "confidence_score": 1.0
+      "target": "adrs_adr_002_retire_node_layout_decision"
     },
     {
       "relation": "contains",
@@ -19306,9 +19793,9 @@
       "source_file": ".claude/adrs/adr-002-retire-node-layout.md",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_002_retire_node_layout_adr_002_retire_node_level_layout_in_favor_of_view_mode_container_layouts",
-      "target": "adrs_adr_002_retire_node_layout_status",
-      "confidence_score": 1.0
+      "target": "adrs_adr_002_retire_node_layout_status"
     },
     {
       "relation": "contains",
@@ -19316,9 +19803,9 @@
       "source_file": ".claude/adrs/adr-002-retire-node-layout.md",
       "source_location": "L77",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_002_retire_node_layout_consequences",
-      "target": "adrs_adr_002_retire_node_layout_negative_or_trade_offs",
-      "confidence_score": 1.0
+      "target": "adrs_adr_002_retire_node_layout_negative_or_trade_offs"
     },
     {
       "relation": "contains",
@@ -19326,9 +19813,9 @@
       "source_file": ".claude/adrs/adr-002-retire-node-layout.md",
       "source_location": "L87",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_002_retire_node_layout_consequences",
-      "target": "adrs_adr_002_retire_node_layout_neutral_follow_up",
-      "confidence_score": 1.0
+      "target": "adrs_adr_002_retire_node_layout_neutral_follow_up"
     },
     {
       "relation": "contains",
@@ -19336,9 +19823,9 @@
       "source_file": ".claude/adrs/adr-002-retire-node-layout.md",
       "source_location": "L68",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_002_retire_node_layout_consequences",
-      "target": "adrs_adr_002_retire_node_layout_positive",
-      "confidence_score": 1.0
+      "target": "adrs_adr_002_retire_node_layout_positive"
     },
     {
       "relation": "contains",
@@ -19346,9 +19833,9 @@
       "source_file": ".claude/adrs/adr-003-non-normative-engine-extras.md",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_003_non_normative_engine_extras",
-      "target": "adrs_adr_003_non_normative_engine_extras_adr_003_non_normative_engine_extras",
-      "confidence_score": 1.0
+      "target": "adrs_adr_003_non_normative_engine_extras_adr_003_non_normative_engine_extras"
     },
     {
       "relation": "contains",
@@ -19356,9 +19843,9 @@
       "source_file": ".claude/adrs/adr-003-non-normative-engine-extras.md",
       "source_location": "L52",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_003_non_normative_engine_extras_adr_003_non_normative_engine_extras",
-      "target": "adrs_adr_003_non_normative_engine_extras_consequences",
-      "confidence_score": 1.0
+      "target": "adrs_adr_003_non_normative_engine_extras_consequences"
     },
     {
       "relation": "contains",
@@ -19366,9 +19853,9 @@
       "source_file": ".claude/adrs/adr-003-non-normative-engine-extras.md",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_003_non_normative_engine_extras_adr_003_non_normative_engine_extras",
-      "target": "adrs_adr_003_non_normative_engine_extras_context",
-      "confidence_score": 1.0
+      "target": "adrs_adr_003_non_normative_engine_extras_context"
     },
     {
       "relation": "contains",
@@ -19376,9 +19863,9 @@
       "source_file": ".claude/adrs/adr-003-non-normative-engine-extras.md",
       "source_location": "L41",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_003_non_normative_engine_extras_adr_003_non_normative_engine_extras",
-      "target": "adrs_adr_003_non_normative_engine_extras_decision",
-      "confidence_score": 1.0
+      "target": "adrs_adr_003_non_normative_engine_extras_decision"
     },
     {
       "relation": "contains",
@@ -19386,9 +19873,9 @@
       "source_file": ".claude/adrs/adr-003-non-normative-engine-extras.md",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_003_non_normative_engine_extras_adr_003_non_normative_engine_extras",
-      "target": "adrs_adr_003_non_normative_engine_extras_status",
-      "confidence_score": 1.0
+      "target": "adrs_adr_003_non_normative_engine_extras_status"
     },
     {
       "relation": "contains",
@@ -19396,9 +19883,9 @@
       "source_file": ".claude/adrs/adr-003-non-normative-engine-extras.md",
       "source_location": "L60",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_003_non_normative_engine_extras_consequences",
-      "target": "adrs_adr_003_non_normative_engine_extras_negative_or_trade_offs",
-      "confidence_score": 1.0
+      "target": "adrs_adr_003_non_normative_engine_extras_negative_or_trade_offs"
     },
     {
       "relation": "contains",
@@ -19406,9 +19893,9 @@
       "source_file": ".claude/adrs/adr-003-non-normative-engine-extras.md",
       "source_location": "L68",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_003_non_normative_engine_extras_consequences",
-      "target": "adrs_adr_003_non_normative_engine_extras_neutral_follow_up",
-      "confidence_score": 1.0
+      "target": "adrs_adr_003_non_normative_engine_extras_neutral_follow_up"
     },
     {
       "relation": "contains",
@@ -19416,9 +19903,9 @@
       "source_file": ".claude/adrs/adr-003-non-normative-engine-extras.md",
       "source_location": "L54",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_003_non_normative_engine_extras_consequences",
-      "target": "adrs_adr_003_non_normative_engine_extras_positive",
-      "confidence_score": 1.0
+      "target": "adrs_adr_003_non_normative_engine_extras_positive"
     },
     {
       "relation": "contains",
@@ -19426,9 +19913,9 @@
       "source_file": ".claude/adrs/adr-004-presenter-first-rewrite.md",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_004_presenter_first_rewrite",
-      "target": "adrs_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
-      "confidence_score": 1.0
+      "target": "adrs_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0"
     },
     {
       "relation": "contains",
@@ -19436,9 +19923,9 @@
       "source_file": ".claude/adrs/adr-004-presenter-first-rewrite.md",
       "source_location": "L50",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
-      "target": "adrs_adr_004_presenter_first_rewrite_consequences",
-      "confidence_score": 1.0
+      "target": "adrs_adr_004_presenter_first_rewrite_consequences"
     },
     {
       "relation": "contains",
@@ -19446,9 +19933,9 @@
       "source_file": ".claude/adrs/adr-004-presenter-first-rewrite.md",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
-      "target": "adrs_adr_004_presenter_first_rewrite_context",
-      "confidence_score": 1.0
+      "target": "adrs_adr_004_presenter_first_rewrite_context"
     },
     {
       "relation": "contains",
@@ -19456,9 +19943,9 @@
       "source_file": ".claude/adrs/adr-004-presenter-first-rewrite.md",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
-      "target": "adrs_adr_004_presenter_first_rewrite_decision",
-      "confidence_score": 1.0
+      "target": "adrs_adr_004_presenter_first_rewrite_decision"
     },
     {
       "relation": "contains",
@@ -19466,9 +19953,9 @@
       "source_file": ".claude/adrs/adr-004-presenter-first-rewrite.md",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_004_presenter_first_rewrite_adr_004_presenter_first_rewrite_against_protocol_0_1_0",
-      "target": "adrs_adr_004_presenter_first_rewrite_status",
-      "confidence_score": 1.0
+      "target": "adrs_adr_004_presenter_first_rewrite_status"
     },
     {
       "relation": "contains",
@@ -19476,9 +19963,9 @@
       "source_file": ".claude/adrs/adr-004-presenter-first-rewrite.md",
       "source_location": "L61",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_004_presenter_first_rewrite_consequences",
-      "target": "adrs_adr_004_presenter_first_rewrite_negative_or_trade_offs",
-      "confidence_score": 1.0
+      "target": "adrs_adr_004_presenter_first_rewrite_negative_or_trade_offs"
     },
     {
       "relation": "contains",
@@ -19486,9 +19973,9 @@
       "source_file": ".claude/adrs/adr-004-presenter-first-rewrite.md",
       "source_location": "L68",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_004_presenter_first_rewrite_consequences",
-      "target": "adrs_adr_004_presenter_first_rewrite_neutral_follow_up",
-      "confidence_score": 1.0
+      "target": "adrs_adr_004_presenter_first_rewrite_neutral_follow_up"
     },
     {
       "relation": "contains",
@@ -19496,9 +19983,9 @@
       "source_file": ".claude/adrs/adr-004-presenter-first-rewrite.md",
       "source_location": "L52",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adrs_adr_004_presenter_first_rewrite_consequences",
-      "target": "adrs_adr_004_presenter_first_rewrite_positive",
-      "confidence_score": 1.0
+      "target": "adrs_adr_004_presenter_first_rewrite_positive"
     },
     {
       "relation": "contains",
@@ -21576,9 +22063,9 @@
       "source_file": "AGENTS.md",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agents_fireside_engineering_constraints",
-      "target": "agents_product_north_star",
-      "confidence_score": 1.0
+      "target": "agents_product_north_star"
     },
     {
       "relation": "contains",
@@ -21596,9 +22083,9 @@
       "source_file": "AGENTS.md",
       "source_location": "L79",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agents_fireside_engineering_constraints",
-      "target": "agents_testing",
-      "confidence_score": 1.0
+      "target": "agents_testing"
     },
     {
       "relation": "contains",
@@ -21636,9 +22123,9 @@
       "source_file": "README.md",
       "source_location": "L57",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme_fireside",
-      "target": "readme_development",
-      "confidence_score": 1.0
+      "target": "readme_development"
     },
     {
       "relation": "references",
@@ -21676,9 +22163,9 @@
       "source_file": "README.md",
       "source_location": "L35",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme_fireside",
-      "target": "readme_the_cli",
-      "confidence_score": 1.0
+      "target": "readme_the_cli"
     },
     {
       "relation": "contains",
@@ -21686,9 +22173,9 @@
       "source_file": "README.md",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme_fireside",
-      "target": "readme_try_it",
-      "confidence_score": 1.0
+      "target": "readme_try_it"
     },
     {
       "relation": "contains",
@@ -24104,5 +24591,5 @@
       "source_file": "docs/src/content/docs/spec/data-model.md"
     }
   ],
-  "built_at_commit": "f7844dbf30b4c05ac16b738a08cb3de3a4155d59"
+  "built_at_commit": "8fdb7efdaf4ec36bfd696effc75bea36b40310b9"
 }

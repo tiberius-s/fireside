@@ -62,6 +62,8 @@ pub struct App {
     scroll: u16,
     view_override: Option<ViewMode>,
     show_notes: bool,
+    show_timer: bool,
+    started: Instant,
     flash: Option<Flash>,
     fade_started: Option<Instant>,
     viewport: (u16, u16),
@@ -79,6 +81,8 @@ impl App {
             scroll: 0,
             view_override: None,
             show_notes: false,
+            show_timer: false,
+            started: Instant::now(),
             flash: None,
             fade_started: None,
             viewport: (80, 24),
@@ -114,6 +118,18 @@ impl App {
     #[must_use]
     pub fn show_notes(&self) -> bool {
         self.show_notes
+    }
+
+    /// Whether the elapsed timer is on screen.
+    #[must_use]
+    pub fn show_timer(&self) -> bool {
+        self.show_timer
+    }
+
+    /// Time since the presentation started.
+    #[must_use]
+    pub fn elapsed(&self) -> Duration {
+        self.started.elapsed()
     }
 
     /// The active flash message, if it has not expired.
@@ -229,6 +245,7 @@ impl App {
                     self.set_flash("This slide has no speaker notes", FlashKind::Info);
                 }
             }
+            KeyCode::Char('t') => self.show_timer = !self.show_timer,
             _ if at_branch => self.on_branch_key(code),
             _ => self.on_flow_key(code),
         }

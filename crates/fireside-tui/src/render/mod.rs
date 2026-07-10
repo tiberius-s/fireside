@@ -194,13 +194,34 @@ fn node_lines(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
             }
         }
     } else if node.is_terminal() {
-        lines.push(Line::default());
-        lines.push(Line::from(vec![
-            Span::styled("■ End of this path".to_owned(), tokens.text.add_modifier(Modifier::BOLD)),
-            Span::styled("  — ← goes back".to_owned(), tokens.muted),
-        ]));
+        if !lines.is_empty() {
+            lines.push(Line::default());
+        }
+        lines.extend(end_marker(width, tokens));
     }
     lines
+}
+
+/// The close of a path. The deck should land, not shrug: a centered rule
+/// with the end mark, and a quiet word underneath.
+fn end_marker(width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+    let w = usize::from(width);
+    let rule = (w / 4).clamp(2, 12);
+    let rule_pad = w.saturating_sub(rule * 2 + 3) / 2;
+    let text = "End of this path";
+    let text_pad = w.saturating_sub(text.chars().count()) / 2;
+    vec![
+        Line::from(vec![
+            Span::raw(" ".repeat(rule_pad)),
+            Span::styled("─".repeat(rule), tokens.border),
+            Span::styled(" ■ ".to_owned(), tokens.accent),
+            Span::styled("─".repeat(rule), tokens.border),
+        ]),
+        Line::from(vec![
+            Span::raw(" ".repeat(text_pad)),
+            Span::styled(text.to_owned(), tokens.muted),
+        ]),
+    ]
 }
 
 fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
@@ -321,6 +342,7 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
             )),
             area,
         );
+        draw_timer(frame, area, app, tokens);
         return;
     }
 
@@ -342,6 +364,24 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
         spans.push(Span::styled(format!(" {action}"), tokens.muted));
     }
     frame.render_widget(Paragraph::new(Line::from(spans)), area);
+    draw_timer(frame, area, app, tokens);
+}
+
+/// The elapsed timer, right-aligned in the footer when switched on.
+fn draw_timer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
+    if !app.show_timer() {
+        return;
+    }
+    let secs = app.elapsed().as_secs();
+    let text = if secs >= 3600 {
+        format!("{}:{:02}:{:02} ", secs / 3600, (secs % 3600) / 60, secs % 60)
+    } else {
+        format!("{}:{:02} ", secs / 60, secs % 60)
+    };
+    frame.render_widget(
+        Paragraph::new(Span::styled(text, tokens.muted)).alignment(Alignment::Right),
+        area,
+    );
 }
 
 /// A centered overlay rect.
@@ -365,6 +405,7 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
         ("m", "map — see and jump anywhere"),
         ("f", "fullscreen on/off"),
         ("s", "speaker notes"),
+        ("t", "elapsed timer"),
         ("q", "quit"),
     ];
     let rect = overlay_rect(area, 50, KEYS.len() as u16 + 4);
@@ -530,11 +571,94 @@ mod tests {
         press(&mut app, KeyCode::Char(' '));
         press(&mut app, KeyCode::Char('3')); // quick-pick Finish
         let s = screen(&app, 80, 24);
-        assert!(s.contains("■ End of this path"));
+        assert!(s.contains("■"), "end mark visible");
+        assert!(s.contains("End of this path"));
         press(&mut app, KeyCode::Char(' '));
         let s = screen(&app, 80, 24);
         assert!(s.contains("End of this path — ← goes back"));
         assert_eq!(app.session().current().id, "thanks");
+    }
+
+    #[test]
+    fn the_ending_is_centered_not_left_aligned() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char('c')); // thanks (terminal)
+        let s = screen(&app, 80, 24);
+        let line = s.lines().find(|l| l.contains("■")).expect("end mark row");
+        let lead = line.chars().take_while(|c| *c == ' ' || *c == '│').count();
+        assert!(lead > 20, "end mark sits centered, lead was {lead}");
+        let text = s
+            .lines()
+            .find(|l| l.contains("End of this path"))
+            .expect("closing text row");
+        assert!(text.trim_start_matches(['│', ' ']).starts_with("End of this path"));
+    }
+
+    #[test]
+    fn t_toggles_the_elapsed_timer() {
+        let mut app = app();
+        let s = screen(&app, 80, 24);
+        assert!(!s.contains("0:00"), "timer hidden by default");
+        press(&mut app, KeyCode::Char('t'));
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("0:00"), "timer visible after t: {s}");
+        press(&mut app, KeyCode::Char('t'));
+        let s = screen(&app, 80, 24);
+        assert!(!s.contains("0:00"), "t hides it again");
+    }
+
+    #[test]
+    fn timer_survives_fullscreen_and_flash() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char('t'));
+        press(&mut app, KeyCode::Backspace); // flashes "Already at the first slide"
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("Already at the first slide"), "flash shows");
+        assert!(s.contains("0:00"), "timer keeps its corner during a flash");
+        press(&mut app, KeyCode::Char('f'));
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("0:00"), "timer visible in fullscreen");
+    }
+
+    #[test]
+    fn every_scene_renders_at_60x18() {
+        // Walk the whole deck at a small size: no panics, key content visible.
+        let mut app = app();
+        let s = screen(&app, 60, 18);
+        assert!(s.contains("Hello, Fireside"));
+        press(&mut app, KeyCode::Char(' ')); // features
+        let s = screen(&app, 60, 18);
+        assert!(s.contains("Core Features"));
+        press(&mut app, KeyCode::Char(' ')); // choose
+        let s = screen(&app, 60, 18);
+        assert!(s.contains("▸"), "branch menu renders");
+        press(&mut app, KeyCode::Char('b')); // layout-demo (columns)
+        let s = screen(&app, 60, 18);
+        assert!(s.contains("Left column"), "columns content present: {s}");
+        press(&mut app, KeyCode::Char('m'));
+        let s = screen(&app, 60, 18);
+        assert!(s.contains("Map — Enter jumps"), "map overlay fits");
+        press(&mut app, KeyCode::Esc);
+        press(&mut app, KeyCode::Char('?'));
+        let s = screen(&app, 60, 18);
+        assert!(s.contains(" Keys "), "help overlay fits");
+    }
+
+    #[test]
+    fn resize_event_updates_scroll_geometry() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char('a')); // code-demo
+        app.update(&Event::Resize(60, 12));
+        // Scrolling clamps against the new, smaller viewport without panics.
+        for _ in 0..50 {
+            press(&mut app, KeyCode::Down);
+        }
+        let s = screen(&app, 60, 12);
+        assert!(s.contains("│"), "code box still on screen");
     }
 
     #[test]

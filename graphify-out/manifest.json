@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/app.rs": {
-    "mtime": 1783709815.6602614,
-    "ast_hash": "3058756a120822ec6ebb361ab48317a6",
+    "mtime": 1783710657.055841,
+    "ast_hash": "9928a405ea016a9cf65660d57f31ab6e",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/error.rs": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/mod.rs": {
-    "mtime": 1783710120.554558,
-    "ast_hash": "1c9438ca9e73804406135eb084ef66a2",
+    "mtime": 1783710698.7884378,
+    "ast_hash": "9599ecb1adc426fe2ddfb2ee52c0baa5",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/theme.rs": {
