@@ -74,9 +74,12 @@ pub fn max_scroll(app: &App, width: u16, height: u16) -> u16 {
 fn areas(view: ViewMode, area: Rect) -> (Option<Rect>, Rect, Rect) {
     match view {
         ViewMode::Default => {
-            let [header, body, footer] =
-                Layout::vertical([Constraint::Length(2), Constraint::Fill(1), Constraint::Length(1)])
-                    .areas(area);
+            let [header, body, footer] = Layout::vertical([
+                Constraint::Length(2),
+                Constraint::Fill(1),
+                Constraint::Length(1),
+            ])
+            .areas(area);
             (Some(header), body, footer)
         }
         ViewMode::Fullscreen => {
@@ -100,9 +103,8 @@ struct Surface {
 fn surface(view: ViewMode, body: Rect) -> Surface {
     let chrome_w = 2 + 2 * PAD_X;
     let chrome_h = 2 + 2 * PAD_Y;
-    let card = view == ViewMode::Default
-        && body.width >= chrome_w + 16
-        && body.height >= chrome_h + 3;
+    let card =
+        view == ViewMode::Default && body.width >= chrome_w + 16 && body.height >= chrome_h + 3;
     if card {
         let card_width = body.width.min(MEASURE + chrome_w);
         Surface {
@@ -145,7 +147,10 @@ fn draw_header(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
         text_row,
     );
     frame.render_widget(
-        Paragraph::new(Line::styled("─".repeat(rule_row.width as usize), tokens.border)),
+        Paragraph::new(Line::styled(
+            "─".repeat(rule_row.width as usize),
+            tokens.border,
+        )),
         rule_row,
     );
 }
@@ -178,7 +183,11 @@ fn node_lines(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
                 },
                 Span::styled(format!("{}. ", i + 1), tokens.muted),
             ];
-            let label_style = if selected { tokens.selected } else { tokens.text };
+            let label_style = if selected {
+                tokens.selected
+            } else {
+                tokens.text
+            };
             spans.push(Span::styled(format!(" {} ", opt.label), label_style));
             if let Some(key) = &opt.key {
                 spans.push(Span::styled(format!("  [{key}]"), tokens.muted));
@@ -250,9 +259,10 @@ fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
         let block = Block::bordered()
             .border_type(BorderType::Rounded)
             .border_style(tokens.border.patch(base));
-        let inner = block
-            .inner(card_area)
-            .inner(Margin { horizontal: PAD_X, vertical: PAD_Y });
+        let inner = block.inner(card_area).inner(Margin {
+            horizontal: PAD_X,
+            vertical: PAD_Y,
+        });
         frame.render_widget(block, card_area);
         inner
     } else {
@@ -280,7 +290,13 @@ fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
         indicator(frame, inner, 0, "▲", tokens);
     }
     if scroll < max {
-        indicator(frame, inner, inner.height.saturating_sub(1), "▼ more (↓)", tokens);
+        indicator(
+            frame,
+            inner,
+            inner.height.saturating_sub(1),
+            "▼ more (↓)",
+            tokens,
+        );
     }
 }
 
@@ -292,7 +308,10 @@ fn indicator(frame: &mut Frame, area: Rect, row: u16, text: &str, tokens: &Token
         width: w.min(area.width),
         height: 1,
     };
-    frame.render_widget(Paragraph::new(Span::styled(text.to_owned(), tokens.muted)), rect);
+    frame.render_widget(
+        Paragraph::new(Span::styled(text.to_owned(), tokens.muted)),
+        rect,
+    );
 }
 
 /// Where the speaker-notes panel goes, if it is open and the node has notes.
@@ -348,11 +367,24 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
 
     let session = app.session();
     let hints: &[(&str, &str)] = if session.branch_point().is_some() {
-        &[("↑↓", "choose"), ("Enter", "go"), ("←", "back"), ("m", "map"), ("?", "help"), ("q", "quit")]
+        &[
+            ("↑↓", "choose"),
+            ("Enter", "go"),
+            ("←", "back"),
+            ("m", "map"),
+            ("?", "help"),
+            ("q", "quit"),
+        ]
     } else if session.current().is_terminal() {
         &[("←", "back"), ("m", "map"), ("?", "help"), ("q", "quit")]
     } else {
-        &[("Space", "next"), ("←", "back"), ("m", "map"), ("?", "help"), ("q", "quit")]
+        &[
+            ("Space", "next"),
+            ("←", "back"),
+            ("m", "map"),
+            ("?", "help"),
+            ("q", "quit"),
+        ]
     };
 
     let mut spans = vec![Span::raw(" ")];
@@ -360,7 +392,10 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
         if i > 0 {
             spans.push(Span::styled("  ·  ".to_owned(), tokens.border));
         }
-        spans.push(Span::styled((*key).to_owned(), tokens.text.add_modifier(Modifier::BOLD)));
+        spans.push(Span::styled(
+            (*key).to_owned(),
+            tokens.text.add_modifier(Modifier::BOLD),
+        ));
         spans.push(Span::styled(format!(" {action}"), tokens.muted));
     }
     frame.render_widget(Paragraph::new(Line::from(spans)), area);
@@ -374,7 +409,12 @@ fn draw_timer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
     }
     let secs = app.elapsed().as_secs();
     let text = if secs >= 3600 {
-        format!("{}:{:02}:{:02} ", secs / 3600, (secs % 3600) / 60, secs % 60)
+        format!(
+            "{}:{:02}:{:02} ",
+            secs / 3600,
+            (secs % 3600) / 60,
+            secs % 60
+        )
     } else {
         format!("{}:{:02} ", secs / 60, secs % 60)
     };
@@ -413,7 +453,10 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
     let block = Block::bordered()
         .border_type(BorderType::Rounded)
         .border_style(tokens.border)
-        .title(Span::styled(" Keys ".to_owned(), tokens.accent.add_modifier(Modifier::BOLD)));
+        .title(Span::styled(
+            " Keys ".to_owned(),
+            tokens.accent.add_modifier(Modifier::BOLD),
+        ));
     let inner = block.inner(rect);
     frame.render_widget(block, rect);
 
@@ -421,13 +464,19 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
         .iter()
         .map(|(key, what)| {
             Line::from(vec![
-                Span::styled(format!(" {key:<18}"), tokens.text.add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    format!(" {key:<18}"),
+                    tokens.text.add_modifier(Modifier::BOLD),
+                ),
                 Span::styled((*what).to_owned(), tokens.muted),
             ])
         })
         .collect();
     lines.push(Line::default());
-    lines.push(Line::styled(" press any key to close".to_owned(), tokens.muted));
+    lines.push(Line::styled(
+        " press any key to close".to_owned(),
+        tokens.muted,
+    ));
     frame.render_widget(Paragraph::new(Text::from(lines)), inner);
 }
 
@@ -457,7 +506,11 @@ fn draw_map(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &
             Span::styled(" · ".to_owned(), tokens.muted)
         };
         let name = node.title.clone().unwrap_or_else(|| node.id.clone());
-        let style = if i == selected { tokens.selected } else { tokens.text };
+        let style = if i == selected {
+            tokens.selected
+        } else {
+            tokens.text
+        };
         let mut spans = vec![marker, Span::styled(format!(" {name} "), style)];
         if node.is_terminal() {
             spans.push(Span::styled("■".to_owned(), tokens.muted));
@@ -465,7 +518,10 @@ fn draw_map(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &
         lines.push(Line::from(spans));
     }
     lines.push(Line::default());
-    lines.push(Line::styled(" ↑↓ move · Enter jump · Esc close".to_owned(), tokens.muted));
+    lines.push(Line::styled(
+        " ↑↓ move · Enter jump · Esc close".to_owned(),
+        tokens.muted,
+    ));
     frame.render_widget(Paragraph::new(Text::from(lines)), inner);
 }
 
@@ -594,7 +650,10 @@ mod tests {
             .lines()
             .find(|l| l.contains("End of this path"))
             .expect("closing text row");
-        assert!(text.trim_start_matches(['│', ' ']).starts_with("End of this path"));
+        assert!(
+            text.trim_start_matches(['│', ' '])
+                .starts_with("End of this path")
+        );
     }
 
     #[test]
@@ -654,7 +713,11 @@ mod tests {
         let edited = HELLO.replace("Core Features", "Fresh Features");
         let graph = Graph::from_json(&edited).expect("edited deck parses");
         app.update(Msg::Reload(Ok(graph)));
-        assert_eq!(app.session().current().id, "features", "still on the same slide");
+        assert_eq!(
+            app.session().current().id,
+            "features",
+            "still on the same slide"
+        );
         let s = screen(&app, 80, 24);
         assert!(s.contains("Fresh Features"), "new content visible: {s}");
         assert!(s.contains("Reloaded"), "footer confirms the reload");
@@ -664,16 +727,24 @@ mod tests {
     fn reload_with_a_broken_save_keeps_the_working_deck() {
         let mut app = app();
         press(&mut app, KeyCode::Char(' '));
-        app.update(Msg::Reload(Err("Reload failed — hello.json:3:7 — expected `,`".into())));
+        app.update(Msg::Reload(Err(
+            "Reload failed — hello.json:3:7 — expected `,`".into(),
+        )));
         let s = screen(&app, 80, 24);
         assert!(s.contains("Core Features"), "old deck still presented");
-        assert!(s.contains("Reload failed — hello.json:3:7"), "footer explains");
+        assert!(
+            s.contains("Reload failed — hello.json:3:7"),
+            "footer explains"
+        );
     }
 
     #[test]
     fn reload_with_validation_errors_keeps_the_working_deck() {
         let mut app = app();
-        let broken = HELLO.replace("\"traversal\": \"features\"", "\"traversal\": \"missing-slide\"");
+        let broken = HELLO.replace(
+            "\"traversal\": \"features\"",
+            "\"traversal\": \"missing-slide\"",
+        );
         let graph = Graph::from_json(&broken).expect("broken deck still parses");
         app.update(Msg::Reload(Ok(graph)));
         let s = screen(&app, 80, 24);
@@ -692,7 +763,10 @@ mod tests {
         app.update(Msg::Reload(Ok(graph)));
         assert_eq!(app.session().current().id, "intro", "back at the entry");
         let s = screen(&app, 80, 24);
-        assert!(s.contains("is gone, back at the start"), "footer explains: {s}");
+        assert!(
+            s.contains("is gone, back at the start"),
+            "footer explains: {s}"
+        );
     }
 
     #[test]
@@ -764,7 +838,11 @@ mod tests {
         assert!(s.contains("map — see and jump anywhere"));
         press(&mut app, KeyCode::Char('x'));
         assert_eq!(app.screen(), Screen::Present);
-        assert_eq!(app.session().current().id, "intro", "closing help moved nothing");
+        assert_eq!(
+            app.session().current().id,
+            "intro",
+            "closing help moved nothing"
+        );
     }
 
     #[test]
@@ -845,7 +923,10 @@ mod tests {
             .lines()
             .find(|l| l.contains("─ rust "))
             .expect("code header rule");
-        assert!(rule_row.trim_end().chars().count() > 100, "code box spans the width");
+        assert!(
+            rule_row.trim_end().chars().count() > 100,
+            "code box spans the width"
+        );
     }
 
     #[test]

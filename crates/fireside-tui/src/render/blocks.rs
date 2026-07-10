@@ -51,9 +51,9 @@ fn render_block(block: &ContentBlock, width: u16, tokens: &Tokens) -> Vec<Line<'
         ContentBlock::List { ordered, items } => {
             list(ordered.unwrap_or(false), items, width, tokens)
         }
-        ContentBlock::Image { src, alt, caption, .. } => {
-            image(src, alt.as_deref(), caption.as_deref(), width, tokens)
-        }
+        ContentBlock::Image {
+            src, alt, caption, ..
+        } => image(src, alt.as_deref(), caption.as_deref(), width, tokens),
         ContentBlock::Divider => divider(width, tokens),
         ContentBlock::Container { children, layout } => {
             container(children, layout.unwrap_or_default(), width, tokens)
@@ -125,7 +125,11 @@ fn code(
 
     let mut lines = vec![Line::styled(top, tokens.border)];
     let total = source.lines().count();
-    let num_width = if line_numbers { total.to_string().len() } else { 0 };
+    let num_width = if line_numbers {
+        total.to_string().len()
+    } else {
+        0
+    };
     let colored = syntax::highlight(language, source, tokens);
     // When the author picked lines to highlight, focus means dimming the
     // rest — the chosen lines keep their full colors.
@@ -154,7 +158,11 @@ fn code(
         let mut content: Vec<Span<'static>> = match &colored {
             Some(rows) => clip_spans(rows[i].clone(), avail, tokens),
             None => {
-                let style = if emphasized { tokens.code_highlight } else { tokens.code };
+                let style = if emphasized {
+                    tokens.code_highlight
+                } else {
+                    tokens.code
+                };
                 vec![Span::styled(clip(raw, avail), style)]
             }
         };
@@ -172,11 +180,7 @@ fn code(
 
 /// Clip a row of styled spans to `width` columns, marking any cut with an
 /// ellipsis while preserving each span's style.
-fn clip_spans(
-    spans: Vec<Span<'static>>,
-    width: usize,
-    tokens: &Tokens,
-) -> Vec<Span<'static>> {
+fn clip_spans(spans: Vec<Span<'static>>, width: usize, tokens: &Tokens) -> Vec<Span<'static>> {
     let total: usize = spans.iter().map(|s| s.content.width()).sum();
     if total <= width {
         return spans;
@@ -328,7 +332,9 @@ fn columns(children: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'
                 None => 0,
             };
             if i + 1 < cols.len() {
-                spans.push(Span::raw(" ".repeat((col_width as usize).saturating_sub(used))));
+                spans.push(Span::raw(
+                    " ".repeat((col_width as usize).saturating_sub(used)),
+                ));
             }
         }
         lines.push(Line::from(spans));
@@ -367,27 +373,42 @@ mod tests {
     fn flat(lines: &[Line<'_>]) -> Vec<String> {
         lines
             .iter()
-            .map(|l| l.spans.iter().map(|s| s.content.as_ref()).collect::<String>())
+            .map(|l| {
+                l.spans
+                    .iter()
+                    .map(|s| s.content.as_ref())
+                    .collect::<String>()
+            })
             .collect()
     }
 
     #[test]
     fn h1_gets_an_underline_rule() {
-        let block = ContentBlock::Heading { level: 1, text: "Hi".into() };
+        let block = ContentBlock::Heading {
+            level: 1,
+            text: "Hi".into(),
+        };
         let lines = flat(&render_block(&block, 20, &Tokens::default()));
         assert_eq!(lines, ["Hi", "──"]);
     }
 
     #[test]
     fn h2_gets_an_accent_bar() {
-        let block = ContentBlock::Heading { level: 2, text: "Section".into() };
+        let block = ContentBlock::Heading {
+            level: 2,
+            text: "Section".into(),
+        };
         let lines = flat(&render_block(&block, 20, &Tokens::default()));
         assert_eq!(lines, ["▎ Section"]);
     }
 
     #[test]
     fn divider_is_a_short_centered_rule() {
-        let lines = flat(&render_block(&ContentBlock::Divider, 30, &Tokens::default()));
+        let lines = flat(&render_block(
+            &ContentBlock::Divider,
+            30,
+            &Tokens::default(),
+        ));
         assert_eq!(lines.len(), 1);
         let rule = lines[0].trim();
         assert!(rule.chars().all(|c| c == '─'), "only rule chars: {rule:?}");
@@ -427,8 +448,12 @@ mod tests {
         let block = ContentBlock::Container {
             layout: Some(ContainerLayout::Columns),
             children: vec![
-                ContentBlock::Text { body: "left".into() },
-                ContentBlock::Text { body: "right".into() },
+                ContentBlock::Text {
+                    body: "left".into(),
+                },
+                ContentBlock::Text {
+                    body: "right".into(),
+                },
             ],
         };
         let lines = flat(&render_block(&block, 30, &Tokens::default()));
@@ -443,8 +468,12 @@ mod tests {
         let block = ContentBlock::Container {
             layout: Some(ContainerLayout::Columns),
             children: vec![
-                ContentBlock::Text { body: "left".into() },
-                ContentBlock::Text { body: "right".into() },
+                ContentBlock::Text {
+                    body: "left".into(),
+                },
+                ContentBlock::Text {
+                    body: "right".into(),
+                },
             ],
         };
         let lines = flat(&render_block(&block, 12, &Tokens::default()));

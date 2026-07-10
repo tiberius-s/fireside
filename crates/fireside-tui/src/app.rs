@@ -213,7 +213,10 @@ impl App {
         }
         let here = self.session.current().id.clone();
         let Ok(mut session) = Session::new(graph) else {
-            self.set_flash("Reload skipped — the saved deck has no slides", FlashKind::Error);
+            self.set_flash(
+                "Reload skipped — the saved deck has no slides",
+                FlashKind::Error,
+            );
             return;
         };
         let survived = session.graph().node(&here).is_some();
@@ -250,10 +253,14 @@ impl App {
         let count = self.session.graph().nodes.len();
         match code {
             KeyCode::Up | KeyCode::Char('k') => {
-                self.screen = Screen::Map { selected: selected.saturating_sub(1) };
+                self.screen = Screen::Map {
+                    selected: selected.saturating_sub(1),
+                };
             }
             KeyCode::Down | KeyCode::Char('j') => {
-                self.screen = Screen::Map { selected: (selected + 1).min(count.saturating_sub(1)) };
+                self.screen = Screen::Map {
+                    selected: (selected + 1).min(count.saturating_sub(1)),
+                };
             }
             KeyCode::Enter => {
                 let id = self.session.graph().nodes[selected].id.clone();
@@ -335,10 +342,7 @@ impl App {
                     let outcome = self.session.choose(idx);
                     self.apply(&outcome);
                 } else {
-                    self.set_flash(
-                        &format!("There are only {count} choices"),
-                        FlashKind::Error,
-                    );
+                    self.set_flash(&format!("There are only {count} choices"), FlashKind::Error);
                 }
             }
             KeyCode::Char(' ') | KeyCode::Right | KeyCode::PageDown | KeyCode::Char('n') => {
@@ -363,10 +367,7 @@ impl App {
     /// Keys on an ordinary (non-branch) node.
     fn on_flow_key(&mut self, code: KeyCode) {
         match code {
-            KeyCode::Char(' ' | 'n')
-            | KeyCode::Right
-            | KeyCode::Enter
-            | KeyCode::PageDown => {
+            KeyCode::Char(' ' | 'n') | KeyCode::Right | KeyCode::Enter | KeyCode::PageDown => {
                 let outcome = self.session.next();
                 self.apply(&outcome);
             }
@@ -407,7 +408,10 @@ impl App {
                 self.fade_started = fades.then(Instant::now);
             }
             Outcome::BlockedByBranch => {
-                self.set_flash("This slide asks for a choice — ↑↓ then Enter", FlashKind::Info);
+                self.set_flash(
+                    "This slide asks for a choice — ↑↓ then Enter",
+                    FlashKind::Info,
+                );
             }
             Outcome::EndOfPath => {
                 self.set_flash("End of this path — ← goes back", FlashKind::Info);

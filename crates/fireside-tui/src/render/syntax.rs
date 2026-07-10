@@ -100,12 +100,8 @@ mod tests {
     #[test]
     fn rust_keywords_strings_and_comments_get_distinct_styles() {
         let tokens = Tokens::default();
-        let rows = highlight(
-            Some("rust"),
-            "// hi\nfn main() { let s = \"x\"; }",
-            &tokens,
-        )
-        .expect("rust is a known language");
+        let rows = highlight(Some("rust"), "// hi\nfn main() { let s = \"x\"; }", &tokens)
+            .expect("rust is a known language");
         assert_eq!(rows.len(), 2);
 
         let style_of = |row: &[Span<'_>], needle: &str| {

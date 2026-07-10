@@ -250,7 +250,11 @@ pub struct BranchOption {
 /// TypeSpec artifact, and out-of-domain values fail at parse with a clear
 /// serde error.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "kebab-case", rename_all_fields = "kebab-case")]
+#[serde(
+    tag = "kind",
+    rename_all = "kebab-case",
+    rename_all_fields = "kebab-case"
+)]
 pub enum ContentBlock {
     /// A heading with a level (1–6) and text content.
     Heading {
@@ -471,7 +475,10 @@ mod tests {
         let mut node: Node = serde_json::from_str(r#"{"id":"a","content":[]}"#).expect("parse");
 
         assert_eq!(node.resolved_view_mode(None), ViewMode::Default);
-        assert_eq!(node.resolved_view_mode(Some(&defaults)), ViewMode::Fullscreen);
+        assert_eq!(
+            node.resolved_view_mode(Some(&defaults)),
+            ViewMode::Fullscreen
+        );
         assert_eq!(node.resolved_transition(Some(&defaults)), Transition::None);
 
         node.view_mode = Some(ViewMode::Default);

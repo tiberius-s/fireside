@@ -54,7 +54,9 @@ impl Default for Tokens {
             code_highlight: Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD),
             code_keyword: Style::new().fg(Color::Magenta),
             code_string: Style::new().fg(Color::Green),
-            code_comment: Style::new().fg(Color::DarkGray).add_modifier(Modifier::ITALIC),
+            code_comment: Style::new()
+                .fg(Color::DarkGray)
+                .add_modifier(Modifier::ITALIC),
             code_function: Style::new().fg(Color::Blue),
             code_type: Style::new().fg(Color::Cyan),
             code_constant: Style::new().fg(Color::Yellow),

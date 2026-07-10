@@ -51,12 +51,7 @@ impl fmt::Display for Diagnostic {
 }
 
 impl Diagnostic {
-    fn new(
-        severity: Severity,
-        rule: &'static str,
-        message: String,
-        node: Option<&str>,
-    ) -> Self {
+    fn new(severity: Severity, rule: &'static str, message: String, node: Option<&str>) -> Self {
         Self {
             severity,
             rule,
@@ -75,7 +70,10 @@ struct Edge<'a> {
 fn edges(node: &Node) -> Vec<Edge<'_>> {
     let mut out = Vec::new();
     if let Some(target) = node.next_target() {
-        out.push(Edge { target, label: None });
+        out.push(Edge {
+            target,
+            label: None,
+        });
     }
     if let Some(bp) = node.branch_point() {
         for opt in &bp.options {
@@ -353,9 +351,7 @@ mod tests {
 
     #[test]
     fn duplicate_ids_are_errors() {
-        let diags = diags_for(
-            r#"{"nodes":[{"id":"a","content":[]},{"id":"a","content":[]}]}"#,
-        );
+        let diags = diags_for(r#"{"nodes":[{"id":"a","content":[]},{"id":"a","content":[]}]}"#);
         assert!(rules(&diags).contains(&"unique-node-ids"));
         assert!(has_errors(&diags));
     }
@@ -402,9 +398,8 @@ mod tests {
 
     #[test]
     fn unreachable_nodes_warn() {
-        let diags = diags_for(
-            r#"{"nodes":[{"id":"a","content":[]},{"id":"island","content":[]}]}"#,
-        );
+        let diags =
+            diags_for(r#"{"nodes":[{"id":"a","content":[]},{"id":"island","content":[]}]}"#);
         let unreachable: Vec<_> = diags
             .iter()
             .filter(|d| d.rule == "unreachable-node")

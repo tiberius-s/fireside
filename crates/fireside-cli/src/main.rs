@@ -19,7 +19,12 @@ const DEMO_DECK: &str = include_str!("../assets/demo.fireside.json");
 
 /// Present branching decks in the terminal.
 #[derive(Debug, Parser)]
-#[command(name = "fireside", version, about, args_conflicts_with_subcommands = true)]
+#[command(
+    name = "fireside",
+    version,
+    about,
+    args_conflicts_with_subcommands = true
+)]
 struct Cli {
     /// Path to a deck (.fireside.json) — shorthand for `fireside present <file>`.
     file: Option<PathBuf>,
@@ -336,12 +341,23 @@ mod tests {
             .iter()
             .filter(|d| d.severity >= Severity::Warning)
             .collect();
-        assert!(serious.is_empty(), "demo deck must be spotless: {serious:?}");
+        assert!(
+            serious.is_empty(),
+            "demo deck must be spotless: {serious:?}"
+        );
     }
 
     #[test]
     fn demo_deck_shows_every_block_kind() {
-        for kind in ["heading", "text", "code", "list", "image", "divider", "container"] {
+        for kind in [
+            "heading",
+            "text",
+            "code",
+            "list",
+            "image",
+            "divider",
+            "container",
+        ] {
             assert!(
                 DEMO_DECK.contains(&format!("\"kind\": \"{kind}\"")),
                 "demo deck is missing a {kind} block"
@@ -355,9 +371,18 @@ mod tests {
         let err = Graph::from_json(text).expect_err("invalid JSON");
         let CoreError::Parse(err) = err;
         let report = parse_report(Path::new("broken.json"), text, &err);
-        assert!(report.contains("broken.json is not a valid deck"), "{report}");
-        assert!(report.contains("3 │   \"nodes\": [}"), "offending line shown: {report}");
+        assert!(
+            report.contains("broken.json is not a valid deck"),
+            "{report}"
+        );
+        assert!(
+            report.contains("3 │   \"nodes\": [}"),
+            "offending line shown: {report}"
+        );
         assert!(report.contains('^'), "caret shown: {report}");
-        assert!(!report.contains("at line"), "no duplicated position: {report}");
+        assert!(
+            !report.contains("at line"),
+            "no duplicated position: {report}"
+        );
     }
 }
