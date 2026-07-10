@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-10)
 
 ## Corpus Check
-- 82 files · ~42,684 words
+- 83 files · ~44,783 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 931 nodes · 1389 edges · 68 communities (52 shown, 16 thin omitted)
+- 967 nodes · 1484 edges · 68 communities (55 shown, 13 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 33 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8fdb7efd`
+- Built from commit: `93aa3f9e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -21,16 +21,16 @@
 - [[_COMMUNITY_Agent & Skill Governance|Agent & Skill Governance]]
 - [[_COMMUNITY_TUI App Core|TUI App Core]]
 - [[_COMMUNITY_Editor Detail Pane|Editor Detail Pane]]
-- [[_COMMUNITY_Graph Overlay UI|Graph Overlay UI]]
 - [[_COMMUNITY_Editor Navigation|Editor Navigation]]
-- [[_COMMUNITY_Design Templates|Design Templates]]
 - [[_COMMUNITY_Editor Interaction Tests|Editor Interaction Tests]]
 - [[_COMMUNITY_Community 10|Community 10]]
 - [[_COMMUNITY_Theme & Content Types|Theme & Content Types]]
 - [[_COMMUNITY_Community 12|Community 12]]
 - [[_COMMUNITY_Community 13|Community 13]]
 - [[_COMMUNITY_Traversal Engine|Traversal Engine]]
+- [[_COMMUNITY_Community 15|Community 15]]
 - [[_COMMUNITY_Protocol Package|Protocol Package]]
+- [[_COMMUNITY_Community 17|Community 17]]
 - [[_COMMUNITY_Docs Site Package|Docs Site Package]]
 - [[_COMMUNITY_Presentation Session|Presentation Session]]
 - [[_COMMUNITY_Keybindings Config|Keybindings Config]]
@@ -83,13 +83,13 @@
 - [[_COMMUNITY_Community 163|Community 163]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `App` - 30 edges
-2. `app()` - 23 edges
-3. `Session` - 20 edges
-4. `render_block()` - 20 edges
-5. `Diagnostic` - 19 edges
-6. `press()` - 18 edges
-7. `screen()` - 18 edges
+1. `app()` - 32 edges
+2. `App` - 31 edges
+3. `screen()` - 27 edges
+4. `press()` - 26 edges
+5. `Session` - 20 edges
+6. `render_block()` - 20 edges
+7. `Diagnostic` - 19 edges
 8. `Graphify Skill Pipeline` - 17 edges
 9. `Node` - 14 edges
 10. `hello_session()` - 14 edges
@@ -128,15 +128,15 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (68 total, 16 thin omitted)
+## Communities (68 total, 13 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
 Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_the_source_exactly(), rust_keywords_strings_and_comments_get_distinct_styles() (+4 more)
 
 ### Community 1 - "CLI Commands"
-Cohesion: 0.15
-Nodes (25): Command, Graph, Option, PathBuf, Result, Command, PathBuf, Path (+17 more)
+Cohesion: 0.12
+Nodes (27): Command, Graph, Option, PathBuf, Result, Self, String, Error (+19 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -147,8 +147,12 @@ Cohesion: 0.10
 Nodes (27): Graphify Slash Command Trigger, AST Structural Extraction, Community Detection and Labeling, Token Cost Tracking, Semantic Extraction Cache, Fast Path Query on Existing Graph, Graphify Skill Pipeline, Semantic Extraction via Parallel Subagents (+19 more)
 
 ### Community 4 - "TUI App Core"
-Cohesion: 0.09
-Nodes (22): KeyCode, Option, Self, String, ViewMode, App, Graph, Result (+14 more)
+Cohesion: 0.10
+Nodes (17): Graph, KeyCode, Option, Result, Self, String, ViewMode, Duration (+9 more)
+
+### Community 5 - "Editor Detail Pane"
+Cohesion: 0.30
+Nodes (11): Command, PathBuf, bare_invocation_teaches_the_three_verbs(), fireside(), new_refuses_to_overwrite(), new_scaffolds_a_deck_that_validates_clean(), present_refuses_a_broken_deck_before_taking_the_screen(), repo_root() (+3 more)
 
 ### Community 7 - "Editor Navigation"
 Cohesion: 0.22
@@ -174,9 +178,17 @@ Nodes (8): ADR-003: Non-normative engine extras, Consequences, Context, Decision
 Cohesion: 0.22
 Nodes (8): ADR-004: Presenter-first rewrite against protocol 0.1.0, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
 
+### Community 15 - "Community 15"
+Cohesion: 0.47
+Nodes (9): App, Graph, Result, DefaultTerminal, ReloadSource, event_loop(), present(), present_watching() (+1 more)
+
 ### Community 16 - "Protocol Package"
 Cohesion: 0.08
 Nodes (24): author, default, dependencies, @typespec/compiler, @typespec/json-schema, @typespec/versioning, description, devDependencies (+16 more)
+
+### Community 17 - "Community 17"
+Cohesion: 0.25
+Nodes (7): defaults, transition, view-mode, description, fireside-version, nodes, title
 
 ### Community 19 - "Docs Site Package"
 Cohesion: 0.09
@@ -259,8 +271,8 @@ Cohesion: 0.07
 Nodes (31): BranchOption, CoreError, BranchPoint, ContentBlock, Node, NodeDefaults, NodeId, Option (+23 more)
 
 ### Community 88 - "Render Module"
-Cohesion: 0.14
-Nodes (50): App, KeyCode, Line, Option, String, Tokens, Vec, ViewMode (+42 more)
+Cohesion: 0.12
+Nodes (59): App, KeyCode, Line, Option, String, Tokens, Vec, ViewMode (+51 more)
 
 ### Community 93 - "Community 93"
 Cohesion: 0.20
@@ -335,24 +347,24 @@ Nodes (9): Build and Test Commands, Crate Boundary Rules, Error Handling Stratif
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **410 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+405 more)
+- **417 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+412 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Presentation Session`?**
-  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Presentation Session`, `Community 15`?**
+  _High betweenness centrality (0.032) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _412 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _419 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.14814814814814814 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12436974789915967 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**
-  _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09878048780487805 - nodes in this community are weakly interconnected._
 - **Should `Protocol Package` be split into smaller, more focused modules?**
   _Cohesion score 0.08 - nodes in this community are weakly interconnected._

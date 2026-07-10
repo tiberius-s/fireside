@@ -9,8 +9,8 @@
 use std::time::{Duration, Instant};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use fireside_core::{Transition, ViewMode};
-use fireside_engine::{Outcome, Session};
+use fireside_core::{Graph, Transition, ViewMode};
+use fireside_engine::{Outcome, Session, Severity, validate};
 
 use crate::render;
 
@@ -19,6 +19,17 @@ const FLASH_DURATION: Duration = Duration::from_millis(3000);
 
 /// How long a slide's fade-in lasts: one dim beat, then full brightness.
 const FADE_DURATION: Duration = Duration::from_millis(90);
+
+/// A message into the state machine: terminal input, or a fresh read of
+/// the deck source while presenting (live reload).
+#[derive(Debug)]
+pub enum Msg {
+    /// A terminal event (key press, resize).
+    Terminal(Event),
+    /// The deck file changed on disk and was re-read: a new graph, or a
+    /// human-readable message about why it could not be loaded.
+    Reload(Result<Graph, String>),
+}
 
 /// Which screen the presenter is looking at.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -165,12 +176,61 @@ impl App {
         })
     }
 
-    /// Apply one terminal event. The sole mutation point.
-    pub fn update(&mut self, event: &Event) {
-        match event {
-            Event::Resize(w, h) => self.viewport = (*w, *h),
-            Event::Key(key) if key.kind == KeyEventKind::Press => self.on_key(*key),
-            _ => {}
+    /// Apply one message. The sole mutation point.
+    pub fn update(&mut self, msg: Msg) {
+        match msg {
+            Msg::Terminal(Event::Resize(w, h)) => self.viewport = (w, h),
+            Msg::Terminal(Event::Key(key)) if key.kind == KeyEventKind::Press => {
+                self.on_key(key);
+            }
+            Msg::Terminal(_) => {}
+            Msg::Reload(result) => self.on_reload(result),
+        }
+    }
+
+    /// Swap in a re-read deck without losing the presenter's place. A save
+    /// that broke the deck never replaces the working one — the presenter
+    /// keeps the old slides and a footer message says what happened.
+    fn on_reload(&mut self, result: Result<Graph, String>) {
+        let graph = match result {
+            Ok(graph) => graph,
+            Err(message) => {
+                self.set_flash(&message, FlashKind::Error);
+                return;
+            }
+        };
+        let errors = validate(&graph)
+            .iter()
+            .filter(|d| d.severity == Severity::Error)
+            .count();
+        if errors > 0 {
+            let word = if errors == 1 { "problem" } else { "problems" };
+            self.set_flash(
+                &format!("Reload skipped — the saved deck has {errors} {word}; fix and save again"),
+                FlashKind::Error,
+            );
+            return;
+        }
+        let here = self.session.current().id.clone();
+        let Ok(mut session) = Session::new(graph) else {
+            self.set_flash("Reload skipped — the saved deck has no slides", FlashKind::Error);
+            return;
+        };
+        let survived = session.graph().node(&here).is_some();
+        if survived && session.current().id != here {
+            let _ = session.goto(&here);
+        }
+        self.session = session;
+        self.scroll = 0;
+        self.branch_selected = 0;
+        self.fade_started = None;
+        if survived {
+            self.set_flash("Reloaded", FlashKind::Info);
+        } else {
+            self.set_flash(
+                &format!("Reloaded — \"{here}\" is gone, back at the start"),
+                FlashKind::Info,
+            );
         }
     }
 

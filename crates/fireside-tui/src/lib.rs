@@ -16,8 +16,14 @@ use crossterm::event;
 use fireside_core::Graph;
 use fireside_engine::Session;
 
-pub use app::App;
+pub use app::{App, Msg};
 pub use error::TuiError;
+
+/// A live-reload source: polled on every event tick, it returns `Some`
+/// when the deck changed on disk — a fresh graph, or a human-readable
+/// message about why the changed file could not be loaded. The presenter
+/// itself never touches the filesystem; the caller owns the I/O.
+pub type ReloadSource<'a> = &'a mut dyn FnMut() -> Option<Result<Graph, String>>;
 
 /// Present a graph: set up the terminal, run the event loop, and always
 /// restore the terminal — even on error.
@@ -27,16 +33,35 @@ pub use error::TuiError;
 /// Returns [`TuiError::Engine`] for an unpresentable graph and
 /// [`TuiError::Io`] for terminal failures.
 pub fn present(graph: Graph) -> Result<(), TuiError> {
+    present_watching(graph, &mut || None)
+}
+
+/// Present a graph with live reload: while presenting, `source` is polled
+/// a few times per second, and any deck it hands back is swapped in
+/// without leaving the current slide.
+///
+/// # Errors
+///
+/// Returns [`TuiError::Engine`] for an unpresentable graph and
+/// [`TuiError::Io`] for terminal failures.
+pub fn present_watching(graph: Graph, source: ReloadSource<'_>) -> Result<(), TuiError> {
     let session = Session::new(graph)?;
     let mut app = App::new(session);
     let mut terminal = ratatui::init();
-    let result = event_loop(&mut terminal, &mut app);
+    let result = event_loop(&mut terminal, &mut app, source);
     ratatui::restore();
     result
 }
 
-fn event_loop(terminal: &mut ratatui::DefaultTerminal, app: &mut App) -> Result<(), TuiError> {
+fn event_loop(
+    terminal: &mut ratatui::DefaultTerminal,
+    app: &mut App,
+    source: ReloadSource<'_>,
+) -> Result<(), TuiError> {
     while !app.should_quit() {
+        if let Some(result) = source() {
+            app.update(Msg::Reload(result));
+        }
         terminal.draw(|frame| render::draw(frame, app))?;
         // The timeout lets expired flash messages clear without input; a
         // fading slide polls fast so it brightens on time.
@@ -46,8 +71,7 @@ fn event_loop(terminal: &mut ratatui::DefaultTerminal, app: &mut App) -> Result<
             Duration::from_millis(250)
         };
         if event::poll(timeout)? {
-            let ev = event::read()?;
-            app.update(&ev);
+            app.update(Msg::Terminal(event::read()?));
         }
     }
     Ok(())

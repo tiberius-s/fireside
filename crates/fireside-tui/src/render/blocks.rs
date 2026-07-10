@@ -96,13 +96,16 @@ fn heading(level: u8, text: &str, width: u16, tokens: &Tokens) -> Vec<Line<'stat
     }
 }
 
-/// A divider is a pause, not a wall: a short centered rule.
+/// A divider is a pause, not a wall: a short centered rule. The line is
+/// padded on both sides to the full width so that outer containers (e.g.
+/// `center`) never re-center it off axis.
 fn divider(width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     let rule = usize::from((width / 3).clamp(2, 24).min(width));
     let pad = (usize::from(width) - rule) / 2;
     vec![Line::from(vec![
         Span::raw(" ".repeat(pad)),
         Span::styled("─".repeat(rule), tokens.border),
+        Span::raw(" ".repeat(usize::from(width) - pad - rule)),
     ])]
 }
 

@@ -1,15 +1,21 @@
 //! Fireside — present branching decks in the terminal.
 //!
-//! Three verbs, nothing else: `fireside <file>` presents, `validate`
-//! checks, `new` scaffolds. Validation always runs before presenting, so a
-//! broken deck fails loudly at the prompt instead of during the show.
+//! Four verbs, nothing else: `fireside <file>` presents, `validate`
+//! checks, `new` scaffolds, `demo` shows off. Validation always runs
+//! before presenting, so a broken deck fails loudly at the prompt instead
+//! of during the show. While presenting, the deck file is watched and
+//! live-reloaded on save.
 
 use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
-use fireside_core::Graph;
+use fireside_core::{CoreError, Graph};
 use fireside_engine::{Severity, validate};
+
+/// The built-in showcase deck presented by `fireside demo`.
+const DEMO_DECK: &str = include_str!("../assets/demo.fireside.json");
 
 /// Present branching decks in the terminal.
 #[derive(Debug, Parser)]
@@ -41,6 +47,9 @@ enum Command {
         /// A name for the deck, e.g. "team-onboarding".
         name: String,
     },
+
+    /// See what Fireside can do — no file needed.
+    Demo,
 }
 
 fn main() -> Result<()> {
@@ -49,24 +58,67 @@ fn main() -> Result<()> {
         (Some(file), _) | (None, Some(Command::Present { file })) => present(&file),
         (None, Some(Command::Validate { file })) => validate_file(&file),
         (None, Some(Command::New { name })) => new_deck(&name),
+        (None, Some(Command::Demo)) => demo(),
         (None, None) => {
             // No arguments: teach, don't error.
             println!("fireside — present branching decks in the terminal\n");
+            println!("  fireside demo              see what a deck can do");
             println!("  fireside <file>            present a deck");
             println!("  fireside validate <file>   check a deck for problems");
             println!("  fireside new <name>        create a starter deck");
-            println!("\nTry: fireside new my-first-deck");
+            println!("\nTry: fireside demo");
             Ok(())
         }
     }
 }
 
-/// Load and parse a deck with errors a person can act on.
+/// Load and parse a deck with errors a person can act on: a broken file
+/// prints the offending line with a caret, not a serde one-liner.
 fn load(path: &Path) -> Result<Graph> {
     let text = std::fs::read_to_string(path)
         .with_context(|| format!("could not read {}", path.display()))?;
-    Graph::from_json(&text)
-        .with_context(|| format!("{} is not a valid Fireside deck", path.display()))
+    match Graph::from_json(&text) {
+        Ok(graph) => Ok(graph),
+        Err(CoreError::Parse(err)) => {
+            eprintln!("{}", parse_report(path, &text, &err));
+            std::process::exit(1);
+        }
+    }
+}
+
+/// A parse failure the author can act on: the line before, the offending
+/// line, and a caret under the exact column.
+fn parse_report(path: &Path, text: &str, err: &serde_json::Error) -> String {
+    let line = err.line();
+    let column = err.column().max(1);
+    let mut out = format!("✗ {} is not a valid deck\n", path.display());
+
+    let lines: Vec<&str> = text.lines().collect();
+    if line >= 1 && line <= lines.len() {
+        let gutter = line.to_string().len();
+        out.push('\n');
+        if line >= 2 {
+            out.push_str(&format!("  {:>gutter$} │ {}\n", line - 1, lines[line - 2]));
+        }
+        out.push_str(&format!("  {:>gutter$} │ {}\n", line, lines[line - 1]));
+        out.push_str(&format!(
+            "  {:>gutter$} │ {}^ {}\n",
+            "",
+            " ".repeat(column - 1),
+            strip_position(err),
+        ));
+    } else {
+        out.push_str(&format!("\n  {err}\n"));
+    }
+    out.push_str("\nFix the file and try again.");
+    out
+}
+
+/// serde_json appends " at line L column C" to every message; the report
+/// and the reload flash show the position themselves, so drop it.
+fn strip_position(err: &serde_json::Error) -> String {
+    let full = err.to_string();
+    full.split(" at line ").next().unwrap_or(&full).to_owned()
 }
 
 fn present(path: &Path) -> Result<()> {
@@ -84,7 +136,62 @@ fn present(path: &Path) -> Result<()> {
         eprintln!("\nFix the above, or run `fireside validate` for the full report.");
         std::process::exit(1);
     }
+    let mut watcher = Watcher::new(path);
+    fireside_tui::present_watching(graph, &mut || watcher.poll())
+        .context("the presenter hit a terminal error")
+}
+
+fn demo() -> Result<()> {
+    let graph = Graph::from_json(DEMO_DECK).context("the built-in demo deck is broken")?;
     fireside_tui::present(graph).context("the presenter hit a terminal error")
+}
+
+/// Watches the deck file while presenting: cheap fingerprint check per
+/// poll, full re-read and re-parse only when the file actually changed.
+struct Watcher {
+    path: PathBuf,
+    fingerprint: Option<(SystemTime, u64)>,
+}
+
+impl Watcher {
+    fn new(path: &Path) -> Self {
+        Self {
+            path: path.to_path_buf(),
+            fingerprint: fingerprint(path),
+        }
+    }
+
+    /// `None` while the file is unchanged (or briefly unreadable mid-save);
+    /// otherwise the freshly parsed deck or a one-line footer message.
+    fn poll(&mut self) -> Option<Result<Graph, String>> {
+        let current = fingerprint(&self.path)?;
+        if Some(current) == self.fingerprint {
+            return None;
+        }
+        self.fingerprint = Some(current);
+        let name = self
+            .path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_else(|| self.path.display().to_string());
+        Some(match std::fs::read_to_string(&self.path) {
+            Err(err) => Err(format!("Reload failed — could not read {name}: {err}")),
+            Ok(text) => Graph::from_json(&text).map_err(|CoreError::Parse(err)| {
+                format!(
+                    "Reload failed — {name}:{}:{} — {}",
+                    err.line(),
+                    err.column(),
+                    strip_position(&err),
+                )
+            }),
+        })
+    }
+}
+
+/// The file's (mtime, size) pair — enough to notice editor saves.
+fn fingerprint(path: &Path) -> Option<(SystemTime, u64)> {
+    let meta = std::fs::metadata(path).ok()?;
+    Some((meta.modified().ok()?, meta.len()))
 }
 
 fn validate_file(path: &Path) -> Result<()> {
@@ -215,4 +322,42 @@ fn starter_deck(name: &str) -> Result<Graph> {
         ]
     });
     serde_json::from_value(json).context("the starter deck template is broken")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn demo_deck_parses_and_validates_clean() {
+        let graph = Graph::from_json(DEMO_DECK).expect("demo deck parses");
+        let diags = validate(&graph);
+        let serious: Vec<_> = diags
+            .iter()
+            .filter(|d| d.severity >= Severity::Warning)
+            .collect();
+        assert!(serious.is_empty(), "demo deck must be spotless: {serious:?}");
+    }
+
+    #[test]
+    fn demo_deck_shows_every_block_kind() {
+        for kind in ["heading", "text", "code", "list", "image", "divider", "container"] {
+            assert!(
+                DEMO_DECK.contains(&format!("\"kind\": \"{kind}\"")),
+                "demo deck is missing a {kind} block"
+            );
+        }
+    }
+
+    #[test]
+    fn parse_report_points_at_the_line_with_a_caret() {
+        let text = "{\n  \"fireside-version\": \"0.1.0\",\n  \"nodes\": [}\n}";
+        let err = Graph::from_json(text).expect_err("invalid JSON");
+        let CoreError::Parse(err) = err;
+        let report = parse_report(Path::new("broken.json"), text, &err);
+        assert!(report.contains("broken.json is not a valid deck"), "{report}");
+        assert!(report.contains("3 │   \"nodes\": [}"), "offending line shown: {report}");
+        assert!(report.contains('^'), "caret shown: {report}");
+        assert!(!report.contains("at line"), "no duplicated position: {report}");
+    }
 }

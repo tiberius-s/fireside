@@ -30,8 +30,8 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1781218519.2874918,
-    "ast_hash": "eb2ebcb3465c26458339f4aac7e4ac79",
+    "mtime": 1783711187.202031,
+    "ast_hash": "048c457a53a7d84dfebe26fa7a5649af",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/app.rs": {
-    "mtime": 1783710657.055841,
-    "ast_hash": "9928a405ea016a9cf65660d57f31ab6e",
+    "mtime": 1783711005.6253445,
+    "ast_hash": "d7cd42e43003b4dbb088375a704c47ea",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/error.rs": {
@@ -85,18 +85,18 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
-    "mtime": 1783709817.6548567,
-    "ast_hash": "b52b48df95efa611e877ff7ece94a9f6",
+    "mtime": 1783711023.3485172,
+    "ast_hash": "1c4fda5e3e023b9d83bf6dd3742ff368",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
-    "mtime": 1783710132.8724358,
-    "ast_hash": "f987113a778a57f973a5f6cfd91f973f",
+    "mtime": 1783711601.9995768,
+    "ast_hash": "17141d4f9acf4c806a38a1878ca831eb",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/mod.rs": {
-    "mtime": 1783710674.9797807,
-    "ast_hash": "901570de552d41b8672ccc3e84eee14f",
+    "mtime": 1783711224.5696266,
+    "ast_hash": "d5579cdd28e2859d5150a34d7b7e96ed",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/theme.rs": {
@@ -295,8 +295,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1781284590.8747473,
-    "ast_hash": "a8cbeeefccb7140e42a4d80a5d79c5f2",
+    "mtime": 1783711648.6845267,
+    "ast_hash": "a1787c0485dc4af8de41b43f711ea514",
     "semantic_hash": ""
   },
   "crates/fireside-cli/README.md": {
@@ -432,6 +432,11 @@
   ".claude/adrs/adr-004-presenter-first-rewrite.md": {
     "mtime": 1781218820.0534637,
     "ast_hash": "231fea320aeaf04e5935f0f5b808e1fd",
+    "semantic_hash": ""
+  },
+  "crates/fireside-cli/assets/demo.fireside.json": {
+    "mtime": 1783711089.3980162,
+    "ast_hash": "e8a83ac2841a3e8682a622150524810c",
     "semantic_hash": ""
   }
 }

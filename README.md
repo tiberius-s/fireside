@@ -6,12 +6,19 @@ anyone can drive.
 ## Try it
 
 ```bash
+cargo run -q -- demo
+```
+
+Press `Space` to move forward. Press `?` any time — the presenter teaches its
+own keys. Then make your own:
+
+```bash
 cargo run -q -- new my-first-deck
 cargo run -q -- my-first-deck.fireside.json
 ```
 
-Press `Space` to move forward. Press `?` any time — the presenter teaches its
-own keys.
+Decks live-reload while you present: edit the JSON, save, and the slide on
+screen updates in place.
 
 ## What is Fireside?
 
@@ -35,7 +42,8 @@ example document.
 ## The CLI
 
 ```text
-fireside <file>            present a deck
+fireside demo              see what a deck can do
+fireside <file>            present a deck (live-reloads on save)
 fireside validate <file>   check a deck for problems, in plain language
 fireside new <name>        create a starter deck
 ```

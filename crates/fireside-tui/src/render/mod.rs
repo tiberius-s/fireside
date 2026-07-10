@@ -472,6 +472,7 @@ fn draw_map(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::app::Msg;
     use crossterm::event::{Event, KeyCode, KeyEvent};
     use fireside_core::Graph;
     use fireside_engine::Session;
@@ -486,7 +487,7 @@ mod tests {
     }
 
     fn press(app: &mut App, code: KeyCode) {
-        app.update(&Event::Key(KeyEvent::from(code)));
+        app.update(Msg::Terminal(Event::Key(KeyEvent::from(code))));
     }
 
     /// Render the app to a plain-text screen, lines joined by '\n'.
@@ -647,12 +648,60 @@ mod tests {
     }
 
     #[test]
+    fn reload_swaps_the_deck_and_stays_on_the_current_slide() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' ')); // features
+        let edited = HELLO.replace("Core Features", "Fresh Features");
+        let graph = Graph::from_json(&edited).expect("edited deck parses");
+        app.update(Msg::Reload(Ok(graph)));
+        assert_eq!(app.session().current().id, "features", "still on the same slide");
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("Fresh Features"), "new content visible: {s}");
+        assert!(s.contains("Reloaded"), "footer confirms the reload");
+    }
+
+    #[test]
+    fn reload_with_a_broken_save_keeps_the_working_deck() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' '));
+        app.update(Msg::Reload(Err("Reload failed — hello.json:3:7 — expected `,`".into())));
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("Core Features"), "old deck still presented");
+        assert!(s.contains("Reload failed — hello.json:3:7"), "footer explains");
+    }
+
+    #[test]
+    fn reload_with_validation_errors_keeps_the_working_deck() {
+        let mut app = app();
+        let broken = HELLO.replace("\"traversal\": \"features\"", "\"traversal\": \"missing-slide\"");
+        let graph = Graph::from_json(&broken).expect("broken deck still parses");
+        app.update(Msg::Reload(Ok(graph)));
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("Hello, Fireside"), "old deck still presented");
+        assert!(s.contains("Reload skipped"), "footer explains: {s}");
+    }
+
+    #[test]
+    fn reload_that_removed_the_current_slide_returns_to_start() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' ')); // features
+        let edited = HELLO
+            .replace("\"id\": \"features\"", "\"id\": \"renamed\"")
+            .replace("\"traversal\": \"features\"", "\"traversal\": \"renamed\"");
+        let graph = Graph::from_json(&edited).expect("edited deck parses");
+        app.update(Msg::Reload(Ok(graph)));
+        assert_eq!(app.session().current().id, "intro", "back at the entry");
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("is gone, back at the start"), "footer explains: {s}");
+    }
+
+    #[test]
     fn resize_event_updates_scroll_geometry() {
         let mut app = app();
         press(&mut app, KeyCode::Char(' '));
         press(&mut app, KeyCode::Char(' '));
         press(&mut app, KeyCode::Char('a')); // code-demo
-        app.update(&Event::Resize(60, 12));
+        app.update(Msg::Terminal(Event::Resize(60, 12)));
         // Scrolling clamps against the new, smaller viewport without panics.
         for _ in 0..50 {
             press(&mut app, KeyCode::Down);

@@ -1,0 +1,165 @@
+{
+  "fireside-version": "0.1.0",
+  "title": "Fireside Demo",
+  "description": "A tour of everything a deck can do.",
+  "defaults": {
+    "view-mode": "default",
+    "transition": "fade"
+  },
+  "nodes": [
+    {
+      "id": "welcome",
+      "title": "Welcome",
+      "traversal": "blocks",
+      "content": [
+        {
+          "kind": "container",
+          "layout": "center",
+          "children": [
+            { "kind": "heading", "level": 1, "text": "Fireside" },
+            { "kind": "text", "body": "Branching presentations, in your terminal." },
+            { "kind": "divider" },
+            { "kind": "text", "body": "Press **Space** to begin. Press **?** any time for help." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blocks",
+      "title": "Content blocks",
+      "traversal": "code",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Everything is a block" },
+        {
+          "kind": "text",
+          "body": "Slides are built from blocks: **bold**, *italic*, and `inline code` flow through wrapped text."
+        },
+        {
+          "kind": "list",
+          "items": [
+            "Headings with real hierarchy",
+            "Lists — this is one",
+            "Code, images, dividers, and containers"
+          ]
+        },
+        { "kind": "divider" },
+        {
+          "kind": "image",
+          "src": "docs/assets/campfire.png",
+          "alt": "A campfire",
+          "caption": "Images show a framed placeholder in the terminal."
+        }
+      ]
+    },
+    {
+      "id": "code",
+      "title": "Code that pops",
+      "view-mode": "fullscreen",
+      "traversal": "layout",
+      "speaker-notes": "The highlighted lines stay bright while the rest dims — point at line 4.",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Code, highlighted" },
+        {
+          "kind": "code",
+          "language": "rust",
+          "source": "fn main() -> Result<()> {\n    // Decks are plain JSON.\n    let deck = Graph::load(\"demo.fireside.json\")?;\n    let session = Session::new(deck)?;\n    present(session)\n}",
+          "highlight-lines": [3, 4],
+          "show-line-numbers": true
+        }
+      ]
+    },
+    {
+      "id": "layout",
+      "title": "Layout",
+      "traversal": "choose",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Containers compose" },
+        {
+          "kind": "container",
+          "layout": "columns",
+          "children": [
+            {
+              "kind": "text",
+              "body": "Columns put blocks side by side — good for before/after or claim/evidence."
+            },
+            {
+              "kind": "text",
+              "body": "Each column wraps its own text independently at its own width."
+            }
+          ]
+        },
+        { "kind": "divider" },
+        {
+          "kind": "container",
+          "layout": "center",
+          "children": [
+            { "kind": "text", "body": "And centering is just another container." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "choose",
+      "title": "A branch",
+      "traversal": {
+        "branch-point": {
+          "prompt": "Decks branch. Where to?",
+          "options": [
+            {
+              "label": "One more slide",
+              "key": "e",
+              "description": "An ordered list, for completeness",
+              "target": "extras"
+            },
+            {
+              "label": "Straight to the finale",
+              "key": "w",
+              "description": "Paths can rejoin — both roads end at the same place",
+              "target": "finale"
+            }
+          ]
+        }
+      },
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Your audience decides" },
+        {
+          "kind": "text",
+          "body": "A branch point pauses the deck until someone chooses — arrows and **Enter**, a number, or the shortcut key."
+        }
+      ]
+    },
+    {
+      "id": "extras",
+      "title": "Extras",
+      "traversal": "finale",
+      "speaker-notes": "Press t for the elapsed timer, m for the map.",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "A few more touches" },
+        {
+          "kind": "list",
+          "ordered": true,
+          "items": [
+            "The map (**m**) shows every slide and jumps anywhere",
+            "The timer (**t**) keeps your talk on time",
+            "Speaker notes (**s**) stay off screen until you want them"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "finale",
+      "title": "The end",
+      "content": [
+        {
+          "kind": "container",
+          "layout": "center",
+          "children": [
+            { "kind": "heading", "level": 1, "text": "Make it yours" },
+            { "kind": "text", "body": "Scaffold a deck and start editing — it live-reloads while you present." },
+            { "kind": "code", "language": "sh", "source": "fireside new my-first-deck\nfireside my-first-deck.fireside.json" }
+          ]
+        }
+      ]
+    }
+  ]
+}
