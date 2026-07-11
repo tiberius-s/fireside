@@ -7,6 +7,7 @@
 //! that contract is what makes the presenter learnable without a manual.
 
 pub mod blocks;
+mod map;
 pub mod markdown;
 pub mod syntax;
 
@@ -53,7 +54,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
     match app.screen() {
         Screen::Present => {}
         Screen::Help => draw_help(frame, area, &tokens),
-        Screen::Map { selected } => draw_map(frame, area, app, selected, &tokens),
+        Screen::Map { selected } => map::draw(frame, area, app, selected, &tokens),
     }
 }
 
@@ -100,16 +101,21 @@ struct Surface {
     card: bool,
 }
 
+/// Rows of air between the card and the header rule / footer, so the card
+/// reads as a stage rather than a fence around the whole screen.
+const CARD_GAP: u16 = 2;
+
 fn surface(view: ViewMode, body: Rect) -> Surface {
     let chrome_w = 2 + 2 * PAD_X;
     let chrome_h = 2 + 2 * PAD_Y;
-    let card =
-        view == ViewMode::Default && body.width >= chrome_w + 16 && body.height >= chrome_h + 3;
+    let card = view == ViewMode::Default
+        && body.width >= chrome_w + 16
+        && body.height >= chrome_h + CARD_GAP + 3;
     if card {
         let card_width = body.width.min(MEASURE + chrome_w);
         Surface {
             width: card_width - chrome_w,
-            height: body.height - chrome_h,
+            height: body.height - chrome_h - CARD_GAP,
             card: true,
         }
     } else {
@@ -147,12 +153,80 @@ fn draw_header(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
         text_row,
     );
     frame.render_widget(
-        Paragraph::new(Line::styled(
-            "─".repeat(rule_row.width as usize),
-            tokens.border,
-        )),
+        Paragraph::new(header_rail(app, area.width, tokens)),
         rule_row,
     );
+}
+
+/// The header rule doubles as a rail strip: stations you have travelled,
+/// the one you stand at, and the straight track ahead — the deck's shape,
+/// always in the corner of your eye.
+fn header_rail(app: &App, width: u16, tokens: &Tokens) -> Line<'static> {
+    let w = usize::from(width);
+    if w < 24 {
+        return Line::styled("─".repeat(w), tokens.border);
+    }
+    let session = app.session();
+    let graph = session.graph();
+
+    // Stations: the travelled path, then the linear track ahead of the
+    // cursor (a fork or the end of the line stops the lookahead).
+    let mut ids: Vec<&str> = session.history().iter().map(String::as_str).collect();
+    let behind = ids.len();
+    ids.push(&session.current().id);
+    let mut seen: std::collections::HashSet<&str> = ids.iter().copied().collect();
+    let mut cursor = session.current();
+    while let Some(next) = cursor.next_target().and_then(|id| graph.node(id)) {
+        if !seen.insert(&next.id) || ids.len() >= 24 {
+            break;
+        }
+        ids.push(&next.id);
+        cursor = next;
+    }
+
+    // Each station takes 4 cells (glyph + track). Keep the tail when the
+    // path outgrows the row: where you are matters more than where you began.
+    const STEP: usize = 4;
+    let max = (w.saturating_sub(6)) / STEP;
+    let cut = ids.len().saturating_sub(max);
+    let current_at = behind.saturating_sub(cut);
+    let shown = &ids[cut..];
+
+    let mut spans = vec![Span::styled(
+        if cut > 0 { "┄─" } else { "──" }.to_owned(),
+        tokens.border,
+    )];
+    let mut used = 2;
+    for (k, id) in shown.iter().enumerate() {
+        let terminal = graph.node(id).is_some_and(fireside_core::Node::is_terminal);
+        let (glyph, style) = match k.cmp(&current_at) {
+            std::cmp::Ordering::Less => ("●", tokens.accent),
+            std::cmp::Ordering::Equal => ("◉", tokens.accent.add_modifier(Modifier::BOLD)),
+            std::cmp::Ordering::Greater => ("○", tokens.muted),
+        };
+        spans.push(Span::styled((*glyph).to_owned(), style));
+        used += 1;
+        if terminal && k + 1 == shown.len() {
+            spans.push(Span::styled("─■".to_owned(), style));
+            used += 2;
+            break;
+        }
+        if k + 1 < shown.len() {
+            // Track between stations is bright once ridden.
+            let track = if k < current_at {
+                tokens.accent
+            } else {
+                tokens.border
+            };
+            spans.push(Span::styled("───".to_owned(), track));
+            used += 3;
+        }
+    }
+    spans.push(Span::styled(
+        "─".repeat(w.saturating_sub(used)),
+        tokens.border,
+    ));
+    Line::from(spans)
 }
 
 /// The node's full line flow: content blocks, then the branch menu or the
@@ -206,20 +280,21 @@ fn node_lines(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
         if !lines.is_empty() {
             lines.push(Line::default());
         }
-        lines.extend(end_marker(width, tokens));
+        lines.extend(end_marker(app, width, tokens));
     }
     lines
 }
 
 /// The close of a path. The deck should land, not shrug: a centered rule
-/// with the end mark, and a quiet word underneath.
-fn end_marker(width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+/// with the end mark, a quiet word underneath — and the route actually
+/// travelled, so the ending shows which story this audience got.
+fn end_marker(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     let w = usize::from(width);
     let rule = (w / 4).clamp(2, 12);
     let rule_pad = w.saturating_sub(rule * 2 + 3) / 2;
     let text = "End of this path";
     let text_pad = w.saturating_sub(text.chars().count()) / 2;
-    vec![
+    let mut lines = vec![
         Line::from(vec![
             Span::raw(" ".repeat(rule_pad)),
             Span::styled("─".repeat(rule), tokens.border),
@@ -230,7 +305,41 @@ fn end_marker(width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
             Span::raw(" ".repeat(text_pad)),
             Span::styled(text.to_owned(), tokens.muted),
         ]),
-    ]
+    ];
+
+    let graph = app.session().graph();
+    let mut stations: Vec<&str> = app
+        .session()
+        .history()
+        .iter()
+        .filter_map(|id| graph.node(id))
+        .chain([app.session().current()])
+        .map(|n| n.title.as_deref().unwrap_or(&n.id))
+        .collect();
+    if stations.len() > 1 {
+        // Long journeys keep their tail: the recent stops tell the story.
+        let overflow = stations.len() > 8;
+        if overflow {
+            stations.drain(..stations.len() - 8);
+        }
+        let mut trace = stations.join(" → ");
+        if overflow {
+            trace = format!("… → {trace}");
+        }
+        lines.push(Line::default());
+        for row in markdown::wrap_styled(
+            &trace,
+            width,
+            tokens.muted.add_modifier(Modifier::DIM),
+            tokens,
+        ) {
+            let pad = w.saturating_sub(row.width()) / 2;
+            let mut spans = vec![Span::raw(" ".repeat(pad))];
+            spans.extend(row.spans);
+            lines.push(Line::from(spans));
+        }
+    }
+    lines
 }
 
 fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
@@ -245,11 +354,10 @@ fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
     };
 
     let inner = if surf.card {
-        // The slide card: horizontally centered at a readable measure,
-        // vertically centered when the content fits, filling when it scrolls.
+        // The slide card: one constant stage for the whole deck — the same
+        // frame on every slide — with the content flow centered inside it.
         let card_width = surf.width + 2 + 2 * PAD_X;
-        let inner_height = total.min(surf.height);
-        let card_height = inner_height + 2 + 2 * PAD_Y;
+        let card_height = surf.height + 2 + 2 * PAD_Y;
         let card_area = Rect {
             x: body.x + (body.width - card_width) / 2,
             y: body.y + (body.height - card_height) / 2,
@@ -259,12 +367,20 @@ fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
         let block = Block::bordered()
             .border_type(BorderType::Rounded)
             .border_style(tokens.border.patch(base));
-        let inner = block.inner(card_area).inner(Margin {
+        let full = block.inner(card_area).inner(Margin {
             horizontal: PAD_X,
             vertical: PAD_Y,
         });
         frame.render_widget(block, card_area);
-        inner
+        if total < full.height {
+            Rect {
+                y: full.y + (full.height - total) / 2,
+                height: total,
+                ..full
+            }
+        } else {
+            full
+        }
     } else {
         // Bare flow (fullscreen, tiny terminals): centered when it fits.
         let width = surf.width.min(body.width);
@@ -480,51 +596,6 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
     frame.render_widget(Paragraph::new(Text::from(lines)), inner);
 }
 
-fn draw_map(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &Tokens) {
-    let session = app.session();
-    let nodes = &session.graph().nodes;
-    let rect = overlay_rect(area, 56, nodes.len() as u16 + 5);
-    frame.render_widget(Clear, rect);
-    let block = Block::bordered()
-        .border_type(BorderType::Rounded)
-        .border_style(tokens.border)
-        .title(Span::styled(
-            " Map — Enter jumps ".to_owned(),
-            tokens.accent.add_modifier(Modifier::BOLD),
-        ));
-    let inner = block.inner(rect);
-    frame.render_widget(block, rect);
-
-    let current = &session.current().id;
-    let mut lines: Vec<Line<'static>> = Vec::with_capacity(nodes.len() + 2);
-    for (i, node) in nodes.iter().enumerate() {
-        let marker = if node.id == *current {
-            Span::styled(" ▶ ".to_owned(), tokens.accent.add_modifier(Modifier::BOLD))
-        } else if session.visited().contains(&node.id) {
-            Span::styled(" ✓ ".to_owned(), tokens.success)
-        } else {
-            Span::styled(" · ".to_owned(), tokens.muted)
-        };
-        let name = node.title.clone().unwrap_or_else(|| node.id.clone());
-        let style = if i == selected {
-            tokens.selected
-        } else {
-            tokens.text
-        };
-        let mut spans = vec![marker, Span::styled(format!(" {name} "), style)];
-        if node.is_terminal() {
-            spans.push(Span::styled("■".to_owned(), tokens.muted));
-        }
-        lines.push(Line::from(spans));
-    }
-    lines.push(Line::default());
-    lines.push(Line::styled(
-        " ↑↓ move · Enter jump · Esc close".to_owned(),
-        tokens.muted,
-    ));
-    frame.render_widget(Paragraph::new(Text::from(lines)), inner);
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -643,7 +714,9 @@ mod tests {
         press(&mut app, KeyCode::Char(' '));
         press(&mut app, KeyCode::Char('c')); // thanks (terminal)
         let s = screen(&app, 80, 24);
-        let line = s.lines().find(|l| l.contains("■")).expect("end mark row");
+        // The header mini-rail also carries a ■; the end marker is the one
+        // set off with spaces inside the card.
+        let line = s.lines().find(|l| l.contains(" ■ ")).expect("end mark row");
         let lead = line.chars().take_while(|c| *c == ' ' || *c == '│').count();
         assert!(lead > 20, "end mark sits centered, lead was {lead}");
         let text = s
@@ -816,8 +889,9 @@ mod tests {
         press(&mut app, KeyCode::Char('m'));
         let s = screen(&app, 80, 24);
         assert!(s.contains("Map — Enter jumps"));
-        assert!(s.contains("✓"), "visited marker");
-        assert!(s.contains("▶"), "current marker");
+        assert!(s.contains("●"), "visited station");
+        assert!(s.contains("◉"), "current station");
+        assert!(s.contains("○"), "unvisited station");
         // Jump to the last slide.
         for _ in 0..5 {
             press(&mut app, KeyCode::Down);
@@ -827,6 +901,42 @@ mod tests {
         // Back returns to where the jump came from (history, not order).
         press(&mut app, KeyCode::Backspace);
         assert_eq!(app.session().current().id, "features");
+    }
+
+    #[test]
+    fn map_draws_the_fork_with_its_option_keys() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char('m'));
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("├"), "fork junction drawn: {s}");
+        assert!(s.contains("╮"), "branch lane opens: {s}");
+        assert!(s.contains("╯"), "branch lane rejoins: {s}");
+        assert!(s.contains("[a]"), "option key legend: {s}");
+        assert!(s.contains("[c]"), "all option keys shown: {s}");
+        assert!(s.contains("you are here"), "glyph legend shown: {s}");
+    }
+
+    #[test]
+    fn header_rule_carries_the_mini_rail() {
+        let mut app = app();
+        let s = screen(&app, 80, 24);
+        let rail = s.lines().nth(1).expect("rule row");
+        assert!(rail.contains("◉"), "current station on the rule: {rail}");
+        press(&mut app, KeyCode::Char(' '));
+        let s = screen(&app, 80, 24);
+        let rail = s.lines().nth(1).expect("rule row");
+        assert!(rail.contains("●───◉"), "travelled track then you: {rail}");
+    }
+
+    #[test]
+    fn the_ending_lists_the_route_travelled() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char('c')); // straight to thanks
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("→"), "path trace shown on the ending: {s}");
     }
 
     #[test]
@@ -900,6 +1010,24 @@ mod tests {
         let s = screen(&app, 80, 24);
         assert!(s.contains('╭') && s.contains('╰'), "card corners visible");
         assert!(s.contains("─────"), "header rule visible");
+    }
+
+    #[test]
+    fn the_card_is_the_same_stage_on_every_slide() {
+        let mut app = app();
+        let frame = |app: &App| {
+            let buf = buffer(app, 80, 24);
+            let top = locate(&buf, 80, 24, "╭");
+            let bottom = locate(&buf, 80, 24, "╰");
+            (top, bottom)
+        };
+        let first = frame(&app);
+        press(&mut app, KeyCode::Char(' ')); // a slide with more content
+        let second = frame(&app);
+        assert_eq!(
+            first, second,
+            "the card frame must not resize between slides"
+        );
     }
 
     #[test]

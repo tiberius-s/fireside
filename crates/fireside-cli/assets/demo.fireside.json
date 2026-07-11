@@ -54,7 +54,6 @@
     {
       "id": "code",
       "title": "Code that pops",
-      "view-mode": "fullscreen",
       "traversal": "layout",
       "speaker-notes": "The highlighted lines stay bright while the rest dims — point at line 4.",
       "content": [
@@ -65,6 +64,10 @@
           "source": "fn main() -> Result<()> {\n    // Decks are plain JSON.\n    let deck = Graph::load(\"demo.fireside.json\")?;\n    let session = Session::new(deck)?;\n    present(session)\n}",
           "highlight-lines": [3, 4],
           "show-line-numbers": true
+        },
+        {
+          "kind": "text",
+          "body": "Press **f** when the code deserves the whole screen."
         }
       ]
     },

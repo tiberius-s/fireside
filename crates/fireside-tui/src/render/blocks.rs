@@ -263,6 +263,9 @@ fn list(ordered: bool, items: &[String], width: u16, tokens: &Tokens) -> Vec<Lin
     lines
 }
 
+/// A terminal cannot paint pixels, so an image becomes a designed
+/// placeholder: a small framed plate with the picture's name, and the
+/// caption beneath — centered, like a figure in a book.
 fn image(
     src: &str,
     alt: Option<&str>,
@@ -271,14 +274,58 @@ fn image(
     tokens: &Tokens,
 ) -> Vec<Line<'static>> {
     let label = alt.unwrap_or(src);
-    let mut lines = markdown::wrap_styled(
-        &format!("[image] {label}"),
-        width,
-        tokens.muted.add_modifier(Modifier::ITALIC),
-        tokens,
-    );
+    let w = usize::from(width);
+    // Too narrow for a frame: a single quiet line.
+    if width < 16 {
+        let mut lines = markdown::wrap_styled(
+            label,
+            width,
+            tokens.muted.add_modifier(Modifier::ITALIC),
+            tokens,
+        );
+        if let Some(caption) = caption {
+            lines.extend(markdown::wrap_styled(caption, width, tokens.muted, tokens));
+        }
+        return lines;
+    }
+
+    let inner = (w - 8).clamp(8, 36) as u16;
+    let body = markdown::wrap_styled(label, inner, tokens.text, tokens);
+    let text_w = body.iter().map(Line::width).max().unwrap_or(0).max(8);
+    let plate_w = text_w + 8;
+    let lead = " ".repeat(w.saturating_sub(plate_w) / 2);
+
+    let mut lines = vec![Line::from(vec![
+        Span::raw(lead.clone()),
+        Span::styled("╭─ ".to_owned(), tokens.border),
+        Span::styled("▨".to_owned(), tokens.accent),
+        Span::styled(format!(" {}╮", "─".repeat(plate_w - 6)), tokens.border),
+    ])];
+    for row in body {
+        let pad_l = (plate_w - 2).saturating_sub(row.width()) / 2;
+        let pad_r = (plate_w - 2).saturating_sub(row.width()) - pad_l;
+        let mut spans = vec![
+            Span::raw(lead.clone()),
+            Span::styled("│".to_owned(), tokens.border),
+            Span::raw(" ".repeat(pad_l)),
+        ];
+        spans.extend(row.spans);
+        spans.push(Span::raw(" ".repeat(pad_r)));
+        spans.push(Span::styled("│".to_owned(), tokens.border));
+        lines.push(Line::from(spans));
+    }
+    lines.push(Line::from(vec![
+        Span::raw(lead),
+        Span::styled(format!("╰{}╯", "─".repeat(plate_w - 2)), tokens.border),
+    ]));
+
     if let Some(caption) = caption {
-        lines.extend(markdown::wrap_styled(caption, width, tokens.muted, tokens));
+        for row in markdown::wrap_styled(caption, width, tokens.muted, tokens) {
+            let pad = w.saturating_sub(row.width()) / 2;
+            let mut spans = vec![Span::raw(" ".repeat(pad))];
+            spans.extend(row.spans);
+            lines.push(Line::from(spans));
+        }
     }
     lines
 }
@@ -342,27 +389,31 @@ fn columns(children: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'
     lines
 }
 
-/// Center children as a unit: the flow keeps its internal alignment and is
-/// offset to sit in the middle of the available width.
+/// Center children on the container's axis. Prose (headings, text) centers
+/// line by line, the way a title slide reads; everything else (code, lists,
+/// images) moves as one unit so its internal alignment holds.
 fn center(children: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     let inner_width = (u32::from(width) * 4 / 5) as u16;
-    let flow = render_blocks(children, inner_width.max(1), tokens);
-    let content_width = flow.iter().map(Line::width).max().unwrap_or(0);
-    let offset = (width as usize).saturating_sub(content_width) / 2;
-    flow.into_iter()
-        .map(|line| {
-            // Center each line individually so short headings/text sit in the
-            // middle, while full-width elements stay put.
-            let pad = if line.width() >= content_width {
-                offset
-            } else {
-                offset + (content_width - line.width()) / 2
-            };
+    let mut lines = Vec::new();
+    for (i, child) in children.iter().enumerate() {
+        if i > 0 {
+            lines.push(Line::default());
+        }
+        let flow = render_block(child, inner_width.max(1), tokens);
+        let prose = matches!(
+            child,
+            ContentBlock::Heading { .. } | ContentBlock::Text { .. }
+        );
+        let unit_width = flow.iter().map(Line::width).max().unwrap_or(0);
+        for line in flow {
+            let w = if prose { line.width() } else { unit_width };
+            let pad = usize::from(width).saturating_sub(w) / 2;
             let mut spans = vec![Span::raw(" ".repeat(pad))];
             spans.extend(line.spans);
-            Line::from(spans)
-        })
-        .collect()
+            lines.push(Line::from(spans));
+        }
+    }
+    lines
 }
 
 #[cfg(test)]
@@ -490,6 +541,60 @@ mod tests {
         assert_eq!(lines[0].trim(), "hi");
         let leading = lines[0].len() - lines[0].trim_start().len();
         assert!((8..=10).contains(&leading), "centered, got {leading}");
+    }
+
+    #[test]
+    fn centered_code_keeps_its_internal_alignment() {
+        let block = ContentBlock::Container {
+            layout: Some(ContainerLayout::Center),
+            children: vec![ContentBlock::Code {
+                language: None,
+                source: "short\na longer line".into(),
+                highlight_lines: None,
+                show_line_numbers: None,
+            }],
+        };
+        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        let lead_short = lines[1].find("short").expect("short present");
+        let lead_long = lines[2].find("a longer line").expect("long present");
+        assert_eq!(
+            lead_short, lead_long,
+            "code lines share one left edge: {lines:?}"
+        );
+    }
+
+    #[test]
+    fn image_renders_a_framed_plate_with_caption() {
+        let block = ContentBlock::Image {
+            src: "fire.png".into(),
+            alt: Some("A campfire".into()),
+            caption: Some("Warm".into()),
+            width: None,
+            height: None,
+        };
+        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        assert!(lines[0].contains("╭─ ▨"), "framed top: {lines:?}");
+        assert!(lines[1].contains("│"), "framed side: {lines:?}");
+        assert!(lines[1].contains("A campfire"), "label shown: {lines:?}");
+        assert!(lines[2].contains("╰"), "framed bottom: {lines:?}");
+        assert!(lines[3].contains("Warm"), "caption beneath: {lines:?}");
+        // The plate is centered.
+        let lead = lines[0].chars().take_while(|c| *c == ' ').count();
+        assert!(lead > 0, "centered plate: {lines:?}");
+    }
+
+    #[test]
+    fn narrow_image_falls_back_to_a_quiet_line() {
+        let block = ContentBlock::Image {
+            src: "fire.png".into(),
+            alt: Some("A campfire".into()),
+            caption: None,
+            width: None,
+            height: None,
+        };
+        let lines = flat(&render_block(&block, 12, &Tokens::default()));
+        assert!(lines[0].contains("A campfire"), "{lines:?}");
+        assert!(!lines[0].contains('╭'), "no frame this narrow: {lines:?}");
     }
 
     #[test]

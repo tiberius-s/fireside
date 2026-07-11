@@ -98,56 +98,85 @@ fn find_closer(chars: &[char], from: usize, marker: &str) -> Option<usize> {
     None
 }
 
-/// Greedy word-wrap over styled fragments.
+/// Greedy word-wrap over styled fragments. A word ends only at a space in
+/// the source, so a style change mid-word (`**bold**,` or `(\`m\`)`) never
+/// inserts one.
 fn wrap_fragments(fragments: &[Fragment], width: u16) -> Vec<Line<'static>> {
     let width = width as usize;
     let mut lines: Vec<Line<'static>> = Vec::new();
     let mut current: Vec<Span<'static>> = Vec::new();
     let mut used = 0usize;
 
-    let mut flush = |current: &mut Vec<Span<'static>>, used: &mut usize| {
-        lines.push(Line::from(std::mem::take(current)));
-        *used = 0;
-    };
-
-    for frag in fragments {
-        for word in frag.text.split(' ') {
-            if word.is_empty() {
-                continue;
-            }
-            let mut word = word.to_owned();
-            let mut w = word.width();
-            // Hard-break words wider than the whole line.
-            while w > width {
-                let cut: String = word.chars().take(width).collect();
-                let rest: String = word.chars().skip(width).collect();
-                if used > 0 {
-                    flush(&mut current, &mut used);
-                }
-                current.push(Span::styled(cut, frag.style));
-                flush(&mut current, &mut used);
-                word = rest;
-                w = word.width();
-            }
-            if word.is_empty() {
-                continue;
-            }
-            let need = if used == 0 { w } else { w + 1 };
-            if used + need > width && used > 0 {
-                flush(&mut current, &mut used);
-            }
+    for word in words(fragments) {
+        let w: usize = word.iter().map(|p| p.text.width()).sum();
+        // Hard-break words wider than the whole line, keeping each
+        // character's style.
+        if w > width {
             if used > 0 {
-                current.push(Span::styled(" ".to_owned(), frag.style));
-                used += 1;
+                lines.push(Line::from(std::mem::take(&mut current)));
+                used = 0;
             }
-            used += w;
-            current.push(Span::styled(word, frag.style));
+            for piece in word {
+                for ch in piece.text.chars() {
+                    let cw = unicode_width::UnicodeWidthChar::width(ch).unwrap_or(0);
+                    if used + cw > width {
+                        lines.push(Line::from(std::mem::take(&mut current)));
+                        used = 0;
+                    }
+                    match current.last_mut() {
+                        Some(span) if span.style == piece.style => {
+                            span.content.to_mut().push(ch);
+                        }
+                        _ => current.push(Span::styled(ch.to_string(), piece.style)),
+                    }
+                    used += cw;
+                }
+            }
+            continue;
         }
+        let need = if used == 0 { w } else { w + 1 };
+        if used + need > width && used > 0 {
+            lines.push(Line::from(std::mem::take(&mut current)));
+            used = 0;
+        }
+        if used > 0 {
+            current.push(Span::raw(" ".to_owned()));
+            used += 1;
+        }
+        for piece in word {
+            current.push(Span::styled(piece.text, piece.style));
+        }
+        used += w;
     }
     if !current.is_empty() || lines.is_empty() {
         lines.push(Line::from(current));
     }
     lines
+}
+
+/// Split fragments into words. A fragment boundary is not a word boundary:
+/// only a space in the source text ends a word, so one word may carry
+/// several styles.
+fn words(fragments: &[Fragment]) -> Vec<Vec<Fragment>> {
+    let mut words: Vec<Vec<Fragment>> = Vec::new();
+    let mut word: Vec<Fragment> = Vec::new();
+    for frag in fragments {
+        for (i, piece) in frag.text.split(' ').enumerate() {
+            if i > 0 && !word.is_empty() {
+                words.push(std::mem::take(&mut word));
+            }
+            if !piece.is_empty() {
+                word.push(Fragment {
+                    text: piece.to_owned(),
+                    style: frag.style,
+                });
+            }
+        }
+    }
+    if !word.is_empty() {
+        words.push(word);
+    }
+    words
 }
 
 #[cfg(test)]
@@ -179,6 +208,15 @@ mod tests {
         let span = &lines[0].spans[0];
         assert_eq!(span.content.as_ref(), "hi");
         assert!(span.style.add_modifier.contains(Modifier::BOLD));
+    }
+
+    #[test]
+    fn punctuation_hugs_styled_spans() {
+        assert_eq!(
+            render("**bold**, *italic*, and `code` flow", 40),
+            ["bold, italic, and code flow"]
+        );
+        assert_eq!(render("(`m`) opens", 40), ["(m) opens"]);
     }
 
     #[test]

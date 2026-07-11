@@ -42,6 +42,10 @@ pub struct Tokens {
     pub error: Style,
     /// Borders and rules.
     pub border: Style,
+    /// Rail-line colors for the map: parallel branch tracks cycle through
+    /// these, subway-style. Index with [`Tokens::rail`]. None of them repeat
+    /// the accent, which the spine (main line) wears.
+    pub rail_lines: [Style; 4],
 }
 
 impl Default for Tokens {
@@ -65,11 +69,23 @@ impl Default for Tokens {
             warning: Style::new().fg(Color::Yellow),
             error: Style::new().fg(Color::Red),
             border: Style::new().fg(Color::DarkGray),
+            rail_lines: [
+                Style::new().fg(Color::Magenta),
+                Style::new().fg(Color::Yellow),
+                Style::new().fg(Color::Green),
+                Style::new().fg(Color::Blue),
+            ],
         }
     }
 }
 
 impl Tokens {
+    /// The line style for the `i`-th parallel rail at a fork.
+    #[must_use]
+    pub fn rail(&self, i: usize) -> Style {
+        self.rail_lines[i % self.rail_lines.len()]
+    }
+
     /// Style for a heading of the given level (1–6).
     #[must_use]
     pub fn heading(&self, level: u8) -> Style {

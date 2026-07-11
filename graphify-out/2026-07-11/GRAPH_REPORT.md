@@ -1,7 +1,7 @@
 # Graph Report - fireside  (2026-07-11)
 
 ## Corpus Check
-- 84 files · ~74,737 words
+- 84 files · ~73,432 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

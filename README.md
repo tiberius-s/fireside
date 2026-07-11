@@ -3,6 +3,8 @@
 A portable format for branching presentations — and a terminal presenter
 anyone can drive.
 
+![fireside demo — a branching deck presented in the terminal](.github/demo.gif)
+
 ## Try it
 
 ```bash
