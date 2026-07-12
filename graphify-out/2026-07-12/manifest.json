@@ -5,8 +5,8 @@
     "semantic_hash": ""
   },
   ".claude/settings.local.json": {
-    "mtime": 1783874370.2537558,
-    "ast_hash": "0b31b355fe17a63096feaf0395f1ed51",
+    "mtime": 1783873438.7238522,
+    "ast_hash": "78921c5658c89a978ffc6494a670393b",
     "semantic_hash": ""
   },
   ".githooks/install.sh": {
@@ -219,14 +219,19 @@
     "ast_hash": "0dad167a95bdb389f02fecffb60b1bc8",
     "semantic_hash": "0dad167a95bdb389f02fecffb60b1bc8"
   },
+  ".github/agents/context7.agent.md": {
+    "mtime": 1781190744.711474,
+    "ast_hash": "e444a6455d9391efd819b5c8a81bc214",
+    "semantic_hash": ""
+  },
   ".github/agents/documentation-writer.agent.md": {
     "mtime": 1776611384.2566347,
     "ast_hash": "67ed87a523cb958b51bf16cd7d3aaa42",
     "semantic_hash": "67ed87a523cb958b51bf16cd7d3aaa42"
   },
   ".github/agents/rust-expert.agent.md": {
-    "mtime": 1783873833.7355075,
-    "ast_hash": "2a0aed1a13af2acca29db14391fc1b39",
+    "mtime": 1781284667.4850063,
+    "ast_hash": "a268953bcddfb4fb812e499f1191bf5b",
     "semantic_hash": ""
   },
   ".github/instructions/markdown.instructions.md": {
@@ -240,8 +245,8 @@
     "semantic_hash": "d83274f7cab8a6e408a4012a5a2609b7"
   },
   ".github/instructions/rust-best-practices.instructions.md": {
-    "mtime": 1783873817.696459,
-    "ast_hash": "5a3582e8c544e7bac7fe55db16a32617",
+    "mtime": 1781190648.8546157,
+    "ast_hash": "6fb5c0771ed087a1d3e1cc83a923c9ce",
     "semantic_hash": ""
   },
   ".github/prompts/documentation-writer.prompt.md": {
@@ -253,6 +258,16 @@
     "mtime": 1783709336.9418092,
     "ast_hash": "28aeb3ccfa9a08e92e79ef71a8252c7d",
     "semantic_hash": ""
+  },
+  ".github/skills/prd/SKILL.md": {
+    "mtime": 1772043417.1479816,
+    "ast_hash": "67d9f6ac94c35ed7a64214abfbe3d6fe",
+    "semantic_hash": "67d9f6ac94c35ed7a64214abfbe3d6fe"
+  },
+  ".github/skills/refactor/SKILL.md": {
+    "mtime": 1772043417.1499887,
+    "ast_hash": "7b80a556129da779f09524b5ec28c1bb",
+    "semantic_hash": "7b80a556129da779f09524b5ec28c1bb"
   },
   ".github/workflows/audit.yml": {
     "mtime": 1771562062.1535382,
@@ -275,8 +290,8 @@
     "semantic_hash": "4d1cdfa5f27e2a6a9360250bfa25e940"
   },
   "CLAUDE.md": {
-    "mtime": 1783873839.549089,
-    "ast_hash": "04afb4de3cfe1b2be4acbaa2572b6f04",
+    "mtime": 1781190620.1564982,
+    "ast_hash": "437ac80a154706a7fe6fa804d2a00453",
     "semantic_hash": ""
   },
   "README.md": {
@@ -380,8 +395,8 @@
     "semantic_hash": "95de58270b165f852c9882b692084267"
   },
   "AGENTS.md": {
-    "mtime": 1783873673.5094833,
-    "ast_hash": "3e53cb71ded50d2aa79292a37f172e54",
+    "mtime": 1783710175.3220108,
+    "ast_hash": "c535b739cc807b150b3a00e9506e2216",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-extensions.md": {
@@ -632,36 +647,6 @@
   ".specify/workflows/speckit/workflow.yml": {
     "mtime": 1783872826.5013115,
     "ast_hash": "eba6943b2a2f6407162ae12e0218bdac",
-    "semantic_hash": ""
-  },
-  ".agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh": {
-    "mtime": 1783874468.5523932,
-    "ast_hash": "46a2a00761be2785e59661f0e3c11471",
-    "semantic_hash": ""
-  },
-  "skills-lock.json": {
-    "mtime": 1783874468.5679035,
-    "ast_hash": "00f2e7fcbdaeb94d3261e56b4496dc64",
-    "semantic_hash": ""
-  },
-  ".agents/skills/diagnosing-bugs/SKILL.md": {
-    "mtime": 1783874468.5522316,
-    "ast_hash": "77f2ef3211c1cff2e9c7a45fa234e54c",
-    "semantic_hash": ""
-  },
-  ".agents/skills/tdd/SKILL.md": {
-    "mtime": 1783874468.5543678,
-    "ast_hash": "a78e613a36731153b960491c24b06106",
-    "semantic_hash": ""
-  },
-  ".agents/skills/tdd/mocking.md": {
-    "mtime": 1783874468.554443,
-    "ast_hash": "c5505e8da8f516c7dacebd01c58a4c2c",
-    "semantic_hash": ""
-  },
-  ".agents/skills/tdd/tests.md": {
-    "mtime": 1783874468.5544214,
-    "ast_hash": "0a462499661825df11a0852c42382f10",
     "semantic_hash": ""
   }
 }

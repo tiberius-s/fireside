@@ -41,9 +41,10 @@ difficult to debug. Always verify.
 
 ## Fireside-Specific Rules You Must Enforce
 
-The canonical rules live in `/AGENTS.md` — load and enforce them. They cover the MSRV
+The canonical rules live in the project constitution at
+`/.specify/memory/constitution.md` — load and enforce them. They cover the MSRV
 (1.88, 2024 edition), the crate boundary table, the mandatory idioms, and the error
-handling stratification.
+handling stratification. `/AGENTS.md` is the short operational pointer to the same rules.
 
 ---
 

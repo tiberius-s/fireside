@@ -1,4 +1,10 @@
-Engineering constraints: read `AGENTS.md` and follow it for all Rust/protocol work.
+Engineering constraints: the canonical rules are the project constitution at
+`.specify/memory/constitution.md` (see `AGENTS.md` for the short operational guide).
+Follow them for all Rust/protocol work.
+
+Features follow the Spec Kit pipeline: `/speckit-specify` → `/speckit-plan` →
+`/speckit-tasks` → `/speckit-implement`, with artifacts in `specs/NNN-feature-name/`.
+Bug fixes and mechanical chores may skip the pipeline.
 
 ## graphify
 

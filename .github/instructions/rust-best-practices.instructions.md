@@ -10,9 +10,11 @@ Use these rules whenever the task involves Rust code, crate design, or implement
 
 ## Canonical rules
 
-The canonical rules live in `/AGENTS.md` — load and enforce them. They cover the MSRV,
+The canonical rules live in the project constitution at
+`/.specify/memory/constitution.md` — load and enforce them. They cover the MSRV,
 the crate boundary table, the mandatory idioms (no `unwrap()`/`expect()` in library code,
 TEA invariant, index rebuild, kebab-case serde), and the error handling stratification.
+`/AGENTS.md` is the short operational pointer to the same rules.
 
 ## Core expectations
 
