@@ -38,7 +38,7 @@ crate boundary table in AGENTS.md.
   mirrors `protocol/validate.mjs` rule-for-rule: unique-node-ids,
   valid-traversal-target, next/branch-point conflict, branch-options,
   reachability, self-loops, trivial-cycles, dead-end-branch. Parity is
-  *claimed* via matching rule names but not *tested* (see §3).
+  _claimed_ via matching rule names but not _tested_ (see §3).
 - **Test posture.** 100 tests: engine semantics unit-tested in
   `session.rs`/`validation.rs`, TUI scenario suite drives real key events
   through `App::update` against `TestBackend`, CLI covered e2e, plus tmux
@@ -55,12 +55,12 @@ crate boundary table in AGENTS.md.
 
 ### Competitive survey (what presenters expect elsewhere)
 
-| Tool | Format | Features Fireside lacks |
-|---|---|---|
+| Tool              | Format   | Features Fireside lacks                                                                         |
+| ----------------- | -------- | ----------------------------------------------------------------------------------------------- |
 | presenterm (Rust) | Markdown | kitty/sixel/iterm2 images, incremental reveal (pauses), PDF export, speaker-notes second window |
-| slides (Go) | Markdown | Markdown authoring, code execution blocks |
-| patat (Haskell) | Pandoc | incremental reveal, auto-advance, wrap/margins config |
-| sli.dev (web) | Markdown | presenter view, recording, themes ecosystem |
+| slides (Go)       | Markdown | Markdown authoring, code execution blocks                                                       |
+| patat (Haskell)   | Pandoc   | incremental reveal, auto-advance, wrap/margins config                                           |
+| sli.dev (web)     | Markdown | presenter view, recording, themes ecosystem                                                     |
 
 **Fireside's unique position:** nobody else does graph-structured, branching
 presentations. That is the moat. The table above says the costs of entry are
@@ -76,7 +76,7 @@ presentations. That is the moat. The table above says the costs of entry are
    string, object, and absent forms but not the empty object. Recommend: a
    validator warning, engine treats as terminal.
 3. **choose() contract.** §Operations says "push and navigate" but never
-   states the option must belong to the *current* node's branch point.
+   states the option must belong to the _current_ node's branch point.
    Implementations could accept a forged option. One sentence fixes it.
 4. **ViewMode toggle persistence.** Spec says engines SHOULD allow toggling;
    it doesn't say whether the toggle persists across node transitions or
@@ -101,7 +101,7 @@ additions, all 0.1.x-safe.
 ### P0 — Authoring path (the ADR-004 acknowledged debt)
 
 The presenter-first north star currently ends at "present." A non-technical
-person cannot *make* a deck. Staged approach, cheapest-first, each stage
+person cannot _make_ a deck. Staged approach, cheapest-first, each stage
 useful on its own:
 
 - **Stage A (days): `fireside validate --watch`.** Reuse the existing file
@@ -127,11 +127,11 @@ useful on its own:
 ### P1 — Terminal images + bounded ASCII art (the deferred polish)
 
 - **ASCII art, bounded to the window.** Two layers:
-  - *Engine-only (no spec change):* code blocks whose language is `text`,
+  - _Engine-only (no spec change):_ code blocks whose language is `text`,
     `ascii`, or absent already render monospace; add centering and
     graceful horizontal clipping with the existing ellipsis marker
     (`blocks.rs` clip helpers). Ship immediately.
-  - *Spec-first (0.1.x additive):* an optional `fit?: "clip" | "center" | "shrink"`
+  - _Spec-first (0.1.x additive):_ an optional `fit?: "clip" | "center" | "shrink"`
     field on CodeBlock, specified in main.tsp and registered per the
     extension process. Old engines ignore unknown fields (ADR-004 guarantees
     this), so it is backwards compatible. `shrink` for ASCII art means
@@ -166,13 +166,13 @@ as engine behavior.
 - **Resume**: persist last position per deck (a dotfile keyed by content
   fingerprint — `main.rs::fingerprint` already exists) so a crashed or
   interrupted presentation reopens where it left off. Very presenter-first.
-- *Not recommended now:* kitty keyboard protocol, background images, heavy
+- _Not recommended now:_ kitty keyboard protocol, background images, heavy
   animation — cost exceeds presenter value.
 
 ### P2 — Protocol & workflow hardening
 
 - **Shared conformance fixture corpus.** `protocol/fixtures/{valid,invalid}/*.json`
-  consumed by *both* `validate.mjs` and the Rust validation tests, asserting
+  consumed by _both_ `validate.mjs` and the Rust validation tests, asserting
   identical rule IDs fire. Turns the claimed parity into a tested invariant,
   and becomes the seed of a conformance suite any third-party engine can run.
 - **Property tests** (proptest, dev-dep only): serde round-trip on arbitrary
@@ -195,6 +195,7 @@ theme variants, `goto` fuzzy-search by title. Explicitly out of phase 1.
 ## 3. Phase 1 Roadmap (2–3 weeks)
 
 **Week 1 — Spec hardening + quick authoring wins**
+
 1. Spec patch 0.1.1: fix the 7 ambiguities (§1 above) in `main.tsp` +
    `docs/src/content/docs/spec/`; add `branch-option-key-uniqueness` and
    `empty-traversal` rules to both validators; regenerate `tsp-output/`.
@@ -202,22 +203,14 @@ theme variants, `goto` fuzzy-search by title. Explicitly out of phase 1.
 3. `fireside validate --watch` + interactive `fireside new` templates.
 4. ASCII art engine-side: center + clip code blocks; scenario tests at 80×24.
 
-**Week 2 — Images + ADR-005**
-5. Spike `ratatui-image`: MSRV check, terminal coverage matrix (kitty,
-   iTerm2, sixel, plain), fallback behavior. Go/no-go by mid-week.
-6. If go: image rendering behind capability detection, clamp rule, scenario
-   tests with the placeholder fallback path.
-7. Write ADR-005 (authoring returns, scoped) — decide Stage C vs jumping to
-   Stage D based on Week 1 learnings.
-8. Docs: CLI reference page + keyboard reference (see §5).
+**Week 2 — Images + ADR-005** 5. Spike `ratatui-image`: MSRV check, terminal coverage matrix (kitty,
+iTerm2, sixel, plain), fallback behavior. Go/no-go by mid-week. 6. If go: image rendering behind capability detection, clamp rule, scenario
+tests with the placeholder fallback path. 7. Write ADR-005 (authoring returns, scoped) — decide Stage C vs jumping to
+Stage D based on Week 1 learnings. 8. Docs: CLI reference page + keyboard reference (see §5).
 
-**Week 3 — Reveal + editor stage C + polish**
-9. Spec 0.1.x: `reveal` field proposal; implement `next()` step-consumption
-   behind it; scenario tests (footer must show reveal state — every keypress
-   gets feedback per the Outcome rule).
-10. Quick-edit modal (if ADR-005 approved) or Markdown-import prototype.
-11. Mouse on map/branch menu + synchronized output.
-12. Resume-from-fingerprint.
+**Week 3 — Reveal + editor stage C + polish** 9. Spec 0.1.x: `reveal` field proposal; implement `next()` step-consumption
+behind it; scenario tests (footer must show reveal state — every keypress
+gets feedback per the Outcome rule). 10. Quick-edit modal (if ADR-005 approved) or Markdown-import prototype. 11. Mouse on map/branch menu + synchronized output. 12. Resume-from-fingerprint.
 
 **Definition of done for the phase:** a non-technical presenter can scaffold
 a deck, see errors live while editing, present it with images and an ASCII
@@ -247,6 +240,7 @@ real TUI (tmux smoke), not just TestBackend.
 and tested; mental-models and vocabulary pages are unusual strengths.
 
 **Gaps, in priority order:**
+
 1. **No CLI reference.** present/validate/new/demo, exit codes, `--watch`.
    Generate the skeleton from clap definitions to prevent drift.
 2. **No keyboard/presenting guide.** The footer teaches keys in-app; the docs

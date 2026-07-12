@@ -30,13 +30,13 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1783875792.4534268,
-    "ast_hash": "c61978d1885b0f50110a4e02c78b657e",
+    "mtime": 1783877526.3103788,
+    "ast_hash": "92b58e2f8248e16e66bc78157db462be",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1783875847.955887,
-    "ast_hash": "9e509d321045b3c970683bce950a84ce",
+    "mtime": 1783877562.9991634,
+    "ast_hash": "5337932148f77eaec607f702790e19d6",
     "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-strategic-improvement-plan.md": {
-    "mtime": 1783868012.4908218,
-    "ast_hash": "00f97b9753c75cb96981c8d1b5e5f75b",
+    "mtime": 1783876957.735969,
+    "ast_hash": "2281985b1df1019e16ef4377872c00e2",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-sdd-retrofit-report.md": {
@@ -705,8 +705,8 @@
     "semantic_hash": ""
   },
   "specs/001-validate-watch/tasks.md": {
-    "mtime": 1783875639.9120913,
-    "ast_hash": "47592ea249a3be15c213131eb607785a",
+    "mtime": 1783875934.2852428,
+    "ast_hash": "862ad439b158d132df77a3a2d31dc33e",
     "semantic_hash": ""
   }
 }

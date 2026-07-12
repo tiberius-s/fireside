@@ -1677,7 +1677,7 @@
       "label": "Cli",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L28",
+      "source_location": "L29",
       "_origin": "ast",
       "id": "src_main_cli",
       "community": 1,
@@ -1687,7 +1687,7 @@
       "label": "Option",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L30",
+      "source_location": "L31",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_option",
       "community": 1,
@@ -1697,7 +1697,7 @@
       "label": "PathBuf",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L30",
+      "source_location": "L31",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_pathbuf",
       "community": 1,
@@ -1707,7 +1707,7 @@
       "label": "Command",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L33",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_command",
       "community": 1,
@@ -1717,17 +1717,27 @@
       "label": "Command",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L37",
+      "source_location": "L38",
       "_origin": "ast",
       "id": "src_main_command",
       "community": 1,
       "norm_label": "command"
     },
     {
+      "label": "Template",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L78",
+      "_origin": "ast",
+      "id": "src_main_template",
+      "community": 1,
+      "norm_label": "template"
+    },
+    {
       "label": "main()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L64",
+      "source_location": "L87",
       "_origin": "ast",
       "id": "src_main_main",
       "community": 1,
@@ -1737,7 +1747,7 @@
       "label": "Result",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L64",
+      "source_location": "L87",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_result",
       "community": 1,
@@ -1747,7 +1757,7 @@
       "label": "load()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L86",
+      "source_location": "L117",
       "_origin": "ast",
       "id": "src_main_load",
       "community": 1,
@@ -1757,7 +1767,7 @@
       "label": "Path",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L86",
+      "source_location": "L117",
       "_origin": "ast",
       "id": "path",
       "community": 1,
@@ -1767,7 +1777,7 @@
       "label": "Graph",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L86",
+      "source_location": "L117",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_graph",
       "community": 1,
@@ -1777,7 +1787,7 @@
       "label": "parse_report()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L100",
+      "source_location": "L131",
       "_origin": "ast",
       "id": "src_main_parse_report",
       "community": 1,
@@ -1787,7 +1797,7 @@
       "label": "Error",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L100",
+      "source_location": "L131",
       "_origin": "ast",
       "id": "error",
       "community": 1,
@@ -1797,7 +1807,7 @@
       "label": "String",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L100",
+      "source_location": "L131",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_string",
       "community": 1,
@@ -1807,7 +1817,7 @@
       "label": "strip_position()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L128",
+      "source_location": "L159",
       "_origin": "ast",
       "id": "src_main_strip_position",
       "community": 1,
@@ -1817,7 +1827,7 @@
       "label": "present()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L133",
+      "source_location": "L164",
       "_origin": "ast",
       "id": "src_main_present",
       "community": 1,
@@ -1827,7 +1837,7 @@
       "label": "demo()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L153",
+      "source_location": "L184",
       "_origin": "ast",
       "id": "src_main_demo",
       "community": 1,
@@ -1837,7 +1847,7 @@
       "label": "Watcher",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L160",
+      "source_location": "L191",
       "_origin": "ast",
       "id": "src_main_watcher",
       "community": 1,
@@ -1847,7 +1857,7 @@
       "label": "SystemTime",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L162",
+      "source_location": "L193",
       "_origin": "ast",
       "id": "systemtime",
       "community": 1,
@@ -1857,7 +1867,7 @@
       "label": ".new()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L166",
+      "source_location": "L197",
       "_origin": "ast",
       "id": "src_main_watcher_new",
       "community": 1,
@@ -1867,7 +1877,7 @@
       "label": "Self",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L166",
+      "source_location": "L197",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_self",
       "community": 1,
@@ -1877,7 +1887,7 @@
       "label": ".poll()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L175",
+      "source_location": "L206",
       "_origin": "ast",
       "id": "src_main_watcher_poll",
       "community": 1,
@@ -1887,7 +1897,7 @@
       "label": "fingerprint()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L201",
+      "source_location": "L232",
       "_origin": "ast",
       "id": "src_main_fingerprint",
       "community": 1,
@@ -1897,7 +1907,7 @@
       "label": "diagnostics_report()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L209",
+      "source_location": "L240",
       "_origin": "ast",
       "id": "src_main_diagnostics_report",
       "community": 1,
@@ -1907,7 +1917,7 @@
       "label": "Diagnostic",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L209",
+      "source_location": "L240",
       "_origin": "ast",
       "id": "diagnostic",
       "community": 1,
@@ -1917,7 +1927,7 @@
       "label": "validate_file()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L241",
+      "source_location": "L272",
       "_origin": "ast",
       "id": "src_main_validate_file",
       "community": 1,
@@ -1927,7 +1937,7 @@
       "label": "watch_report()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L260",
+      "source_location": "L291",
       "_origin": "ast",
       "id": "src_main_watch_report",
       "community": 1,
@@ -1937,7 +1947,7 @@
       "label": "watch_loop()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L275",
+      "source_location": "L306",
       "_origin": "ast",
       "id": "src_main_watch_loop",
       "community": 1,
@@ -1947,27 +1957,97 @@
       "label": "new_deck()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L288",
+      "source_location": "L319",
       "_origin": "ast",
       "id": "src_main_new_deck",
       "community": 1,
       "norm_label": "new_deck()"
     },
     {
+      "label": "prompt_line()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L361",
+      "_origin": "ast",
+      "id": "src_main_prompt_line",
+      "community": 1,
+      "norm_label": "prompt_line()"
+    },
+    {
+      "label": "BufRead",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L361",
+      "_origin": "ast",
+      "id": "bufread",
+      "community": 1,
+      "norm_label": "bufread"
+    },
+    {
+      "label": "interactive_new()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L375",
+      "_origin": "ast",
+      "id": "src_main_interactive_new",
+      "community": 1,
+      "norm_label": "interactive_new()"
+    },
+    {
       "label": "starter_deck()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L321",
+      "source_location": "L409",
       "_origin": "ast",
       "id": "src_main_starter_deck",
       "community": 1,
       "norm_label": "starter_deck()"
     },
     {
+      "label": "linear_template()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L423",
+      "_origin": "ast",
+      "id": "src_main_linear_template",
+      "community": 1,
+      "norm_label": "linear_template()"
+    },
+    {
+      "label": "Value",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L423",
+      "_origin": "ast",
+      "id": "value",
+      "community": 1,
+      "norm_label": "value"
+    },
+    {
+      "label": "branching_template()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L483",
+      "_origin": "ast",
+      "id": "src_main_branching_template",
+      "community": 1,
+      "norm_label": "branching_template()"
+    },
+    {
+      "label": "workshop_template()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L548",
+      "_origin": "ast",
+      "id": "src_main_workshop_template",
+      "community": 1,
+      "norm_label": "workshop_template()"
+    },
+    {
       "label": "demo_deck_parses_and_validates_clean()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L387",
+      "source_location": "L643",
       "_origin": "ast",
       "id": "src_main_demo_deck_parses_and_validates_clean",
       "community": 1,
@@ -1977,17 +2057,47 @@
       "label": "demo_deck_shows_every_block_kind()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L401",
+      "source_location": "L657",
       "_origin": "ast",
       "id": "src_main_demo_deck_shows_every_block_kind",
       "community": 1,
       "norm_label": "demo_deck_shows_every_block_kind()"
     },
     {
+      "label": "every_starter_template_validates_clean()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L675",
+      "_origin": "ast",
+      "id": "src_main_every_starter_template_validates_clean",
+      "community": 1,
+      "norm_label": "every_starter_template_validates_clean()"
+    },
+    {
+      "label": "every_starter_template_carries_speaker_note_hints()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L692",
+      "_origin": "ast",
+      "id": "src_main_every_starter_template_carries_speaker_note_hints",
+      "community": 1,
+      "norm_label": "every_starter_template_carries_speaker_note_hints()"
+    },
+    {
+      "label": "starter_deck_embeds_the_given_author()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L703",
+      "_origin": "ast",
+      "id": "src_main_starter_deck_embeds_the_given_author",
+      "community": 1,
+      "norm_label": "starter_deck_embeds_the_given_author()"
+    },
+    {
       "label": "parse_report_points_at_the_line_with_a_caret()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L419",
+      "source_location": "L714",
       "_origin": "ast",
       "id": "src_main_parse_report_points_at_the_line_with_a_caret",
       "community": 1,
@@ -1997,7 +2107,7 @@
       "label": "watch_report_confirms_a_valid_deck()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L445",
+      "source_location": "L740",
       "_origin": "ast",
       "id": "src_main_watch_report_confirms_a_valid_deck",
       "community": 1,
@@ -2007,7 +2117,7 @@
       "label": "watch_report_shows_diagnostics_for_a_dangling_target()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L455",
+      "source_location": "L750",
       "_origin": "ast",
       "id": "src_main_watch_report_shows_diagnostics_for_a_dangling_target",
       "community": 1,
@@ -2017,7 +2127,7 @@
       "label": "watch_report_shows_a_caret_report_for_malformed_json()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L476",
+      "source_location": "L771",
       "_origin": "ast",
       "id": "src_main_watch_report_shows_a_caret_report_for_malformed_json",
       "community": 1,
@@ -2027,7 +2137,7 @@
       "label": "watch_report_names_a_missing_file_without_panicking()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L487",
+      "source_location": "L782",
       "_origin": "ast",
       "id": "src_main_watch_report_names_a_missing_file_without_panicking",
       "community": 1,
@@ -2037,7 +2147,7 @@
       "label": "watch_report_recovers_after_a_file_is_deleted_and_recreated()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L499",
+      "source_location": "L794",
       "_origin": "ast",
       "id": "src_main_watch_report_recovers_after_a_file_is_deleted_and_recreated",
       "community": 1,
@@ -2194,10 +2304,30 @@
       "norm_label": "validate_watch_prints_the_first_result_immediately()"
     },
     {
-      "label": "new_refuses_to_overwrite()",
+      "label": "new_accepts_a_template_and_author_flag_non_interactively()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L151",
+      "_origin": "ast",
+      "id": "tests_cli_e2e_new_accepts_a_template_and_author_flag_non_interactively",
+      "community": 106,
+      "norm_label": "new_accepts_a_template_and_author_flag_non_interactively()"
+    },
+    {
+      "label": "new_without_a_name_prompts_interactively()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L182",
+      "_origin": "ast",
+      "id": "tests_cli_e2e_new_without_a_name_prompts_interactively",
+      "community": 106,
+      "norm_label": "new_without_a_name_prompts_interactively()"
+    },
+    {
+      "label": "new_refuses_to_overwrite()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L200",
       "_origin": "ast",
       "id": "tests_cli_e2e_new_refuses_to_overwrite",
       "community": 106,
@@ -7947,7 +8077,7 @@
       "label": "4. Open Questions / Prototyping Needed",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L229",
+      "source_location": "L222",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_4_open_questions_prototyping_needed",
       "community": 6,
@@ -7957,7 +8087,7 @@
       "label": "5. Documentation Audit & Plan",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L244",
+      "source_location": "L237",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_5_documentation_audit_plan",
       "community": 6,
@@ -7970,7 +8100,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "graphify_skill",
-      "community": 60,
+      "community": 108,
       "norm_label": "skill.md"
     },
     {
@@ -7980,7 +8110,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "graphify_skill_graphify",
-      "community": 60,
+      "community": 108,
       "norm_label": "/graphify"
     },
     {
@@ -7990,7 +8120,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "graphify_skill_usage",
-      "community": 60,
+      "community": 108,
       "norm_label": "usage"
     },
     {
@@ -8000,7 +8130,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "graphify_skill_what_graphify_is_for",
-      "community": 60,
+      "community": 108,
       "norm_label": "what graphify is for"
     },
     {
@@ -8060,7 +8190,7 @@
       "source_location": "L146",
       "_origin": "ast",
       "id": "graphify_skill_step_3_extract_entities_and_relationships",
-      "community": 60,
+      "community": 112,
       "norm_label": "step 3 - extract entities and relationships"
     },
     {
@@ -8070,7 +8200,7 @@
       "source_location": "L163",
       "_origin": "ast",
       "id": "graphify_skill_part_a_structural_extraction_for_code_files",
-      "community": 60,
+      "community": 112,
       "norm_label": "part a - structural extraction for code files"
     },
     {
@@ -8080,7 +8210,7 @@
       "source_location": "L189",
       "_origin": "ast",
       "id": "graphify_skill_part_b_semantic_extraction_parallel_subagents",
-      "community": 60,
+      "community": 112,
       "norm_label": "part b - semantic extraction (parallel subagents)"
     },
     {
@@ -8090,7 +8220,7 @@
       "source_location": "L334",
       "_origin": "ast",
       "id": "graphify_skill_part_c_merge_ast_semantic_into_final_extraction",
-      "community": 60,
+      "community": 112,
       "norm_label": "part c - merge ast + semantic into final extraction"
     },
     {
@@ -8150,7 +8280,7 @@
       "source_location": "L561",
       "_origin": "ast",
       "id": "graphify_skill_interpreter_guard_for_subcommands",
-      "community": 60,
+      "community": 108,
       "norm_label": "interpreter guard for subcommands"
     },
     {
@@ -8160,7 +8290,7 @@
       "source_location": "L579",
       "_origin": "ast",
       "id": "graphify_skill_for_update_and_cluster_only",
-      "community": 60,
+      "community": 108,
       "norm_label": "for --update and --cluster-only"
     },
     {
@@ -8170,7 +8300,7 @@
       "source_location": "L585",
       "_origin": "ast",
       "id": "graphify_skill_for_graphify_query",
-      "community": 60,
+      "community": 108,
       "norm_label": "for /graphify query"
     },
     {
@@ -8180,7 +8310,7 @@
       "source_location": "L597",
       "_origin": "ast",
       "id": "graphify_skill_for_graphify_add_and_watch",
-      "community": 60,
+      "community": 108,
       "norm_label": "for /graphify add and --watch"
     },
     {
@@ -8190,7 +8320,7 @@
       "source_location": "L603",
       "_origin": "ast",
       "id": "graphify_skill_for_the_commit_hook_and_native_claude_md_integration",
-      "community": 60,
+      "community": 108,
       "norm_label": "for the commit hook and native claude.md integration"
     },
     {
@@ -9710,7 +9840,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_research_workflow",
-      "community": 59,
+      "community": 110,
       "norm_label": "research workflow"
     },
     {
@@ -9720,7 +9850,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_step_1_identify_the_question_type",
-      "community": 59,
+      "community": 110,
       "norm_label": "step 1 \u2014 identify the question type"
     },
     {
@@ -9730,7 +9860,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_step_2_look_up_crate_docs_via_context7",
-      "community": 59,
+      "community": 110,
       "norm_label": "step 2 \u2014 look up crate docs via context7"
     },
     {
@@ -9740,7 +9870,7 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_step_3_read_relevant_fireside_source",
-      "community": 59,
+      "community": 110,
       "norm_label": "step 3 \u2014 read relevant fireside source"
     },
     {
@@ -9750,7 +9880,7 @@
       "source_location": "L98",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_step_4_validate_against_constraints",
-      "community": 59,
+      "community": 110,
       "norm_label": "step 4 \u2014 validate against constraints"
     },
     {
@@ -9760,7 +9890,7 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_output_format",
-      "community": 59,
+      "community": 109,
       "norm_label": "output format"
     },
     {
@@ -9770,7 +9900,7 @@
       "source_location": "L117",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_recommendation",
-      "community": 59,
+      "community": 109,
       "norm_label": "recommendation"
     },
     {
@@ -9780,7 +9910,7 @@
       "source_location": "L121",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_verified_api",
-      "community": 59,
+      "community": 109,
       "norm_label": "verified api"
     },
     {
@@ -9790,7 +9920,7 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_code_example",
-      "community": 59,
+      "community": 109,
       "norm_label": "code example"
     },
     {
@@ -9800,7 +9930,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_crate_boundary_impact",
-      "community": 59,
+      "community": 109,
       "norm_label": "crate boundary impact"
     },
     {
@@ -9810,7 +9940,7 @@
       "source_location": "L136",
       "_origin": "ast",
       "id": "agents_rust_expert_agent_trade_offs",
-      "community": 59,
+      "community": 109,
       "norm_label": "trade-offs"
     },
     {
@@ -10090,7 +10220,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "adr_skill",
-      "community": 59,
+      "community": 107,
       "norm_label": "skill.md"
     },
     {
@@ -10100,7 +10230,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "adr_skill_adr_skill",
-      "community": 59,
+      "community": 107,
       "norm_label": "adr skill"
     },
     {
@@ -10110,7 +10240,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "adr_skill_when_to_use",
-      "community": 59,
+      "community": 107,
       "norm_label": "when to use"
     },
     {
@@ -10120,7 +10250,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "adr_skill_adr_format_nygard_style",
-      "community": 59,
+      "community": 107,
       "norm_label": "adr format (nygard-style)"
     },
     {
@@ -10130,7 +10260,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "adr_skill_numbering_and_filing",
-      "community": 59,
+      "community": 107,
       "norm_label": "numbering and filing"
     },
     {
@@ -10140,7 +10270,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "adr_skill_writing_guidelines",
-      "community": 59,
+      "community": 107,
       "norm_label": "writing guidelines"
     },
     {
@@ -10150,7 +10280,7 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "adr_skill_context_section",
-      "community": 59,
+      "community": 107,
       "norm_label": "context section"
     },
     {
@@ -10160,7 +10290,7 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "adr_skill_decision_section",
-      "community": 59,
+      "community": 107,
       "norm_label": "decision section"
     },
     {
@@ -10170,7 +10300,7 @@
       "source_location": "L98",
       "_origin": "ast",
       "id": "adr_skill_consequences_section",
-      "community": 59,
+      "community": 107,
       "norm_label": "consequences section"
     },
     {
@@ -10180,7 +10310,7 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "adr_skill_project_specific_constraints",
-      "community": 59,
+      "community": 107,
       "norm_label": "project-specific constraints"
     },
     {
@@ -10190,7 +10320,7 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "adr_skill_example_adr",
-      "community": 59,
+      "community": 107,
       "norm_label": "example adr"
     },
     {
@@ -14520,7 +14650,7 @@
       "author": null,
       "contributor": null,
       "rationale": "Workspace MSRV is 1.88 (resolver 3, 2024 edition); any dependency raising the MSRV requires an explicit user decision.",
-      "community": 59,
+      "community": 111,
       "norm_label": "msrv 1.88 constraint",
       "id": "agents_rust_expert_agent_msrv_rule"
     },
@@ -14660,7 +14790,7 @@
       "author": null,
       "contributor": null,
       "rationale": "Status/Context/Decision/Consequences structure with sequential zero-padded numbering filed under docs/src/content/docs/explanation/ and registered in the Astro sidebar.",
-      "community": 59,
+      "community": 107,
       "norm_label": "nygard adr format",
       "id": "adr_skill_nygard_format"
     },
@@ -14674,7 +14804,7 @@
       "author": null,
       "contributor": null,
       "rationale": "Requires a discovery interview (at least 2 clarifying questions) before drafting and concrete measurable criteria instead of vague adjectives like fast or intuitive.",
-      "community": 59,
+      "community": 107,
       "norm_label": "prd skill",
       "id": "prd_skill_prd_skill"
     },
@@ -14715,7 +14845,7 @@
       "author": null,
       "contributor": null,
       "rationale": "Lint (fmt, clippy -D warnings, doc -D warnings), nextest on Ubuntu and macOS, and a dedicated MSRV check gate every crates/ change.",
-      "community": 59,
+      "community": 111,
       "norm_label": "rust ci workflow",
       "id": "workflows_rust_rust_ci"
     },
@@ -14728,7 +14858,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 59,
+      "community": 111,
       "norm_label": "msrv ci job",
       "id": "workflows_rust_msrv_job"
     },
@@ -14742,7 +14872,7 @@
       "author": null,
       "contributor": null,
       "rationale": "cargo audit and cargo deny run on Cargo.lock/deny.toml changes plus a weekly Monday schedule, catching advisories even when the repo is idle.",
-      "community": 59,
+      "community": 111,
       "norm_label": "security audit workflow",
       "id": "workflows_audit_security_audit"
     },
@@ -16762,6 +16892,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L474",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_branching_template"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L23",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -16822,11 +16962,51 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L692",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_every_starter_template_carries_speaker_note_hints"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L675",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_every_starter_template_validates_clean"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L184",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_main",
       "target": "src_main_fingerprint"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L364",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_interactive_new"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L414",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_linear_template"
     },
     {
       "relation": "contains",
@@ -16892,6 +17072,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L350",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_prompt_line"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L160",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -16902,11 +17092,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L703",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_starter_deck_embeds_the_given_author"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L119",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_main",
       "target": "src_main_strip_position"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L78",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_template"
     },
     {
       "relation": "contains",
@@ -16999,6 +17209,16 @@
       "target": "src_main_watcher"
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L539",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_workshop_template"
+    },
+    {
       "relation": "imports_from",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
@@ -17057,6 +17277,50 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L364",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "confidence_score": 1.0,
+      "source": "src_main_interactive_new",
+      "target": "crates_fireside_cli_src_main_rs_option"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L312",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "src_main_new_deck",
+      "target": "crates_fireside_cli_src_main_rs_option"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L350",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "confidence_score": 1.0,
+      "source": "src_main_prompt_line",
+      "target": "crates_fireside_cli_src_main_rs_option"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L400",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "src_main_starter_deck",
+      "target": "crates_fireside_cli_src_main_rs_option"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L145",
       "weight": 1.0,
       "context": "field",
@@ -17085,6 +17349,39 @@
       "confidence_score": 1.0,
       "source": "src_main_watcher",
       "target": "crates_fireside_cli_src_main_rs_pathbuf"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L364",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "confidence_score": 1.0,
+      "source": "src_main_interactive_new",
+      "target": "src_main_template"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L312",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "confidence_score": 1.0,
+      "source": "src_main_new_deck",
+      "target": "src_main_template"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L400",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "src_main_starter_deck",
+      "target": "src_main_template"
     },
     {
       "relation": "references",
@@ -17156,6 +17453,17 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L364",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "src_main_interactive_new",
+      "target": "crates_fireside_cli_src_main_rs_result"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L65",
       "weight": 1.0,
       "context": "return_type",
@@ -17183,6 +17491,17 @@
       "context": "return_type",
       "confidence_score": 1.0,
       "source": "src_main_present",
+      "target": "crates_fireside_cli_src_main_rs_result"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L350",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "src_main_prompt_line",
       "target": "crates_fireside_cli_src_main_rs_result"
     },
     {
@@ -17497,6 +17816,39 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L364",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "confidence_score": 1.0,
+      "source": "src_main_interactive_new",
+      "target": "crates_fireside_cli_src_main_rs_string"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L312",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "confidence_score": 1.0,
+      "source": "src_main_new_deck",
+      "target": "crates_fireside_cli_src_main_rs_string"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L350",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "confidence_score": 1.0,
+      "source": "src_main_prompt_line",
+      "target": "crates_fireside_cli_src_main_rs_string"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L119",
       "weight": 1.0,
       "context": "return_type",
@@ -17610,6 +17962,17 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_main_parse_report_points_at_the_line_with_a_caret",
+      "target": "src_main_watcher_new"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L353",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_prompt_line",
       "target": "src_main_watcher_new"
     },
     {
@@ -17749,11 +18112,143 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L315",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_new_deck",
+      "target": "src_main_interactive_new"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L145",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_main_new_deck",
       "target": "src_main_starter_deck"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L369",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_interactive_new",
+      "target": "src_main_prompt_line"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L350",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "src_main_prompt_line",
+      "target": "bufread"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L694",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_every_starter_template_carries_speaker_note_hints",
+      "target": "src_main_starter_deck"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L677",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_every_starter_template_validates_clean",
+      "target": "src_main_starter_deck"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L403",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_starter_deck",
+      "target": "src_main_branching_template"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L402",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_starter_deck",
+      "target": "src_main_linear_template"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L404",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_starter_deck",
+      "target": "src_main_workshop_template"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L708",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_starter_deck_embeds_the_given_author",
+      "target": "src_main_starter_deck"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L414",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "src_main_linear_template",
+      "target": "value"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L474",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "src_main_branching_template",
+      "target": "value"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L539",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "src_main_workshop_template",
+      "target": "value"
     },
     {
       "relation": "imports_from",
@@ -17792,8 +18287,18 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L108",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "tests_cli_e2e_killondrop",
+      "target": "tests_cli_e2e_killondrop"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L151",
+      "weight": 1.0,
+      "source": "tests_cli_e2e",
+      "target": "tests_cli_e2e_new_accepts_a_template_and_author_flag_non_interactively",
       "confidence_score": 1.0
     },
     {
@@ -17815,6 +18320,16 @@
       "confidence_score": 1.0,
       "source": "tests_cli_e2e",
       "target": "tests_cli_e2e_new_scaffolds_a_deck_that_validates_clean"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L182",
+      "weight": 1.0,
+      "source": "tests_cli_e2e",
+      "target": "tests_cli_e2e_new_without_a_name_prompts_interactively",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -17872,9 +18387,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L118",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_cli_e2e",
-      "target": "tests_cli_e2e_validate_watch_prints_the_first_result_immediately",
-      "confidence_score": 1.0
+      "target": "tests_cli_e2e_validate_watch_prints_the_first_result_immediately"
     },
     {
       "relation": "calls",
@@ -17903,6 +18418,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "tests_cli_e2e_new_accepts_a_template_and_author_flag_non_interactively",
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L109",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -17919,6 +18445,17 @@
       "confidence_score": 1.0,
       "source": "tests_cli_e2e_new_scaffolds_a_deck_that_validates_clean",
       "target": "tests_cli_e2e_fireside"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L185",
+      "weight": 1.0,
+      "source": "tests_cli_e2e_new_without_a_name_prompts_interactively",
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -17971,9 +18508,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L123",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_cli_e2e_validate_watch_prints_the_first_result_immediately",
-      "target": "tests_cli_e2e_fireside",
-      "confidence_score": 1.0
+      "target": "tests_cli_e2e_fireside"
     },
     {
       "relation": "references",
@@ -18003,9 +18540,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L110",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_cli_e2e_killondrop",
-      "target": "drop",
-      "confidence_score": 1.0
+      "target": "drop"
     },
     {
       "relation": "method",
@@ -18013,9 +18550,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L111",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_cli_e2e_killondrop",
-      "target": "tests_cli_e2e_killondrop_drop",
-      "confidence_score": 1.0
+      "target": "tests_cli_e2e_killondrop_drop"
     },
     {
       "relation": "calls",
@@ -18024,9 +18561,9 @@
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
       "source_location": "L130",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_cli_e2e_validate_watch_prints_the_first_result_immediately",
-      "target": "tests_cli_e2e_killondrop",
-      "confidence_score": 1.0
+      "target": "tests_cli_e2e_killondrop"
     },
     {
       "relation": "contains",
@@ -36905,5 +37442,5 @@
       "source_file": "docs/src/content/docs/spec/data-model.md"
     }
   ],
-  "built_at_commit": "e958cb58d84c683079e822c5634ed73c8983151c"
+  "built_at_commit": "580fc0dbfe29059d931a6df3455d664ae3d3a1cc"
 }

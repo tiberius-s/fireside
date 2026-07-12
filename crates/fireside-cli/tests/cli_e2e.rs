@@ -148,6 +148,55 @@ fn validate_watch_prints_the_first_result_immediately() {
 }
 
 #[test]
+fn new_accepts_a_template_and_author_flag_non_interactively() {
+    let temp = tempfile::tempdir().expect("temp dir");
+
+    fireside()
+        .current_dir(temp.path())
+        .arg("new")
+        .arg("Onboarding Workshop")
+        .arg("--template")
+        .arg("workshop")
+        .arg("--author")
+        .arg("Ada Lovelace")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "Created onboarding-workshop.fireside.json",
+        ));
+
+    let file = temp.path().join("onboarding-workshop.fireside.json");
+    let contents = std::fs::read_to_string(&file).expect("scaffold is readable");
+    assert!(contents.contains("\"author\": \"Ada Lovelace\""));
+    assert!(contents.contains("\"agenda\""));
+
+    fireside()
+        .arg("validate")
+        .arg(&file)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("no problems found"));
+}
+
+#[test]
+fn new_without_a_name_prompts_interactively() {
+    let temp = tempfile::tempdir().expect("temp dir");
+
+    fireside()
+        .current_dir(temp.path())
+        .arg("new")
+        .write_stdin("My Workshop\n3\nGrace Hopper\n")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Created my-workshop.fireside.json"));
+
+    let file = temp.path().join("my-workshop.fireside.json");
+    let contents = std::fs::read_to_string(&file).expect("scaffold is readable");
+    assert!(contents.contains("\"author\": \"Grace Hopper\""));
+    assert!(contents.contains("\"agenda\""));
+}
+
+#[test]
 fn new_refuses_to_overwrite() {
     let temp = tempfile::tempdir().expect("temp dir");
     fireside()

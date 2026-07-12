@@ -6,11 +6,12 @@
 //! of during the show. While presenting, the deck file is watched and
 //! live-reloaded on save.
 
+use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use anyhow::{Context, Result, bail};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use fireside_core::{CoreError, Graph};
 use fireside_engine::{Diagnostic, Severity, validate};
 
@@ -51,14 +52,36 @@ enum Command {
         watch: bool,
     },
 
-    /// Create a starter deck you can present immediately.
+    /// Create a starter deck you can present immediately. Omit the name to
+    /// be asked a few quick questions instead.
     New {
-        /// A name for the deck, e.g. "team-onboarding".
-        name: String,
+        /// A name for the deck, e.g. "team-onboarding". Omit to be asked.
+        name: Option<String>,
+
+        /// Starter template. Defaults to `branching`.
+        #[arg(long, value_enum)]
+        template: Option<Template>,
+
+        /// Author name to embed in the deck.
+        #[arg(long)]
+        author: Option<String>,
     },
 
     /// See what Fireside can do — no file needed.
     Demo,
+}
+
+/// The shape of deck `fireside new` scaffolds. Each demonstrates one
+/// traversal pattern so the author has a working example to edit.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
+enum Template {
+    /// A straight-through talk: no branching, no choices.
+    Linear,
+    /// A talk with one choice that rejoins — the default.
+    Branching,
+    /// An agenda that jumps into a sequence of exercises.
+    Workshop,
 }
 
 fn main() -> Result<()> {
@@ -66,7 +89,14 @@ fn main() -> Result<()> {
     match (cli.file, cli.command) {
         (Some(file), _) | (None, Some(Command::Present { file })) => present(&file),
         (None, Some(Command::Validate { file, watch })) => validate_file(&file, watch),
-        (None, Some(Command::New { name })) => new_deck(&name),
+        (
+            None,
+            Some(Command::New {
+                name,
+                template,
+                author,
+            }),
+        ) => new_deck(name, template, author),
         (None, Some(Command::Demo)) => demo(),
         (None, None) => {
             // No arguments: teach, don't error.
@@ -74,7 +104,8 @@ fn main() -> Result<()> {
             println!("  fireside demo              see what a deck can do");
             println!("  fireside <file>            present a deck");
             println!("  fireside validate <file>   check a deck for problems");
-            println!("  fireside new <name>        create a starter deck");
+            println!("  fireside new               create a deck (asks a few questions)");
+            println!("  fireside new <name>        create a starter deck instantly");
             println!("\nTry: fireside demo");
             Ok(())
         }
@@ -285,7 +316,16 @@ fn watch_loop(path: &Path) -> Result<()> {
     }
 }
 
-fn new_deck(name: &str) -> Result<()> {
+fn new_deck(
+    name: Option<String>,
+    template: Option<Template>,
+    author: Option<String>,
+) -> Result<()> {
+    let (name, template, author) = match name {
+        Some(name) => (name, template.unwrap_or(Template::Branching), author),
+        None => interactive_new()?,
+    };
+
     let slug: String = name
         .trim()
         .to_lowercase()
@@ -304,7 +344,7 @@ fn new_deck(name: &str) -> Result<()> {
         bail!("{} already exists — pick another name", path.display());
     }
 
-    let json = starter_deck(name)?
+    let json = starter_deck(&name, template, author.as_deref())?
         .to_json_pretty()
         .context("could not serialize the starter deck")?;
     std::fs::write(&path, json + "\n")
@@ -316,10 +356,132 @@ fn new_deck(name: &str) -> Result<()> {
     Ok(())
 }
 
+/// Reads one line from stdin, printing `label` first as a prompt. `Ok(None)`
+/// means stdin hit EOF — callers must stop asking, not loop forever.
+fn prompt_line(stdin: &mut impl BufRead, label: &str) -> Result<Option<String>> {
+    print!("{label}");
+    io::stdout().flush().ok();
+    let mut line = String::new();
+    let read = stdin.read_line(&mut line).context("could not read stdin")?;
+    if read == 0 {
+        return Ok(None);
+    }
+    Ok(Some(line.trim().to_string()))
+}
+
+/// Asks the three questions a new deck needs — title, template, author —
+/// and returns sensible answers for whichever were skipped. Only reached
+/// when `fireside new` is run without a name.
+fn interactive_new() -> Result<(String, Template, Option<String>)> {
+    let stdin = io::stdin();
+    let mut stdin = stdin.lock();
+
+    let name = loop {
+        match prompt_line(&mut stdin, "Deck title: ")? {
+            None => bail!("no input received — pass a name directly: fireside new <name>"),
+            Some(s) if s.is_empty() => println!("  a title is required."),
+            Some(s) => break s,
+        }
+    };
+
+    println!("\nTemplates:");
+    println!("  1) linear     a straight-through talk, no branching");
+    println!("  2) branching  a talk with one choice that rejoins (default)");
+    println!("  3) workshop   an agenda that jumps into a sequence of exercises");
+    let template = loop {
+        match prompt_line(&mut stdin, "Pick a template [1-3, default 2]: ")? {
+            None => break Template::Branching,
+            Some(s) if s.is_empty() => break Template::Branching,
+            Some(s) => match s.as_str() {
+                "1" | "linear" => break Template::Linear,
+                "2" | "branching" => break Template::Branching,
+                "3" | "workshop" => break Template::Workshop,
+                _ => println!("  please enter 1, 2, or 3."),
+            },
+        }
+    };
+
+    let author = prompt_line(&mut stdin, "Author (optional): ")?.filter(|s| !s.is_empty());
+
+    Ok((name, template, author))
+}
+
+fn starter_deck(name: &str, template: Template, author: Option<&str>) -> Result<Graph> {
+    let json = match template {
+        Template::Linear => linear_template(name),
+        Template::Branching => branching_template(name),
+        Template::Workshop => workshop_template(name),
+    };
+    let mut graph: Graph =
+        serde_json::from_value(json).context("the starter deck template is broken")?;
+    graph.author = author.map(str::to_owned);
+    Ok(graph)
+}
+
+/// A straight-through talk with no branching — the simplest possible deck,
+/// for a presenter who just wants to get on stage.
+fn linear_template(name: &str) -> serde_json::Value {
+    serde_json::json!({
+        "fireside-version": "0.1.0",
+        "title": name,
+        "nodes": [
+            {
+                "id": "welcome",
+                "title": "Welcome",
+                "traversal": "context",
+                "speaker-notes": "This is your title slide. Edit the heading and subtitle below to fit your talk.",
+                "content": [
+                    { "kind": "container", "layout": "center", "children": [
+                        { "kind": "heading", "level": 1, "text": name },
+                        { "kind": "text", "body": "Press **Space** to move forward. Press **?** any time for help." }
+                    ]}
+                ]
+            },
+            {
+                "id": "context",
+                "title": "Context",
+                "traversal": "example",
+                "speaker-notes": "Replace this list with your own key points.",
+                "content": [
+                    { "kind": "heading", "level": 2, "text": "Say something" },
+                    { "kind": "text", "body": "Text blocks support **inline markdown**." },
+                    { "kind": "list", "items": [
+                        "One point per line",
+                        "Keep it short — the audience is listening, not reading",
+                        "Add as many nodes as your talk needs"
+                    ]}
+                ]
+            },
+            {
+                "id": "example",
+                "title": "Example",
+                "traversal": "closing",
+                "speaker-notes": "Swap this code sample for a snippet from your own project.",
+                "content": [
+                    { "kind": "heading", "level": 2, "text": "Show something" },
+                    { "kind": "divider" },
+                    { "kind": "code", "language": "json", "source": "{ \"kind\": \"text\", \"body\": \"like this\" }" }
+                ]
+            },
+            {
+                "id": "closing",
+                "title": "Closing",
+                "content": [
+                    { "kind": "container", "layout": "center", "children": [
+                        { "kind": "heading", "level": 1, "text": "Thanks!" },
+                        { "kind": "text", "body": "Edit the .fireside.json file to make it yours." }
+                    ]}
+                ]
+            }
+        ]
+    })
+}
+
 /// A three-slide starter that demonstrates the one Fireside idea people
-/// need: explicit edges, including a branch that rejoins.
-fn starter_deck(name: &str) -> Result<Graph> {
-    let json = serde_json::json!({
+/// need: explicit edges, including a branch that rejoins. The default
+/// template.
+fn branching_template(name: &str) -> serde_json::Value {
+    serde_json::json!({
         "fireside-version": "0.1.0",
         "title": name,
         "nodes": [
@@ -327,6 +489,7 @@ fn starter_deck(name: &str) -> Result<Graph> {
                 "id": "welcome",
                 "title": "Welcome",
                 "traversal": "pick-a-path",
+                "speaker-notes": "This is your title slide. Edit the heading and subtitle below to fit your talk.",
                 "content": [
                     { "kind": "container", "layout": "center", "children": [
                         { "kind": "heading", "level": 1, "text": name },
@@ -344,6 +507,7 @@ fn starter_deck(name: &str) -> Result<Graph> {
                         { "label": "Skip to the end", "key": "b", "target": "the-end" }
                     ]
                 }},
+                "speaker-notes": "This is a branch point — presenters see a menu here. Add or remove options in traversal.branch-point.options.",
                 "content": [
                     { "kind": "heading", "level": 2, "text": "A choice" },
                     { "kind": "text", "body": "Use the arrow keys and press Enter." }
@@ -375,8 +539,100 @@ fn starter_deck(name: &str) -> Result<Graph> {
                 ]
             }
         ]
-    });
-    serde_json::from_value(json).context("the starter deck template is broken")
+    })
+}
+
+/// An agenda that lets the presenter jump into any exercise, then flows
+/// forward through the rest in order — the hub-and-spoke pattern a workshop
+/// needs, without looping back through the menu.
+fn workshop_template(name: &str) -> serde_json::Value {
+    serde_json::json!({
+        "fireside-version": "0.1.0",
+        "title": name,
+        "nodes": [
+            {
+                "id": "welcome",
+                "title": "Welcome",
+                "traversal": "agenda",
+                "speaker-notes": "This is your title slide. Edit the heading and subtitle below to fit your workshop.",
+                "content": [
+                    { "kind": "container", "layout": "center", "children": [
+                        { "kind": "heading", "level": 1, "text": name },
+                        { "kind": "text", "body": "Press **Space** to begin. Press **?** any time for help." }
+                    ]}
+                ]
+            },
+            {
+                "id": "agenda",
+                "title": "Agenda",
+                "traversal": { "branch-point": {
+                    "prompt": "Where should we start?",
+                    "options": [
+                        { "label": "Setup", "key": "a", "target": "setup" },
+                        { "label": "Exercise 1", "key": "b", "target": "exercise-1" },
+                        { "label": "Exercise 2", "key": "c", "target": "exercise-2" }
+                    ]
+                }},
+                "speaker-notes": "Presenters can jump to any section from here; each section still flows into the next when they press Space. Add sections by adding an option here and a node below.",
+                "content": [
+                    { "kind": "heading", "level": 2, "text": "Agenda" },
+                    { "kind": "list", "items": [
+                        "Setup",
+                        "Exercise 1",
+                        "Exercise 2"
+                    ]}
+                ]
+            },
+            {
+                "id": "setup",
+                "title": "Setup",
+                "traversal": "exercise-1",
+                "speaker-notes": "Walk through environment or prerequisite steps here.",
+                "content": [
+                    { "kind": "heading", "level": 2, "text": "Setup" },
+                    { "kind": "list", "ordered": true, "items": [
+                        "Clone the repository",
+                        "Install dependencies",
+                        "Confirm everyone is ready"
+                    ]}
+                ]
+            },
+            {
+                "id": "exercise-1",
+                "title": "Exercise 1",
+                "traversal": "exercise-2",
+                "speaker-notes": "Replace this code sample with the first exercise.",
+                "content": [
+                    { "kind": "heading", "level": 2, "text": "Exercise 1" },
+                    { "kind": "code", "language": "json", "source": "{ \"kind\": \"text\", \"body\": \"like this\" }" }
+                ]
+            },
+            {
+                "id": "exercise-2",
+                "title": "Exercise 2",
+                "traversal": "wrap-up",
+                "speaker-notes": "Replace this list with the second exercise's steps.",
+                "content": [
+                    { "kind": "heading", "level": 2, "text": "Exercise 2" },
+                    { "kind": "list", "items": [
+                        "Step one",
+                        "Step two",
+                        "Step three"
+                    ]}
+                ]
+            },
+            {
+                "id": "wrap-up",
+                "title": "Wrap-up",
+                "content": [
+                    { "kind": "container", "layout": "center", "children": [
+                        { "kind": "heading", "level": 1, "text": "That's it" },
+                        { "kind": "text", "body": "Edit the .fireside.json file to make it yours." }
+                    ]}
+                ]
+            }
+        ]
+    })
 }
 
 #[cfg(test)]
@@ -413,6 +669,45 @@ mod tests {
                 "demo deck is missing a {kind} block"
             );
         }
+    }
+
+    #[test]
+    fn every_starter_template_validates_clean() {
+        for template in [Template::Linear, Template::Branching, Template::Workshop] {
+            let graph = starter_deck("Test Deck", template, None)
+                .unwrap_or_else(|e| panic!("{template:?} template builds: {e}"));
+            let diags = validate(&graph);
+            let serious: Vec<_> = diags
+                .iter()
+                .filter(|d| d.severity >= Severity::Warning)
+                .collect();
+            assert!(
+                serious.is_empty(),
+                "{template:?} template must be spotless: {serious:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn every_starter_template_carries_speaker_note_hints() {
+        for template in [Template::Linear, Template::Branching, Template::Workshop] {
+            let graph = starter_deck("Test Deck", template, None).expect("template builds");
+            assert!(
+                graph.nodes.iter().any(|n| n.speaker_notes.is_some()),
+                "{template:?} template should hint the author via speaker notes"
+            );
+        }
+    }
+
+    #[test]
+    fn starter_deck_embeds_the_given_author() {
+        let graph = starter_deck("Test Deck", Template::Branching, None)
+            .expect("branching template builds");
+        assert_eq!(graph.author, None);
+
+        let graph = starter_deck("Test Deck", Template::Branching, Some("Ada Lovelace"))
+            .expect("branching template builds");
+        assert_eq!(graph.author.as_deref(), Some("Ada Lovelace"));
     }
 
     #[test]
