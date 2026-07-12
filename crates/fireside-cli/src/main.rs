@@ -12,7 +12,7 @@ use std::time::SystemTime;
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use fireside_core::{CoreError, Graph};
-use fireside_engine::{Severity, validate};
+use fireside_engine::{Diagnostic, Severity, validate};
 
 /// The built-in showcase deck presented by `fireside demo`.
 const DEMO_DECK: &str = include_str!("../assets/demo.fireside.json");
@@ -45,6 +45,10 @@ enum Command {
     Validate {
         /// Path to the deck file.
         file: PathBuf,
+
+        /// Keep checking the file and re-report on every save.
+        #[arg(long)]
+        watch: bool,
     },
 
     /// Create a starter deck you can present immediately.
@@ -61,7 +65,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     match (cli.file, cli.command) {
         (Some(file), _) | (None, Some(Command::Present { file })) => present(&file),
-        (None, Some(Command::Validate { file })) => validate_file(&file),
+        (None, Some(Command::Validate { file, watch })) => validate_file(&file, watch),
         (None, Some(Command::New { name })) => new_deck(&name),
         (None, Some(Command::Demo)) => demo(),
         (None, None) => {
@@ -199,40 +203,86 @@ fn fingerprint(path: &Path) -> Option<(SystemTime, u64)> {
     Some((meta.modified().ok()?, meta.len()))
 }
 
-fn validate_file(path: &Path) -> Result<()> {
-    let graph = load(path)?;
-    let diags = validate(&graph);
-
+/// Render a validation result exactly as `validate` has always printed it:
+/// a success line, or the full diagnostic list plus a summary. Shared by
+/// the one-shot path and the watch loop so their output never drifts apart.
+fn diagnostics_report(path: &Path, diags: &[Diagnostic]) -> String {
     if diags.is_empty() {
-        println!("✓ {} — no problems found", path.display());
-        return Ok(());
+        return format!("✓ {} — no problems found", path.display());
     }
 
     let mut errors = 0usize;
     let mut warnings = 0usize;
-    for d in &diags {
-        let icon = match d.severity {
-            Severity::Error => {
-                errors += 1;
-                "✗"
-            }
-            Severity::Warning => {
-                warnings += 1;
-                "⚠"
-            }
-            Severity::Info => "ℹ",
-        };
-        println!("  {icon} {}", d.message);
-    }
-    println!(
+    let mut lines: Vec<String> = diags
+        .iter()
+        .map(|d| {
+            let icon = match d.severity {
+                Severity::Error => {
+                    errors += 1;
+                    "✗"
+                }
+                Severity::Warning => {
+                    warnings += 1;
+                    "⚠"
+                }
+                Severity::Info => "ℹ",
+            };
+            format!("  {icon} {}", d.message)
+        })
+        .collect();
+    lines.push(format!(
         "\n{}: {errors} error(s), {warnings} warning(s), {} note(s)",
         path.display(),
         diags.len() - errors - warnings
-    );
-    if errors > 0 {
+    ));
+    lines.join("\n")
+}
+
+fn validate_file(path: &Path, watch: bool) -> Result<()> {
+    if watch {
+        return watch_loop(path);
+    }
+
+    let graph = load(path)?;
+    let diags = validate(&graph);
+    let has_errors = diags.iter().any(|d| d.severity == Severity::Error);
+    println!("{}", diagnostics_report(path, &diags));
+    if has_errors {
         std::process::exit(1);
     }
     Ok(())
+}
+
+/// Check the file once and render the result — a success line, the
+/// diagnostic list, a caret-pointed parse report, or a one-line message if
+/// the file can't currently be read. Never exits the process, so it is
+/// safe to call on every tick of the watch loop.
+fn watch_report(path: &Path) -> String {
+    let text = match std::fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(err) => return format!("✗ could not read {}: {err}", path.display()),
+    };
+    match Graph::from_json(&text) {
+        Err(CoreError::Parse(err)) => parse_report(path, &text, &err),
+        Ok(graph) => diagnostics_report(path, &validate(&graph)),
+    }
+}
+
+/// Check `path` immediately, then keep re-checking on a short poll and
+/// re-report whenever the file changes — the same cadence `present`'s
+/// live reload already uses, so a save-and-look loop feels the same
+/// whether you're authoring or presenting.
+fn watch_loop(path: &Path) -> Result<()> {
+    println!("{}", watch_report(path));
+    let mut last = fingerprint(path);
+    loop {
+        std::thread::sleep(std::time::Duration::from_millis(250));
+        let current = fingerprint(path);
+        if current != last {
+            last = current;
+            println!("\n{}", watch_report(path));
+        }
+    }
 }
 
 fn new_deck(name: &str) -> Result<()> {
@@ -383,6 +433,87 @@ mod tests {
         assert!(
             !report.contains("at line"),
             "no duplicated position: {report}"
+        );
+    }
+
+    /// A single terminal node with no traversal and no content — the
+    /// smallest deck that produces zero diagnostics of any severity, so
+    /// `diagnostics_report` takes its empty-diagnostics branch.
+    const SPOTLESS_DECK: &str = r#"{"nodes":[{"id":"a","content":[]}]}"#;
+
+    #[test]
+    fn watch_report_confirms_a_valid_deck() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        let deck = temp.path().join("deck.json");
+        std::fs::write(&deck, SPOTLESS_DECK).expect("write fixture");
+
+        let report = watch_report(&deck);
+        assert!(report.contains("no problems found"), "{report}");
+    }
+
+    #[test]
+    fn watch_report_shows_diagnostics_for_a_dangling_target() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        let deck = temp.path().join("broken.json");
+        std::fs::write(
+            &deck,
+            r#"{"nodes":[{"id":"a","traversal":"ghost","content":[]}]}"#,
+        )
+        .expect("write fixture");
+
+        let report = watch_report(&deck);
+        assert!(
+            report.contains("no node has that id"),
+            "expected the dangling-target diagnostic: {report}"
+        );
+        assert!(
+            report.contains("error(s)"),
+            "expected the summary line: {report}"
+        );
+    }
+
+    #[test]
+    fn watch_report_shows_a_caret_report_for_malformed_json() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        let deck = temp.path().join("broken.json");
+        std::fs::write(&deck, "{\n  \"nodes\": [}\n}").expect("write fixture");
+
+        let report = watch_report(&deck);
+        assert!(report.contains("is not a valid deck"), "{report}");
+        assert!(report.contains('^'), "expected a caret: {report}");
+    }
+
+    #[test]
+    fn watch_report_names_a_missing_file_without_panicking() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        let missing = temp.path().join("nope.json");
+
+        let report = watch_report(&missing);
+        assert!(
+            report.contains("could not read"),
+            "expected a missing-file message: {report}"
+        );
+    }
+
+    #[test]
+    fn watch_report_recovers_after_a_file_is_deleted_and_recreated() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        let deck = temp.path().join("deck.json");
+        std::fs::write(&deck, SPOTLESS_DECK).expect("write fixture");
+        assert!(watch_report(&deck).contains("no problems found"));
+
+        std::fs::remove_file(&deck).expect("delete fixture");
+        let missing_report = watch_report(&deck);
+        assert!(
+            missing_report.contains("could not read"),
+            "{missing_report}"
+        );
+
+        std::fs::write(&deck, SPOTLESS_DECK).expect("recreate fixture");
+        let recovered_report = watch_report(&deck);
+        assert!(
+            recovered_report.contains("no problems found"),
+            "{recovered_report}"
         );
     }
 }

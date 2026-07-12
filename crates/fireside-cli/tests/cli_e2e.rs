@@ -103,6 +103,50 @@ fn new_scaffolds_a_deck_that_validates_clean() {
         .stdout(predicate::str::contains("0 error(s)"));
 }
 
+/// Kills and reaps the wrapped child even if an assertion panics, so a
+/// failing test never leaves a `--watch` process running on the machine.
+struct KillOnDrop(std::process::Child);
+
+impl Drop for KillOnDrop {
+    fn drop(&mut self) {
+        let _ = self.0.kill();
+        let _ = self.0.wait();
+    }
+}
+
+#[test]
+fn validate_watch_prints_the_first_result_immediately() {
+    let temp = tempfile::tempdir().expect("temp dir");
+    let deck = temp.path().join("deck.json");
+    std::fs::write(&deck, r#"{"nodes":[{"id":"a","content":[]}]}"#).expect("write fixture");
+
+    let child = std::process::Command::new(assert_cmd::cargo::cargo_bin!("fireside"))
+        .arg("validate")
+        .arg("--watch")
+        .arg(&deck)
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .expect("spawn fireside validate --watch");
+    let mut guard = KillOnDrop(child);
+
+    let mut stdout = std::io::BufReader::new(guard.0.stdout.take().expect("piped stdout"));
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        use std::io::BufRead;
+        let mut first_line = String::new();
+        let _ = stdout.read_line(&mut first_line);
+        let _ = tx.send(first_line);
+    });
+
+    let first_line = rx
+        .recv_timeout(std::time::Duration::from_secs(5))
+        .expect("--watch prints its first result within 5s");
+    assert!(
+        first_line.contains("no problems found"),
+        "expected the immediate first-check result: {first_line:?}"
+    );
+}
+
 #[test]
 fn new_refuses_to_overwrite() {
     let temp = tempfile::tempdir().expect("temp dir");

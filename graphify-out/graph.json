@@ -382,6 +382,26 @@
       "norm_label": "level"
     },
     {
+      "label": "feature.json",
+      "file_type": "code",
+      "source_file": ".specify/feature.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specify_feature",
+      "community": 94,
+      "norm_label": "feature.json"
+    },
+    {
+      "label": "feature_directory",
+      "file_type": "code",
+      "source_file": ".specify/feature.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "specify_feature_feature_directory",
+      "community": 94,
+      "norm_label": "feature_directory"
+    },
+    {
       "label": "init-options.json",
       "file_type": "code",
       "source_file": ".specify/init-options.json",
@@ -1707,7 +1727,7 @@
       "label": "main()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L60",
+      "source_location": "L64",
       "_origin": "ast",
       "id": "src_main_main",
       "community": 1,
@@ -1717,7 +1737,7 @@
       "label": "Result",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L60",
+      "source_location": "L64",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_result",
       "community": 1,
@@ -1727,7 +1747,7 @@
       "label": "load()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L82",
+      "source_location": "L86",
       "_origin": "ast",
       "id": "src_main_load",
       "community": 1,
@@ -1737,7 +1757,7 @@
       "label": "Path",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L82",
+      "source_location": "L86",
       "_origin": "ast",
       "id": "path",
       "community": 1,
@@ -1747,7 +1767,7 @@
       "label": "Graph",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L82",
+      "source_location": "L86",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_graph",
       "community": 1,
@@ -1757,7 +1777,7 @@
       "label": "parse_report()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L96",
+      "source_location": "L100",
       "_origin": "ast",
       "id": "src_main_parse_report",
       "community": 1,
@@ -1767,7 +1787,7 @@
       "label": "Error",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L96",
+      "source_location": "L100",
       "_origin": "ast",
       "id": "error",
       "community": 1,
@@ -1777,7 +1797,7 @@
       "label": "String",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L96",
+      "source_location": "L100",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_string",
       "community": 1,
@@ -1787,7 +1807,7 @@
       "label": "strip_position()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L124",
+      "source_location": "L128",
       "_origin": "ast",
       "id": "src_main_strip_position",
       "community": 1,
@@ -1797,7 +1817,7 @@
       "label": "present()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L129",
+      "source_location": "L133",
       "_origin": "ast",
       "id": "src_main_present",
       "community": 1,
@@ -1807,7 +1827,7 @@
       "label": "demo()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L149",
+      "source_location": "L153",
       "_origin": "ast",
       "id": "src_main_demo",
       "community": 1,
@@ -1817,7 +1837,7 @@
       "label": "Watcher",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L156",
+      "source_location": "L160",
       "_origin": "ast",
       "id": "src_main_watcher",
       "community": 1,
@@ -1827,7 +1847,7 @@
       "label": "SystemTime",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L158",
+      "source_location": "L162",
       "_origin": "ast",
       "id": "systemtime",
       "community": 1,
@@ -1837,7 +1857,7 @@
       "label": ".new()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L162",
+      "source_location": "L166",
       "_origin": "ast",
       "id": "src_main_watcher_new",
       "community": 1,
@@ -1847,7 +1867,7 @@
       "label": "Self",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L162",
+      "source_location": "L166",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_self",
       "community": 1,
@@ -1857,7 +1877,7 @@
       "label": ".poll()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L171",
+      "source_location": "L175",
       "_origin": "ast",
       "id": "src_main_watcher_poll",
       "community": 1,
@@ -1867,27 +1887,67 @@
       "label": "fingerprint()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L197",
+      "source_location": "L201",
       "_origin": "ast",
       "id": "src_main_fingerprint",
       "community": 1,
       "norm_label": "fingerprint()"
     },
     {
+      "label": "diagnostics_report()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L209",
+      "_origin": "ast",
+      "id": "src_main_diagnostics_report",
+      "community": 1,
+      "norm_label": "diagnostics_report()"
+    },
+    {
+      "label": "Diagnostic",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L209",
+      "_origin": "ast",
+      "id": "diagnostic",
+      "community": 1,
+      "norm_label": "diagnostic"
+    },
+    {
       "label": "validate_file()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L202",
+      "source_location": "L241",
       "_origin": "ast",
       "id": "src_main_validate_file",
       "community": 1,
       "norm_label": "validate_file()"
     },
     {
+      "label": "watch_report()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L260",
+      "_origin": "ast",
+      "id": "src_main_watch_report",
+      "community": 1,
+      "norm_label": "watch_report()"
+    },
+    {
+      "label": "watch_loop()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L275",
+      "_origin": "ast",
+      "id": "src_main_watch_loop",
+      "community": 1,
+      "norm_label": "watch_loop()"
+    },
+    {
       "label": "new_deck()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L238",
+      "source_location": "L288",
       "_origin": "ast",
       "id": "src_main_new_deck",
       "community": 1,
@@ -1897,7 +1957,7 @@
       "label": "starter_deck()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L271",
+      "source_location": "L321",
       "_origin": "ast",
       "id": "src_main_starter_deck",
       "community": 1,
@@ -1907,7 +1967,7 @@
       "label": "demo_deck_parses_and_validates_clean()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L337",
+      "source_location": "L387",
       "_origin": "ast",
       "id": "src_main_demo_deck_parses_and_validates_clean",
       "community": 1,
@@ -1917,7 +1977,7 @@
       "label": "demo_deck_shows_every_block_kind()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L351",
+      "source_location": "L401",
       "_origin": "ast",
       "id": "src_main_demo_deck_shows_every_block_kind",
       "community": 1,
@@ -1927,11 +1987,61 @@
       "label": "parse_report_points_at_the_line_with_a_caret()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/src/main.rs",
-      "source_location": "L369",
+      "source_location": "L419",
       "_origin": "ast",
       "id": "src_main_parse_report_points_at_the_line_with_a_caret",
       "community": 1,
       "norm_label": "parse_report_points_at_the_line_with_a_caret()"
+    },
+    {
+      "label": "watch_report_confirms_a_valid_deck()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L445",
+      "_origin": "ast",
+      "id": "src_main_watch_report_confirms_a_valid_deck",
+      "community": 1,
+      "norm_label": "watch_report_confirms_a_valid_deck()"
+    },
+    {
+      "label": "watch_report_shows_diagnostics_for_a_dangling_target()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L455",
+      "_origin": "ast",
+      "id": "src_main_watch_report_shows_diagnostics_for_a_dangling_target",
+      "community": 1,
+      "norm_label": "watch_report_shows_diagnostics_for_a_dangling_target()"
+    },
+    {
+      "label": "watch_report_shows_a_caret_report_for_malformed_json()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L476",
+      "_origin": "ast",
+      "id": "src_main_watch_report_shows_a_caret_report_for_malformed_json",
+      "community": 1,
+      "norm_label": "watch_report_shows_a_caret_report_for_malformed_json()"
+    },
+    {
+      "label": "watch_report_names_a_missing_file_without_panicking()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L487",
+      "_origin": "ast",
+      "id": "src_main_watch_report_names_a_missing_file_without_panicking",
+      "community": 1,
+      "norm_label": "watch_report_names_a_missing_file_without_panicking()"
+    },
+    {
+      "label": "watch_report_recovers_after_a_file_is_deleted_and_recreated()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L499",
+      "_origin": "ast",
+      "id": "src_main_watch_report_recovers_after_a_file_is_deleted_and_recreated",
+      "community": 1,
+      "norm_label": "watch_report_recovers_after_a_file_is_deleted_and_recreated()"
     },
     {
       "label": "cli_e2e.rs",
@@ -1940,7 +2050,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tests_cli_e2e",
-      "community": 5,
+      "community": 106,
       "norm_label": "cli_e2e.rs"
     },
     {
@@ -1950,7 +2060,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "tests_cli_e2e_fireside",
-      "community": 5,
+      "community": 106,
       "norm_label": "fireside()"
     },
     {
@@ -1960,7 +2070,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "crates_fireside_cli_tests_cli_e2e_rs_command",
-      "community": 5,
+      "community": 106,
       "norm_label": "command"
     },
     {
@@ -1970,7 +2080,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "tests_cli_e2e_repo_root",
-      "community": 5,
+      "community": 106,
       "norm_label": "repo_root()"
     },
     {
@@ -1980,7 +2090,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "crates_fireside_cli_tests_cli_e2e_rs_pathbuf",
-      "community": 5,
+      "community": 106,
       "norm_label": "pathbuf"
     },
     {
@@ -1990,7 +2100,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "tests_cli_e2e_bare_invocation_teaches_the_three_verbs",
-      "community": 5,
+      "community": 106,
       "norm_label": "bare_invocation_teaches_the_three_verbs()"
     },
     {
@@ -2000,7 +2110,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "tests_cli_e2e_validate_hello_exits_zero",
-      "community": 5,
+      "community": 106,
       "norm_label": "validate_hello_exits_zero()"
     },
     {
@@ -2010,7 +2120,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "tests_cli_e2e_validate_missing_file_fails_with_readable_error",
-      "community": 5,
+      "community": 106,
       "norm_label": "validate_missing_file_fails_with_readable_error()"
     },
     {
@@ -2020,7 +2130,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "tests_cli_e2e_validate_reports_dangling_targets_in_plain_language",
-      "community": 5,
+      "community": 106,
       "norm_label": "validate_reports_dangling_targets_in_plain_language()"
     },
     {
@@ -2030,7 +2140,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "tests_cli_e2e_present_refuses_a_broken_deck_before_taking_the_screen",
-      "community": 5,
+      "community": 106,
       "norm_label": "present_refuses_a_broken_deck_before_taking_the_screen()"
     },
     {
@@ -2040,17 +2150,57 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "tests_cli_e2e_new_scaffolds_a_deck_that_validates_clean",
-      "community": 5,
+      "community": 106,
       "norm_label": "new_scaffolds_a_deck_that_validates_clean()"
+    },
+    {
+      "label": "KillOnDrop",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L108",
+      "_origin": "ast",
+      "id": "tests_cli_e2e_killondrop",
+      "community": 106,
+      "norm_label": "killondrop"
+    },
+    {
+      "label": "Drop",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L110",
+      "_origin": "ast",
+      "id": "drop",
+      "community": 106,
+      "norm_label": "drop"
+    },
+    {
+      "label": ".drop()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L111",
+      "_origin": "ast",
+      "id": "tests_cli_e2e_killondrop_drop",
+      "community": 106,
+      "norm_label": ".drop()"
+    },
+    {
+      "label": "validate_watch_prints_the_first_result_immediately()",
+      "file_type": "code",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L118",
+      "_origin": "ast",
+      "id": "tests_cli_e2e_validate_watch_prints_the_first_result_immediately",
+      "community": 106,
+      "norm_label": "validate_watch_prints_the_first_result_immediately()"
     },
     {
       "label": "new_refuses_to_overwrite()",
       "file_type": "code",
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
-      "source_location": "L107",
+      "source_location": "L151",
       "_origin": "ast",
       "id": "tests_cli_e2e_new_refuses_to_overwrite",
-      "community": 5,
+      "community": 106,
       "norm_label": "new_refuses_to_overwrite()"
     },
     {
@@ -13224,6 +13374,736 @@
       "norm_label": "failure handling"
     },
     {
+      "label": "requirements.md",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "checklists_requirements",
+      "community": 95,
+      "norm_label": "requirements.md"
+    },
+    {
+      "label": "Specification Quality Checklist: Live Validation While Authoring (`validate --watch`)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "checklists_requirements_specification_quality_checklist_live_validation_while_authoring_validate_watch",
+      "community": 95,
+      "norm_label": "specification quality checklist: live validation while authoring (`validate --watch`)"
+    },
+    {
+      "label": "Content Quality",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "checklists_requirements_content_quality",
+      "community": 95,
+      "norm_label": "content quality"
+    },
+    {
+      "label": "Requirement Completeness",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "checklists_requirements_requirement_completeness",
+      "community": 95,
+      "norm_label": "requirement completeness"
+    },
+    {
+      "label": "Feature Readiness",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "checklists_requirements_feature_readiness",
+      "community": 95,
+      "norm_label": "feature readiness"
+    },
+    {
+      "label": "Notes",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "checklists_requirements_notes",
+      "community": 95,
+      "norm_label": "notes"
+    },
+    {
+      "label": "cli-validate-watch.md",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "contracts_cli_validate_watch",
+      "community": 99,
+      "norm_label": "cli-validate-watch.md"
+    },
+    {
+      "label": "CLI Contract: `fireside validate --watch`",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "contracts_cli_validate_watch_cli_contract_fireside_validate_watch",
+      "community": 99,
+      "norm_label": "cli contract: `fireside validate --watch`"
+    },
+    {
+      "label": "Invocation",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "contracts_cli_validate_watch_invocation",
+      "community": 99,
+      "norm_label": "invocation"
+    },
+    {
+      "label": "Without `--watch` (unchanged contract)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "contracts_cli_validate_watch_without_watch_unchanged_contract",
+      "community": 99,
+      "norm_label": "without `--watch` (unchanged contract)"
+    },
+    {
+      "label": "With `--watch`",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "contracts_cli_validate_watch_with_watch",
+      "community": 99,
+      "norm_label": "with `--watch`"
+    },
+    {
+      "label": "Out of scope for this contract",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "contracts_cli_validate_watch_out_of_scope_for_this_contract",
+      "community": 99,
+      "norm_label": "out of scope for this contract"
+    },
+    {
+      "label": "data-model.md",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/data-model.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_data_model",
+      "community": 97,
+      "norm_label": "data-model.md"
+    },
+    {
+      "label": "Data Model: `validate --watch`",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/data-model.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_data_model_data_model_validate_watch",
+      "community": 97,
+      "norm_label": "data model: `validate --watch`"
+    },
+    {
+      "label": "Existing types reused as-is",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/data-model.md",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "001_validate_watch_data_model_existing_types_reused_as_is",
+      "community": 97,
+      "norm_label": "existing types reused as-is"
+    },
+    {
+      "label": "New shape: watch-cycle report",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/data-model.md",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "001_validate_watch_data_model_new_shape_watch_cycle_report",
+      "community": 97,
+      "norm_label": "new shape: watch-cycle report"
+    },
+    {
+      "label": "Change-detection state",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/data-model.md",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "001_validate_watch_data_model_change_detection_state",
+      "community": 97,
+      "norm_label": "change-detection state"
+    },
+    {
+      "label": "plan.md",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_plan",
+      "community": 91,
+      "norm_label": "plan.md"
+    },
+    {
+      "label": "Implementation Plan: Live Validation While Authoring (`validate --watch`)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_plan_implementation_plan_live_validation_while_authoring_validate_watch",
+      "community": 91,
+      "norm_label": "implementation plan: live validation while authoring (`validate --watch`)"
+    },
+    {
+      "label": "Summary",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "001_validate_watch_plan_summary",
+      "community": 91,
+      "norm_label": "summary"
+    },
+    {
+      "label": "Technical Context",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "001_validate_watch_plan_technical_context",
+      "community": 91,
+      "norm_label": "technical context"
+    },
+    {
+      "label": "Constitution Check",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "001_validate_watch_plan_constitution_check",
+      "community": 91,
+      "norm_label": "constitution check"
+    },
+    {
+      "label": "Project Structure",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "001_validate_watch_plan_project_structure",
+      "community": 91,
+      "norm_label": "project structure"
+    },
+    {
+      "label": "Documentation (this feature)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "001_validate_watch_plan_documentation_this_feature",
+      "community": 91,
+      "norm_label": "documentation (this feature)"
+    },
+    {
+      "label": "Source Code (repository root)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L76",
+      "_origin": "ast",
+      "id": "001_validate_watch_plan_source_code_repository_root",
+      "community": 91,
+      "norm_label": "source code (repository root)"
+    },
+    {
+      "label": "Complexity Tracking",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L94",
+      "_origin": "ast",
+      "id": "001_validate_watch_plan_complexity_tracking",
+      "community": 91,
+      "norm_label": "complexity tracking"
+    },
+    {
+      "label": "quickstart.md",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart",
+      "community": 105,
+      "norm_label": "quickstart.md"
+    },
+    {
+      "label": "Quickstart: Validating `validate --watch`",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart_quickstart_validating_validate_watch",
+      "community": 105,
+      "norm_label": "quickstart: validating `validate --watch`"
+    },
+    {
+      "label": "1. Confirm non-watch behavior is unchanged (FR-002)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart_1_confirm_non_watch_behavior_is_unchanged_fr_002",
+      "community": 105,
+      "norm_label": "1. confirm non-watch behavior is unchanged (fr-002)"
+    },
+    {
+      "label": "2. Start watch mode and see the immediate first check (FR-003)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart_2_start_watch_mode_and_see_the_immediate_first_check_fr_003",
+      "community": 105,
+      "norm_label": "2. start watch mode and see the immediate first check (fr-003)"
+    },
+    {
+      "label": "3. Introduce a semantic error and save (User Story 1, FR-004/FR-005)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart_3_introduce_a_semantic_error_and_save_user_story_1_fr_004_fr_005",
+      "community": 105,
+      "norm_label": "3. introduce a semantic error and save (user story 1, fr-004/fr-005)"
+    },
+    {
+      "label": "4. Fix it and save again",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart_4_fix_it_and_save_again",
+      "community": 105,
+      "norm_label": "4. fix it and save again"
+    },
+    {
+      "label": "5. Introduce a JSON syntax error (User Story 2, FR-006)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart_5_introduce_a_json_syntax_error_user_story_2_fr_006",
+      "community": 105,
+      "norm_label": "5. introduce a json syntax error (user story 2, fr-006)"
+    },
+    {
+      "label": "6. Delete the file (edge case, FR-009)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart_6_delete_the_file_edge_case_fr_009",
+      "community": 105,
+      "norm_label": "6. delete the file (edge case, fr-009)"
+    },
+    {
+      "label": "7. Stop with Ctrl-C (FR-010)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart_7_stop_with_ctrl_c_fr_010",
+      "community": 105,
+      "norm_label": "7. stop with ctrl-c (fr-010)"
+    },
+    {
+      "label": "Automated coverage",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L70",
+      "_origin": "ast",
+      "id": "001_validate_watch_quickstart_automated_coverage",
+      "community": 105,
+      "norm_label": "automated coverage"
+    },
+    {
+      "label": "research.md",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_research",
+      "community": 92,
+      "norm_label": "research.md"
+    },
+    {
+      "label": "Phase 0 Research: `validate --watch`",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_research_phase_0_research_validate_watch",
+      "community": 92,
+      "norm_label": "phase 0 research: `validate --watch`"
+    },
+    {
+      "label": "Decision: Reuse `fingerprint()`, not the `Watcher` struct or `load()`",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "001_validate_watch_research_decision_reuse_fingerprint_not_the_watcher_struct_or_load",
+      "community": 92,
+      "norm_label": "decision: reuse `fingerprint()`, not the `watcher` struct or `load()`"
+    },
+    {
+      "label": "Decision: Own polling loop with `std::thread::sleep`, not `Watcher`'s cadence",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "001_validate_watch_research_decision_own_polling_loop_with_std_thread_sleep_not_watcher_s_cadence",
+      "community": 92,
+      "norm_label": "decision: own polling loop with `std::thread::sleep`, not `watcher`'s cadence"
+    },
+    {
+      "label": "Decision: Ctrl-C exits via default SIGINT, no new dependency",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "001_validate_watch_research_decision_ctrl_c_exits_via_default_sigint_no_new_dependency",
+      "community": 92,
+      "norm_label": "decision: ctrl-c exits via default sigint, no new dependency"
+    },
+    {
+      "label": "Decision: Test the polling step as a pure function, not via a spawned infinite loop",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L68",
+      "_origin": "ast",
+      "id": "001_validate_watch_research_decision_test_the_polling_step_as_a_pure_function_not_via_a_spawned_infinite_loop",
+      "community": 92,
+      "norm_label": "decision: test the polling step as a pure function, not via a spawned infinite loop"
+    },
+    {
+      "label": "Resolved Technical Context",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L89",
+      "_origin": "ast",
+      "id": "001_validate_watch_research_resolved_technical_context",
+      "community": 92,
+      "norm_label": "resolved technical context"
+    },
+    {
+      "label": "spec.md",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec",
+      "community": 90,
+      "norm_label": "spec.md"
+    },
+    {
+      "label": "Feature Specification: Live Validation While Authoring (`validate --watch`)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_feature_specification_live_validation_while_authoring_validate_watch",
+      "community": 90,
+      "norm_label": "feature specification: live validation while authoring (`validate --watch`)"
+    },
+    {
+      "label": "User Scenarios & Testing *(mandatory)*",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_user_scenarios_testing_mandatory",
+      "community": 90,
+      "norm_label": "user scenarios & testing *(mandatory)*"
+    },
+    {
+      "label": "User Story 1 - See errors immediately after saving (Priority: P1)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_user_story_1_see_errors_immediately_after_saving_priority_p1",
+      "community": 90,
+      "norm_label": "user story 1 - see errors immediately after saving (priority: p1)"
+    },
+    {
+      "label": "User Story 2 - Get a precise location for JSON syntax errors (Priority: P2)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_user_story_2_get_a_precise_location_for_json_syntax_errors_priority_p2",
+      "community": 90,
+      "norm_label": "user story 2 - get a precise location for json syntax errors (priority: p2)"
+    },
+    {
+      "label": "User Story 3 - Keep working through transient save states (Priority: P3)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L82",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_user_story_3_keep_working_through_transient_save_states_priority_p3",
+      "community": 90,
+      "norm_label": "user story 3 - keep working through transient save states (priority: p3)"
+    },
+    {
+      "label": "Edge Cases",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L107",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_edge_cases",
+      "community": 90,
+      "norm_label": "edge cases"
+    },
+    {
+      "label": "Requirements *(mandatory)*",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L124",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_requirements_mandatory",
+      "community": 90,
+      "norm_label": "requirements *(mandatory)*"
+    },
+    {
+      "label": "Functional Requirements",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L126",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_functional_requirements",
+      "community": 90,
+      "norm_label": "functional requirements"
+    },
+    {
+      "label": "Key Entities",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L160",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_key_entities",
+      "community": 90,
+      "norm_label": "key entities"
+    },
+    {
+      "label": "Success Criteria *(mandatory)*",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L172",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_success_criteria_mandatory",
+      "community": 90,
+      "norm_label": "success criteria *(mandatory)*"
+    },
+    {
+      "label": "Measurable Outcomes",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L174",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_measurable_outcomes",
+      "community": 90,
+      "norm_label": "measurable outcomes"
+    },
+    {
+      "label": "Assumptions",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L188",
+      "_origin": "ast",
+      "id": "001_validate_watch_spec_assumptions",
+      "community": 90,
+      "norm_label": "assumptions"
+    },
+    {
+      "label": "tasks.md",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks",
+      "community": 5,
+      "norm_label": "tasks.md"
+    },
+    {
+      "label": "Tasks: Live Validation While Authoring (`validate --watch`)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "community": 5,
+      "norm_label": "tasks: live validation while authoring (`validate --watch`)"
+    },
+    {
+      "label": "Format: `[ID] [P?] [Story] Description`",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_format_id_p_story_description",
+      "community": 5,
+      "norm_label": "format: `[id] [p?] [story] description`"
+    },
+    {
+      "label": "Phase 1: Setup",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_phase_1_setup",
+      "community": 5,
+      "norm_label": "phase 1: setup"
+    },
+    {
+      "label": "Phase 2: Foundational (Blocking Prerequisites)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_phase_2_foundational_blocking_prerequisites",
+      "community": 5,
+      "norm_label": "phase 2: foundational (blocking prerequisites)"
+    },
+    {
+      "label": "Phase 3: User Story 1 - See errors immediately after saving (Priority: P1) \ud83c\udfaf MVP",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_phase_3_user_story_1_see_errors_immediately_after_saving_priority_p1_mvp",
+      "community": 5,
+      "norm_label": "phase 3: user story 1 - see errors immediately after saving (priority: p1) \ud83c\udfaf mvp"
+    },
+    {
+      "label": "Implementation for User Story 1",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_implementation_for_user_story_1",
+      "community": 5,
+      "norm_label": "implementation for user story 1"
+    },
+    {
+      "label": "Phase 4: User Story 2 - Get a precise location for JSON syntax errors (Priority: P2)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_phase_4_user_story_2_get_a_precise_location_for_json_syntax_errors_priority_p2",
+      "community": 5,
+      "norm_label": "phase 4: user story 2 - get a precise location for json syntax errors (priority: p2)"
+    },
+    {
+      "label": "Implementation for User Story 2",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L104",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_implementation_for_user_story_2",
+      "community": 5,
+      "norm_label": "implementation for user story 2"
+    },
+    {
+      "label": "Phase 5: User Story 3 - Keep working through transient save states (Priority: P3)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L119",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_phase_5_user_story_3_keep_working_through_transient_save_states_priority_p3",
+      "community": 5,
+      "norm_label": "phase 5: user story 3 - keep working through transient save states (priority: p3)"
+    },
+    {
+      "label": "Implementation for User Story 3",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L128",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_implementation_for_user_story_3",
+      "community": 5,
+      "norm_label": "implementation for user story 3"
+    },
+    {
+      "label": "Phase 6: Polish & Cross-Cutting Concerns",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L146",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_phase_6_polish_cross_cutting_concerns",
+      "community": 5,
+      "norm_label": "phase 6: polish & cross-cutting concerns"
+    },
+    {
+      "label": "Dependencies & Execution Order",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L165",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_dependencies_execution_order",
+      "community": 5,
+      "norm_label": "dependencies & execution order"
+    },
+    {
+      "label": "Parallel Opportunities",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L178",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_parallel_opportunities",
+      "community": 5,
+      "norm_label": "parallel opportunities"
+    },
+    {
+      "label": "Implementation Strategy",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L187",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_implementation_strategy",
+      "community": 5,
+      "norm_label": "implementation strategy"
+    },
+    {
+      "label": "MVP First (User Story 1 only)",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L189",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_mvp_first_user_story_1_only",
+      "community": 5,
+      "norm_label": "mvp first (user story 1 only)"
+    },
+    {
+      "label": "Incremental Delivery",
+      "file_type": "document",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L195",
+      "_origin": "ast",
+      "id": "001_validate_watch_tasks_incremental_delivery",
+      "community": 5,
+      "norm_label": "incremental delivery"
+    },
+    {
       "label": "{ reportDiagnostic, createDiagnostic }",
       "file_type": "code",
       "source_file": "protocol/src/lib.ts",
@@ -14546,9 +15426,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_hitl_loop_template",
-      "target": "scripts_hitl_loop_template_capture",
-      "confidence_score": 1.0
+      "target": "scripts_hitl_loop_template_capture"
     },
     {
       "relation": "defines",
@@ -14556,9 +15436,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_hitl_loop_template",
-      "target": "scripts_hitl_loop_template_step",
-      "confidence_score": 1.0
+      "target": "scripts_hitl_loop_template_step"
     },
     {
       "relation": "contains",
@@ -14566,9 +15446,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_hitl_loop_template",
-      "target": "users_tiberius_development_rust_fireside_agents_skills_diagnosing_bugs_scripts_hitl_loop_template_sh__entry",
-      "confidence_score": 1.0
+      "target": "users_tiberius_development_rust_fireside_agents_skills_diagnosing_bugs_scripts_hitl_loop_template_sh__entry"
     },
     {
       "relation": "calls",
@@ -14577,9 +15457,9 @@
       "source_location": "L33",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "users_tiberius_development_rust_fireside_agents_skills_diagnosing_bugs_scripts_hitl_loop_template_sh__entry",
-      "target": "scripts_hitl_loop_template_capture",
-      "confidence_score": 1.0
+      "target": "scripts_hitl_loop_template_capture"
     },
     {
       "relation": "calls",
@@ -14588,9 +15468,9 @@
       "source_location": "L31",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "users_tiberius_development_rust_fireside_agents_skills_diagnosing_bugs_scripts_hitl_loop_template_sh__entry",
-      "target": "scripts_hitl_loop_template_step",
-      "confidence_score": 1.0
+      "target": "scripts_hitl_loop_template_step"
     },
     {
       "relation": "contains",
@@ -14771,6 +15651,16 @@
       "confidence_score": 1.0,
       "source": "markdownlint_md041",
       "target": "markdownlint_md041_level"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/feature.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_feature",
+      "target": "specify_feature_feature_directory"
     },
     {
       "relation": "contains",
@@ -15922,6 +16812,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L209",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_diagnostics_report"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L184",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -16017,6 +16917,76 @@
       "confidence_score": 1.0,
       "source": "src_main",
       "target": "src_main_validate_file"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L275",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_watch_loop"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L260",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_watch_report"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L440",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_watch_report_confirms_a_valid_deck"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L482",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_watch_report_names_a_missing_file_without_panicking"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L494",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_watch_report_recovers_after_a_file_is_deleted_and_recreated"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L471",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_watch_report_shows_a_caret_report_for_malformed_json"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L450",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main",
+      "target": "src_main_watch_report_shows_diagnostics_for_a_dangling_target"
     },
     {
       "relation": "contains",
@@ -16241,6 +17211,17 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L275",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "src_main_watch_loop",
+      "target": "crates_fireside_cli_src_main_rs_result"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L158",
       "weight": 1.0,
       "context": "generic_arg",
@@ -16296,6 +17277,17 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L209",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "src_main_diagnostics_report",
+      "target": "path"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L184",
       "weight": 1.0,
       "context": "parameter_type",
@@ -16334,6 +17326,28 @@
       "context": "parameter_type",
       "confidence_score": 1.0,
       "source": "src_main_validate_file",
+      "target": "path"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L275",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "src_main_watch_loop",
+      "target": "path"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L260",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "src_main_watch_report",
       "target": "path"
     },
     {
@@ -16414,6 +17428,17 @@
       "target": "src_main_parse_report"
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L266",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_watch_report",
+      "target": "src_main_parse_report"
+    },
+    {
       "relation": "imports_from",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-core/src/error.rs",
@@ -16461,11 +17486,33 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L209",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "src_main_diagnostics_report",
+      "target": "crates_fireside_cli_src_main_rs_string"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L119",
       "weight": 1.0,
       "context": "return_type",
       "confidence_score": 1.0,
       "source": "src_main_strip_position",
+      "target": "crates_fireside_cli_src_main_rs_string"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L260",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "src_main_watch_report",
       "target": "crates_fireside_cli_src_main_rs_string"
     },
     {
@@ -16603,6 +17650,105 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L277",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_watch_loop",
+      "target": "src_main_fingerprint"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L209",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "src_main_diagnostics_report",
+      "target": "diagnostic"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L267",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_watch_report",
+      "target": "src_main_diagnostics_report"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L243",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_validate_file",
+      "target": "src_main_watch_loop"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L445",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_watch_report_confirms_a_valid_deck",
+      "target": "src_main_watch_report"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L486",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_watch_report_names_a_missing_file_without_panicking",
+      "target": "src_main_watch_report"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L501",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_watch_report_recovers_after_a_file_is_deleted_and_recreated",
+      "target": "src_main_watch_report"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L476",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_watch_report_shows_a_caret_report_for_malformed_json",
+      "target": "src_main_watch_report"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
+      "source_location": "L459",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_main_watch_report_shows_diagnostics_for_a_dangling_target",
+      "target": "src_main_watch_report"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/src/main.rs",
       "source_location": "L145",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -16639,6 +17785,16 @@
       "confidence_score": 1.0,
       "source": "tests_cli_e2e",
       "target": "tests_cli_e2e_fireside"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L108",
+      "weight": 1.0,
+      "source": "tests_cli_e2e",
+      "target": "tests_cli_e2e_killondrop",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -16709,6 +17865,16 @@
       "confidence_score": 1.0,
       "source": "tests_cli_e2e",
       "target": "tests_cli_e2e_validate_reports_dangling_targets_in_plain_language"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L118",
+      "weight": 1.0,
+      "source": "tests_cli_e2e",
+      "target": "tests_cli_e2e_validate_watch_prints_the_first_result_immediately",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -16799,6 +17965,17 @@
       "target": "tests_cli_e2e_fireside"
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L123",
+      "weight": 1.0,
+      "source": "tests_cli_e2e_validate_watch_prints_the_first_result_immediately",
+      "target": "tests_cli_e2e_fireside",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
@@ -16819,6 +17996,37 @@
       "confidence_score": 1.0,
       "source": "tests_cli_e2e_validate_hello_exits_zero",
       "target": "tests_cli_e2e_repo_root"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L110",
+      "weight": 1.0,
+      "source": "tests_cli_e2e_killondrop",
+      "target": "drop",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "tests_cli_e2e_killondrop",
+      "target": "tests_cli_e2e_killondrop_drop",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/fireside-cli/tests/cli_e2e.rs",
+      "source_location": "L130",
+      "weight": 1.0,
+      "source": "tests_cli_e2e_validate_watch_prints_the_first_result_immediately",
+      "target": "tests_cli_e2e_killondrop",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -27689,9 +28897,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock",
-      "target": "skills_lock_skills",
-      "confidence_score": 1.0
+      "target": "skills_lock_skills"
     },
     {
       "relation": "contains",
@@ -27699,9 +28907,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock",
-      "target": "skills_lock_version",
-      "confidence_score": 1.0
+      "target": "skills_lock_version"
     },
     {
       "relation": "contains",
@@ -27709,9 +28917,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills",
-      "target": "skills_lock_skills_diagnosing_bugs",
-      "confidence_score": 1.0
+      "target": "skills_lock_skills_diagnosing_bugs"
     },
     {
       "relation": "contains",
@@ -27719,9 +28927,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills",
-      "target": "skills_lock_skills_tdd",
-      "confidence_score": 1.0
+      "target": "skills_lock_skills_tdd"
     },
     {
       "relation": "contains",
@@ -27729,9 +28937,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills_diagnosing_bugs",
-      "target": "skills_lock_diagnosing_bugs_computedhash",
-      "confidence_score": 1.0
+      "target": "skills_lock_diagnosing_bugs_computedhash"
     },
     {
       "relation": "contains",
@@ -27739,9 +28947,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills_diagnosing_bugs",
-      "target": "skills_lock_diagnosing_bugs_skillpath",
-      "confidence_score": 1.0
+      "target": "skills_lock_diagnosing_bugs_skillpath"
     },
     {
       "relation": "contains",
@@ -27749,9 +28957,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills_diagnosing_bugs",
-      "target": "skills_lock_diagnosing_bugs_source",
-      "confidence_score": 1.0
+      "target": "skills_lock_diagnosing_bugs_source"
     },
     {
       "relation": "contains",
@@ -27759,9 +28967,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills_diagnosing_bugs",
-      "target": "skills_lock_diagnosing_bugs_sourcetype",
-      "confidence_score": 1.0
+      "target": "skills_lock_diagnosing_bugs_sourcetype"
     },
     {
       "relation": "contains",
@@ -27769,9 +28977,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills_tdd",
-      "target": "skills_lock_tdd_computedhash",
-      "confidence_score": 1.0
+      "target": "skills_lock_tdd_computedhash"
     },
     {
       "relation": "contains",
@@ -27779,9 +28987,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills_tdd",
-      "target": "skills_lock_tdd_skillpath",
-      "confidence_score": 1.0
+      "target": "skills_lock_tdd_skillpath"
     },
     {
       "relation": "contains",
@@ -27789,9 +28997,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills_tdd",
-      "target": "skills_lock_tdd_source",
-      "confidence_score": 1.0
+      "target": "skills_lock_tdd_source"
     },
     {
       "relation": "contains",
@@ -27799,9 +29007,9 @@
       "source_file": "skills-lock.json",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "skills_lock_skills_tdd",
-      "target": "skills_lock_tdd_sourcetype",
-      "confidence_score": 1.0
+      "target": "skills_lock_tdd_sourcetype"
     },
     {
       "relation": "contains",
@@ -27809,9 +29017,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill",
-      "target": "diagnosing_bugs_skill_diagnosing_bugs",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_diagnosing_bugs"
     },
     {
       "relation": "contains",
@@ -27819,9 +29027,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_diagnosing_bugs",
-      "target": "diagnosing_bugs_skill_phase_1_build_a_feedback_loop",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_phase_1_build_a_feedback_loop"
     },
     {
       "relation": "contains",
@@ -27829,9 +29037,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L62",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_diagnosing_bugs",
-      "target": "diagnosing_bugs_skill_phase_2_reproduce_minimise",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_phase_2_reproduce_minimise"
     },
     {
       "relation": "contains",
@@ -27839,9 +29047,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L82",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_diagnosing_bugs",
-      "target": "diagnosing_bugs_skill_phase_3_hypothesise",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_phase_3_hypothesise"
     },
     {
       "relation": "contains",
@@ -27849,9 +29057,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L94",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_diagnosing_bugs",
-      "target": "diagnosing_bugs_skill_phase_4_instrument",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_phase_4_instrument"
     },
     {
       "relation": "contains",
@@ -27859,9 +29067,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L108",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_diagnosing_bugs",
-      "target": "diagnosing_bugs_skill_phase_5_fix_regression_test",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_phase_5_fix_regression_test"
     },
     {
       "relation": "contains",
@@ -27869,9 +29077,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L124",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_diagnosing_bugs",
-      "target": "diagnosing_bugs_skill_phase_6_cleanup_post_mortem",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_phase_6_cleanup_post_mortem"
     },
     {
       "relation": "contains",
@@ -27879,9 +29087,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_phase_1_build_a_feedback_loop",
-      "target": "diagnosing_bugs_skill_completion_criterion_a_tight_loop_that_goes_red",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_completion_criterion_a_tight_loop_that_goes_red"
     },
     {
       "relation": "contains",
@@ -27889,9 +29097,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L43",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_phase_1_build_a_feedback_loop",
-      "target": "diagnosing_bugs_skill_non_deterministic_bugs",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_non_deterministic_bugs"
     },
     {
       "relation": "contains",
@@ -27899,9 +29107,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_phase_1_build_a_feedback_loop",
-      "target": "diagnosing_bugs_skill_tighten_the_loop",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_tighten_the_loop"
     },
     {
       "relation": "contains",
@@ -27909,9 +29117,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_phase_1_build_a_feedback_loop",
-      "target": "diagnosing_bugs_skill_ways_to_construct_one_try_them_in_roughly_this_order",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_ways_to_construct_one_try_them_in_roughly_this_order"
     },
     {
       "relation": "contains",
@@ -27919,9 +29127,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L47",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_phase_1_build_a_feedback_loop",
-      "target": "diagnosing_bugs_skill_when_you_genuinely_cannot_build_a_loop",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_when_you_genuinely_cannot_build_a_loop"
     },
     {
       "relation": "contains",
@@ -27929,9 +29137,9 @@
       "source_file": ".agents/skills/diagnosing-bugs/SKILL.md",
       "source_location": "L72",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "diagnosing_bugs_skill_phase_2_reproduce_minimise",
-      "target": "diagnosing_bugs_skill_minimise",
-      "confidence_score": 1.0
+      "target": "diagnosing_bugs_skill_minimise"
     },
     {
       "relation": "contains",
@@ -27939,9 +29147,9 @@
       "source_file": ".agents/skills/tdd/SKILL.md",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_skill",
-      "target": "tdd_skill_test_driven_development",
-      "confidence_score": 1.0
+      "target": "tdd_skill_test_driven_development"
     },
     {
       "relation": "contains",
@@ -27949,9 +29157,9 @@
       "source_file": ".agents/skills/tdd/SKILL.md",
       "source_location": "L26",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_skill_test_driven_development",
-      "target": "tdd_skill_anti_patterns",
-      "confidence_score": 1.0
+      "target": "tdd_skill_anti_patterns"
     },
     {
       "relation": "contains",
@@ -27959,9 +29167,9 @@
       "source_file": ".agents/skills/tdd/SKILL.md",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_skill_test_driven_development",
-      "target": "tdd_skill_rules_of_the_loop",
-      "confidence_score": 1.0
+      "target": "tdd_skill_rules_of_the_loop"
     },
     {
       "relation": "contains",
@@ -27969,9 +29177,9 @@
       "source_file": ".agents/skills/tdd/SKILL.md",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_skill_test_driven_development",
-      "target": "tdd_skill_seams_where_tests_go",
-      "confidence_score": 1.0
+      "target": "tdd_skill_seams_where_tests_go"
     },
     {
       "relation": "contains",
@@ -27979,9 +29187,9 @@
       "source_file": ".agents/skills/tdd/SKILL.md",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_skill_test_driven_development",
-      "target": "tdd_skill_what_a_good_test_is",
-      "confidence_score": 1.0
+      "target": "tdd_skill_what_a_good_test_is"
     },
     {
       "relation": "contains",
@@ -27989,9 +29197,9 @@
       "source_file": ".agents/skills/tdd/mocking.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_mocking",
-      "target": "tdd_mocking_when_to_mock",
-      "confidence_score": 1.0
+      "target": "tdd_mocking_when_to_mock"
     },
     {
       "relation": "contains",
@@ -27999,9 +29207,9 @@
       "source_file": ".agents/skills/tdd/mocking.md",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_mocking_when_to_mock",
-      "target": "tdd_mocking_designing_for_mockability",
-      "confidence_score": 1.0
+      "target": "tdd_mocking_designing_for_mockability"
     },
     {
       "relation": "contains",
@@ -28009,9 +29217,9 @@
       "source_file": ".agents/skills/tdd/tests.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_tests",
-      "target": "tdd_tests_good_and_bad_tests",
-      "confidence_score": 1.0
+      "target": "tdd_tests_good_and_bad_tests"
     },
     {
       "relation": "contains",
@@ -28019,9 +29227,9 @@
       "source_file": ".agents/skills/tdd/tests.md",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_tests_good_and_bad_tests",
-      "target": "tdd_tests_bad_tests",
-      "confidence_score": 1.0
+      "target": "tdd_tests_bad_tests"
     },
     {
       "relation": "contains",
@@ -28029,9 +29237,9 @@
       "source_file": ".agents/skills/tdd/tests.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tdd_tests_good_and_bad_tests",
-      "target": "tdd_tests_good_tests",
-      "confidence_score": 1.0
+      "target": "tdd_tests_good_tests"
     },
     {
       "relation": "contains",
@@ -32519,9 +33727,9 @@
       "source_file": "AGENTS.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agents",
-      "target": "agents_fireside_agent_guide",
-      "confidence_score": 1.0
+      "target": "agents_fireside_agent_guide"
     },
     {
       "relation": "contains",
@@ -32529,9 +33737,9 @@
       "source_file": "AGENTS.md",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agents_fireside_agent_guide",
-      "target": "agents_everyday_commands",
-      "confidence_score": 1.0
+      "target": "agents_everyday_commands"
     },
     {
       "relation": "contains",
@@ -32539,9 +33747,9 @@
       "source_file": "AGENTS.md",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agents_fireside_agent_guide",
-      "target": "agents_spec_driven_workflow",
-      "confidence_score": 1.0
+      "target": "agents_spec_driven_workflow"
     },
     {
       "relation": "contains",
@@ -34024,6 +35232,656 @@
       "target": "spec_validation_core_blocks"
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "checklists_requirements",
+      "target": "checklists_requirements_specification_quality_checklist_live_validation_while_authoring_validate_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "checklists_requirements_specification_quality_checklist_live_validation_while_authoring_validate_watch",
+      "target": "checklists_requirements_content_quality"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "checklists_requirements_specification_quality_checklist_live_validation_while_authoring_validate_watch",
+      "target": "checklists_requirements_feature_readiness"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "checklists_requirements_specification_quality_checklist_live_validation_while_authoring_validate_watch",
+      "target": "checklists_requirements_notes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/checklists/requirements.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "checklists_requirements_specification_quality_checklist_live_validation_while_authoring_validate_watch",
+      "target": "checklists_requirements_requirement_completeness"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "contracts_cli_validate_watch",
+      "target": "contracts_cli_validate_watch_cli_contract_fireside_validate_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "contracts_cli_validate_watch_cli_contract_fireside_validate_watch",
+      "target": "contracts_cli_validate_watch_invocation"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L48",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "contracts_cli_validate_watch_cli_contract_fireside_validate_watch",
+      "target": "contracts_cli_validate_watch_out_of_scope_for_this_contract"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "contracts_cli_validate_watch_cli_contract_fireside_validate_watch",
+      "target": "contracts_cli_validate_watch_with_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/contracts/cli-validate-watch.md",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "contracts_cli_validate_watch_cli_contract_fireside_validate_watch",
+      "target": "contracts_cli_validate_watch_without_watch_unchanged_contract"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/data-model.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_data_model",
+      "target": "001_validate_watch_data_model_data_model_validate_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/data-model.md",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_data_model_data_model_validate_watch",
+      "target": "001_validate_watch_data_model_change_detection_state"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/data-model.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_data_model_data_model_validate_watch",
+      "target": "001_validate_watch_data_model_existing_types_reused_as_is"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/data-model.md",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_data_model_data_model_validate_watch",
+      "target": "001_validate_watch_data_model_new_shape_watch_cycle_report"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_plan",
+      "target": "001_validate_watch_plan_implementation_plan_live_validation_while_authoring_validate_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L94",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_plan_implementation_plan_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_plan_complexity_tracking"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L45",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_plan_implementation_plan_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_plan_constitution_check"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_plan_implementation_plan_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_plan_project_structure"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_plan_implementation_plan_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_plan_summary"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_plan_implementation_plan_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_plan_technical_context"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_plan_project_structure",
+      "target": "001_validate_watch_plan_documentation_this_feature"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/plan.md",
+      "source_location": "L59",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_plan_project_structure",
+      "target": "001_validate_watch_plan_source_code_repository_root"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_quickstart",
+      "target": "001_validate_watch_quickstart_quickstart_validating_validate_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_quickstart_quickstart_validating_validate_watch",
+      "target": "001_validate_watch_quickstart_1_confirm_non_watch_behavior_is_unchanged_fr_002"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_quickstart_quickstart_validating_validate_watch",
+      "target": "001_validate_watch_quickstart_2_start_watch_mode_and_see_the_immediate_first_check_fr_003"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_quickstart_quickstart_validating_validate_watch",
+      "target": "001_validate_watch_quickstart_3_introduce_a_semantic_error_and_save_user_story_1_fr_004_fr_005"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_quickstart_quickstart_validating_validate_watch",
+      "target": "001_validate_watch_quickstart_4_fix_it_and_save_again"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_quickstart_quickstart_validating_validate_watch",
+      "target": "001_validate_watch_quickstart_5_introduce_a_json_syntax_error_user_story_2_fr_006"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L57",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_quickstart_quickstart_validating_validate_watch",
+      "target": "001_validate_watch_quickstart_6_delete_the_file_edge_case_fr_009"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L66",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_quickstart_quickstart_validating_validate_watch",
+      "target": "001_validate_watch_quickstart_7_stop_with_ctrl_c_fr_010"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/quickstart.md",
+      "source_location": "L70",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_quickstart_quickstart_validating_validate_watch",
+      "target": "001_validate_watch_quickstart_automated_coverage"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_research",
+      "target": "001_validate_watch_research_phase_0_research_validate_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L59",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_research_phase_0_research_validate_watch",
+      "target": "001_validate_watch_research_decision_ctrl_c_exits_via_default_sigint_no_new_dependency"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_research_phase_0_research_validate_watch",
+      "target": "001_validate_watch_research_decision_own_polling_loop_with_std_thread_sleep_not_watcher_s_cadence"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_research_phase_0_research_validate_watch",
+      "target": "001_validate_watch_research_decision_reuse_fingerprint_not_the_watcher_struct_or_load"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L68",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_research_phase_0_research_validate_watch",
+      "target": "001_validate_watch_research_decision_test_the_polling_step_as_a_pure_function_not_via_a_spawned_infinite_loop"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/research.md",
+      "source_location": "L89",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_research_phase_0_research_validate_watch",
+      "target": "001_validate_watch_research_resolved_technical_context"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec",
+      "target": "001_validate_watch_spec_feature_specification_live_validation_while_authoring_validate_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L188",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_feature_specification_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_spec_assumptions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L124",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_feature_specification_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_spec_requirements_mandatory"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L172",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_feature_specification_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_spec_success_criteria_mandatory"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_feature_specification_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_spec_user_scenarios_testing_mandatory"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L107",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_user_scenarios_testing_mandatory",
+      "target": "001_validate_watch_spec_edge_cases"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_user_scenarios_testing_mandatory",
+      "target": "001_validate_watch_spec_user_story_1_see_errors_immediately_after_saving_priority_p1"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_user_scenarios_testing_mandatory",
+      "target": "001_validate_watch_spec_user_story_2_get_a_precise_location_for_json_syntax_errors_priority_p2"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_user_scenarios_testing_mandatory",
+      "target": "001_validate_watch_spec_user_story_3_keep_working_through_transient_save_states_priority_p3"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L126",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_requirements_mandatory",
+      "target": "001_validate_watch_spec_functional_requirements"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L160",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_requirements_mandatory",
+      "target": "001_validate_watch_spec_key_entities"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/spec.md",
+      "source_location": "L174",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_spec_success_criteria_mandatory",
+      "target": "001_validate_watch_spec_measurable_outcomes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks",
+      "target": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L165",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_tasks_dependencies_execution_order"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_tasks_format_id_p_story_description"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L187",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_tasks_implementation_strategy"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_tasks_phase_1_setup"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_tasks_phase_2_foundational_blocking_prerequisites"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L56",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_tasks_phase_3_user_story_1_see_errors_immediately_after_saving_priority_p1_mvp"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L95",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_tasks_phase_4_user_story_2_get_a_precise_location_for_json_syntax_errors_priority_p2"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L119",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_tasks_phase_5_user_story_3_keep_working_through_transient_save_states_priority_p3"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L146",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_tasks_live_validation_while_authoring_validate_watch",
+      "target": "001_validate_watch_tasks_phase_6_polish_cross_cutting_concerns"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L66",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_phase_3_user_story_1_see_errors_immediately_after_saving_priority_p1_mvp",
+      "target": "001_validate_watch_tasks_implementation_for_user_story_1"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L104",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_phase_4_user_story_2_get_a_precise_location_for_json_syntax_errors_priority_p2",
+      "target": "001_validate_watch_tasks_implementation_for_user_story_2"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L128",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_phase_5_user_story_3_keep_working_through_transient_save_states_priority_p3",
+      "target": "001_validate_watch_tasks_implementation_for_user_story_3"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L178",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_dependencies_execution_order",
+      "target": "001_validate_watch_tasks_parallel_opportunities"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L195",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_implementation_strategy",
+      "target": "001_validate_watch_tasks_incremental_delivery"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/001-validate-watch/tasks.md",
+      "source_location": "L189",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "001_validate_watch_tasks_implementation_strategy",
+      "target": "001_validate_watch_tasks_mvp_first_user_story_1_only"
+    },
+    {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -35047,5 +36905,5 @@
       "source_file": "docs/src/content/docs/spec/data-model.md"
     }
   ],
-  "built_at_commit": "d5cba6424b70b9c20caea64ae59d14b580fed3ed"
+  "built_at_commit": "e958cb58d84c683079e822c5634ed73c8983151c"
 }
