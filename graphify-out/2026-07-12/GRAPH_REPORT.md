@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-12)
 
 ## Corpus Check
-- 135 files · ~129,449 words
+- 144 files · ~141,807 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1496 nodes · 2101 edges · 130 communities (111 shown, 19 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 33 edges (avg confidence: 0.84)
+- 1633 nodes · 2324 edges · 140 communities (121 shown, 19 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 33 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `580fc0db`
+- Built from commit: `a96a590c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -127,6 +127,16 @@
 - [[_COMMUNITY_Community 110|Community 110]]
 - [[_COMMUNITY_Community 111|Community 111]]
 - [[_COMMUNITY_Community 112|Community 112]]
+- [[_COMMUNITY_Community 113|Community 113]]
+- [[_COMMUNITY_Community 114|Community 114]]
+- [[_COMMUNITY_Community 115|Community 115]]
+- [[_COMMUNITY_Community 116|Community 116]]
+- [[_COMMUNITY_Community 117|Community 117]]
+- [[_COMMUNITY_Community 118|Community 118]]
+- [[_COMMUNITY_Community 119|Community 119]]
+- [[_COMMUNITY_Community 120|Community 120]]
+- [[_COMMUNITY_Community 121|Community 121]]
+- [[_COMMUNITY_Community 122|Community 122]]
 - [[_COMMUNITY_Community 125|Community 125]]
 - [[_COMMUNITY_Community 126|Community 126]]
 - [[_COMMUNITY_Community 128|Community 128]]
@@ -145,16 +155,16 @@
 - [[_COMMUNITY_Community 163|Community 163]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `app()` - 36 edges
-2. `App` - 31 edges
-3. `press()` - 30 edges
-4. `screen()` - 30 edges
+1. `app()` - 41 edges
+2. `App` - 37 edges
+3. `press()` - 35 edges
+4. `screen()` - 33 edges
 5. `render_block()` - 24 edges
 6. `Session` - 20 edges
 7. `Diagnostic` - 19 edges
-8. `layout()` - 17 edges
-9. `Graphify Skill Pipeline` - 17 edges
-10. `flat()` - 15 edges
+8. `EditableField` - 18 edges
+9. `layout()` - 17 edges
+10. `Graphify Skill Pipeline` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
@@ -191,15 +201,15 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (130 total, 19 thin omitted)
+## Communities (140 total, 19 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
 Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_the_source_exactly(), rust_keywords_strings_and_comments_get_distinct_styles() (+4 more)
 
 ### Community 1 - "CLI Commands"
-Cohesion: 0.09
-Nodes (48): BufRead, Command, Graph, Option, PathBuf, Result, Self, String (+40 more)
+Cohesion: 0.08
+Nodes (52): BufRead, Command, Graph, Option, PathBuf, Result, Self, String (+44 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -210,8 +220,8 @@ Cohesion: 0.10
 Nodes (27): Graphify Slash Command Trigger, AST Structural Extraction, Community Detection and Labeling, Token Cost Tracking, Semantic Extraction Cache, Fast Path Query on Existing Graph, Graphify Skill Pipeline, Semantic Extraction via Parallel Subagents (+19 more)
 
 ### Community 4 - "TUI App Core"
-Cohesion: 0.08
-Nodes (26): Graph, KeyCode, Option, Result, Self, String, ViewMode, App (+18 more)
+Cohesion: 0.07
+Nodes (28): ContentBlock, Graph, KeyCode, Node, Option, Result, Self, String (+20 more)
 
 ### Community 5 - "Editor Detail Pane"
 Cohesion: 0.12
@@ -219,7 +229,7 @@ Nodes (16): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Descripti
 
 ### Community 6 - "Community 6"
 Cohesion: 0.11
-Nodes (17): 1. Current-State Analysis, 2. Prioritized Improvements, 3. Phase 1 Roadmap (2–3 weeks), 4. Open Questions / Prototyping Needed, 5. Documentation Audit & Plan, Competitive survey (what presenters expect elsewhere), Executive Summary, Fireside Strategic Improvement Plan — 2026-07-12 (+9 more)
+Nodes (18): 1. Current-State Analysis, 2. Prioritized Improvements, 3. Phase 1 Roadmap (2–3 weeks), 4. Open Questions / Prototyping Needed, 5. Documentation Audit & Plan, Competitive survey (what presenters expect elsewhere), Executive Summary, Fireside Strategic Improvement Plan — 2026-07-12 (+10 more)
 
 ### Community 7 - "Editor Navigation"
 Cohesion: 0.20
@@ -231,7 +241,7 @@ Nodes (34): App, Frame, Graph, HashSet, Node, Option, Rect, Span (+26 more)
 
 ### Community 9 - "Editor Interaction Tests"
 Cohesion: 0.16
-Nodes (34): Graph, HashSet, Node, Option, Result, Self, String, Vec (+26 more)
+Nodes (34): Display, Formatter, Graph, HashSet, Node, Option, Result, Self (+26 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.22
@@ -427,7 +437,7 @@ Nodes (7): Anti-Examples: What NOT To Do, Checklist Purpose: "Unit Tests for Eng
 
 ### Community 59 - "Validate Command"
 Cohesion: 0.15
-Nodes (14): Context7 Documentation Expert Agent, Version Upgrade Checking Workflow, Verify-Before-Advising Context7 Rule, 🚨 CRITICAL RULE — VERIFY BEFORE ADVISING, Error Handling Stratification, Fireside-Specific Rules You Must Enforce, Handoff, Rust Expert Agent (+6 more)
+Nodes (12): Assumptions, Edge Cases, Feature Specification: Quick-Edit Modal for Text and Heading Blocks, Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+4 more)
 
 ### Community 60 - "Command History Tests"
 Cohesion: 0.20
@@ -502,8 +512,8 @@ Cohesion: 0.07
 Nodes (31): BranchOption, CoreError, BranchPoint, ContentBlock, Node, NodeDefaults, NodeId, Option (+23 more)
 
 ### Community 88 - "Render Module"
-Cohesion: 0.11
-Nodes (63): App, Frame, KeyCode, Line, Option, Rect, String, Tokens (+55 more)
+Cohesion: 0.09
+Nodes (74): App, Frame, KeyCode, Line, Option, Rect, String, Tokens (+66 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.15
@@ -523,7 +533,7 @@ Nodes (9): A useful diagram, For authors, For engine authors, For presenters, Go
 
 ### Community 95 - "Community 95"
 Cohesion: 0.33
-Nodes (5): Content Quality, Feature Readiness, Notes, Requirement Completeness, Specification Quality Checklist: Live Validation While Authoring (`validate --watch`)
+Nodes (5): Specification Quality Checklist: Live Validation While Authoring (`validate --watch`), Content Quality, Feature Readiness, Notes, Requirement Completeness
 
 ### Community 96 - "Community 96"
 Cohesion: 0.22
@@ -566,8 +576,8 @@ Cohesion: 0.20
 Nodes (9): 1. Confirm non-watch behavior is unchanged (FR-002), 2. Start watch mode and see the immediate first check (FR-003), 3. Introduce a semantic error and save (User Story 1, FR-004/FR-005), 4. Fix it and save again, 5. Introduce a JSON syntax error (User Story 2, FR-006), 6. Delete the file (edge case, FR-009), 7. Stop with Ctrl-C (FR-010), Automated coverage (+1 more)
 
 ### Community 106 - "Community 106"
-Cohesion: 0.22
-Nodes (14): Command, PathBuf, Drop, bare_invocation_teaches_the_three_verbs(), fireside(), KillOnDrop, new_refuses_to_overwrite(), new_scaffolds_a_deck_that_validates_clean() (+6 more)
+Cohesion: 0.20
+Nodes (16): Command, PathBuf, Drop, bare_invocation_teaches_the_three_verbs(), fireside(), KillOnDrop, new_accepts_a_template_and_author_flag_non_interactively(), new_refuses_to_overwrite() (+8 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.15
@@ -578,20 +588,60 @@ Cohesion: 0.22
 Nodes (8): For /graphify add and --watch, For /graphify query, For the commit hook and native CLAUDE.md integration, For --update and --cluster-only, /graphify, Interpreter guard for subcommands, Usage, What graphify is for
 
 ### Community 109 - "Community 109"
+Cohesion: 0.15
+Nodes (14): Context7 Documentation Expert Agent, Version Upgrade Checking Workflow, Verify-Before-Advising Context7 Rule, 🚨 CRITICAL RULE — VERIFY BEFORE ADVISING, Error Handling Stratification, Fireside-Specific Rules You Must Enforce, Handoff, Rust Expert Agent (+6 more)
+
+### Community 110 - "Community 110"
 Cohesion: 0.33
 Nodes (6): Code Example, Crate Boundary Impact, Output Format, Recommendation, Trade-offs, Verified API
 
-### Community 110 - "Community 110"
-Cohesion: 0.40
-Nodes (5): Research Workflow, Step 1 — Identify the Question Type, Step 2 — Look Up Crate Docs via Context7, Step 3 — Read Relevant Fireside Source, Step 4 — Validate Against Constraints
-
 ### Community 111 - "Community 111"
-Cohesion: 0.50
-Nodes (4): MSRV 1.88 Constraint, Security Audit Workflow, MSRV CI Job, Rust CI Workflow
+Cohesion: 0.33
+Nodes (5): Specification Quality Checklist: Quick-Edit Modal for Text and Heading Blocks, Content Quality, Feature Readiness, Notes, Requirement Completeness
 
 ### Community 112 - "Community 112"
 Cohesion: 0.50
 Nodes (4): Part A - Structural extraction for code files, Part B - Semantic extraction (parallel subagents), Part C - Merge AST + semantic into final extraction, Step 3 - Extract entities and relationships
+
+### Community 113 - "Community 113"
+Cohesion: 0.22
+Nodes (8): ADR-005: Quick-edit modal scope (Stage C authoring path), Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+
+### Community 114 - "Community 114"
+Cohesion: 0.40
+Nodes (5): Research Workflow, Step 1 — Identify the Question Type, Step 2 — Look Up Crate Docs via Context7, Step 3 — Read Relevant Fireside Source, Step 4 — Validate Against Constraints
+
+### Community 115 - "Community 115"
+Cohesion: 0.50
+Nodes (4): MSRV 1.88 Constraint, Security Audit Workflow, MSRV CI Job, Rust CI Workflow
+
+### Community 116 - "Community 116"
+Cohesion: 0.22
+Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: Quick-Edit Modal for Text and Heading Blocks, Project Structure, Source Code (repository root), Summary, Technical Context
+
+### Community 117 - "Community 117"
+Cohesion: 0.29
+Nodes (6): 1. Text-entry widget, 2. Locating an editable block for write-back, 3. Write-back plumbing (TUI has no file I/O), 4. Conflict detection (FR-013) and reformat-on-save, 5. Modal UI shape, Phase 0 Research: Quick-Edit Modal
+
+### Community 118 - "Community 118"
+Cohesion: 0.25
+Nodes (7): `BlockPath` (fireside-tui, new), `EditableField` (fireside-tui, new), `Msg` additions (fireside-tui, extends existing enum), Phase 1 Data Model: Quick-Edit Modal, Relationships, `Screen::Edit` (fireside-tui, extends existing `Screen` enum), `WriteBackSink` / `WriteBackError` (fireside-tui, new public API)
+
+### Community 119 - "Community 119"
+Cohesion: 0.40
+Nodes (4): Behavioral guarantees this contract exists to make testable, Caller contract (`crates/fireside-cli/src/main.rs`), Contract: `fireside-tui` authoring entry point, New public items (`crates/fireside-tui/src/lib.rs`)
+
+### Community 120 - "Community 120"
+Cohesion: 0.20
+Nodes (9): Automated coverage (see `tasks.md` for concrete test files), Prerequisites, Quickstart: Validating the Quick-Edit Modal, Scenario 1 — Fix a typo and see it live (User Story 1, P1), Scenario 2 — Cancel leaves everything untouched (User Story 1), Scenario 3 — Other nodes are untouched by a save (User Story 2, P2), Scenario 4 — No file, no save (Edge Case), Scenario 5 — Nothing to quick-edit (User Story 3, P3) (+1 more)
+
+### Community 121 - "Community 121"
+Cohesion: 0.12
+Nodes (16): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Description`, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation Strategy, Incremental Delivery, MVP First (User Story 1 only) (+8 more)
+
+### Community 122 - "Community 122"
+Cohesion: 0.29
+Nodes (14): App, Display, Formatter, Graph, Result, DefaultTerminal, ReloadSource, event_loop() (+6 more)
 
 ### Community 125 - "Community 125"
 Cohesion: 0.33
@@ -634,7 +684,7 @@ Nodes (3): Everyday commands, Fireside — Agent Guide, Spec-driven workflow
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **754 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+749 more)
+- **812 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+807 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -643,15 +693,15 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Presentation Session`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+- **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Community 122`, `Presentation Session`?**
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **Why does `Path` connect `CLI Commands` to `Community 106`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _756 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _814 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.08896103896103896 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0825136612021858 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**
-  _Cohesion score 0.0815686274509804 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06935908691834942 - nodes in this community are weakly interconnected._

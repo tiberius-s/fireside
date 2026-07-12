@@ -18,7 +18,7 @@ use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, Clear, Paragraph};
 
-use crate::app::{App, FlashKind, Screen};
+use crate::app::{App, EditableField, EditableKind, FlashKind, Screen};
 use crate::theme::Tokens;
 
 /// The widest comfortable reading measure for slide content, in columns.
@@ -54,7 +54,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
     match app.screen() {
         Screen::Present => {}
         Screen::Help => draw_help(frame, area, &tokens),
-        Screen::Map { selected } => map::draw(frame, area, app, selected, &tokens),
+        Screen::Map { selected } => map::draw(frame, area, app, *selected, &tokens),
+        Screen::Edit { fields, focused } => draw_edit(frame, area, fields, *focused, &tokens),
     }
 }
 
@@ -488,16 +489,24 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
             ("Enter", "go"),
             ("←", "back"),
             ("m", "map"),
+            ("e", "edit"),
             ("?", "help"),
             ("q", "quit"),
         ]
     } else if session.current().is_terminal() {
-        &[("←", "back"), ("m", "map"), ("?", "help"), ("q", "quit")]
+        &[
+            ("←", "back"),
+            ("m", "map"),
+            ("e", "edit"),
+            ("?", "help"),
+            ("q", "quit"),
+        ]
     } else {
         &[
             ("Space", "next"),
             ("←", "back"),
             ("m", "map"),
+            ("e", "edit"),
             ("?", "help"),
             ("q", "quit"),
         ]
@@ -552,6 +561,75 @@ fn overlay_rect(area: Rect, width: u16, height: u16) -> Rect {
     }
 }
 
+/// The quick-edit modal: one editable field per heading/text block found on
+/// the current node, each shown with its buffer and a visible cursor on the
+/// focused field. Content-only per ADR-005 — no structural edits.
+fn draw_edit(
+    frame: &mut Frame,
+    area: Rect,
+    fields: &[EditableField],
+    focused: usize,
+    tokens: &Tokens,
+) {
+    let content_lines: u16 = fields
+        .iter()
+        .map(|f| 1 + f.buffer.len() as u16 + 1)
+        .sum::<u16>()
+        + 1;
+    let rect = overlay_rect(area, MEASURE, content_lines + 4);
+    frame.render_widget(Clear, rect);
+    let block = Block::bordered()
+        .border_type(BorderType::Rounded)
+        .border_style(tokens.border)
+        .title(Span::styled(
+            " Quick edit ".to_owned(),
+            tokens.accent.add_modifier(Modifier::BOLD),
+        ));
+    let inner = block.inner(rect);
+    frame.render_widget(block, rect);
+
+    let mut lines: Vec<Line<'static>> = Vec::new();
+    for (i, field) in fields.iter().enumerate() {
+        let label = match field.kind {
+            EditableKind::Heading(level) => format!("Heading (level {level})"),
+            EditableKind::Text => "Text".to_owned(),
+        };
+        let label_style = if i == focused {
+            tokens.selected.add_modifier(Modifier::BOLD)
+        } else {
+            tokens.muted
+        };
+        lines.push(Line::styled(format!(" {label}"), label_style));
+        for (row, text) in field.buffer.iter().enumerate() {
+            lines.push(edit_line(text, i == focused && row == field.cursor.0, field.cursor.1, tokens));
+        }
+        lines.push(Line::default());
+    }
+    lines.push(Line::styled(
+        " Ctrl+S save  ·  Esc cancel".to_owned(),
+        tokens.muted,
+    ));
+    frame.render_widget(Paragraph::new(Text::from(lines)), inner);
+}
+
+/// One line of quick-edit buffer text, with a reversed-block cursor cell
+/// when this is the focused line.
+fn edit_line(text: &str, cursor_here: bool, col: usize, tokens: &Tokens) -> Line<'static> {
+    if !cursor_here {
+        return Line::styled(format!("  {text}"), tokens.text);
+    }
+    let chars: Vec<char> = text.chars().collect();
+    let before: String = chars[..col.min(chars.len())].iter().collect();
+    let at = chars.get(col).copied().unwrap_or(' ');
+    let after: String = chars.get(col + 1..).map_or(String::new(), |s| s.iter().collect());
+    Line::from(vec![
+        Span::raw("  "),
+        Span::styled(before, tokens.text),
+        Span::styled(at.to_string(), tokens.text.add_modifier(Modifier::REVERSED)),
+        Span::styled(after, tokens.text),
+    ])
+}
+
 fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
     const KEYS: &[(&str, &str)] = &[
         ("Space / → / Enter", "next slide"),
@@ -561,6 +639,7 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
         ("m", "map — see and jump anywhere"),
         ("f", "fullscreen on/off"),
         ("s", "speaker notes"),
+        ("e", "quick-edit heading/text on this slide"),
         ("t", "elapsed timer"),
         ("q", "quit"),
     ];
@@ -600,11 +679,35 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
 mod tests {
     use super::*;
     use crate::app::Msg;
-    use crossterm::event::{Event, KeyCode, KeyEvent};
-    use fireside_core::Graph;
+    use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+    use fireside_core::{ContentBlock, Graph};
     use fireside_engine::Session;
     use ratatui::Terminal;
     use ratatui::backend::TestBackend;
+
+    /// A node with only non-editable content — a `code` block, plus a
+    /// container whose children are `image`/`divider` (no heading/text
+    /// anywhere, including nested).
+    const NOTHING_TO_EDIT: &str = r#"{
+        "fireside-version": "0.1.0",
+        "title": "fixture",
+        "nodes": [
+            {
+                "id": "only",
+                "content": [
+                    { "kind": "code", "language": "text", "source": "no text here" },
+                    { "kind": "container", "children": [
+                        { "kind": "image", "src": "diagram.png" },
+                        { "kind": "divider" }
+                    ]}
+                ]
+            }
+        ]
+    }"#;
+
+    fn press_with(app: &mut App, code: KeyCode, modifiers: KeyModifiers) {
+        app.update(Msg::Terminal(Event::Key(KeyEvent::new(code, modifiers))));
+    }
 
     const HELLO: &str = include_str!("../../../../docs/examples/hello.json");
 
@@ -947,7 +1050,7 @@ mod tests {
         assert!(s.contains(" Keys "));
         assert!(s.contains("map — see and jump anywhere"));
         press(&mut app, KeyCode::Char('x'));
-        assert_eq!(app.screen(), Screen::Present);
+        assert_eq!(*app.screen(), Screen::Present);
         assert_eq!(
             app.session().current().id,
             "intro",
@@ -1108,5 +1211,189 @@ mod tests {
             buf[(x, y)].style().add_modifier.contains(Modifier::DIM),
             "slide starts dim during the fade"
         );
+    }
+
+    #[test]
+    fn quick_edit_open_edit_save_updates_the_heading_and_leaves_other_blocks_alone() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' ')); // -> features
+        assert_eq!(app.session().current().id, "features");
+
+        press(&mut app, KeyCode::Char('e'));
+        assert!(
+            matches!(app.screen(), Screen::Edit { .. }),
+            "e opens the modal: {:?}",
+            app.screen()
+        );
+
+        // Cursor starts at (0, 0) on the first field (the heading) —
+        // inserting a char prepends it.
+        press(&mut app, KeyCode::Char('X'));
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+
+        assert!(
+            matches!(app.screen(), Screen::Edit { .. }),
+            "the modal stays open until the write-back sink's result arrives"
+        );
+        let saved = app
+            .take_pending_save()
+            .expect("a save produces a pending graph");
+        // The event loop hands the sink's outcome back via `Msg::SaveResult`;
+        // here we simulate a successful write.
+        app.update(Msg::SaveResult(Ok(())));
+        assert_eq!(*app.screen(), Screen::Present, "a successful save closes the modal");
+
+        let node = saved.node("features").expect("features node still exists");
+        match &node.content[0] {
+            ContentBlock::Heading { text, .. } => {
+                assert_eq!(text, "XCore Features");
+            }
+            other => panic!("expected the heading block, got {other:?}"),
+        }
+        // The other editable block (the trailing text) is untouched.
+        match &node.content[3] {
+            ContentBlock::Text { body } => {
+                assert_eq!(
+                    body,
+                    "Every edge is explicit. No implicit sequential fallback."
+                );
+            }
+            other => panic!("expected the text block, got {other:?}"),
+        }
+        // Non-editable siblings on the same node are untouched too.
+        assert!(matches!(node.content[1], ContentBlock::List { .. }));
+        assert!(matches!(node.content[2], ContentBlock::Divider));
+    }
+
+    #[test]
+    fn quick_edit_cancel_leaves_the_session_and_pending_save_untouched() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' ')); // -> features
+        press(&mut app, KeyCode::Char('e'));
+        press(&mut app, KeyCode::Char('X'));
+        press(&mut app, KeyCode::Esc);
+
+        assert_eq!(*app.screen(), Screen::Present, "esc closes the modal");
+        assert!(
+            app.take_pending_save().is_none(),
+            "cancel must not produce a save"
+        );
+        assert_eq!(
+            app.session().current().content[0],
+            ContentBlock::Heading {
+                level: 2,
+                text: "Core Features".to_owned(),
+            },
+            "cancel must not mutate the live session"
+        );
+    }
+
+    #[test]
+    fn quick_edit_save_failure_keeps_the_modal_open_for_retry_or_cancel() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' ')); // -> features
+        press(&mut app, KeyCode::Char('e'));
+        press(&mut app, KeyCode::Char('X'));
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        app.take_pending_save().expect("save produced a graph");
+
+        // Simulate the write-back sink refusing the save (conflict, I/O
+        // error, or no backing file) — the presenter's edit must not be
+        // silently discarded (FR-013): the modal stays open so they can
+        // retry (Ctrl+S again) or abandon (Esc).
+        app.update(Msg::SaveResult(Err("Save skipped — the file changed on disk; Ctrl+S again to overwrite, Esc to discard your edit".to_owned())));
+        assert!(
+            matches!(app.screen(), Screen::Edit { .. }),
+            "a failed save must not close the modal or discard the edit"
+        );
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("changed on disk"), "the failure is shown: {s}");
+
+        // Retry: the presenter presses save again and it succeeds.
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        let saved = app
+            .take_pending_save()
+            .expect("retry produces a pending save with the same edit");
+        app.update(Msg::SaveResult(Ok(())));
+        assert_eq!(*app.screen(), Screen::Present, "a successful retry closes the modal");
+        match &saved.node("features").expect("features node").content[0] {
+            ContentBlock::Heading { text, .. } => assert_eq!(text, "XCore Features"),
+            other => panic!("expected the heading block, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn quick_edit_save_never_touches_other_nodes_or_branch_structure() {
+        let original = Graph::from_json(HELLO).expect("hello parses");
+
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' ')); // -> features
+        press(&mut app, KeyCode::Char('e'));
+        press(&mut app, KeyCode::Char('X'));
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        let saved = app.take_pending_save().expect("save produced a graph");
+
+        for node in &original.nodes {
+            if node.id == "features" {
+                continue;
+            }
+            let edited = saved.node(&node.id).unwrap_or_else(|| {
+                panic!("node {} must still exist after an unrelated save", node.id)
+            });
+            assert_eq!(
+                edited, node,
+                "node {} must be untouched by a save on a different node",
+                node.id
+            );
+        }
+    }
+
+    #[test]
+    fn quick_edit_on_a_node_with_nothing_editable_flashes_instead_of_opening() {
+        let graph = Graph::from_json(NOTHING_TO_EDIT).expect("fixture parses");
+        let mut app = App::new(Session::new(graph).expect("non-empty"));
+
+        press(&mut app, KeyCode::Char('e'));
+
+        assert_eq!(*app.screen(), Screen::Present, "no modal opens");
+        let s = screen(&app, 80, 24);
+        assert!(
+            s.contains("no editable text"),
+            "expected a clear message: {s}"
+        );
+    }
+
+    #[test]
+    fn present_watching_refuses_saves_with_unavailable() {
+        // `present`/`present_watching` (used by `fireside demo`, which has
+        // no backing file) resolve internally to a sink that always
+        // returns `Unavailable` — exercised directly here without a live
+        // terminal, per quickstart.md scenario 4.
+        let sink: crate::WriteBackSink<'_> = &mut |_| Err(crate::WriteBackError::Unavailable);
+        let graph = Graph::from_json(HELLO).expect("hello parses");
+        let err = sink(&graph).expect_err("the stub sink always refuses");
+        assert_eq!(err, crate::WriteBackError::Unavailable);
+    }
+
+    #[test]
+    fn save_result_flashes_a_distinct_message_for_every_write_back_error() {
+        for (error, expect_contains) in [
+            (crate::WriteBackError::Unavailable, "no file to save to"),
+            (crate::WriteBackError::Conflict, "changed on disk"),
+            (crate::WriteBackError::Io("disk full".to_owned()), "disk full"),
+        ] {
+            let mut app = app();
+            app.update(Msg::SaveResult(Err(error.to_string())));
+            let s = screen(&app, 80, 24);
+            assert!(
+                s.contains(expect_contains),
+                "expected a message containing {expect_contains:?}: {s}"
+            );
+        }
+
+        let mut app = app();
+        app.update(Msg::SaveResult(Ok(())));
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("Saved"), "{s}");
     }
 }

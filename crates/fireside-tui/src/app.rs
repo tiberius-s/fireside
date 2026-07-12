@@ -9,7 +9,7 @@
 use std::time::{Duration, Instant};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use fireside_core::{Graph, Transition, ViewMode};
+use fireside_core::{ContentBlock, Graph, Node, Transition, ViewMode};
 use fireside_engine::{Outcome, Session, Severity, validate};
 
 use crate::render;
@@ -29,10 +29,13 @@ pub enum Msg {
     /// The deck file changed on disk and was re-read: a new graph, or a
     /// human-readable message about why it could not be loaded.
     Reload(Result<Graph, String>),
+    /// The write-back sink's response to a quick-edit save: success, or a
+    /// human-readable message about why it could not be saved.
+    SaveResult(Result<(), String>),
 }
 
 /// Which screen the presenter is looking at.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {
     /// The slide itself.
     Present,
@@ -43,6 +46,203 @@ pub enum Screen {
         /// Index of the highlighted node.
         selected: usize,
     },
+    /// The quick-edit modal: one editable field per heading/text block on
+    /// the current node (ADR-005 — content-only, no structural edits).
+    Edit {
+        /// One entry per editable block found on the current node.
+        fields: Vec<EditableField>,
+        /// Index into `fields` of the block currently being typed into.
+        focused: usize,
+    },
+}
+
+/// Addresses one `ContentBlock` within a node's content tree: the sequence
+/// of indices from the root `content` array down through any nested
+/// `Container::children`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BlockPath {
+    indices: Vec<usize>,
+}
+
+/// Which kind of editable block an [`EditableField`] represents — carried
+/// only for the modal's label, since heading and text edit identically.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EditableKind {
+    /// A heading block at the given level (1-6).
+    Heading(u8),
+    /// A prose text block.
+    Text,
+}
+
+/// One editable heading/text block in the quick-edit modal, plus its
+/// in-progress edit buffer. Discarded entirely when the modal closes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EditableField {
+    path: BlockPath,
+    pub kind: EditableKind,
+    /// Multi-line buffer, initialized from the block's current content.
+    pub buffer: Vec<String>,
+    /// (row, column) into `buffer`, in characters (not bytes).
+    pub cursor: (usize, usize),
+}
+
+impl EditableField {
+    fn char_len(&self, row: usize) -> usize {
+        self.buffer[row].chars().count()
+    }
+
+    fn byte_offset(&self, row: usize, col: usize) -> usize {
+        self.buffer[row]
+            .char_indices()
+            .nth(col)
+            .map_or(self.buffer[row].len(), |(b, _)| b)
+    }
+
+    fn insert_char(&mut self, c: char) {
+        let (row, col) = self.cursor;
+        let idx = self.byte_offset(row, col);
+        self.buffer[row].insert(idx, c);
+        self.cursor.1 += 1;
+    }
+
+    fn newline(&mut self) {
+        let (row, col) = self.cursor;
+        let idx = self.byte_offset(row, col);
+        let rest = self.buffer[row].split_off(idx);
+        self.buffer.insert(row + 1, rest);
+        self.cursor = (row + 1, 0);
+    }
+
+    fn backspace(&mut self) {
+        let (row, col) = self.cursor;
+        if col > 0 {
+            let start = self.byte_offset(row, col - 1);
+            let end = self.byte_offset(row, col);
+            self.buffer[row].replace_range(start..end, "");
+            self.cursor.1 -= 1;
+        } else if row > 0 {
+            let line = self.buffer.remove(row);
+            let prev_len = self.char_len(row - 1);
+            self.buffer[row - 1].push_str(&line);
+            self.cursor = (row - 1, prev_len);
+        }
+    }
+
+    fn delete(&mut self) {
+        let (row, col) = self.cursor;
+        if col < self.char_len(row) {
+            let start = self.byte_offset(row, col);
+            let end = self.byte_offset(row, col + 1);
+            self.buffer[row].replace_range(start..end, "");
+        } else if row + 1 < self.buffer.len() {
+            let next = self.buffer.remove(row + 1);
+            self.buffer[row].push_str(&next);
+        }
+    }
+
+    fn move_left(&mut self) {
+        let (row, col) = self.cursor;
+        if col > 0 {
+            self.cursor.1 -= 1;
+        } else if row > 0 {
+            self.cursor = (row - 1, self.char_len(row - 1));
+        }
+    }
+
+    fn move_right(&mut self) {
+        let (row, col) = self.cursor;
+        if col < self.char_len(row) {
+            self.cursor.1 += 1;
+        } else if row + 1 < self.buffer.len() {
+            self.cursor = (row + 1, 0);
+        }
+    }
+
+    /// Moves the cursor up a line; `false` at the first line means the
+    /// caller should move focus to the previous field instead.
+    fn move_up(&mut self) -> bool {
+        let (row, col) = self.cursor;
+        if row == 0 {
+            return false;
+        }
+        self.cursor = (row - 1, col.min(self.char_len(row - 1)));
+        true
+    }
+
+    /// Moves the cursor down a line; `false` at the last line means the
+    /// caller should move focus to the next field instead.
+    fn move_down(&mut self) -> bool {
+        let (row, col) = self.cursor;
+        if row + 1 >= self.buffer.len() {
+            return false;
+        }
+        self.cursor = (row + 1, col.min(self.char_len(row + 1)));
+        true
+    }
+
+    /// The buffer joined back into the single-string form the protocol
+    /// stores (`Heading::text` / `Text::body`).
+    fn text(&self) -> String {
+        self.buffer.join("\n")
+    }
+}
+
+/// Every heading/text block on `node`, in document order, including those
+/// nested inside `Container` children — the set the quick-edit modal
+/// offers (ADR-005: content-only, current node only).
+pub(crate) fn editable_fields(node: &Node) -> Vec<EditableField> {
+    let mut fields = Vec::new();
+    collect_editable(&node.content, &mut Vec::new(), &mut fields);
+    fields
+}
+
+fn collect_editable(blocks: &[ContentBlock], path: &mut Vec<usize>, out: &mut Vec<EditableField>) {
+    for (i, block) in blocks.iter().enumerate() {
+        path.push(i);
+        match block {
+            ContentBlock::Heading { level, text } => out.push(EditableField {
+                path: BlockPath {
+                    indices: path.clone(),
+                },
+                kind: EditableKind::Heading(*level),
+                buffer: to_buffer(text),
+                cursor: (0, 0),
+            }),
+            ContentBlock::Text { body } => out.push(EditableField {
+                path: BlockPath {
+                    indices: path.clone(),
+                },
+                kind: EditableKind::Text,
+                buffer: to_buffer(body),
+                cursor: (0, 0),
+            }),
+            ContentBlock::Container { children, .. } => collect_editable(children, path, out),
+            _ => {}
+        }
+        path.pop();
+    }
+}
+
+fn to_buffer(text: &str) -> Vec<String> {
+    if text.is_empty() {
+        vec![String::new()]
+    } else {
+        text.split('\n').map(str::to_owned).collect()
+    }
+}
+
+/// The `ContentBlock` at `path` within `blocks`, recursing into container
+/// children — the write-side counterpart to `collect_editable`'s addressing.
+fn block_at_mut<'a>(blocks: &'a mut [ContentBlock], path: &[usize]) -> Option<&'a mut ContentBlock> {
+    let (&first, rest) = path.split_first()?;
+    let block = blocks.get_mut(first)?;
+    if rest.is_empty() {
+        Some(block)
+    } else if let ContentBlock::Container { children, .. } = block {
+        block_at_mut(children, rest)
+    } else {
+        None
+    }
 }
 
 /// The tone of a flash message.
@@ -79,6 +279,7 @@ pub struct App {
     fade_started: Option<Instant>,
     viewport: (u16, u16),
     quit: bool,
+    pending_save: Option<Graph>,
 }
 
 impl App {
@@ -98,6 +299,7 @@ impl App {
             fade_started: None,
             viewport: (80, 24),
             quit: false,
+            pending_save: None,
         }
     }
 
@@ -109,8 +311,16 @@ impl App {
 
     /// The active screen.
     #[must_use]
-    pub fn screen(&self) -> Screen {
-        self.screen
+    pub fn screen(&self) -> &Screen {
+        &self.screen
+    }
+
+    /// Takes the graph produced by a quick-edit save, if one is pending —
+    /// the event loop hands it to the write-back sink and never leaves it
+    /// unconsumed, matching the `ReloadSource` poll pattern.
+    #[must_use]
+    pub(crate) fn take_pending_save(&mut self) -> Option<Graph> {
+        self.pending_save.take()
     }
 
     /// Index of the highlighted branch option.
@@ -185,6 +395,24 @@ impl App {
             }
             Msg::Terminal(_) => {}
             Msg::Reload(result) => self.on_reload(result),
+            Msg::SaveResult(result) => self.on_save_result(result),
+        }
+    }
+
+    /// Surfaces the write-back sink's outcome via the same flash mechanism
+    /// every other keypress uses — a save is never a silent no-op. On
+    /// success the modal closes (`save_edit` left it open pending this
+    /// result). On failure the modal stays open with the presenter's edit
+    /// intact — a conflict or I/O error means "not saved", not "abandon
+    /// your edit"; the presenter can retry (Ctrl+S again) or cancel (Esc)
+    /// once they've read why (FR-013).
+    fn on_save_result(&mut self, result: Result<(), String>) {
+        match result {
+            Ok(()) => {
+                self.screen = Screen::Present;
+                self.set_flash("Saved", FlashKind::Info);
+            }
+            Err(message) => self.set_flash(&message, FlashKind::Error),
         }
     }
 
@@ -242,10 +470,14 @@ impl App {
             self.quit = true;
             return;
         }
-        match self.screen {
+        match &self.screen {
             Screen::Help => self.screen = Screen::Present,
-            Screen::Map { selected } => self.on_map_key(key.code, selected),
+            Screen::Map { selected } => {
+                let selected = *selected;
+                self.on_map_key(key.code, selected);
+            }
             Screen::Present => self.on_present_key(key.code),
+            Screen::Edit { .. } => self.on_edit_key(key),
         }
     }
 
@@ -313,9 +545,76 @@ impl App {
                 }
             }
             KeyCode::Char('t') => self.show_timer = !self.show_timer,
+            KeyCode::Char('e') => self.open_edit(),
             _ if at_branch => self.on_branch_key(code),
             _ => self.on_flow_key(code),
         }
+    }
+
+    /// Opens the quick-edit modal on the current node's heading/text
+    /// blocks, or flashes that there is nothing to edit (ADR-005 scope:
+    /// content-only, current node only).
+    fn open_edit(&mut self) {
+        let fields = editable_fields(self.session.current());
+        if fields.is_empty() {
+            self.set_flash("This slide has no editable text", FlashKind::Info);
+            return;
+        }
+        self.screen = Screen::Edit { fields, focused: 0 };
+    }
+
+    /// Keys while the quick-edit modal is open.
+    fn on_edit_key(&mut self, key: KeyEvent) {
+        if key.code == KeyCode::Esc {
+            self.screen = Screen::Present;
+            return;
+        }
+        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('s') {
+            self.save_edit();
+            return;
+        }
+        let Screen::Edit { fields, focused } = &mut self.screen else {
+            return;
+        };
+        match key.code {
+            KeyCode::Char(c) => fields[*focused].insert_char(c),
+            KeyCode::Enter => fields[*focused].newline(),
+            KeyCode::Backspace => fields[*focused].backspace(),
+            KeyCode::Delete => fields[*focused].delete(),
+            KeyCode::Left => fields[*focused].move_left(),
+            KeyCode::Right => fields[*focused].move_right(),
+            KeyCode::Up if !fields[*focused].move_up() && *focused > 0 => *focused -= 1,
+            KeyCode::Down if !fields[*focused].move_down() && *focused + 1 < fields.len() => {
+                *focused += 1;
+            }
+            _ => {}
+        }
+    }
+
+    /// Builds an edited graph from the modal's fields and hands it to the
+    /// event loop as a pending save — `App` never touches the filesystem
+    /// itself (crate boundary: `fireside-tui` has no file I/O). Leaves the
+    /// modal open: `on_save_result` closes it on success and keeps it open
+    /// with the edit intact on failure, so a conflict or I/O error is
+    /// retryable rather than a silent loss of the presenter's edit.
+    fn save_edit(&mut self) {
+        let Screen::Edit { fields, .. } = &self.screen else {
+            return;
+        };
+        let mut graph = self.session.graph().clone();
+        let current_id = self.session.current().id.clone();
+        if let Some(node) = graph.nodes.iter_mut().find(|n| n.id == current_id) {
+            for field in fields {
+                if let Some(block) = block_at_mut(&mut node.content, &field.path.indices) {
+                    match block {
+                        ContentBlock::Heading { text, .. } => *text = field.text(),
+                        ContentBlock::Text { body } => *body = field.text(),
+                        _ => {}
+                    }
+                }
+            }
+        }
+        self.pending_save = Some(graph);
     }
 
     /// Keys while the current node presents a choice.
@@ -441,5 +740,45 @@ impl App {
     fn max_scroll(&self) -> u16 {
         let (w, h) = self.viewport;
         render::max_scroll(self, w, h)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// One top-level heading (editable), one top-level code block (must be
+    /// skipped), and a container whose children mix a divider (skipped)
+    /// with a nested text block (editable, path `[2, 1]`).
+    const FIXTURE: &str = r#"{
+        "fireside-version": "0.1.0",
+        "title": "fixture",
+        "nodes": [
+            {
+                "id": "only",
+                "content": [
+                    { "kind": "heading", "level": 2, "text": "Top heading" },
+                    { "kind": "code", "language": "text", "source": "skip me" },
+                    { "kind": "container", "children": [
+                        { "kind": "divider" },
+                        { "kind": "text", "body": "Nested text" }
+                    ]}
+                ]
+            }
+        ]
+    }"#;
+
+    #[test]
+    fn editable_fields_walks_containers_and_skips_non_text_blocks() {
+        let graph = Graph::from_json(FIXTURE).expect("fixture parses");
+        let node = &graph.nodes[0];
+        let fields = editable_fields(node);
+        assert_eq!(fields.len(), 2, "one heading + one nested text");
+        assert_eq!(fields[0].path.indices, vec![0]);
+        assert_eq!(fields[0].kind, EditableKind::Heading(2));
+        assert_eq!(fields[0].buffer, vec!["Top heading".to_owned()]);
+        assert_eq!(fields[1].path.indices, vec![2, 1]);
+        assert_eq!(fields[1].kind, EditableKind::Text);
+        assert_eq!(fields[1].buffer, vec!["Nested text".to_owned()]);
     }
 }

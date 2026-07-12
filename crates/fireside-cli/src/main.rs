@@ -6,6 +6,7 @@
 //! of during the show. While presenting, the deck file is watched and
 //! live-reloaded on save.
 
+use std::cell::RefCell;
 use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
@@ -14,6 +15,7 @@ use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand, ValueEnum};
 use fireside_core::{CoreError, Graph};
 use fireside_engine::{Diagnostic, Severity, validate};
+use fireside_tui::WriteBackError;
 
 /// The built-in showcase deck presented by `fireside demo`.
 const DEMO_DECK: &str = include_str!("../assets/demo.fireside.json");
@@ -176,9 +178,13 @@ fn present(path: &Path) -> Result<()> {
         eprintln!("\nFix the above, or run `fireside validate` for the full report.");
         std::process::exit(1);
     }
-    let mut watcher = Watcher::new(path);
-    fireside_tui::present_watching(graph, &mut || watcher.poll())
-        .context("the presenter hit a terminal error")
+    let watcher = RefCell::new(Watcher::new(path));
+    fireside_tui::present_authoring(
+        graph,
+        &mut || watcher.borrow_mut().poll(),
+        &mut |graph| watcher.borrow_mut().write_back(graph),
+    )
+    .context("the presenter hit a terminal error")
 }
 
 fn demo() -> Result<()> {
@@ -225,6 +231,35 @@ impl Watcher {
                 )
             }),
         })
+    }
+
+    /// Writes `graph` to the watched path, refusing if the file changed on
+    /// disk since this watcher last observed it (a quick-edit save must
+    /// never silently discard a concurrent external edit). Deliberately
+    /// leaves `self.fingerprint` stale on a *successful* write: the next
+    /// `poll()` must see that write as a change and reload, exactly like
+    /// any external edit (FR-008) — updating it here would make `poll()`
+    /// treat the save as a no-op and leave the old content on screen.
+    ///
+    /// On a *conflict*, the fingerprint is resynced to the file's current
+    /// (externally-changed) state before returning the error. The presenter
+    /// keeps their edit (the caller leaves the modal open on failure) and
+    /// can retry: since the fingerprint is now current, a repeat save
+    /// succeeds as a deliberate overwrite. This is the "choose to overwrite
+    /// or abandon" FR-013 asks for — pressing save again is the overwrite
+    /// choice; Esc is the abandon choice.
+    fn write_back(&mut self, graph: &Graph) -> Result<(), WriteBackError> {
+        let current = fingerprint(&self.path);
+        if current != self.fingerprint {
+            self.fingerprint = current;
+            return Err(WriteBackError::Conflict);
+        }
+        let json = graph
+            .to_json_pretty()
+            .map_err(|err| WriteBackError::Io(err.to_string()))?;
+        std::fs::write(&self.path, json + "\n")
+            .map_err(|err| WriteBackError::Io(err.to_string()))?;
+        Ok(())
     }
 }
 
@@ -810,5 +845,122 @@ mod tests {
             recovered_report.contains("no problems found"),
             "{recovered_report}"
         );
+    }
+
+    #[test]
+    fn write_back_succeeds_when_the_file_is_unchanged_since_load() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        let deck = temp.path().join("deck.json");
+        std::fs::write(&deck, SPOTLESS_DECK).expect("write fixture");
+
+        let mut watcher = Watcher::new(&deck);
+        let graph = Graph::from_json(SPOTLESS_DECK).expect("fixture parses");
+        watcher.write_back(&graph).expect("save should succeed");
+
+        let saved = std::fs::read_to_string(&deck).expect("read back");
+        let reparsed = Graph::from_json(&saved).expect("saved file still parses");
+        assert_eq!(reparsed, graph, "save must round-trip the graph exactly");
+    }
+
+    #[test]
+    fn write_back_refuses_a_save_when_the_file_changed_on_disk() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        let deck = temp.path().join("deck.json");
+        std::fs::write(&deck, SPOTLESS_DECK).expect("write fixture");
+
+        let mut watcher = Watcher::new(&deck);
+        // Simulate an external edit the watcher hasn't polled yet.
+        std::fs::write(
+            &deck,
+            r#"{"nodes":[{"id":"a","title":"changed externally","content":[]}]}"#,
+        )
+        .expect("external write");
+
+        let graph = Graph::from_json(SPOTLESS_DECK).expect("fixture parses");
+        let err = watcher
+            .write_back(&graph)
+            .expect_err("conflicting save must be refused");
+        assert_eq!(err, WriteBackError::Conflict);
+
+        let on_disk = std::fs::read_to_string(&deck).expect("read back");
+        assert!(
+            on_disk.contains("changed externally"),
+            "the external edit must survive a refused save: {on_disk}"
+        );
+
+        // FR-013: the presenter can choose to overwrite. A retry — the
+        // same call again — now succeeds, because the conflict resynced
+        // the watcher's fingerprint to the file's current state.
+        watcher
+            .write_back(&graph)
+            .expect("a retry after a conflict must succeed (the presenter's overwrite choice)");
+        let on_disk = std::fs::read_to_string(&deck).expect("read back");
+        let reparsed = Graph::from_json(&on_disk).expect("saved file still parses");
+        assert_eq!(reparsed, graph, "the retried save must win");
+    }
+
+    #[test]
+    fn write_back_reports_io_failure_without_panicking() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        // A directory can't be written to as a file. The fingerprint check
+        // still passes (the directory itself is unchanged since `Watcher::new`),
+        // so this exercises the write failing for a reason other than a
+        // conflict — write_back must report it, not panic or misreport it
+        // as a `Conflict`.
+        let deck = temp.path().join("not-a-file");
+        std::fs::create_dir(&deck).expect("make a directory in place of the deck file");
+        let mut watcher = Watcher::new(&deck);
+
+        let graph = Graph::from_json(SPOTLESS_DECK).expect("fixture parses");
+        let err = watcher
+            .write_back(&graph)
+            .expect_err("writing to a directory must fail, not panic");
+        assert!(matches!(err, WriteBackError::Io(_)), "{err:?}");
+    }
+
+    const HELLO: &str = include_str!("../../../docs/examples/hello.json");
+
+    #[test]
+    fn write_back_round_trips_a_multi_node_branching_deck_with_one_field_changed() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        let deck = temp.path().join("hello.json");
+        std::fs::write(&deck, HELLO).expect("write fixture");
+
+        let mut watcher = Watcher::new(&deck);
+        let mut graph = Graph::from_json(HELLO).expect("hello parses");
+        let node = graph
+            .nodes
+            .iter_mut()
+            .find(|n| n.id == "features")
+            .expect("features node");
+        if let fireside_core::ContentBlock::Heading { text, .. } = &mut node.content[0] {
+            *text = "Core Features (edited)".to_owned();
+        }
+
+        watcher.write_back(&graph).expect("save should succeed");
+
+        let saved = std::fs::read_to_string(&deck).expect("read back");
+        let reparsed = Graph::from_json(&saved).expect("saved file still parses");
+        assert_eq!(
+            reparsed, graph,
+            "save must round-trip exactly, formatting aside"
+        );
+
+        // Whole-file reformat on save is accepted (ADR-005); every other
+        // node's meaning must survive regardless.
+        let original = Graph::from_json(HELLO).expect("hello parses");
+        for original_node in &original.nodes {
+            if original_node.id == "features" {
+                continue;
+            }
+            let saved_node = reparsed
+                .node(&original_node.id)
+                .unwrap_or_else(|| panic!("node {} must survive the save", original_node.id));
+            assert_eq!(
+                saved_node, original_node,
+                "node {} must be unchanged",
+                original_node.id
+            );
+        }
     }
 }

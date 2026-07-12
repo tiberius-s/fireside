@@ -1,5 +1,55 @@
 # Fireside Strategic Improvement Plan — 2026-07-12
 
+## Progress Log
+
+_Update this section (don't just rely on git log) whenever a plan item lands
+or starts. One line per item: status, commit(s), date._
+
+- [x] P0 Stage A — `fireside validate --watch` — landed `580fc0d` (spec at
+      `specs/001-validate-watch/`), 2026-07-12.
+- [x] P0 Stage B — interactive `fireside new` templates — landed `a96a590`,
+      2026-07-12 (no spec dir; went through implementation directly).
+- [x] P0 Stage C — quick-edit modal in TUI — landed 2026-07-12 (uncommitted
+      on main). ADR-005 (`.claude/adrs/adr-005-quick-edit-modal-scope.md`)
+      scoped it; full speckit pipeline run at `specs/002-quick-edit-modal/`
+      (spec → plan → tasks → implement, all 26 tasks done). Shipped:
+      `Screen::Edit` modal in `fireside-tui` (open with `e`, edits
+      heading/text blocks incl. nested in containers, `Ctrl+S`/`Esc`),
+      `present_authoring`/`WriteBackSink`/`WriteBackError` in
+      `fireside-tui`'s public API (present/present_watching now thin
+      wrappers), `Watcher::write_back` in `fireside-cli` reusing the
+      existing mtime+size fingerprint for conflict detection. 8 new tests,
+      123 total passing, clippy silent. Two real bugs found only by the
+      manual real-terminal (tmux) smoke walk — neither caught by the
+      TestBackend suite — and fixed: (1) `write_back` was resyncing its
+      fingerprint on success, which made the *next* poll see "no change"
+      and silently skip the reload, leaving stale content on screen after
+      a successful save; fixed by leaving the fingerprint stale on success
+      so the ordinary reload path picks it up, exactly like an external
+      edit. (2) a same-tick ordering race: reload was checked before the
+      pending-save was consumed, so on the tick where Ctrl+S flips
+      `Screen::Edit` back to `Present`, reload ran first, resynced the
+      fingerprint to any external change, and the conflict check then saw
+      no conflict — silently overwriting a concurrent external edit with
+      no warning; fixed by handling the pending save before the reload
+      check every iteration, and by keeping the modal open (edit intact)
+      on any save failure so a conflict is retryable (Ctrl+S again to
+      overwrite, Esc to abandon) rather than a silent loss either way.
+      **Lesson for next time:** for any feature involving the live-reload
+      loop or file-watch timing, run the tmux smoke walk *before* declaring
+      done — TestBackend tests exercise `App` in isolation and cannot catch
+      event-loop ordering or fingerprint-timing bugs.
+- [ ] P0 Stage D — Markdown authoring frontend (`fireside import`) — not
+      started; decision point after Stage C per the roadmap.
+- [ ] Week 1 spec patch 0.1.1 (7 ambiguities) + validator rules — not started.
+- [ ] Week 1 shared fixture corpus — not started.
+- [ ] Week 1 ASCII art engine-side (center/clip) — not started.
+- [ ] P1 terminal images (`ratatui-image`) — not started.
+- [ ] P1 incremental reveal (`reveal` field) — not started.
+- [ ] P2 mouse / synchronized output / resume — not started.
+- [ ] P2 protocol & workflow hardening (property tests, robustness fixtures,
+      CI additions) — not started.
+
 ## Executive Summary
 
 Fireside's rewrite delivered what ADR-004 promised: a 4-crate workspace where

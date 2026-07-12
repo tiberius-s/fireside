@@ -30,13 +30,13 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1783877519.261158,
-    "ast_hash": "8172d1e1d3a819a09ac41de9d2763fa9",
+    "mtime": 1783880935.7994921,
+    "ast_hash": "4699c7340d037218da8d5b3d6197c7bc",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1783875847.955887,
-    "ast_hash": "9e509d321045b3c970683bce950a84ce",
+    "mtime": 1783877562.9991634,
+    "ast_hash": "5337932148f77eaec607f702790e19d6",
     "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/app.rs": {
-    "mtime": 1783712670.275282,
-    "ast_hash": "b0f32c741c7f1bbc563cb34bd7afb55e",
+    "mtime": 1783880834.210977,
+    "ast_hash": "8d054e09fc5f57235e03ad5e6c5bdf80",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/error.rs": {
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
-    "mtime": 1783711023.3485172,
-    "ast_hash": "1c4fda5e3e023b9d83bf6dd3742ff368",
+    "mtime": 1783880856.8196912,
+    "ast_hash": "5c417607c173f20f736c53d4ffb19821",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/mod.rs": {
-    "mtime": 1783783114.8936265,
-    "ast_hash": "5fd56cabdd36559321026a81469c99b1",
+    "mtime": 1783880913.0972755,
+    "ast_hash": "3cf2964c17ac04563b0fcf3cf3098a57",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/theme.rs": {
@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-strategic-improvement-plan.md": {
-    "mtime": 1783876957.735969,
-    "ast_hash": "2281985b1df1019e16ef4377872c00e2",
+    "mtime": 1783878671.9924076,
+    "ast_hash": "de7c97148333af80790d1c52bbe9abff",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-sdd-retrofit-report.md": {
@@ -675,8 +675,8 @@
     "semantic_hash": ""
   },
   ".specify/feature.json": {
-    "mtime": 1783875348.6684139,
-    "ast_hash": "9c9c2db5d279071445d2f2a27188de11",
+    "mtime": 1783879118.210298,
+    "ast_hash": "aae746211e5df674ee1af4a7f2165a3e",
     "semantic_hash": ""
   },
   "specs/001-validate-watch/plan.md": {
@@ -707,6 +707,51 @@
   "specs/001-validate-watch/tasks.md": {
     "mtime": 1783875934.2852428,
     "ast_hash": "862ad439b158d132df77a3a2d31dc33e",
+    "semantic_hash": ""
+  },
+  ".claude/adrs/adr-005-quick-edit-modal-scope.md": {
+    "mtime": 1783878665.6154509,
+    "ast_hash": "8ed91da16f5f80b62e166c4fe5d7eb72",
+    "semantic_hash": ""
+  },
+  "specs/002-quick-edit-modal/spec.md": {
+    "mtime": 1783879103.7679758,
+    "ast_hash": "a2a6be1fb251c9840c5779f5181fc091",
+    "semantic_hash": ""
+  },
+  "specs/002-quick-edit-modal/checklists/requirements.md": {
+    "mtime": 1783879111.8826208,
+    "ast_hash": "8a318923d24ab44bf215f0a52e47d301",
+    "semantic_hash": ""
+  },
+  "specs/002-quick-edit-modal/plan.md": {
+    "mtime": 1783879326.5337238,
+    "ast_hash": "b3ea90f088de1be333d0998882efe20f",
+    "semantic_hash": ""
+  },
+  "specs/002-quick-edit-modal/research.md": {
+    "mtime": 1783880446.9248078,
+    "ast_hash": "1c16d641f7124884fba32c51cd8153a8",
+    "semantic_hash": ""
+  },
+  "specs/002-quick-edit-modal/data-model.md": {
+    "mtime": 1783879257.3459766,
+    "ast_hash": "ba016b3e01b30debea3cfebea73b6df0",
+    "semantic_hash": ""
+  },
+  "specs/002-quick-edit-modal/contracts/tui-authoring-api.md": {
+    "mtime": 1783880458.7061393,
+    "ast_hash": "a67bb27fbcef626d05e30ffd18b05c95",
+    "semantic_hash": ""
+  },
+  "specs/002-quick-edit-modal/quickstart.md": {
+    "mtime": 1783879296.2164729,
+    "ast_hash": "2aca0280a7ae1109659cf907bc4a2f21",
+    "semantic_hash": ""
+  },
+  "specs/002-quick-edit-modal/tasks.md": {
+    "mtime": 1783881061.8864477,
+    "ast_hash": "2d81997fa5347d6e3c8858a16c4fae08",
     "semantic_hash": ""
   }
 }
