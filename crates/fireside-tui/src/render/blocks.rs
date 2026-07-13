@@ -109,6 +109,14 @@ fn divider(width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     ])]
 }
 
+/// Code blocks with no language, or `"text"`/`"ascii"`, are the only way to
+/// author ASCII art today — they get sized to their content and centered
+/// instead of stretched full-width, which is what a real source listing
+/// wants (see `code`).
+fn is_ascii_art(language: Option<&str>) -> bool {
+    matches!(language, None | Some("text") | Some("ascii"))
+}
+
 fn code(
     language: Option<&str>,
     source: &str,
@@ -117,19 +125,32 @@ fn code(
     width: u16,
     tokens: &Tokens,
 ) -> Vec<Line<'static>> {
-    let width = width as usize;
+    let full_width = width as usize;
     let label = language.unwrap_or("code");
-    let mut top = format!("─ {label} ");
-    let fill = width.saturating_sub(top.width());
-    top.push_str(&"─".repeat(fill));
+    let label_prefix = format!("─ {label} ");
 
-    let mut lines = vec![Line::styled(top, tokens.border)];
     let total = source.lines().count();
     let num_width = if line_numbers {
         total.to_string().len()
     } else {
         0
     };
+    let prefix = if line_numbers { num_width + 4 } else { 2 };
+
+    let box_width = if is_ascii_art(language) {
+        let content_max = source.lines().map(UnicodeWidthStr::width).max().unwrap_or(0);
+        (prefix + content_max)
+            .max(label_prefix.width())
+            .min(full_width)
+    } else {
+        full_width
+    };
+
+    let mut top = label_prefix;
+    let fill = box_width.saturating_sub(top.width());
+    top.push_str(&"─".repeat(fill));
+
+    let mut lines = vec![Line::styled(top, tokens.border)];
     let colored = syntax::highlight(language, source, tokens);
     // When the author picked lines to highlight, focus means dimming the
     // rest — the chosen lines keep their full colors.
@@ -152,8 +173,7 @@ fn code(
         } else {
             spans.push(Span::styled("  ".to_owned(), tokens.muted));
         }
-        let prefix = if line_numbers { num_width + 4 } else { 2 };
-        let avail = width.saturating_sub(prefix);
+        let avail = box_width.saturating_sub(prefix);
 
         let mut content: Vec<Span<'static>> = match &colored {
             Some(rows) => clip_spans(rows[i].clone(), avail, tokens),
@@ -174,7 +194,16 @@ fn code(
         spans.extend(content);
         lines.push(Line::from(spans));
     }
-    lines.push(Line::styled("─".repeat(width), tokens.border));
+    lines.push(Line::styled("─".repeat(box_width), tokens.border));
+
+    let pad = full_width.saturating_sub(box_width) / 2;
+    if pad > 0 {
+        for line in &mut lines {
+            let mut spans = vec![Span::raw(" ".repeat(pad))];
+            spans.extend(std::mem::take(&mut line.spans));
+            line.spans = spans;
+        }
+    }
     lines
 }
 
@@ -595,6 +624,128 @@ mod tests {
         let lines = flat(&render_block(&block, 12, &Tokens::default()));
         assert!(lines[0].contains("A campfire"), "{lines:?}");
         assert!(!lines[0].contains('╭'), "no frame this narrow: {lines:?}");
+    }
+
+    #[test]
+    fn ascii_art_code_block_centers_to_its_content_width() {
+        let block = ContentBlock::Code {
+            language: None,
+            source: " /\\_/\\ \n( o.o )\n > ^ < ".into(),
+            highlight_lines: None,
+            show_line_numbers: None,
+        };
+        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        let box_width = lines.iter().map(|l| l.width()).max().unwrap_or(0);
+        assert!(box_width < 40, "box should not stretch full width: {lines:?}");
+        // The bottom rule is pure pad + dashes, so its leading-space count
+        // is exactly the centering pad with no ambiguity from content
+        // whitespace — every other line must share that same prefix.
+        let bottom = lines.last().expect("bottom rule present");
+        let pad = bottom.len() - bottom.trim_start_matches(' ').len();
+        let pad_str = " ".repeat(pad);
+        assert!(
+            lines.iter().all(|l| l.starts_with(&pad_str)),
+            "every line shares the same leading pad {pad}: {lines:?}"
+        );
+        assert!(pad > 0, "content should be centered, not left-aligned: {lines:?}");
+    }
+
+    #[test]
+    fn text_and_ascii_language_strings_center_like_no_language() {
+        let source = " /\\_/\\ \n( o.o )\n > ^ < ";
+        let none_lines = flat(&render_block(
+            &ContentBlock::Code {
+                language: None,
+                source: source.into(),
+                highlight_lines: None,
+                show_line_numbers: None,
+            },
+            40,
+            &Tokens::default(),
+        ));
+        for lang in ["text", "ascii"] {
+            let lines = flat(&render_block(
+                &ContentBlock::Code {
+                    language: Some(lang.into()),
+                    source: source.into(),
+                    highlight_lines: None,
+                    show_line_numbers: None,
+                },
+                40,
+                &Tokens::default(),
+            ));
+            let box_width = lines.iter().map(|l| l.len()).max().unwrap_or(0);
+            let none_box_width = none_lines.iter().map(|l| l.len()).max().unwrap_or(0);
+            assert_eq!(
+                box_width, none_box_width,
+                "language {lang:?} should center identically to no language"
+            );
+        }
+    }
+
+    #[test]
+    fn explicit_language_code_block_stays_full_width() {
+        let block = ContentBlock::Code {
+            language: Some("rust".into()),
+            source: " /\\_/\\ \n( o.o )\n > ^ < ".into(),
+            highlight_lines: None,
+            show_line_numbers: None,
+        };
+        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        assert!(lines[0].starts_with("─ rust "), "{lines:?}");
+        assert_eq!(lines[0].chars().count(), 40, "top rule fills full width: {lines:?}");
+        let bottom = lines.last().expect("bottom rule present");
+        assert_eq!(
+            bottom.chars().count(),
+            40,
+            "bottom rule fills full width: {lines:?}"
+        );
+        assert!(
+            !bottom.starts_with(' '),
+            "no centering pad on explicit-language blocks: {lines:?}"
+        );
+    }
+
+    #[test]
+    fn oversized_ascii_art_caps_and_clips_with_ellipsis() {
+        let long_line = "x".repeat(200);
+        let block = ContentBlock::Code {
+            language: None,
+            source: long_line,
+            highlight_lines: None,
+            show_line_numbers: None,
+        };
+        let lines = flat(&render_block(&block, 30, &Tokens::default()));
+        let box_width = lines.iter().map(|l| l.chars().count()).max().unwrap_or(0);
+        assert_eq!(box_width, 30, "box caps at available width: {lines:?}");
+        assert!(lines[1].contains('…'), "overflow is marked: {lines:?}");
+    }
+
+    #[test]
+    fn ascii_art_never_panics_across_a_range_of_widths() {
+        let block = ContentBlock::Code {
+            language: None,
+            source: "x".repeat(200),
+            highlight_lines: None,
+            show_line_numbers: None,
+        };
+        for width in [0u16, 1, 2, 5, 10, 40, 200] {
+            let _ = render_block(&block, width, &Tokens::default());
+        }
+    }
+
+    #[test]
+    fn empty_ascii_art_code_block_does_not_collapse_or_panic() {
+        let block = ContentBlock::Code {
+            language: None,
+            source: String::new(),
+            highlight_lines: None,
+            show_line_numbers: None,
+        };
+        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        assert!(lines[0].contains("code"), "top rule shows the label: {lines:?}");
+        let last = lines.last().expect("bottom rule present");
+        assert!(!last.is_empty(), "bottom rule is not empty: {lines:?}");
     }
 
     #[test]

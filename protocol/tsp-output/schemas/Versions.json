@@ -3,7 +3,8 @@
     "$id": "Versions.json",
     "type": "string",
     "enum": [
-        "0.1.0"
+        "0.1.0",
+        "0.1.1"
     ],
     "description": "Supported protocol versions."
 }

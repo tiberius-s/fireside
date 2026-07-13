@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-12)
 
 ## Corpus Check
-- 154 files · ~155,375 words
+- 185 files · ~170,243 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1770 nodes · 2552 edges · 150 communities (131 shown, 19 thin omitted)
+- 1974 nodes · 2756 edges · 180 communities (150 shown, 30 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 34 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `96a552db`
+- Built from commit: `bb3eae43`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -161,20 +161,50 @@
 - [[_COMMUNITY_Community 144|Community 144]]
 - [[_COMMUNITY_Community 145|Community 145]]
 - [[_COMMUNITY_Community 146|Community 146]]
+- [[_COMMUNITY_Community 148|Community 148]]
+- [[_COMMUNITY_Community 149|Community 149]]
+- [[_COMMUNITY_Community 150|Community 150]]
+- [[_COMMUNITY_Community 151|Community 151]]
+- [[_COMMUNITY_Community 152|Community 152]]
 - [[_COMMUNITY_Community 153|Community 153]]
+- [[_COMMUNITY_Community 154|Community 154]]
+- [[_COMMUNITY_Community 155|Community 155]]
+- [[_COMMUNITY_Community 156|Community 156]]
+- [[_COMMUNITY_Community 157|Community 157]]
+- [[_COMMUNITY_Community 158|Community 158]]
+- [[_COMMUNITY_Community 159|Community 159]]
+- [[_COMMUNITY_Community 160|Community 160]]
+- [[_COMMUNITY_Community 161|Community 161]]
+- [[_COMMUNITY_Community 162|Community 162]]
 - [[_COMMUNITY_Community 163|Community 163]]
+- [[_COMMUNITY_Community 164|Community 164]]
+- [[_COMMUNITY_Community 165|Community 165]]
+- [[_COMMUNITY_Community 166|Community 166]]
+- [[_COMMUNITY_Community 167|Community 167]]
+- [[_COMMUNITY_Community 168|Community 168]]
+- [[_COMMUNITY_Community 169|Community 169]]
+- [[_COMMUNITY_Community 170|Community 170]]
+- [[_COMMUNITY_Community 171|Community 171]]
+- [[_COMMUNITY_Community 172|Community 172]]
+- [[_COMMUNITY_Community 173|Community 173]]
+- [[_COMMUNITY_Community 174|Community 174]]
+- [[_COMMUNITY_Community 175|Community 175]]
+- [[_COMMUNITY_Community 176|Community 176]]
+- [[_COMMUNITY_Community 177|Community 177]]
+- [[_COMMUNITY_Community 178|Community 178]]
+- [[_COMMUNITY_Community 179|Community 179]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `app()` - 41 edges
 2. `App` - 37 edges
 3. `press()` - 35 edges
-4. `screen()` - 33 edges
-5. `render_block()` - 24 edges
+4. `screen()` - 34 edges
+5. `render_block()` - 30 edges
 6. `Session` - 20 edges
-7. `Diagnostic` - 19 edges
-8. `import()` - 18 edges
-9. `EditableField` - 18 edges
-10. `layout()` - 17 edges
+7. `Diagnostic` - 20 edges
+8. `flat()` - 20 edges
+9. `import()` - 18 edges
+10. `EditableField` - 18 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
@@ -198,6 +228,7 @@
 - 1-file cycle: `crates/fireside-core/src/model/mod.rs -> crates/fireside-core/src/model/mod.rs`
 - 1-file cycle: `crates/fireside-engine/src/session.rs -> crates/fireside-engine/src/session.rs`
 - 1-file cycle: `crates/fireside-engine/src/validation.rs -> crates/fireside-engine/src/validation.rs`
+- 1-file cycle: `crates/fireside-engine/tests/fixtures.rs -> crates/fireside-engine/tests/fixtures.rs`
 - 1-file cycle: `crates/fireside-tui/src/render/blocks.rs -> crates/fireside-tui/src/render/blocks.rs`
 - 1-file cycle: `crates/fireside-tui/src/render/map.rs -> crates/fireside-tui/src/render/map.rs`
 - 1-file cycle: `crates/fireside-tui/src/render/markdown.rs -> crates/fireside-tui/src/render/markdown.rs`
@@ -212,7 +243,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (150 total, 19 thin omitted)
+## Communities (180 total, 30 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -220,7 +251,7 @@ Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_
 
 ### Community 1 - "CLI Commands"
 Cohesion: 0.08
-Nodes (54): BufRead, Command, Graph, Option, PathBuf, Result, Self, String (+46 more)
+Nodes (54): BufRead, Command, Graph, Option, Path, PathBuf, Result, Self (+46 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -243,16 +274,16 @@ Cohesion: 0.11
 Nodes (18): 1. Current-State Analysis, 2. Prioritized Improvements, 3. Phase 1 Roadmap (2–3 weeks), 4. Open Questions / Prototyping Needed, 5. Documentation Audit & Plan, Competitive survey (what presenters expect elsewhere), Executive Summary, Fireside Strategic Improvement Plan — 2026-07-12 (+10 more)
 
 ### Community 7 - "Editor Navigation"
-Cohesion: 0.20
-Nodes (33): ContainerLayout, ContentBlock, Line, Option, Span, String, Tokens, Vec (+25 more)
+Cohesion: 0.16
+Nodes (40): ContainerLayout, ContentBlock, Line, Option, Span, String, Tokens, Vec (+32 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.17
 Nodes (34): App, Frame, Graph, HashSet, Node, Option, Rect, Span (+26 more)
 
 ### Community 9 - "Editor Interaction Tests"
-Cohesion: 0.16
-Nodes (34): Display, Formatter, Graph, HashSet, Node, Option, Result, Self (+26 more)
+Cohesion: 0.14
+Nodes (38): Display, Formatter, Graph, HashSet, Node, Option, Result, Self (+30 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.22
@@ -276,7 +307,7 @@ Nodes (18): 1. What spec-kit and mattpocock/skills actually are, 2. Audit of the
 
 ### Community 16 - "Protocol Package"
 Cohesion: 0.08
-Nodes (24): author, default, dependencies, @typespec/compiler, @typespec/json-schema, @typespec/versioning, description, devDependencies (+16 more)
+Nodes (25): author, default, dependencies, @typespec/compiler, @typespec/json-schema, @typespec/versioning, description, devDependencies (+17 more)
 
 ### Community 17 - "Community 17"
 Cohesion: 0.25
@@ -359,8 +390,8 @@ Cohesion: 0.14
 Nodes (13): compilerOptions, declaration, esModuleInterop, module, moduleResolution, outDir, rootDir, skipLibCheck (+5 more)
 
 ### Community 37 - "Protocol JS Validator"
-Cohesion: 0.40
-Nodes (13): checkDeadEndBranches(), checkNextBranchPointConflict(), checkReachability(), checkRequiredNodeIds(), checkSelfLoops(), checkTrivialCycles(), checkUniqueBranchKeys(), checkUniqueNodeIds() (+5 more)
+Cohesion: 0.25
+Nodes (18): fixturePaths(), fixturesDir, here, main(), checkDeadEndBranches(), checkEmptyTraversal(), checkNextBranchPointConflict(), checkReachability() (+10 more)
 
 ### Community 38 - "Project Cheat Sheets"
 Cohesion: 0.17
@@ -395,8 +426,8 @@ Cohesion: 0.18
 Nodes (10): Completion Report, Done When, Key rules, Mandatory Post-Execution Hooks, Outline, Phase 0: Outline & Research, Phase 1: Design & Contracts, Phases (+2 more)
 
 ### Community 46 - "Editor Command Tests"
-Cohesion: 0.06
-Nodes (33): CLI Event Loop, Command / CommandHistory (undo-redo), Action enum (~35 variants), App struct (TUI state), AppMode (Presenting/Editing/GotoNode/Quitting), TEA (The Elm Architecture) Discipline, Appendix B — Engine Guidelines, Container Rendering Guidance (+25 more)
+Cohesion: 0.05
+Nodes (36): CLI Event Loop, Command / CommandHistory (undo-redo), Action enum (~35 variants), App struct (TUI state), AppMode (Presenting/Editing/GotoNode/Quitting), TEA (The Elm Architecture) Discipline, Appendix B — Engine Guidelines, Container Rendering Guidance (+28 more)
 
 ### Community 47 - "Layout Rendering"
 Cohesion: 0.19
@@ -524,7 +555,7 @@ Nodes (31): BranchOption, CoreError, BranchPoint, ContentBlock, Node, NodeDefaul
 
 ### Community 88 - "Render Module"
 Cohesion: 0.09
-Nodes (74): App, Frame, KeyCode, Line, Option, Rect, String, Tokens (+66 more)
+Nodes (75): App, Frame, KeyCode, Line, Option, Rect, String, Tokens (+67 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.15
@@ -599,12 +630,12 @@ Cohesion: 0.22
 Nodes (8): For /graphify add and --watch, For /graphify query, For the commit hook and native CLAUDE.md integration, For --update and --cluster-only, /graphify, Interpreter guard for subcommands, Usage, What graphify is for
 
 ### Community 109 - "Community 109"
-Cohesion: 0.15
-Nodes (14): Context7 Documentation Expert Agent, Version Upgrade Checking Workflow, Verify-Before-Advising Context7 Rule, 🚨 CRITICAL RULE — VERIFY BEFORE ADVISING, Error Handling Stratification, Fireside-Specific Rules You Must Enforce, Handoff, Rust Expert Agent (+6 more)
+Cohesion: 0.17
+Nodes (11): Assumptions, Edge Cases, Feature Specification: ASCII art centering and clipping, Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+3 more)
 
 ### Community 110 - "Community 110"
-Cohesion: 0.33
-Nodes (6): Code Example, Crate Boundary Impact, Output Format, Recommendation, Trade-offs, Verified API
+Cohesion: 0.15
+Nodes (14): Context7 Documentation Expert Agent, Version Upgrade Checking Workflow, Verify-Before-Advising Context7 Rule, 🚨 CRITICAL RULE — VERIFY BEFORE ADVISING, Error Handling Stratification, Fireside-Specific Rules You Must Enforce, Handoff, Rust Expert Agent (+6 more)
 
 ### Community 111 - "Community 111"
 Cohesion: 0.33
@@ -619,12 +650,12 @@ Cohesion: 0.22
 Nodes (8): ADR-005: Quick-edit modal scope (Stage C authoring path), Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
 
 ### Community 114 - "Community 114"
-Cohesion: 0.40
-Nodes (5): Research Workflow, Step 1 — Identify the Question Type, Step 2 — Look Up Crate Docs via Context7, Step 3 — Read Relevant Fireside Source, Step 4 — Validate Against Constraints
+Cohesion: 0.22
+Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: ASCII art centering and clipping, Project Structure, Source Code (repository root), Summary, Technical Context
 
 ### Community 115 - "Community 115"
-Cohesion: 0.50
-Nodes (4): MSRV 1.88 Constraint, Security Audit Workflow, MSRV CI Job, Rust CI Workflow
+Cohesion: 0.33
+Nodes (6): Code Example, Crate Boundary Impact, Output Format, Recommendation, Trade-offs, Verified API
 
 ### Community 116 - "Community 116"
 Cohesion: 0.22
@@ -726,18 +757,94 @@ Nodes (3): For git commit hook, For native CLAUDE.md integration, graphify refer
 Cohesion: 0.50
 Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphify reference: incremental update and cluster-only
 
+### Community 148 - "Community 148"
+Cohesion: 0.22
+Nodes (8): ADR-007: Protocol spec patch 0.1.1 — resolve audit ambiguities, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+
+### Community 149 - "Community 149"
+Cohesion: 0.15
+Nodes (12): Assumptions, Edge Cases, Feature Specification: Protocol spec patch 0.1.1, Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+4 more)
+
+### Community 150 - "Community 150"
+Cohesion: 0.33
+Nodes (5): Specification Quality Checklist: Protocol spec patch 0.1.1, Content Quality, Feature Readiness, Notes, Requirement Completeness
+
+### Community 151 - "Community 151"
+Cohesion: 0.22
+Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: Protocol spec patch 0.1.1, Project Structure, Source Code (repository root), Summary, Technical Context
+
+### Community 152 - "Community 152"
+Cohesion: 0.29
+Nodes (6): Decision: `empty-traversal` fires only for the object form, Decision: fixture corpus format — one shared expectations file, Decision: fixture directory split (`valid/` vs `invalid/`), Decision: protocol version bump lands via `Versions` enum addition only, Decision: `unique-branch-keys` doc fix has no fixture behavior change, Research: Protocol spec patch 0.1.1
+
 ### Community 153 - "Community 153"
 Cohesion: 0.50
 Nodes (3): Everyday commands, Fireside — Agent Guide, Spec-driven workflow
+
+### Community 154 - "Community 154"
+Cohesion: 0.40
+Nodes (4): Data Model: Protocol spec patch 0.1.1, Empty-traversal diagnostic, Fixture document, Fixture expectations map
+
+### Community 155 - "Community 155"
+Cohesion: 0.25
+Nodes (7): Applies to, Contract: `empty-traversal` validation rule, Implementations required, Message contract, Non-goals, Rule identifier, Severity
+
+### Community 156 - "Community 156"
+Cohesion: 0.25
+Nodes (7): Consumer contract — both validators MUST, Contract: shared conformance fixture corpus, Fixture inventory (minimum required by this feature), `fixtures.expected.json` shape, Layout, Node consumer, Rust consumer
+
+### Community 157 - "Community 157"
+Cohesion: 0.22
+Nodes (8): Full verification, Prerequisites, Quickstart: Protocol spec patch 0.1.1, Scenario 1 — protocol version bump is additive, Scenario 2 — empty traversal produces a warning, not a behavior change, Scenario 3 — an absent traversal field does not warn, Scenario 4 — fixture corpus proves Rust/Node parity, Scenario 5 — spec docs read correctly end-to-end
+
+### Community 158 - "Community 158"
+Cohesion: 0.20
+Nodes (9): Dependencies & Execution Order, Implementation Strategy, Parallel Execution Examples, Phase 1: Setup (protocol version bump), Phase 2: User Story 1 - Third-party implementer reads an unambiguous spec (Priority: P1), Phase 3: User Story 2 - Presenter gets a diagnostic for empty traversal (Priority: P1), Phase 4: User Story 3 - Fixture corpus proves Rust/Node parity (Priority: P2), Phase 5: Polish & Cross-Cutting (+1 more)
+
+### Community 159 - "Community 159"
+Cohesion: 0.18
+Nodes (10): invalid/dangling-target.json, invalid/duplicate-branch-keys.json, invalid/duplicate-node-ids.json, invalid/next-branch-point-conflict.json, valid/clean.json, valid/dead-end-branch.json, valid/empty-traversal.json, valid/self-loop.json (+2 more)
+
+### Community 160 - "Community 160"
+Cohesion: 0.48
+Nodes (6): Path, PathBuf, Vec, fixture_corpus_matches_documented_expectations(), fixture_paths(), protocol_dir()
+
+### Community 172 - "Community 172"
+Cohesion: 0.33
+Nodes (5): Specification Quality Checklist: ASCII art centering and clipping, Content Quality, Feature Readiness, Notes, Requirement Completeness
+
+### Community 173 - "Community 173"
+Cohesion: 0.40
+Nodes (5): Research Workflow, Step 1 — Identify the Question Type, Step 2 — Look Up Crate Docs via Context7, Step 3 — Read Relevant Fireside Source, Step 4 — Validate Against Constraints
+
+### Community 174 - "Community 174"
+Cohesion: 0.50
+Nodes (4): MSRV 1.88 Constraint, Security Audit Workflow, MSRV CI Job, Rust CI Workflow
+
+### Community 175 - "Community 175"
+Cohesion: 0.33
+Nodes (5): Decision: box sizing computed from content, not measured after render, Decision: centering pad applied as a uniform line-prefix, after box construction, Decision: classify by exact-match on `language`, not a fuzzy heuristic, Decision: no minimum-width floor beyond the label's own width, Research: ASCII art centering and clipping
+
+### Community 177 - "Community 177"
+Cohesion: 0.33
+Nodes (5): Classification, Composition with `container { layout: "center" }`, Contract: `code()` rendering behavior, Invariants (MUST hold for every input, including empty source), Sizing contract
+
+### Community 178 - "Community 178"
+Cohesion: 0.22
+Nodes (8): Full verification, Prerequisites, Quickstart: ASCII art centering and clipping, Scenario 1 — narrow ASCII art centers, Scenario 2 — explicit language does not center, Scenario 3 — oversized ASCII art clips, doesn't break, Scenario 4 — 80×24 end-to-end, Scenario 5 — composes with `container { layout: "center" }`
+
+### Community 179 - "Community 179"
+Cohesion: 0.22
+Nodes (8): Dependencies & Execution Order, Implementation Strategy, Phase 1: Setup, Phase 2: User Story 1 - Presenter's ASCII diagram reads as deliberate (Priority: P1), Phase 3: User Story 2 - Oversized ASCII art degrades gracefully (Priority: P2), Phase 4: Regression & Composition, Phase 5: Polish & Cross-Cutting, Tasks: ASCII art centering and clipping
 
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **872 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+867 more)
+- **998 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+993 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **30 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -745,14 +852,14 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Community 122`, `Presentation Session`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `TUI App Core`?**
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _874 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1000 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.08141321044546851 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**
   _Cohesion score 0.06935908691834942 - nodes in this community are weakly interconnected._
-- **Should `Editor Detail Pane` be split into smaller, more focused modules?**
-  _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._

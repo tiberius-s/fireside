@@ -18,7 +18,8 @@ using Versioning;
  * and a cursor plus history stack can build a conforming engine.
  *
  * ## Protocol Version
- * 0.1.0
+ * 0.1.1 (0.1.0 documents remain valid; 0.1.1 adds no new fields, only
+ * clarified engine behavior and one new validator diagnostic)
  *
  * ## Schema Dialect
  * JSON Schema 2020-12
@@ -30,6 +31,7 @@ namespace Fireside;
 /** Supported protocol versions. */
 enum Versions {
   v0_1_0: "0.1.0",
+  v0_1_1: "0.1.1",
 }
 
 // ─── Scalar Types ────────────────────────────────────────────────────────────
@@ -165,7 +167,10 @@ model ListBlock {
   /** Whether the list is ordered (numbered) or unordered (bulleted). */
   ordered?: boolean;
 
-  /** The list items as strings. */
+  /**
+   * The list items as strings. Items MAY contain inline Markdown
+   * formatting, same as TextBlock.body.
+   */
   @minItems(1)
   items: string[];
 }
@@ -421,6 +426,13 @@ interface TraversalOps {
 
   /**
    * Select a branch option at a BranchPoint.
+   *
+   * The selected option MUST be validated as belonging to the current
+   * node's branch point — implementations MUST NOT accept an arbitrary
+   * caller-supplied BranchOption from elsewhere in the graph. The
+   * reference implementation enforces this structurally by taking an
+   * index into the current branch point's options array rather than an
+   * option value.
    *
    * 1. Push current node ID onto history
    * 2. Navigate to the selected option's target node

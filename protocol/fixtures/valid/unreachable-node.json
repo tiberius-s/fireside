@@ -1,0 +1,7 @@
+{
+  "nodes": [
+    { "id": "a", "traversal": "b", "content": [] },
+    { "id": "b", "content": [] },
+    { "id": "island", "content": [] }
+  ]
+}

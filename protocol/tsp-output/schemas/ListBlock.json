@@ -17,7 +17,7 @@
                 "type": "string"
             },
             "minItems": 1,
-            "description": "The list items as strings."
+            "description": "The list items as strings. Items MAY contain inline Markdown\nformatting, same as TextBlock.body."
         }
     },
     "required": [

@@ -16,7 +16,8 @@
     "watch": "tsp compile . --watch",
     "clean": "rm -rf dist tsp-output",
     "clean:schemas": "rm -rf tsp-output",
-    "validate": "node validate.mjs"
+    "validate": "node validate.mjs",
+    "test:fixtures": "node run-fixtures.mjs"
   },
   "keywords": [
     "fireside",

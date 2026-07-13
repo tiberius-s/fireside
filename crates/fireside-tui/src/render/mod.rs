@@ -1161,6 +1161,50 @@ mod tests {
     }
 
     #[test]
+    fn ascii_art_code_block_centers_within_the_card_at_80x24() {
+        const ASCII_ART: &str = r#"{"nodes":[{"id":"a","content":[
+            {"kind":"code","source":" /\\_/\\ \n( o.o )\n > ^ < "}
+        ]}]}"#;
+        const RUST_LANGUAGE: &str = r#"{"nodes":[{"id":"a","content":[
+            {"kind":"code","language":"rust","source":" /\\_/\\ \n( o.o )\n > ^ < "}
+        ]}]}"#;
+
+        let ascii_app = App::new(
+            Session::new(Graph::from_json(ASCII_ART).expect("ascii fixture parses"))
+                .expect("non-empty"),
+        );
+        let rust_app = App::new(
+            Session::new(Graph::from_json(RUST_LANGUAGE).expect("rust fixture parses"))
+                .expect("non-empty"),
+        );
+
+        let ascii_screen = screen(&ascii_app, 80, 24);
+        let rust_screen = screen(&rust_app, 80, 24);
+
+        let ascii_row = ascii_screen
+            .lines()
+            .find(|l| l.contains("o.o"))
+            .expect("ascii art row visible at 80x24");
+        let rust_row = rust_screen
+            .lines()
+            .find(|l| l.contains("o.o"))
+            .expect("rust code row visible at 80x24");
+
+        // Rows are framed by the card's own border ("│ ... │"), so measure
+        // where the art itself starts, not leading whitespace from the
+        // start of the string (which is always 0 — the border isn't a
+        // space).
+        let ascii_col = ascii_row.find("o.o").expect("column of ascii art");
+        let rust_col = rust_row.find("o.o").expect("column of rust code");
+
+        assert!(
+            ascii_col > rust_col,
+            "ascii art (col {ascii_col}) should be indented further than an explicit-language \
+             block (col {rust_col}) at the same 80x24 size: ascii={ascii_row:?} rust={rust_row:?}"
+        );
+    }
+
+    #[test]
     fn code_gets_syntax_colors_from_the_theme() {
         let mut app = app();
         press(&mut app, KeyCode::Char(' '));

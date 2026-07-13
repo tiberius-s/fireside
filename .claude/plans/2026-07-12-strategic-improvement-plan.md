@@ -63,9 +63,67 @@ or starts. One line per item: status, commit(s), date._
       author-declared hotkey and watching the route trace), an unresolved
       branch target, a nested list, and a headingless document all produce
       the exact messages/behavior specified.
-- [ ] Week 1 spec patch 0.1.1 (7 ambiguities) + validator rules — not started.
-- [ ] Week 1 shared fixture corpus — not started.
-- [ ] Week 1 ASCII art engine-side (center/clip) — not started.
+- [x] Week 1 spec patch 0.1.1 (7 ambiguities) + validator rules — landed
+      2026-07-12 (uncommitted on main). ADR-007
+      (`.claude/adrs/adr-007-spec-patch-0-1-1.md`) recorded the decision
+      after reading the actual reference implementation: six of the seven
+      audit ambiguities (branch-key uniqueness severity, empty-traversal
+      terminal handling, choose() option scoping, ViewMode persistence,
+      list-item Markdown, unbounded history) turned out to already be
+      settled reference behavior, just undocumented (or, for branch-key
+      uniqueness, documented at the wrong severity in `validation.md`) —
+      only one ambiguity (the empty traversal object `{}`) needed new
+      validator code. Full speckit pipeline at
+      `specs/004-spec-patch-0-1-1/` (spec → plan → tasks → implement, all
+      35 tasks done). Shipped: protocol version 0.1.1 (`Versions` enum in
+      `main.tsp` gains `v0_1_1`, purely additive, `tsp-output/`
+      regenerated); a new symmetric `empty-traversal` WARNING rule in both
+      `fireside-engine/src/validation.rs` and `protocol/validate.mjs`
+      (verified byte-for-byte matching diagnostics between the two CLIs);
+      `validation.md`'s `unique-branch-keys` doc fix (was misclassified as
+      "Recommended," now correctly "Required" matching its actual Error
+      severity); spec-text additions across `traversal.md`,
+      `appendix-engine-guidelines.md`, `appendix-content-blocks.md`, and
+      `main.tsp` doc comments covering all seven ambiguities. 4 new tests
+      (3 Rust unit tests + 1 fixture-corpus integration test), 143 total
+      passing, clippy silent, docs site `astro check` clean.
+- [x] Week 1 shared fixture corpus — landed 2026-07-12 alongside the spec
+      patch above (same feature/ADR, bundled since the corpus exists to
+      test the rules the patch touches). `protocol/fixtures/{valid,invalid}/*.json`
+      (10 fixtures, each isolating exactly one Layer-2 rule) plus a single
+      `protocol/fixtures.expected.json` read by BOTH a new Rust
+      integration test (`crates/fireside-engine/tests/fixtures.rs`) and a
+      new Node script (`protocol/run-fixtures.mjs`, wired as
+      `npm run test:fixtures --prefix protocol`) — turning "the Rust and
+      Node validators agree" from a claimed invariant (matching rule-name
+      strings) into a tested one (identical rule-id sets per fixture).
+      Required exporting `validate` from `protocol/validate.mjs` and
+      guarding its `main()` call behind an `import.meta.url` check so the
+      module can be imported without hijacking the process — a real bug
+      the corpus work surfaced immediately. **Verified the corpus actually
+      catches divergence**, not just passes: deliberately renamed a rule
+      string in only the Rust validator, confirmed the fixture test failed
+      with a clear mismatch message, then reverted.
+- [x] Week 1 ASCII art engine-side (center/clip) — landed 2026-07-12
+      (uncommitted on main). No ADR (no crate boundary/dependency/protocol
+      change — pure rendering-quality fix). Full speckit pipeline at
+      `specs/005-ascii-art-centering/` (spec → plan → tasks → implement,
+      all 16 tasks done). Shipped: `crates/fireside-tui/src/render/blocks.rs`'s
+      `code()` now classifies a code block as ASCII art when its language
+      is absent, `"text"`, or `"ascii"`; ASCII-art blocks size their box
+      (top rule, every content row, bottom rule) to their own natural
+      content width and center that box within the available width via a
+      uniform leading pad on every line, while any other language keeps
+      today's full-width left-aligned rendering byte-for-byte unchanged.
+      Oversized ASCII art caps to the available width and clips with the
+      existing ellipsis marker — no new clipping logic, reused
+      `clip`/`clip_spans` as the plan required. 7 new tests (6 unit in
+      `blocks.rs`, 1 `TestBackend` scenario at 80×24), 150 total passing,
+      clippy silent. Verified visually in a real terminal (tmux) at
+      80×24: a small ASCII cat face renders as a compact, genuinely
+      centered box inside the card, not stretched — confirming the
+      assertions match what a presenter would actually see. This closes
+      out all of Week 1 (spec patch, fixture corpus, and ASCII art).
 - [ ] P1 terminal images (`ratatui-image`) — not started.
 - [ ] P1 incremental reveal (`reveal` field) — not started.
 - [ ] P2 mouse / synchronized output / resume — not started.

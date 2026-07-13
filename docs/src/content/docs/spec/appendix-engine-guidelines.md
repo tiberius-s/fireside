@@ -45,3 +45,30 @@ For `container` blocks:
 Map key events to semantic actions before state updates, keep presenter-facing
 failures recoverable where possible, and favor placeholders over crashes for
 content-level issues.
+
+## ViewMode Toggle Persistence
+
+When an engine lets a presenter toggle `ViewMode` at runtime (§Enums), the
+toggle SHOULD persist across node transitions until the presenter
+explicitly toggles it again — it should not silently reset to the node's
+declared value on the next `Next`/`Choose`/`Goto`/`Back`. The reference
+implementation stores the toggle as a single override that participates in
+the resolution order ahead of the node-level value, and never clears it on
+navigation.
+
+## Image Overflow Handling
+
+For `ImageBlock`, engines MUST clamp a requested `width`/`height` to the
+available content area rather than clipping content unpredictably or
+rejecting the document. This is forward guidance for engines that render
+images at their requested dimensions; the reference renderer currently
+displays a placeholder box that sizes itself to its alt text and does not
+yet interpret `width`/`height` at all, since real image rendering is a
+deferred follow-up.
+
+## History Growth
+
+Engines MAY cap the length of the history stack for long-running
+presentations (for example, to bound memory on decks with many `goto`
+loops). The reference implementation (`fireside-engine`'s `Session`) does
+not currently impose a cap.

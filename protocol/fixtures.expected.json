@@ -1,0 +1,12 @@
+{
+  "valid/clean.json": [],
+  "valid/unreachable-node.json": ["unreachable-node"],
+  "valid/self-loop.json": ["self-loop"],
+  "valid/trivial-cycle.json": ["trivial-cycle"],
+  "valid/dead-end-branch.json": ["dead-end-branch"],
+  "valid/empty-traversal.json": ["empty-traversal"],
+  "invalid/duplicate-node-ids.json": ["unique-node-ids"],
+  "invalid/dangling-target.json": ["valid-traversal-target"],
+  "invalid/next-branch-point-conflict.json": ["next-branch-point-conflict"],
+  "invalid/duplicate-branch-keys.json": ["unique-branch-keys"]
+}

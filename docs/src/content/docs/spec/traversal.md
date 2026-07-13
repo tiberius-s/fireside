@@ -72,6 +72,15 @@ flowchart TD
 The operation is only valid when the current node presents a `BranchPoint`.
 Outside that case, engines should treat it as an invalid command.
 
+Implementations MUST validate that the selected option belongs to the
+*current* node's branch point — an arbitrary or forged `BranchOption` from
+elsewhere in the graph MUST NOT be accepted. The recommended pattern is to
+resolve the selection against the current branch point's own options array
+(for example, by index or by matching key/label within that array) rather
+than accepting a caller-supplied `BranchOption` value directly; the
+reference implementation takes an index into the current branch point's
+options, which makes selecting a foreign option unrepresentable.
+
 ### Preconditions
 
 - current node has `traversal.branch-point`

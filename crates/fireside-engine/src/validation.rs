@@ -8,7 +8,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt;
 
-use fireside_core::{Graph, Node};
+use fireside_core::{Graph, Node, TraversalSpec};
 
 /// How serious a diagnostic is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -96,6 +96,7 @@ pub fn validate(graph: &Graph) -> Vec<Diagnostic> {
     check_valid_targets(graph, &ids, &mut diags);
     check_next_branch_point_conflict(graph, &mut diags);
     check_branch_options(graph, &mut diags);
+    check_empty_traversal(graph, &mut diags);
     check_reachability(graph, &ids, &mut diags);
     check_self_loops(graph, &mut diags);
     check_trivial_cycles(graph, &mut diags);
@@ -209,6 +210,28 @@ fn check_branch_options(graph: &Graph, diags: &mut Vec<Diagnostic>) {
             } else {
                 seen.insert(key, &opt.label);
             }
+        }
+    }
+}
+
+/// WARNING: a present-but-vacuous `Traversal` object (`{}`) behaves like an
+/// absent field — terminal — but is more likely an authoring mistake than
+/// a deliberately omitted field.
+fn check_empty_traversal(graph: &Graph, diags: &mut Vec<Diagnostic>) {
+    for node in &graph.nodes {
+        let Some(TraversalSpec::Rules(t)) = node.traversal.as_ref() else {
+            continue;
+        };
+        if t.next.is_none() && t.branch_point.is_none() {
+            diags.push(Diagnostic::new(
+                Severity::Warning,
+                "empty-traversal",
+                format!(
+                    "\"{}\" has an empty traversal object — it behaves like a terminal node (only back() can exit), same as leaving \"traversal\" out entirely. If that's what you want, remove the empty object; otherwise give it a \"next\" or a \"branch-point\"",
+                    node.id
+                ),
+                Some(&node.id),
+            ));
         }
     }
 }
@@ -394,6 +417,37 @@ mod tests {
             ]}"#,
         );
         assert!(rules(&diags).contains(&"unique-branch-keys"));
+    }
+
+    #[test]
+    fn empty_traversal_object_warns() {
+        let diags = diags_for(r#"{"nodes":[{"id":"a","traversal":{},"content":[]}]}"#);
+        let hits: Vec<_> = diags
+            .iter()
+            .filter(|d| d.rule == "empty-traversal")
+            .collect();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].node.as_deref(), Some("a"));
+        assert_eq!(hits[0].severity, Severity::Warning);
+        assert!(!has_errors(&diags));
+    }
+
+    #[test]
+    fn absent_traversal_does_not_warn_as_empty() {
+        let diags = diags_for(r#"{"nodes":[{"id":"a","content":[]}]}"#);
+        assert!(!rules(&diags).contains(&"empty-traversal"));
+    }
+
+    #[test]
+    fn populated_traversal_forms_do_not_warn_as_empty() {
+        let diags = diags_for(
+            r#"{"nodes":[
+                {"id":"a","traversal":"b","content":[]},
+                {"id":"b","traversal":{"next":"c"},"content":[]},
+                {"id":"c","traversal":{"branch-point":{"options":[{"label":"x","target":"a"}]}},"content":[]}
+            ]}"#,
+        );
+        assert!(!rules(&diags).contains(&"empty-traversal"));
     }
 
     #[test]

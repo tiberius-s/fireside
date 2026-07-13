@@ -204,6 +204,34 @@ function checkUniqueBranchKeys(graph) {
 }
 
 /**
+ * WARNING: A `traversal` object present but setting neither `next` nor
+ * `branch-point` behaves like an absent `traversal` (terminal), but is
+ * more likely an authoring mistake than a deliberately omitted field.
+ *
+ * Spec: §4 Validation — Recommended Checks
+ */
+function checkEmptyTraversal(graph) {
+  const diagnostics = [];
+
+  for (const node of graph.nodes) {
+    const t = node.traversal;
+    if (!t || typeof t === "string") continue;
+    if (t.next == null && t["branch-point"] == null) {
+      diagnostics.push(
+        diagnostic(
+          "warning",
+          "empty-traversal",
+          `Node "${node.id}" has an empty traversal object — it behaves like a terminal node (only back() can exit), same as leaving "traversal" out entirely. If that's what you want, remove the empty object; otherwise give it a "next" or a "branch-point"`,
+          { nodeId: node.id },
+        ),
+      );
+    }
+  }
+
+  return diagnostics;
+}
+
+/**
  * WARNING: All nodes should be reachable from the entry point (index 0).
  *
  * Spec: §4 Validation — Recommended Check 1
@@ -347,7 +375,7 @@ function checkDeadEndBranches(graph) {
 // ─── Main Validator ──────────────────────────────────────────────────────────
 
 /** Run all Tier 2 semantic checks against a parsed Fireside document. */
-function validate(graph) {
+export function validate(graph) {
   const nodeIds = new Set(graph.nodes.map((n) => n.id).filter((id) => id != null));
 
   return [
@@ -356,6 +384,7 @@ function validate(graph) {
     ...checkValidTargets(graph, nodeIds),
     ...checkNextBranchPointConflict(graph),
     ...checkUniqueBranchKeys(graph),
+    ...checkEmptyTraversal(graph),
     ...checkReachability(graph, nodeIds),
     ...checkSelfLoops(graph),
     ...checkTrivialCycles(graph),
@@ -386,6 +415,7 @@ Rules (warnings):
   unreachable-node           Nodes should be reachable from entry point
   self-loop                  Traversal should not point to the same node
   trivial-cycle              Two-node cycles (A→B→A) are likely accidental
+  empty-traversal            An empty traversal object ({}) is likely a mistake
 
 Rules (info):
   dead-end-branch            Branch targets with no traversal are terminal nodes
@@ -461,4 +491,8 @@ async function main() {
   process.exit(errors.length > 0 ? 1 : 0);
 }
 
-main();
+// Only run the CLI when this file is executed directly (`node validate.mjs`),
+// not when `validate` is imported as a module (e.g. by run-fixtures.mjs).
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}

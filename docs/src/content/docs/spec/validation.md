@@ -46,15 +46,20 @@ nodes or declares contradictory traversal rules.
 2. All traversal targets reference existing Node IDs.
 3. `branch-point.options` contains at least one option.
 4. A `Traversal` object MUST NOT contain both `next` and `branch-point`.
+5. Branch option `key` values MUST be unique within a single branch point.
 
 ### Recommended Checks
 
 - Unreachable node detection from entry node.
-- Branch option `key` values that collide within one branch point.
 - Self-loop warnings for authoring diagnostics.
 - Duplicate labels or confusing branch prompts.
 - Cycles that are likely accidental.
 - Empty nodes that may need a content block.
+- A `Traversal` object present but setting neither `next` nor
+  `branch-point` (`{}`). The engine still treats this as terminal — the
+  same as an absent `traversal` field — but it is flagged since an empty
+  object is a more plausible authoring mistake than a deliberately omitted
+  field.
 
 ## ContentBlock Validation Rules
 
