@@ -39,8 +39,30 @@ or starts. One line per item: status, commit(s), date._
       loop or file-watch timing, run the tmux smoke walk *before* declaring
       done — TestBackend tests exercise `App` in isolation and cannot catch
       event-loop ordering or fingerprint-timing bugs.
-- [ ] P0 Stage D — Markdown authoring frontend (`fireside import`) — not
-      started; decision point after Stage C per the roadmap.
+- [x] P0 Stage D — Markdown authoring frontend (`fireside import`) — landed
+      2026-07-12 (uncommitted on main). Branch-fence syntax (link list in a
+      ` ```branch ` fence) chosen via a user taste-test of three concrete
+      mockups before ADR-006 (`.claude/adrs/adr-006-markdown-import.md`)
+      was written; full speckit pipeline at `specs/003-markdown-import/`
+      (spec → plan → tasks → implement, all 27 tasks done). Added
+      `pulldown-cmark` to `fireside-cli`'s permitted deps (constitution
+      v1.0.0 → v1.1.0, MSRV-1.88-verified). Shipped: new
+      `crates/fireside-cli/src/import.rs` module — `##` headings become
+      nodes (slugified, deduped ids), H3-H6/paragraphs/code/lists/images/
+      dividers convert to content blocks, byte-range source slicing
+      preserves inline Markdown verbatim in paragraphs, a two-pass design
+      (collect ids, then build+resolve) supports branch links to
+      later-appearing sections, nested lists and unresolved/malformed
+      branch syntax are rejected with a line number rather than silently
+      mishandled, output is validated with the existing
+      `fireside_engine::validate` before any write. New `fireside import
+      <input.md> [output]` CLI verb. 24 new tests (14 unit in `import.rs`,
+      2 CLI e2e, plus the pre-existing `slugify` refactor test), 139 total
+      passing, clippy silent. Verified end-to-end in a real terminal
+      (tmux): linear import, branching import (including pressing the
+      author-declared hotkey and watching the route trace), an unresolved
+      branch target, a nested list, and a headingless document all produce
+      the exact messages/behavior specified.
 - [ ] Week 1 spec patch 0.1.1 (7 ambiguities) + validator rules — not started.
 - [ ] Week 1 shared fixture corpus — not started.
 - [ ] Week 1 ASCII art engine-side (center/clip) — not started.

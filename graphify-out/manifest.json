@@ -30,13 +30,13 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1783880935.7994921,
-    "ast_hash": "4699c7340d037218da8d5b3d6197c7bc",
+    "mtime": 1783901243.482254,
+    "ast_hash": "5f9b6eb8f554d06a3c554a41b43cfb3e",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1783877562.9991634,
-    "ast_hash": "5337932148f77eaec607f702790e19d6",
+    "mtime": 1783901340.116238,
+    "ast_hash": "ac9e5d275adbddcbc0fe5fc41ca43c6a",
     "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-strategic-improvement-plan.md": {
-    "mtime": 1783881089.2011552,
-    "ast_hash": "7db4042707fa2443c89182128802f4f1",
+    "mtime": 1783901431.997851,
+    "ast_hash": "2fc9fa7360a71a6431f82868d2f90cfa",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-sdd-retrofit-report.md": {
@@ -600,8 +600,8 @@
     "semantic_hash": ""
   },
   ".specify/memory/constitution.md": {
-    "mtime": 1783873657.1853411,
-    "ast_hash": "d4f1b9a062665afab4dd1b11771de84b",
+    "mtime": 1783900406.9207952,
+    "ast_hash": "f56f6198ffbd4a44728b2706847f4f78",
     "semantic_hash": ""
   },
   ".specify/templates/checklist-template.md": {
@@ -675,8 +675,8 @@
     "semantic_hash": ""
   },
   ".specify/feature.json": {
-    "mtime": 1783879118.210298,
-    "ast_hash": "aae746211e5df674ee1af4a7f2165a3e",
+    "mtime": 1783900496.466905,
+    "ast_hash": "55f902a864d4357e07380a38b2506c1a",
     "semantic_hash": ""
   },
   "specs/001-validate-watch/plan.md": {
@@ -752,6 +752,56 @@
   "specs/002-quick-edit-modal/tasks.md": {
     "mtime": 1783881072.5284626,
     "ast_hash": "9491550857e485ec4a040439dd87cef0",
+    "semantic_hash": ""
+  },
+  ".claude/adrs/adr-006-markdown-import.md": {
+    "mtime": 1783900367.9917917,
+    "ast_hash": "20d095e63cfb58afdc73f0920c734c68",
+    "semantic_hash": ""
+  },
+  "specs/003-markdown-import/spec.md": {
+    "mtime": 1783900480.2585528,
+    "ast_hash": "d19c474e8b0f15c00c45b56bcc5988f0",
+    "semantic_hash": ""
+  },
+  "specs/003-markdown-import/checklists/requirements.md": {
+    "mtime": 1783900488.5262372,
+    "ast_hash": "a87b3b0900d3cfb059130a90ca67625b",
+    "semantic_hash": ""
+  },
+  "specs/003-markdown-import/plan.md": {
+    "mtime": 1783900690.7106981,
+    "ast_hash": "b6ce786dd8201bac83c2cc4c96e2a801",
+    "semantic_hash": ""
+  },
+  "specs/003-markdown-import/research.md": {
+    "mtime": 1783900578.9936311,
+    "ast_hash": "ee2475594a539cfba92978ada4262389",
+    "semantic_hash": ""
+  },
+  "specs/003-markdown-import/data-model.md": {
+    "mtime": 1783900598.8292203,
+    "ast_hash": "f86bf4911c328ad5330bf2f77e72fa80",
+    "semantic_hash": ""
+  },
+  "specs/003-markdown-import/contracts/cli-import.md": {
+    "mtime": 1783900617.1117516,
+    "ast_hash": "8043e3c5e78b01b0d43738a2d3d02102",
+    "semantic_hash": ""
+  },
+  "specs/003-markdown-import/quickstart.md": {
+    "mtime": 1783900633.5461147,
+    "ast_hash": "10db2e04f710e6d2f84e7dab64338b40",
+    "semantic_hash": ""
+  },
+  "specs/003-markdown-import/tasks.md": {
+    "mtime": 1783901439.3568544,
+    "ast_hash": "4377ae3d93ab581c4c50d349f074dca4",
+    "semantic_hash": ""
+  },
+  "crates/fireside-cli/src/import.rs": {
+    "mtime": 1783901289.6491818,
+    "ast_hash": "cfd69e9185b870c82ae77347e0fe833b",
     "semantic_hash": ""
   }
 }

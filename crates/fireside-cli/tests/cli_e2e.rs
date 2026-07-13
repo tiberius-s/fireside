@@ -213,3 +213,54 @@ fn new_refuses_to_overwrite() {
         .failure()
         .stderr(predicate::str::contains("already exists"));
 }
+
+#[test]
+fn import_compiles_markdown_to_a_default_path_and_the_result_validates() {
+    let temp = tempfile::tempdir().expect("temp dir");
+    let input = temp.path().join("talk.md");
+    std::fs::write(
+        &input,
+        "## Welcome\n\nThanks for coming.\n\n## Thanks\n\nQuestions?\n",
+    )
+    .expect("write fixture");
+
+    fireside()
+        .current_dir(temp.path())
+        .arg("import")
+        .arg("talk.md")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Imported talk.fireside.json"));
+
+    let output = temp.path().join("talk.fireside.json");
+    assert!(output.exists(), "default output path was created");
+
+    fireside()
+        .arg("validate")
+        .arg(&output)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("no problems found"));
+}
+
+#[test]
+fn import_refuses_to_overwrite_an_existing_output() {
+    let temp = tempfile::tempdir().expect("temp dir");
+    let input = temp.path().join("talk.md");
+    std::fs::write(&input, "## Only\n\nHi.\n").expect("write fixture");
+
+    fireside()
+        .current_dir(temp.path())
+        .arg("import")
+        .arg("talk.md")
+        .assert()
+        .success();
+
+    fireside()
+        .current_dir(temp.path())
+        .arg("import")
+        .arg("talk.md")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("already exists"));
+}

@@ -1,5 +1,17 @@
 <!--
 Sync Impact Report
+- Version change: 1.0.0 → 1.1.0
+- Modified principles: III. Crate Boundary Discipline — `fireside-cli`'s
+  permitted dependency list gains `pulldown-cmark`, per ADR-006 (Markdown
+  authoring frontend, `fireside import`). No principle removed or
+  redefined; this materially expands existing guidance, hence MINOR.
+- Added sections: none
+- Removed sections: none
+- Templates requiring updates: none (boundary table is referenced, not
+  duplicated, elsewhere)
+- Follow-up TODOs: none
+
+Sync Impact Report (previous)
 - Version change: (template) → 1.0.0
 - Modified principles: n/a (initial ratification)
 - Added sections: Core Principles (I–VII), Operational Constraints,
@@ -55,7 +67,7 @@ Each crate has a dependency allowlist. Anything not listed is forbidden.
 | `fireside-core`   | `serde`, `serde_json`, `thiserror`                             | Any I/O, UI, validation, or rendering code        |
 | `fireside-engine` | `fireside-core`, `thiserror`                                   | File I/O, ratatui, crossterm, clap, anyhow        |
 | `fireside-tui`    | `fireside-core`, `fireside-engine`, `ratatui`, `crossterm`, `unicode-width`, `syntect`, `two-face`, `thiserror` | Direct file I/O, business logic duplication |
-| `fireside-cli`    | All workspace crates, `clap`, `anyhow`, `serde_json`           | State management, rendering outside `fireside-tui` |
+| `fireside-cli`    | All workspace crates, `clap`, `anyhow`, `serde_json`, `pulldown-cmark` | State management, rendering outside `fireside-tui` |
 
 Any proposal that would violate this table MUST be flagged with an explicit
 warning and an alternative that respects the boundaries.
@@ -152,4 +164,4 @@ disagree, the constitution wins.
 - **Compliance review**: every `/speckit-plan` run re-checks this file via
   its Constitution Check gate; reviewers verify compliance on every PR.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-12
+**Version**: 1.1.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-12

@@ -17,6 +17,8 @@ use fireside_core::{CoreError, Graph};
 use fireside_engine::{Diagnostic, Severity, validate};
 use fireside_tui::WriteBackError;
 
+mod import;
+
 /// The built-in showcase deck presented by `fireside demo`.
 const DEMO_DECK: &str = include_str!("../assets/demo.fireside.json");
 
@@ -71,6 +73,16 @@ enum Command {
 
     /// See what Fireside can do — no file needed.
     Demo,
+
+    /// Compile a Markdown file into a deck (headings become slides).
+    Import {
+        /// Path to the Markdown source file.
+        input: PathBuf,
+
+        /// Path for the generated deck. Defaults to `input` with its
+        /// extension replaced by `.fireside.json`.
+        output: Option<PathBuf>,
+    },
 }
 
 /// The shape of deck `fireside new` scaffolds. Each demonstrates one
@@ -100,6 +112,7 @@ fn main() -> Result<()> {
             }),
         ) => new_deck(name, template, author),
         (None, Some(Command::Demo)) => demo(),
+        (None, Some(Command::Import { input, output })) => import_file(&input, output.as_deref()),
         (None, None) => {
             // No arguments: teach, don't error.
             println!("fireside — present branching decks in the terminal\n");
@@ -108,6 +121,7 @@ fn main() -> Result<()> {
             println!("  fireside validate <file>   check a deck for problems");
             println!("  fireside new               create a deck (asks a few questions)");
             println!("  fireside new <name>        create a starter deck instantly");
+            println!("  fireside import <file.md>  compile a Markdown talk into a deck");
             println!("\nTry: fireside demo");
             Ok(())
         }
@@ -190,6 +204,45 @@ fn present(path: &Path) -> Result<()> {
 fn demo() -> Result<()> {
     let graph = Graph::from_json(DEMO_DECK).context("the built-in demo deck is broken")?;
     fireside_tui::present(graph).context("the presenter hit a terminal error")
+}
+
+/// What v1 Markdown import never carries over, restated after every
+/// successful import so a presenter learns the boundary from the tool
+/// itself rather than by omission (FR-023, ADR-006).
+const IMPORT_LIMITATIONS_NOTE: &str = "Note: this v1 import doesn't carry over columns/containers, speaker notes, or per-slide view-mode/transition — hand-edit the JSON (or use quick-edit for headings/text) to add those.";
+
+fn import_file(input: &Path, output: Option<&Path>) -> Result<()> {
+    let default_output;
+    let output = match output {
+        Some(output) => output,
+        None => {
+            default_output = input.with_extension("fireside.json");
+            &default_output
+        }
+    };
+    if output.exists() {
+        bail!("{} already exists — pick another name", output.display());
+    }
+
+    let source = std::fs::read_to_string(input)
+        .with_context(|| format!("could not read {}", input.display()))?;
+    let graph = match import::import(&source) {
+        Ok(graph) => graph,
+        Err(err) => {
+            eprintln!("{err}");
+            std::process::exit(1);
+        }
+    };
+
+    let json = graph
+        .to_json_pretty()
+        .context("could not serialize the imported deck")?;
+    std::fs::write(output, json + "\n")
+        .with_context(|| format!("could not write {}", output.display()))?;
+
+    println!("Imported {}.", output.display());
+    println!("{IMPORT_LIMITATIONS_NOTE}");
+    Ok(())
 }
 
 /// Watches the deck file while presenting: cheap fingerprint check per
@@ -351,6 +404,22 @@ fn watch_loop(path: &Path) -> Result<()> {
     }
 }
 
+/// Turns arbitrary text into a lowercase, hyphen-separated identifier safe
+/// for both filenames (`new_deck`) and node ids (`import`): lowercase,
+/// non-alphanumeric runs collapse to a single `-`, leading/trailing `-`
+/// trimmed.
+pub(crate) fn slugify(text: &str) -> String {
+    text.trim()
+        .to_lowercase()
+        .chars()
+        .map(|c| if c.is_alphanumeric() { c } else { '-' })
+        .collect::<String>()
+        .split('-')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("-")
+}
+
 fn new_deck(
     name: Option<String>,
     template: Option<Template>,
@@ -361,16 +430,7 @@ fn new_deck(
         None => interactive_new()?,
     };
 
-    let slug: String = name
-        .trim()
-        .to_lowercase()
-        .chars()
-        .map(|c| if c.is_alphanumeric() { c } else { '-' })
-        .collect::<String>()
-        .split('-')
-        .filter(|s| !s.is_empty())
-        .collect::<Vec<_>>()
-        .join("-");
+    let slug = slugify(&name);
     if slug.is_empty() {
         bail!("please give the deck a name with at least one letter or digit");
     }
