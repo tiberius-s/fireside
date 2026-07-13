@@ -60,6 +60,10 @@ nodes or declares contradictory traversal rules.
   same as an absent `traversal` field — but it is flagged since an empty
   object is a more plausible authoring mistake than a deliberately omitted
   field.
+- A content block's `reveal` value lower than its enclosing container's
+  (`reveal-masked-by-container`) — the block can never actually appear
+  before its container does, so the lower value is misleading rather than
+  functional.
 
 ## ContentBlock Validation Rules
 

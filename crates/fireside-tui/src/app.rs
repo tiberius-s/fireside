@@ -200,7 +200,7 @@ fn collect_editable(blocks: &[ContentBlock], path: &mut Vec<usize>, out: &mut Ve
     for (i, block) in blocks.iter().enumerate() {
         path.push(i);
         match block {
-            ContentBlock::Heading { level, text } => out.push(EditableField {
+            ContentBlock::Heading { level, text, .. } => out.push(EditableField {
                 path: BlockPath {
                     indices: path.clone(),
                 },
@@ -208,7 +208,7 @@ fn collect_editable(blocks: &[ContentBlock], path: &mut Vec<usize>, out: &mut Ve
                 buffer: to_buffer(text),
                 cursor: (0, 0),
             }),
-            ContentBlock::Text { body } => out.push(EditableField {
+            ContentBlock::Text { body, .. } => out.push(EditableField {
                 path: BlockPath {
                     indices: path.clone(),
                 },
@@ -508,7 +508,12 @@ impl App {
     }
 
     fn on_present_key(&mut self, code: KeyCode) {
-        let at_branch = self.session.branch_point().is_some();
+        let pending_reveal = self.session.has_pending_reveal();
+        // While a node has reveal steps not yet shown, the branch menu is
+        // not reachable at all — a presenter cannot skip ahead to a
+        // choice by choosing early. What would otherwise be a
+        // branch-selection keypress instead continues revealing.
+        let at_branch = self.session.branch_point().is_some() && !pending_reveal;
         match code {
             KeyCode::Char('q') => self.quit = true,
             KeyCode::Char('?' | 'h') => self.screen = Screen::Help,
@@ -547,7 +552,26 @@ impl App {
             KeyCode::Char('t') => self.show_timer = !self.show_timer,
             KeyCode::Char('e') => self.open_edit(),
             _ if at_branch => self.on_branch_key(code),
+            _ if pending_reveal => self.on_reveal_pending_key(code),
             _ => self.on_flow_key(code),
+        }
+    }
+
+    /// Keys on a node with reveal steps still pending. Only the explicit
+    /// "back" keys retreat; every other key — including ones that would
+    /// normally choose a branch option — continues revealing, so a
+    /// presenter reaching for the choice never hits a dead keypress
+    /// (FR-007: attempting to choose early continues revealing).
+    fn on_reveal_pending_key(&mut self, code: KeyCode) {
+        match code {
+            KeyCode::Left | KeyCode::Backspace | KeyCode::PageUp | KeyCode::Char('p') => {
+                let outcome = self.session.back();
+                self.apply(&outcome);
+            }
+            _ => {
+                let outcome = self.session.next();
+                self.apply(&outcome);
+            }
         }
     }
 
@@ -608,7 +632,7 @@ impl App {
                 if let Some(block) = block_at_mut(&mut node.content, &field.path.indices) {
                     match block {
                         ContentBlock::Heading { text, .. } => *text = field.text(),
-                        ContentBlock::Text { body } => *body = field.text(),
+                        ContentBlock::Text { body, .. } => *body = field.text(),
                         _ => {}
                     }
                 }
@@ -705,6 +729,13 @@ impl App {
                     .resolved_transition(self.session.defaults())
                     == Transition::Fade;
                 self.fade_started = fades.then(Instant::now);
+            }
+            Outcome::Revealed => {
+                // The current node did not change — no fade, no
+                // branch-selection reset, just clear any stale flash and
+                // keep newly revealed content in view.
+                self.scroll = 0;
+                self.flash = None;
             }
             Outcome::BlockedByBranch => {
                 self.set_flash(

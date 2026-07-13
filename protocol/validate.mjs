@@ -232,6 +232,45 @@ function checkEmptyTraversal(graph) {
 }
 
 /**
+ * WARNING: A child block's own `reveal` value is lower than its
+ * enclosing container's — the child can never actually appear before the
+ * container does, so the lower number is misleading rather than
+ * functional.
+ *
+ * Spec: §4 Validation — Recommended Checks (incremental reveal, 0.1.2)
+ */
+function checkRevealMaskedByContainer(graph) {
+  const diagnostics = [];
+
+  function walk(blocks, nodeId) {
+    for (const block of blocks) {
+      if (block.kind !== "container") continue;
+      const containerLevel = block.reveal ?? 0;
+      for (const child of block.children ?? []) {
+        const childLevel = child.reveal ?? 0;
+        if (childLevel < containerLevel) {
+          diagnostics.push(
+            diagnostic(
+              "warning",
+              "reveal-masked-by-container",
+              `Node "${nodeId}" has a block marked to reveal at step ${childLevel}, but it's nested inside a group that doesn't reveal until step ${containerLevel} — it can't actually appear before its group does. Raise the block's reveal to ${containerLevel} or higher, or lower the group's`,
+              { nodeId, childLevel, containerLevel },
+            ),
+          );
+        }
+      }
+      walk(block.children ?? [], nodeId);
+    }
+  }
+
+  for (const node of graph.nodes) {
+    walk(node.content ?? [], node.id);
+  }
+
+  return diagnostics;
+}
+
+/**
  * WARNING: All nodes should be reachable from the entry point (index 0).
  *
  * Spec: §4 Validation — Recommended Check 1
@@ -385,6 +424,7 @@ export function validate(graph) {
     ...checkNextBranchPointConflict(graph),
     ...checkUniqueBranchKeys(graph),
     ...checkEmptyTraversal(graph),
+    ...checkRevealMaskedByContainer(graph),
     ...checkReachability(graph, nodeIds),
     ...checkSelfLoops(graph),
     ...checkTrivialCycles(graph),
@@ -416,6 +456,7 @@ Rules (warnings):
   self-loop                  Traversal should not point to the same node
   trivial-cycle              Two-node cycles (A→B→A) are likely accidental
   empty-traversal            An empty traversal object ({}) is likely a mistake
+  reveal-masked-by-container A child's reveal step is earlier than its enclosing group's
 
 Rules (info):
   dead-end-branch            Branch targets with no traversal are terminal nodes

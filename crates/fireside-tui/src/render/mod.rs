@@ -234,9 +234,11 @@ fn header_rail(app: &App, width: u16, tokens: &Tokens) -> Line<'static> {
 /// end-of-path marker.
 fn node_lines(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     let node = app.session().current();
-    let mut lines = blocks::render_blocks(&node.content, width, tokens);
+    let mut lines =
+        blocks::render_blocks(&node.content, width, tokens, app.session().reveal_level());
 
-    if let Some(bp) = app.session().branch_point() {
+    let pending_reveal = app.session().has_pending_reveal();
+    if let Some(bp) = app.session().branch_point().filter(|_| !pending_reveal) {
         if !lines.is_empty() {
             lines.push(Line::default());
         }
@@ -277,7 +279,7 @@ fn node_lines(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
                 }
             }
         }
-    } else if node.is_terminal() {
+    } else if node.is_terminal() && !pending_reveal {
         if !lines.is_empty() {
             lines.push(Line::default());
         }
@@ -483,7 +485,20 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
     }
 
     let session = app.session();
-    let hints: &[(&str, &str)] = if session.branch_point().is_some() {
+    let pending_reveal = session.has_pending_reveal();
+    let hints: &[(&str, &str)] = if pending_reveal {
+        // Reveal always finishes before a branch menu or end-of-path
+        // marker can appear, so while it's pending the only advance key
+        // is "reveal", regardless of what the node would otherwise do.
+        &[
+            ("Space", "reveal"),
+            ("←", "back"),
+            ("m", "map"),
+            ("e", "edit"),
+            ("?", "help"),
+            ("q", "quit"),
+        ]
+    } else if session.branch_point().is_some() {
         &[
             ("↑↓", "choose"),
             ("Enter", "go"),
@@ -513,6 +528,15 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
     };
 
     let mut spans = vec![Span::raw(" ")];
+    if pending_reveal
+        && let Some((revealed, total)) = session.reveal_progress()
+    {
+        spans.push(Span::styled(
+            format!("{revealed}/{total} revealed"),
+            tokens.accent.add_modifier(Modifier::BOLD),
+        ));
+        spans.push(Span::styled("  ·  ".to_owned(), tokens.border));
+    }
     for (i, (key, action)) in hints.iter().enumerate() {
         if i > 0 {
             spans.push(Span::styled("  ·  ".to_owned(), tokens.border));
@@ -1205,6 +1229,120 @@ mod tests {
     }
 
     #[test]
+    fn reveal_hides_content_until_next_is_pressed_enough_times() {
+        const DECK: &str = r#"{"nodes":[{"id":"a","content":[
+            {"kind":"text","body":"Always visible"},
+            {"kind":"text","body":"First reveal","reveal":1},
+            {"kind":"text","body":"Second reveal","reveal":2}
+        ]}]}"#;
+        let mut app = App::new(
+            Session::new(Graph::from_json(DECK).expect("fixture parses")).expect("non-empty"),
+        );
+
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("Always visible"), "{s}");
+        assert!(!s.contains("First reveal"), "not yet revealed: {s}");
+        assert!(s.contains("0/2 revealed"), "footer shows reveal progress: {s}");
+
+        press(&mut app, KeyCode::Char(' '));
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("First reveal"), "{s}");
+        assert!(!s.contains("Second reveal"), "still pending: {s}");
+        assert!(s.contains("1/2 revealed"), "{s}");
+
+        press(&mut app, KeyCode::Char(' '));
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("Second reveal"), "{s}");
+        assert!(!s.contains("revealed"), "badge gone once reveal is exhausted: {s}");
+    }
+
+    #[test]
+    fn reveal_then_next_advances_normally_once_exhausted() {
+        const DECK: &str = r#"{"nodes":[
+            {"id":"a","traversal":"b","content":[
+                {"kind":"text","body":"x","reveal":1}
+            ]},
+            {"id":"b","content":[{"kind":"text","body":"On b"}]}
+        ]}"#;
+        let mut app = App::new(
+            Session::new(Graph::from_json(DECK).expect("fixture parses")).expect("non-empty"),
+        );
+        press(&mut app, KeyCode::Char(' '));
+        assert_eq!(
+            app.session().current().id,
+            "a",
+            "first press reveals, does not navigate"
+        );
+        press(&mut app, KeyCode::Char(' '));
+        assert_eq!(app.session().current().id, "b", "second press navigates");
+    }
+
+    #[test]
+    fn branch_keys_continue_revealing_instead_of_choosing_early() {
+        const DECK: &str = r#"{"nodes":[
+            {"id":"a","traversal":{"branch-point":{"options":[
+                {"label":"One","key":"1","target":"b"}
+            ]}},"content":[
+                {"kind":"text","body":"x","reveal":1}
+            ]},
+            {"id":"b","content":[]}
+        ]}"#;
+        let mut app = App::new(
+            Session::new(Graph::from_json(DECK).expect("fixture parses")).expect("non-empty"),
+        );
+
+        // The branch key ('1') would normally choose an option; while
+        // reveal is pending it must instead continue revealing (FR-007),
+        // not silently do nothing.
+        press(&mut app, KeyCode::Char('1'));
+        assert_eq!(app.session().current().id, "a", "still on the branch node");
+        assert!(
+            !app.session().has_pending_reveal(),
+            "the branch key consumed the reveal step"
+        );
+
+        // Now that reveal is exhausted, the same key selects the option.
+        press(&mut app, KeyCode::Char('1'));
+        assert_eq!(app.session().current().id, "b", "branch key now chooses");
+    }
+
+    #[test]
+    fn reveal_marks_do_not_change_a_deck_that_never_uses_them() {
+        let app = app();
+        let s = screen(&app, 80, 24);
+        assert!(!s.contains("revealed"), "no reveal badge on an ordinary deck: {s}");
+        assert!(s.contains("Space next"), "ordinary footer hint unchanged: {s}");
+    }
+
+    #[test]
+    fn hidden_column_reserves_no_width_until_revealed_at_80x24() {
+        const DECK: &str = r#"{"nodes":[{"id":"a","content":[
+            {"kind":"container","layout":"columns","children":[
+                {"kind":"text","body":"Left column"},
+                {"kind":"text","body":"Right column","reveal":1}
+            ]}
+        ]}]}"#;
+        let mut app = App::new(
+            Session::new(Graph::from_json(DECK).expect("fixture parses")).expect("non-empty"),
+        );
+
+        let s = screen(&app, 80, 24);
+        assert!(s.contains("Left column"), "{s}");
+        assert!(!s.contains("Right column"), "right column not yet revealed: {s}");
+
+        press(&mut app, KeyCode::Char(' '));
+        let s = screen(&app, 80, 24);
+        let row = s
+            .lines()
+            .find(|l| l.contains("Left column"))
+            .expect("columns row visible");
+        assert!(
+            row.contains("Right column"),
+            "both columns visible side by side once revealed: {row:?}"
+        );
+    }
+
+    #[test]
     fn code_gets_syntax_colors_from_the_theme() {
         let mut app = app();
         press(&mut app, KeyCode::Char(' '));
@@ -1296,7 +1434,7 @@ mod tests {
         }
         // The other editable block (the trailing text) is untouched.
         match &node.content[3] {
-            ContentBlock::Text { body } => {
+            ContentBlock::Text { body, .. } => {
                 assert_eq!(
                     body,
                     "Every edge is explicit. No implicit sequential fallback."
@@ -1306,7 +1444,7 @@ mod tests {
         }
         // Non-editable siblings on the same node are untouched too.
         assert!(matches!(node.content[1], ContentBlock::List { .. }));
-        assert!(matches!(node.content[2], ContentBlock::Divider));
+        assert!(matches!(node.content[2], ContentBlock::Divider { .. }));
     }
 
     #[test]
@@ -1325,6 +1463,7 @@ mod tests {
         assert_eq!(
             app.session().current().content[0],
             ContentBlock::Heading {
+                reveal: None,
                 level: 2,
                 text: "Core Features".to_owned(),
             },

@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-12)
 
 ## Corpus Check
-- 185 files · ~170,073 words
+- 198 files · ~183,913 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1974 nodes · 2756 edges · 180 communities (150 shown, 30 thin omitted)
+- 2119 nodes · 2965 edges · 193 communities (161 shown, 32 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 34 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bb3eae43`
+- Built from commit: `e60732de`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -193,18 +193,31 @@
 - [[_COMMUNITY_Community 177|Community 177]]
 - [[_COMMUNITY_Community 178|Community 178]]
 - [[_COMMUNITY_Community 179|Community 179]]
+- [[_COMMUNITY_Community 180|Community 180]]
+- [[_COMMUNITY_Community 181|Community 181]]
+- [[_COMMUNITY_Community 182|Community 182]]
+- [[_COMMUNITY_Community 183|Community 183]]
+- [[_COMMUNITY_Community 184|Community 184]]
+- [[_COMMUNITY_Community 185|Community 185]]
+- [[_COMMUNITY_Community 186|Community 186]]
+- [[_COMMUNITY_Community 187|Community 187]]
+- [[_COMMUNITY_Community 188|Community 188]]
+- [[_COMMUNITY_Community 189|Community 189]]
+- [[_COMMUNITY_Community 190|Community 190]]
+- [[_COMMUNITY_Community 191|Community 191]]
+- [[_COMMUNITY_Community 192|Community 192]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `app()` - 41 edges
-2. `App` - 37 edges
-3. `press()` - 35 edges
-4. `screen()` - 34 edges
-5. `render_block()` - 30 edges
-6. `Session` - 20 edges
-7. `Diagnostic` - 20 edges
-8. `flat()` - 20 edges
-9. `import()` - 18 edges
-10. `EditableField` - 18 edges
+1. `app()` - 42 edges
+2. `press()` - 39 edges
+3. `App` - 38 edges
+4. `screen()` - 37 edges
+5. `render_block()` - 32 edges
+6. `Session` - 24 edges
+7. `render()` - 23 edges
+8. `Diagnostic` - 22 edges
+9. `flat()` - 22 edges
+10. `import()` - 18 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
@@ -243,7 +256,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (180 total, 30 thin omitted)
+## Communities (193 total, 32 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -275,15 +288,15 @@ Nodes (18): 1. Current-State Analysis, 2. Prioritized Improvements, 3. Phase 1 R
 
 ### Community 7 - "Editor Navigation"
 Cohesion: 0.16
-Nodes (40): ContainerLayout, ContentBlock, Line, Option, Span, String, Tokens, Vec (+32 more)
+Nodes (45): ContainerLayout, ContentBlock, Line, Option, Span, String, Tokens, Vec (+37 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.17
 Nodes (34): App, Frame, Graph, HashSet, Node, Option, Rect, Span (+26 more)
 
 ### Community 9 - "Editor Interaction Tests"
-Cohesion: 0.14
-Nodes (38): Display, Formatter, Graph, HashSet, Node, Option, Result, Self (+30 more)
+Cohesion: 0.13
+Nodes (43): ContentBlock, Display, Formatter, Graph, HashSet, Node, Option, Result (+35 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.22
@@ -326,8 +339,8 @@ Cohesion: 0.08
 Nodes (25): 1. Initialize Analysis Context, 2. Load Artifacts (Progressive Disclosure), 3. Build Semantic Models, 4. Detection Passes (Token-Efficient Analysis), 5. Severity Assignment, 6. Produce Compact Analysis Report, 7. Provide Next Actions, 8. Offer Remediation (+17 more)
 
 ### Community 21 - "Presentation Session"
-Cohesion: 0.10
-Nodes (26): BranchPoint, Graph, HashSet, Node, NodeDefaults, NodeId, Option, Result (+18 more)
+Cohesion: 0.08
+Nodes (34): BranchPoint, Graph, HashSet, Node, NodeDefaults, NodeId, Option, Result (+26 more)
 
 ### Community 22 - "Community 22"
 Cohesion: 0.08
@@ -390,12 +403,12 @@ Cohesion: 0.14
 Nodes (13): compilerOptions, declaration, esModuleInterop, module, moduleResolution, outDir, rootDir, skipLibCheck (+5 more)
 
 ### Community 37 - "Protocol JS Validator"
-Cohesion: 0.25
-Nodes (18): fixturePaths(), fixturesDir, here, main(), checkDeadEndBranches(), checkEmptyTraversal(), checkNextBranchPointConflict(), checkReachability() (+10 more)
+Cohesion: 0.23
+Nodes (19): fixturePaths(), fixturesDir, here, main(), checkDeadEndBranches(), checkEmptyTraversal(), checkNextBranchPointConflict(), checkReachability() (+11 more)
 
 ### Community 38 - "Project Cheat Sheets"
-Cohesion: 0.17
-Nodes (16): Graph (runtime repr), GraphFile (wire repr), Layout enum (12 variants), Getting Started Guide (First Fireside Graph), Appendix C — Content Block Reference, ContainerBlock, ContentBlock Union (7 core kinds), ContentBlock Union (+8 more)
+Cohesion: 0.15
+Nodes (16): Graphify Usage Rules, Copilot CLI Cheat Sheet, Graph (runtime repr), GraphFile (wire repr), Layout enum (12 variants), Transition enum (8 variants, core), Getting Started Guide (First Fireside Graph), Enums and Version (+8 more)
 
 ### Community 39 - "Community 39"
 Cohesion: 0.18
@@ -427,7 +440,7 @@ Nodes (10): Completion Report, Done When, Key rules, Mandatory Post-Execution Ho
 
 ### Community 46 - "Editor Command Tests"
 Cohesion: 0.05
-Nodes (36): CLI Event Loop, Command / CommandHistory (undo-redo), Action enum (~35 variants), App struct (TUI state), AppMode (Presenting/Editing/GotoNode/Quitting), TEA (The Elm Architecture) Discipline, Appendix B — Engine Guidelines, Container Rendering Guidance (+28 more)
+Nodes (37): CLI Event Loop, Command / CommandHistory (undo-redo), Action enum (~35 variants), App struct (TUI state), AppMode (Presenting/Editing/GotoNode/Quitting), TEA (The Elm Architecture) Discipline, Appendix B — Engine Guidelines, Container Rendering Guidance (+29 more)
 
 ### Community 47 - "Layout Rendering"
 Cohesion: 0.19
@@ -539,7 +552,7 @@ Nodes (4): [Category 1], [Category 2], [CHECKLIST TYPE] Checklist: [FEATURE NAME
 
 ### Community 79 - "Community 79"
 Cohesion: 0.50
-Nodes (4): Graphify Usage Rules, Copilot CLI Cheat Sheet, Transition enum (8 variants, core), Transition enum (none, fade — protocol)
+Nodes (5): Appendix C — Content Block Reference, ContainerBlock, ContentBlock Union (7 core kinds), ContentBlock Union, The `reveal` field (all kinds)
 
 ### Community 83 - "Community 83"
 Cohesion: 0.83
@@ -551,11 +564,11 @@ Nodes (3): Bad Tests, Good and Bad Tests, Good Tests
 
 ### Community 87 - "Model Module"
 Cohesion: 0.07
-Nodes (31): BranchOption, CoreError, BranchPoint, ContentBlock, Node, NodeDefaults, NodeId, Option (+23 more)
+Nodes (33): BranchOption, CoreError, BranchPoint, ContentBlock, Node, NodeDefaults, NodeId, Option (+25 more)
 
 ### Community 88 - "Render Module"
-Cohesion: 0.09
-Nodes (75): App, Frame, KeyCode, Line, Option, Rect, String, Tokens (+67 more)
+Cohesion: 0.08
+Nodes (80): App, Frame, KeyCode, Line, Option, Rect, String, Tokens (+72 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.15
@@ -802,8 +815,8 @@ Cohesion: 0.20
 Nodes (9): Dependencies & Execution Order, Implementation Strategy, Parallel Execution Examples, Phase 1: Setup (protocol version bump), Phase 2: User Story 1 - Third-party implementer reads an unambiguous spec (Priority: P1), Phase 3: User Story 2 - Presenter gets a diagnostic for empty traversal (Priority: P1), Phase 4: User Story 3 - Fixture corpus proves Rust/Node parity (Priority: P2), Phase 5: Polish & Cross-Cutting (+1 more)
 
 ### Community 159 - "Community 159"
-Cohesion: 0.18
-Nodes (10): invalid/dangling-target.json, invalid/duplicate-branch-keys.json, invalid/duplicate-node-ids.json, invalid/next-branch-point-conflict.json, valid/clean.json, valid/dead-end-branch.json, valid/empty-traversal.json, valid/self-loop.json (+2 more)
+Cohesion: 0.15
+Nodes (12): invalid/dangling-target.json, invalid/duplicate-branch-keys.json, invalid/duplicate-node-ids.json, invalid/next-branch-point-conflict.json, valid/clean.json, valid/dead-end-branch.json, valid/empty-traversal.json, valid/reveal-masked-by-container.json (+4 more)
 
 ### Community 160 - "Community 160"
 Cohesion: 0.48
@@ -837,14 +850,58 @@ Nodes (8): Full verification, Prerequisites, Quickstart: ASCII art centering and
 Cohesion: 0.22
 Nodes (8): Dependencies & Execution Order, Implementation Strategy, Phase 1: Setup, Phase 2: User Story 1 - Presenter's ASCII diagram reads as deliberate (Priority: P1), Phase 3: User Story 2 - Oversized ASCII art degrades gracefully (Priority: P2), Phase 4: Regression & Composition, Phase 5: Polish & Cross-Cutting, Tasks: ASCII art centering and clipping
 
+### Community 180 - "Community 180"
+Cohesion: 0.22
+Nodes (8): ADR-008: ratatui-image MSRV spike — no-go for now, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+
+### Community 181 - "Community 181"
+Cohesion: 0.22
+Nodes (8): ADR-009: Incremental reveal via a `reveal` ContentBlock field, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+
+### Community 182 - "Community 182"
+Cohesion: 0.15
+Nodes (12): Assumptions, Edge Cases, Feature Specification: Incremental reveal, Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+4 more)
+
+### Community 183 - "Community 183"
+Cohesion: 0.33
+Nodes (5): Specification Quality Checklist: Incremental reveal, Content Quality, Feature Readiness, Notes, Requirement Completeness
+
+### Community 184 - "Community 184"
+Cohesion: 0.22
+Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: Incremental reveal, Project Structure, Source Code (repository root), Summary, Technical Context
+
+### Community 185 - "Community 185"
+Cohesion: 0.29
+Nodes (6): Decision: ordinal-over-distinct-values step semantics, Decision: `reveal-masked-by-container` as a WARNING, not an ERROR, Decision: reveal precedes branch-point and next-target, unconditionally, Decision: reveal resets on every node entry, not history-aware, Decision: structural hiding, not dim/invisible styling, Phase 0 Research: Incremental reveal
+
+### Community 186 - "Community 186"
+Cohesion: 0.12
+Nodes (16): App/TUI state additions (`fireside-tui::app`), `ContentBlock`, Engine model additions (`fireside-engine::session`), `Node`, Node (`protocol/validate.mjs`), `Outcome`, Phase 1 Data Model: Incremental reveal, Rendering additions (`fireside-tui::render`) (+8 more)
+
+### Community 187 - "Community 187"
+Cohesion: 0.33
+Nodes (5): Compatibility, Contract: the `reveal` ContentBlock field, Step derivation (per node, recomputed fresh on every entry), Visibility rule, Wire shape
+
+### Community 188 - "Community 188"
+Cohesion: 0.33
+Nodes (5): Contract: `next()` with incremental reveal, Interaction with `back()` and `goto()`, Interaction with `choose()`, Outcome contract, Revised algorithm
+
+### Community 189 - "Community 189"
+Cohesion: 0.22
+Nodes (8): Prerequisites, Quickstart: validating incremental reveal, Regression check, Scenario 1 — bullets reveal one at a time (US1), Scenario 2 — gap in numbering never wastes a keypress (FR-004), Scenario 3 — reveal blocks a branch choice (US1 edge case, FR-007), Scenario 4 — columns compose correctly with reveal (US2), Scenario 5 — validator catches a masked reveal (US3, FR-012)
+
+### Community 190 - "Community 190"
+Cohesion: 0.18
+Nodes (10): Dependencies & Execution Order, Implementation Strategy, Phase 1: Setup, Phase 2: Foundational (blocking prerequisite for all user stories), Phase 3: User Story 1 - Presenter reveals bullets one at a time (Priority: P1), Phase 4: User Story 2 - Reveal composes with side-by-side layouts (Priority: P2), Phase 5: User Story 3 - Author is warned about a reveal mistake (Priority: P3), Phase 6: Regression & Composition (+2 more)
+
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **998 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+993 more)
+- **1073 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1068 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **30 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **32 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -852,14 +909,14 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Community 122`, `Presentation Session`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `TUI App Core`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1000 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1075 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.08141321044546851 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**
-  _Cohesion score 0.06935908691834942 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06905370843989769 - nodes in this community are weakly interconnected._

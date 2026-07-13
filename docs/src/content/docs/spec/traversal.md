@@ -29,14 +29,41 @@ A node may include either:
 There is no implicit sequential fallback. Array order is only document
 organization.
 
+## Incremental reveal precedence
+
+Before branch-point gating or any traversal check, `Next` first checks
+whether the current node has reveal steps not yet reached (see
+[`ContentBlock.reveal` in §2 Data Model](/spec/data-model/#the-reveal-field-all-kinds)).
+If so, `Next` advances one reveal step and returns — it does not evaluate
+branch-point or traversal at all on that call. Only once every reveal
+step for the current node has been shown does `Next` fall through to the
+branch-point/traversal algorithm below. This holds unconditionally,
+including on terminal nodes with no traversal at all.
+
+A node's reveal steps are the distinct *positive* `reveal` values used
+anywhere in its `content` (recursively, including inside `container`
+children), sorted ascending — not raw integer magnitudes. Two blocks
+sharing a `reveal` value reveal together, as one step. Deriving steps
+this way guarantees every `Next` call while reveal is pending visibly
+reveals something, even if an author's chosen values have gaps (e.g. `1`
+then `3`, skipping `2`).
+
+Reveal progress is per-node and transient: it resets to "nothing beyond
+the always-visible content shown" every time a node is entered, by any
+operation (`Next`, `Choose`, `Goto`, or `Back`) — even when re-entering a
+node that was already fully revealed on an earlier visit.
+
 ## Branch-point precedence
 
-If a node has a branch point, `Next` is blocked. The engine MUST wait
-for `Choose`.
+If a node has a branch point, `Next` is blocked once reveal is exhausted.
+The engine MUST wait for `Choose`. `Choose` itself MUST NOT succeed while
+reveal is still pending (see [Operation: Choose](#operation-choose)).
 
 ```mermaid
 flowchart TD
-  A[Presenter invokes Next] --> B{Current node has branch-point?}
+  A[Presenter invokes Next] --> R{Reveal steps remain?}
+  R -->|Yes| S[Advance one reveal step]
+  R -->|No| B{Current node has branch-point?}
   B -->|Yes| C[Block Next and wait for Choose]
   B -->|No| D{Traversal is a string?}
   D -->|Yes| E[Navigate to target node]
@@ -47,23 +74,28 @@ flowchart TD
 
 ## Operation: Next
 
-`Next` advances from the current node using explicit traversal.
+`Next` advances from the current node using explicit traversal, after
+first exhausting any pending incremental reveal (see above).
 
 ### Algorithm
 
 1. Let `node` be the current node.
-2. If `node.traversal.branch-point` exists, `Next` is invalid.
-3. If `node.traversal` is a string:
+2. If `node` has reveal steps not yet reached, advance to the next one
+   and return.
+3. If `node.traversal.branch-point` exists, `Next` is invalid.
+4. If `node.traversal` is a string:
    - validate target node ID
    - push `node.id` onto `history`
    - set `current` to the target
+   - reset the target node's reveal progress
    - return
-4. If `node.traversal.next` exists:
+5. If `node.traversal.next` exists:
    - validate target node ID
    - push `node.id` onto `history`
    - set `current` to `traversal.next`
+   - reset the target node's reveal progress
    - return
-5. Otherwise, remain on the current node.
+6. Otherwise, remain on the current node.
 
 ## Operation: Choose
 
@@ -84,6 +116,10 @@ options, which makes selecting a foreign option unrepresentable.
 ### Preconditions
 
 - current node has `traversal.branch-point`
+- current node has no reveal steps still pending (see
+  [Incremental reveal precedence](#incremental-reveal-precedence)) —
+  `Choose` MUST NOT succeed while reveal is pending, mirroring the gate
+  `Next` applies to itself
 - selected key or option label maps to exactly one option
 
 ### Algorithm
@@ -93,8 +129,10 @@ options, which makes selecting a foreign option unrepresentable.
 3. Validate `target` exists.
 4. Push current node ID to `history`.
 5. Set `current` to `target`.
+6. Reset the target node's reveal progress.
 
-`Choose` is invalid outside a branch-point node.
+`Choose` is invalid outside a branch-point node, and while the current
+node has reveal steps not yet reached.
 
 ## Operation: Goto
 
@@ -107,6 +145,7 @@ Because `Goto` is an explicit command, it bypasses branch-point gating.
 1. Validate destination node ID exists.
 2. Push current node ID to `history`.
 3. Set `current` to destination node ID.
+4. Reset the destination node's reveal progress.
 
 ## Operation: Back
 
@@ -117,6 +156,8 @@ Because `Goto` is an explicit command, it bypasses branch-point gating.
 1. If `history` is empty, remain at current node.
 2. Otherwise pop top ID from `history`.
 3. Set `current` to popped node ID.
+4. Reset that node's reveal progress — even if it was fully revealed on
+   an earlier visit. Reveal progress is not history-aware.
 
 `Back` MUST NOT push a new history entry during the same operation.
 

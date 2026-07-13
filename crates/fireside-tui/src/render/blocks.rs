@@ -14,32 +14,65 @@ use unicode_width::UnicodeWidthStr;
 use super::{markdown, syntax};
 use crate::theme::Tokens;
 
+/// A block whose reveal step has not yet been reached at `reveal_level` —
+/// structurally absent, not merely styled invisible (see
+/// `specs/006-incremental-reveal/contracts/reveal-field.md`).
+fn is_revealed(block: &ContentBlock, reveal_level: u32) -> bool {
+    block.reveal().unwrap_or(0) <= reveal_level
+}
+
+/// The subset of `blocks` visible at `reveal_level`, in order. Filtering
+/// here (rather than skipping during layout) is what keeps a hidden block
+/// from reserving space — e.g. an unrevealed `columns` child never affects
+/// the column-width division.
+fn visible_blocks(blocks: &[ContentBlock], reveal_level: u32) -> Vec<&ContentBlock> {
+    blocks
+        .iter()
+        .filter(|b| is_revealed(b, reveal_level))
+        .collect()
+}
+
 /// Render a node's blocks to a line flow at `width` columns, with one blank
-/// line between blocks.
+/// line between blocks. `reveal_level` is the presenter's current reveal
+/// threshold for this node (`0` when the node uses no reveal marks, or
+/// while nothing has been revealed yet) — blocks not yet reached are
+/// omitted entirely, not dimmed.
 #[must_use]
-pub fn render_blocks(blocks: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+pub fn render_blocks(
+    blocks: &[ContentBlock],
+    width: u16,
+    tokens: &Tokens,
+    reveal_level: u32,
+) -> Vec<Line<'static>> {
+    let visible = visible_blocks(blocks, reveal_level);
     let mut lines = Vec::new();
-    for (i, block) in blocks.iter().enumerate() {
+    for (i, block) in visible.into_iter().enumerate() {
         if i > 0 {
             lines.push(Line::default());
         }
-        lines.extend(render_block(block, width, tokens));
+        lines.extend(render_block(block, width, tokens, reveal_level));
     }
     lines
 }
 
-fn render_block(block: &ContentBlock, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+fn render_block(
+    block: &ContentBlock,
+    width: u16,
+    tokens: &Tokens,
+    reveal_level: u32,
+) -> Vec<Line<'static>> {
     if width == 0 {
         return Vec::new();
     }
     match block {
-        ContentBlock::Heading { level, text } => heading(*level, text, width, tokens),
-        ContentBlock::Text { body } => markdown::wrap_styled(body, width, tokens.text, tokens),
+        ContentBlock::Heading { level, text, .. } => heading(*level, text, width, tokens),
+        ContentBlock::Text { body, .. } => markdown::wrap_styled(body, width, tokens.text, tokens),
         ContentBlock::Code {
             language,
             source,
             highlight_lines,
             show_line_numbers,
+            ..
         } => code(
             language.as_deref(),
             source,
@@ -48,16 +81,16 @@ fn render_block(block: &ContentBlock, width: u16, tokens: &Tokens) -> Vec<Line<'
             width,
             tokens,
         ),
-        ContentBlock::List { ordered, items } => {
+        ContentBlock::List { ordered, items, .. } => {
             list(ordered.unwrap_or(false), items, width, tokens)
         }
         ContentBlock::Image {
             src, alt, caption, ..
         } => image(src, alt.as_deref(), caption.as_deref(), width, tokens),
-        ContentBlock::Divider => divider(width, tokens),
-        ContentBlock::Container { children, layout } => {
-            container(children, layout.unwrap_or_default(), width, tokens)
-        }
+        ContentBlock::Divider { .. } => divider(width, tokens),
+        ContentBlock::Container {
+            children, layout, ..
+        } => container(children, layout.unwrap_or_default(), width, tokens, reveal_level),
     }
 }
 
@@ -364,31 +397,40 @@ fn container(
     layout: ContainerLayout,
     width: u16,
     tokens: &Tokens,
+    reveal_level: u32,
 ) -> Vec<Line<'static>> {
     match layout {
-        ContainerLayout::Stack => render_blocks(children, width, tokens),
-        ContainerLayout::Columns => columns(children, width, tokens),
-        ContainerLayout::Center => center(children, width, tokens),
+        ContainerLayout::Stack => render_blocks(children, width, tokens, reveal_level),
+        ContainerLayout::Columns => columns(children, width, tokens, reveal_level),
+        ContainerLayout::Center => center(children, width, tokens, reveal_level),
     }
 }
 
 const GUTTER: u16 = 2;
 
-/// Side-by-side children: equal column widths, in array order.
-fn columns(children: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
-    let n = children.len() as u16;
+/// Side-by-side children: equal column widths, in array order. A child not
+/// yet revealed is excluded before the column count/width is computed, so
+/// it never reserves a blank slot.
+fn columns(
+    children: &[ContentBlock],
+    width: u16,
+    tokens: &Tokens,
+    reveal_level: u32,
+) -> Vec<Line<'static>> {
+    let visible = visible_blocks(children, reveal_level);
+    let n = visible.len() as u16;
     if n == 0 {
         return Vec::new();
     }
     let col_width = width.saturating_sub(GUTTER * (n - 1)) / n;
     if col_width < 8 {
         // Too narrow to read side by side — gracefully fall back to a stack.
-        return render_blocks(children, width, tokens);
+        return render_blocks(children, width, tokens, reveal_level);
     }
 
-    let cols: Vec<Vec<Line<'static>>> = children
-        .iter()
-        .map(|c| render_block(c, col_width, tokens))
+    let cols: Vec<Vec<Line<'static>>> = visible
+        .into_iter()
+        .map(|c| render_block(c, col_width, tokens, reveal_level))
         .collect();
     let rows = cols.iter().map(Vec::len).max().unwrap_or(0);
 
@@ -421,14 +463,19 @@ fn columns(children: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'
 /// Center children on the container's axis. Prose (headings, text) centers
 /// line by line, the way a title slide reads; everything else (code, lists,
 /// images) moves as one unit so its internal alignment holds.
-fn center(children: &[ContentBlock], width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+fn center(
+    children: &[ContentBlock],
+    width: u16,
+    tokens: &Tokens,
+    reveal_level: u32,
+) -> Vec<Line<'static>> {
     let inner_width = (u32::from(width) * 4 / 5) as u16;
     let mut lines = Vec::new();
-    for (i, child) in children.iter().enumerate() {
+    for (i, child) in visible_blocks(children, reveal_level).into_iter().enumerate() {
         if i > 0 {
             lines.push(Line::default());
         }
-        let flow = render_block(child, inner_width.max(1), tokens);
+        let flow = render_block(child, inner_width.max(1), tokens, reveal_level);
         let prose = matches!(
             child,
             ContentBlock::Heading { .. } | ContentBlock::Text { .. }
@@ -462,30 +509,38 @@ mod tests {
             .collect()
     }
 
+    /// `render_block` at reveal level 0 — the vast majority of tests here
+    /// don't exercise reveal at all, so this keeps them uncluttered.
+    fn render(block: &ContentBlock, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+        render_block(block, width, tokens, 0)
+    }
+
     #[test]
     fn h1_gets_an_underline_rule() {
         let block = ContentBlock::Heading {
+            reveal: None,
             level: 1,
             text: "Hi".into(),
         };
-        let lines = flat(&render_block(&block, 20, &Tokens::default()));
+        let lines = flat(&render(&block, 20, &Tokens::default()));
         assert_eq!(lines, ["Hi", "──"]);
     }
 
     #[test]
     fn h2_gets_an_accent_bar() {
         let block = ContentBlock::Heading {
+            reveal: None,
             level: 2,
             text: "Section".into(),
         };
-        let lines = flat(&render_block(&block, 20, &Tokens::default()));
+        let lines = flat(&render(&block, 20, &Tokens::default()));
         assert_eq!(lines, ["▎ Section"]);
     }
 
     #[test]
     fn divider_is_a_short_centered_rule() {
-        let lines = flat(&render_block(
-            &ContentBlock::Divider,
+        let lines = flat(&render(
+            &ContentBlock::Divider { reveal: None },
             30,
             &Tokens::default(),
         ));
@@ -500,12 +555,13 @@ mod tests {
     #[test]
     fn code_renders_rules_line_numbers_and_clipping() {
         let block = ContentBlock::Code {
+            reveal: None,
             language: Some("rust".into()),
             source: "fn main() {}\nlet x = 1;".into(),
             highlight_lines: Some(vec![2]),
             show_line_numbers: Some(true),
         };
-        let lines = flat(&render_block(&block, 24, &Tokens::default()));
+        let lines = flat(&render(&block, 24, &Tokens::default()));
         assert!(lines[0].starts_with("─ rust "));
         assert!(lines[1].contains("1 │ fn main() {}"));
         assert!(lines[2].contains("2 │ let x = 1;"));
@@ -515,10 +571,11 @@ mod tests {
     #[test]
     fn ordered_list_numbers_items_and_indents_wraps() {
         let block = ContentBlock::List {
+            reveal: None,
             ordered: Some(true),
             items: vec!["first point that wraps onto another line".into()],
         };
-        let lines = flat(&render_block(&block, 24, &Tokens::default()));
+        let lines = flat(&render(&block, 24, &Tokens::default()));
         assert!(lines[0].starts_with(" 1. first"));
         assert!(lines[1].starts_with("    "));
     }
@@ -526,17 +583,20 @@ mod tests {
     #[test]
     fn columns_render_side_by_side_in_array_order() {
         let block = ContentBlock::Container {
+            reveal: None,
             layout: Some(ContainerLayout::Columns),
             children: vec![
                 ContentBlock::Text {
+                    reveal: None,
                     body: "left".into(),
                 },
                 ContentBlock::Text {
+                    reveal: None,
                     body: "right".into(),
                 },
             ],
         };
-        let lines = flat(&render_block(&block, 30, &Tokens::default()));
+        let lines = flat(&render(&block, 30, &Tokens::default()));
         assert_eq!(lines.len(), 1);
         let pos_l = lines[0].find("left").expect("left present");
         let pos_r = lines[0].find("right").expect("right present");
@@ -546,27 +606,34 @@ mod tests {
     #[test]
     fn narrow_columns_fall_back_to_stack() {
         let block = ContentBlock::Container {
+            reveal: None,
             layout: Some(ContainerLayout::Columns),
             children: vec![
                 ContentBlock::Text {
+                    reveal: None,
                     body: "left".into(),
                 },
                 ContentBlock::Text {
+                    reveal: None,
                     body: "right".into(),
                 },
             ],
         };
-        let lines = flat(&render_block(&block, 12, &Tokens::default()));
+        let lines = flat(&render(&block, 12, &Tokens::default()));
         assert!(lines.len() > 1);
     }
 
     #[test]
     fn center_offsets_content_into_the_middle() {
         let block = ContentBlock::Container {
+            reveal: None,
             layout: Some(ContainerLayout::Center),
-            children: vec![ContentBlock::Text { body: "hi".into() }],
+            children: vec![ContentBlock::Text {
+                reveal: None,
+                body: "hi".into(),
+            }],
         };
-        let lines = flat(&render_block(&block, 20, &Tokens::default()));
+        let lines = flat(&render(&block, 20, &Tokens::default()));
         assert_eq!(lines[0].trim(), "hi");
         let leading = lines[0].len() - lines[0].trim_start().len();
         assert!((8..=10).contains(&leading), "centered, got {leading}");
@@ -575,15 +642,17 @@ mod tests {
     #[test]
     fn centered_code_keeps_its_internal_alignment() {
         let block = ContentBlock::Container {
+            reveal: None,
             layout: Some(ContainerLayout::Center),
             children: vec![ContentBlock::Code {
+                reveal: None,
                 language: None,
                 source: "short\na longer line".into(),
                 highlight_lines: None,
                 show_line_numbers: None,
             }],
         };
-        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        let lines = flat(&render(&block, 40, &Tokens::default()));
         let lead_short = lines[1].find("short").expect("short present");
         let lead_long = lines[2].find("a longer line").expect("long present");
         assert_eq!(
@@ -595,13 +664,14 @@ mod tests {
     #[test]
     fn image_renders_a_framed_plate_with_caption() {
         let block = ContentBlock::Image {
+            reveal: None,
             src: "fire.png".into(),
             alt: Some("A campfire".into()),
             caption: Some("Warm".into()),
             width: None,
             height: None,
         };
-        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        let lines = flat(&render(&block, 40, &Tokens::default()));
         assert!(lines[0].contains("╭─ ▨"), "framed top: {lines:?}");
         assert!(lines[1].contains("│"), "framed side: {lines:?}");
         assert!(lines[1].contains("A campfire"), "label shown: {lines:?}");
@@ -615,13 +685,14 @@ mod tests {
     #[test]
     fn narrow_image_falls_back_to_a_quiet_line() {
         let block = ContentBlock::Image {
+            reveal: None,
             src: "fire.png".into(),
             alt: Some("A campfire".into()),
             caption: None,
             width: None,
             height: None,
         };
-        let lines = flat(&render_block(&block, 12, &Tokens::default()));
+        let lines = flat(&render(&block, 12, &Tokens::default()));
         assert!(lines[0].contains("A campfire"), "{lines:?}");
         assert!(!lines[0].contains('╭'), "no frame this narrow: {lines:?}");
     }
@@ -629,12 +700,13 @@ mod tests {
     #[test]
     fn ascii_art_code_block_centers_to_its_content_width() {
         let block = ContentBlock::Code {
+            reveal: None,
             language: None,
             source: " /\\_/\\ \n( o.o )\n > ^ < ".into(),
             highlight_lines: None,
             show_line_numbers: None,
         };
-        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        let lines = flat(&render(&block, 40, &Tokens::default()));
         let box_width = lines.iter().map(|l| l.width()).max().unwrap_or(0);
         assert!(box_width < 40, "box should not stretch full width: {lines:?}");
         // The bottom rule is pure pad + dashes, so its leading-space count
@@ -653,8 +725,9 @@ mod tests {
     #[test]
     fn text_and_ascii_language_strings_center_like_no_language() {
         let source = " /\\_/\\ \n( o.o )\n > ^ < ";
-        let none_lines = flat(&render_block(
+        let none_lines = flat(&render(
             &ContentBlock::Code {
+                reveal: None,
                 language: None,
                 source: source.into(),
                 highlight_lines: None,
@@ -664,8 +737,9 @@ mod tests {
             &Tokens::default(),
         ));
         for lang in ["text", "ascii"] {
-            let lines = flat(&render_block(
+            let lines = flat(&render(
                 &ContentBlock::Code {
+                    reveal: None,
                     language: Some(lang.into()),
                     source: source.into(),
                     highlight_lines: None,
@@ -686,12 +760,13 @@ mod tests {
     #[test]
     fn explicit_language_code_block_stays_full_width() {
         let block = ContentBlock::Code {
+            reveal: None,
             language: Some("rust".into()),
             source: " /\\_/\\ \n( o.o )\n > ^ < ".into(),
             highlight_lines: None,
             show_line_numbers: None,
         };
-        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        let lines = flat(&render(&block, 40, &Tokens::default()));
         assert!(lines[0].starts_with("─ rust "), "{lines:?}");
         assert_eq!(lines[0].chars().count(), 40, "top rule fills full width: {lines:?}");
         let bottom = lines.last().expect("bottom rule present");
@@ -710,12 +785,13 @@ mod tests {
     fn oversized_ascii_art_caps_and_clips_with_ellipsis() {
         let long_line = "x".repeat(200);
         let block = ContentBlock::Code {
+            reveal: None,
             language: None,
             source: long_line,
             highlight_lines: None,
             show_line_numbers: None,
         };
-        let lines = flat(&render_block(&block, 30, &Tokens::default()));
+        let lines = flat(&render(&block, 30, &Tokens::default()));
         let box_width = lines.iter().map(|l| l.chars().count()).max().unwrap_or(0);
         assert_eq!(box_width, 30, "box caps at available width: {lines:?}");
         assert!(lines[1].contains('…'), "overflow is marked: {lines:?}");
@@ -724,25 +800,27 @@ mod tests {
     #[test]
     fn ascii_art_never_panics_across_a_range_of_widths() {
         let block = ContentBlock::Code {
+            reveal: None,
             language: None,
             source: "x".repeat(200),
             highlight_lines: None,
             show_line_numbers: None,
         };
         for width in [0u16, 1, 2, 5, 10, 40, 200] {
-            let _ = render_block(&block, width, &Tokens::default());
+            let _ = render(&block, width, &Tokens::default());
         }
     }
 
     #[test]
     fn empty_ascii_art_code_block_does_not_collapse_or_panic() {
         let block = ContentBlock::Code {
+            reveal: None,
             language: None,
             source: String::new(),
             highlight_lines: None,
             show_line_numbers: None,
         };
-        let lines = flat(&render_block(&block, 40, &Tokens::default()));
+        let lines = flat(&render(&block, 40, &Tokens::default()));
         assert!(lines[0].contains("code"), "top rule shows the label: {lines:?}");
         let last = lines.last().expect("bottom rule present");
         assert!(!last.is_empty(), "bottom rule is not empty: {lines:?}");
@@ -755,8 +833,64 @@ mod tests {
         let tokens = Tokens::default();
         for node in &graph.nodes {
             for width in [0u16, 1, 7, 23, 80, 200] {
-                let _ = render_blocks(&node.content, width, &tokens);
+                let _ = render_blocks(&node.content, width, &tokens, 0);
             }
         }
+    }
+
+    #[test]
+    fn reveal_hides_a_block_until_its_step_is_reached() {
+        let blocks = vec![
+            ContentBlock::Text {
+                reveal: None,
+                body: "always".into(),
+            },
+            ContentBlock::Text {
+                reveal: Some(1),
+                body: "first reveal".into(),
+            },
+        ];
+        let hidden = flat(&render_blocks(&blocks, 40, &Tokens::default(), 0));
+        assert_eq!(hidden, ["always"], "reveal-gated block absent at level 0");
+        let shown = flat(&render_blocks(&blocks, 40, &Tokens::default(), 1));
+        assert_eq!(shown, ["always", "", "first reveal"]);
+    }
+
+    #[test]
+    fn hidden_column_reserves_no_width_until_revealed() {
+        let block = ContentBlock::Container {
+            reveal: None,
+            layout: Some(ContainerLayout::Columns),
+            children: vec![
+                ContentBlock::Text {
+                    reveal: None,
+                    body: "left".into(),
+                },
+                ContentBlock::Text {
+                    reveal: Some(1),
+                    body: "right".into(),
+                },
+            ],
+        };
+        let hidden = flat(&render_block(&block, 30, &Tokens::default(), 0));
+        assert!(
+            hidden.iter().any(|l| l.contains("left")),
+            "left column visible: {hidden:?}"
+        );
+        assert!(
+            !hidden.iter().any(|l| l.contains("right")),
+            "right column absent, not blank: {hidden:?}"
+        );
+        // With the right column absent, "left" uses the space a single
+        // column would use — not squeezed into a half-width column with
+        // an empty second slot.
+        let lead = hidden[0].find("left").unwrap_or(0);
+        assert!(lead < 3, "left column not squeezed into half width: {hidden:?}");
+
+        let shown = flat(&render_block(&block, 30, &Tokens::default(), 1));
+        assert_eq!(shown.len(), 1);
+        let pos_l = shown[0].find("left").expect("left present");
+        let pos_r = shown[0].find("right").expect("right present");
+        assert!(pos_l < pos_r, "both columns side by side once revealed: {shown:?}");
     }
 }

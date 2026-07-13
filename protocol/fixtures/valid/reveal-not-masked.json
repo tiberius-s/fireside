@@ -1,0 +1,17 @@
+{
+  "nodes": [
+    {
+      "id": "a",
+      "content": [
+        {
+          "kind": "container",
+          "reveal": 1,
+          "children": [
+            { "kind": "text", "body": "x", "reveal": 1 },
+            { "kind": "text", "body": "y", "reveal": 2 }
+          ]
+        }
+      ]
+    }
+  ]
+}

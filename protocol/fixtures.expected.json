@@ -5,6 +5,8 @@
   "valid/trivial-cycle.json": ["trivial-cycle"],
   "valid/dead-end-branch.json": ["dead-end-branch"],
   "valid/empty-traversal.json": ["empty-traversal"],
+  "valid/reveal-not-masked.json": [],
+  "valid/reveal-masked-by-container.json": ["reveal-masked-by-container"],
   "invalid/duplicate-node-ids.json": ["unique-node-ids"],
   "invalid/dangling-target.json": ["valid-traversal-target"],
   "invalid/next-branch-point-conflict.json": ["next-branch-point-conflict"],

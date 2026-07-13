@@ -271,6 +271,7 @@ fn try_paragraph_as_image(
         if k == inner_end {
             return (
                 Some(ContentBlock::Image {
+                    reveal: None,
                     src,
                     alt: (!alt.is_empty()).then_some(alt),
                     caption,
@@ -525,6 +526,7 @@ fn parse_sections(source: &str, node_ids: &[(String, String)]) -> Result<Vec<Sec
                         });
                     }
                     blocks.push(ContentBlock::Heading {
+                        reveal: None,
                         level: level_u8,
                         text: text.trim().to_owned(),
                     });
@@ -550,7 +552,7 @@ fn parse_sections(source: &str, node_ids: &[(String, String)]) -> Result<Vec<Sec
                             section: heading_text,
                         });
                     }
-                    blocks.push(ContentBlock::Text { body: text });
+                    blocks.push(ContentBlock::Text { reveal: None, body: text });
                 }
                 Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(info))) => {
                     let lang = info.to_string();
@@ -571,6 +573,7 @@ fn parse_sections(source: &str, node_ids: &[(String, String)]) -> Result<Vec<Sec
                         });
                     }
                     blocks.push(ContentBlock::Code {
+                        reveal: None,
                         language: (!lang.is_empty()).then_some(lang),
                         source: body,
                         highlight_lines: None,
@@ -588,6 +591,7 @@ fn parse_sections(source: &str, node_ids: &[(String, String)]) -> Result<Vec<Sec
                         });
                     }
                     blocks.push(ContentBlock::List {
+                        reveal: None,
                         ordered: Some(ordered),
                         items,
                     });
@@ -600,7 +604,7 @@ fn parse_sections(source: &str, node_ids: &[(String, String)]) -> Result<Vec<Sec
                             section: heading_text,
                         });
                     }
-                    blocks.push(ContentBlock::Divider);
+                    blocks.push(ContentBlock::Divider { reveal: None });
                 }
                 _ => i += 1,
             }
@@ -758,7 +762,7 @@ mod tests {
         assert!(graph.nodes[2].traversal.is_none(), "last node is terminal");
 
         match &graph.nodes[0].content[1] {
-            ContentBlock::List { ordered, items } => {
+            ContentBlock::List { ordered, items, .. } => {
                 assert_eq!(*ordered, Some(false));
                 assert_eq!(items, &["Point one".to_owned(), "Point two".to_owned()]);
             }
@@ -847,7 +851,7 @@ mod tests {
             }
             other => panic!("expected an image block, got {other:?}"),
         }
-        assert!(matches!(blocks[1], ContentBlock::Divider));
+        assert!(matches!(blocks[1], ContentBlock::Divider { .. }));
         assert!(matches!(blocks[2], ContentBlock::Text { .. }));
     }
 }

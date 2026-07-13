@@ -8,7 +8,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt;
 
-use fireside_core::{Graph, Node, TraversalSpec};
+use fireside_core::{ContentBlock, Graph, Node, TraversalSpec};
 
 /// How serious a diagnostic is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -97,6 +97,7 @@ pub fn validate(graph: &Graph) -> Vec<Diagnostic> {
     check_next_branch_point_conflict(graph, &mut diags);
     check_branch_options(graph, &mut diags);
     check_empty_traversal(graph, &mut diags);
+    check_reveal_masked_by_container(graph, &mut diags);
     check_reachability(graph, &ids, &mut diags);
     check_self_loops(graph, &mut diags);
     check_trivial_cycles(graph, &mut diags);
@@ -233,6 +234,42 @@ fn check_empty_traversal(graph: &Graph, diags: &mut Vec<Diagnostic>) {
                 Some(&node.id),
             ));
         }
+    }
+}
+
+/// WARNING: a child block's own `reveal` value is lower than its
+/// enclosing container's — the child can never actually appear before the
+/// container does, so the lower number is misleading rather than
+/// functional.
+fn check_reveal_masked_by_container(graph: &Graph, diags: &mut Vec<Diagnostic>) {
+    for node in &graph.nodes {
+        walk_reveal_masking(&node.content, &node.id, diags);
+    }
+}
+
+fn walk_reveal_masking(blocks: &[ContentBlock], node_id: &str, diags: &mut Vec<Diagnostic>) {
+    for block in blocks {
+        let ContentBlock::Container {
+            children, reveal, ..
+        } = block
+        else {
+            continue;
+        };
+        let container_level = reveal.unwrap_or(0);
+        for child in children {
+            let child_level = child.reveal().unwrap_or(0);
+            if child_level < container_level {
+                diags.push(Diagnostic::new(
+                    Severity::Warning,
+                    "reveal-masked-by-container",
+                    format!(
+                        "\"{node_id}\" has a block marked to reveal at step {child_level}, but it's nested inside a group that doesn't reveal until step {container_level} — it can't actually appear before its group does. Raise the block's reveal to {container_level} or higher, or lower the group's"
+                    ),
+                    Some(node_id),
+                ));
+            }
+        }
+        walk_reveal_masking(children, node_id, diags);
     }
 }
 
@@ -448,6 +485,38 @@ mod tests {
             ]}"#,
         );
         assert!(!rules(&diags).contains(&"empty-traversal"));
+    }
+
+    #[test]
+    fn reveal_masked_by_container_warns() {
+        let diags = diags_for(
+            r#"{"nodes":[{"id":"a","content":[
+                {"kind":"container","reveal":2,"children":[
+                    {"kind":"text","body":"x","reveal":1}
+                ]}
+            ]}]}"#,
+        );
+        let hits: Vec<_> = diags
+            .iter()
+            .filter(|d| d.rule == "reveal-masked-by-container")
+            .collect();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].node.as_deref(), Some("a"));
+        assert_eq!(hits[0].severity, Severity::Warning);
+        assert!(!has_errors(&diags));
+    }
+
+    #[test]
+    fn reveal_not_masked_when_child_reveal_is_greater_or_equal() {
+        let diags = diags_for(
+            r#"{"nodes":[{"id":"a","content":[
+                {"kind":"container","reveal":1,"children":[
+                    {"kind":"text","body":"x","reveal":1},
+                    {"kind":"text","body":"y","reveal":2}
+                ]}
+            ]}]}"#,
+        );
+        assert!(!rules(&diags).contains(&"reveal-masked-by-container"));
     }
 
     #[test]

@@ -3,6 +3,12 @@
     "$id": "ContainerBlock.json",
     "type": "object",
     "properties": {
+        "reveal": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "description": "The incremental-reveal step at which this block becomes visible.\nAbsent or 0 means the block is visible as soon as the node is\nentered. A node's reveal steps are the distinct positive `reveal`\nvalues used anywhere in its content (recursively), in ascending\norder — see TraversalOps.next() for how engines consume them.\nEngines that do not implement reveal MUST ignore this field and\nrender the block immediately, which is a safe, honest degrade to\n\"everything visible.\""
+        },
         "kind": {
             "type": "string",
             "const": "container"

@@ -88,6 +88,20 @@ support the seven core block kinds shown below.
 | `divider`   | Visual separation between sections.                           |
 | `container` | Nested block composition with a layout hint.                  |
 
+### The `reveal` field (all kinds)
+
+Every `ContentBlock` variant carries an optional `reveal?: int32` field
+(`>= 0`), for incremental reveal. Absent and `0` are equivalent: the
+block is visible as soon as the node is entered. A positive value marks
+the block as hidden until the presenter has advanced through that many
+distinct reveal steps at the current node — see
+[§3 Traversal, Incremental reveal precedence](/spec/traversal/#incremental-reveal-precedence)
+for exactly how steps are numbered and consumed. Engines that do not
+implement reveal MUST ignore this field and render the block
+immediately; this is a safe, forward-compatible degrade to "everything
+visible," per the unknown-fields-are-ignored rule in
+[§6 Serialization](/spec/serialization/).
+
 ### ContainerBlock
 
 `container` is the composition primitive. It groups child blocks and adds a

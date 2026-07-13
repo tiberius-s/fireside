@@ -180,6 +180,33 @@ impl Node {
             .or_else(|| defaults.and_then(|d| d.transition))
             .unwrap_or_default()
     }
+
+    /// The distinct positive `reveal` values used anywhere in this node's
+    /// content, recursively through `Container` children, sorted
+    /// ascending. An empty result means the node uses no reveal marks —
+    /// `next()` never pauses for reveal on such a node. Steps are ordinal
+    /// over these distinct values, not raw integer magnitudes, so a gap
+    /// in an author's numbering can never produce a step that reveals
+    /// nothing.
+    #[must_use]
+    pub fn reveal_levels(&self) -> Vec<u32> {
+        let mut levels = Vec::new();
+        collect_reveal_levels(&self.content, &mut levels);
+        levels.sort_unstable();
+        levels.dedup();
+        levels
+    }
+}
+
+fn collect_reveal_levels(blocks: &[ContentBlock], out: &mut Vec<u32>) {
+    for block in blocks {
+        if let Some(level) = block.reveal()
+            && level > 0
+        {
+            out.push(level);
+        }
+        collect_reveal_levels(block.children(), out);
+    }
 }
 
 // ─── Traversal ───────────────────────────────────────────────────────────────
@@ -258,6 +285,11 @@ pub struct BranchOption {
 pub enum ContentBlock {
     /// A heading with a level (1–6) and text content.
     Heading {
+        /// The incremental-reveal step at which this block becomes
+        /// visible. `None` and `Some(0)` are equivalent: visible
+        /// immediately. See [`Node::reveal_levels`].
+        #[serde(skip_serializing_if = "Option::is_none")]
+        reveal: Option<u32>,
         /// Heading level from 1 (largest) to 6 (smallest).
         level: u8,
         /// The heading text content.
@@ -266,12 +298,20 @@ pub enum ContentBlock {
 
     /// A block of prose text, optionally with inline Markdown formatting.
     Text {
+        /// The incremental-reveal step at which this block becomes
+        /// visible. See [`ContentBlock::Heading::reveal`].
+        #[serde(skip_serializing_if = "Option::is_none")]
+        reveal: Option<u32>,
         /// The text content.
         body: String,
     },
 
     /// A fenced code block with language annotation and optional highlighting.
     Code {
+        /// The incremental-reveal step at which this block becomes
+        /// visible. See [`ContentBlock::Heading::reveal`].
+        #[serde(skip_serializing_if = "Option::is_none")]
+        reveal: Option<u32>,
         /// Programming language identifier for syntax highlighting.
         #[serde(skip_serializing_if = "Option::is_none")]
         language: Option<String>,
@@ -287,6 +327,10 @@ pub enum ContentBlock {
 
     /// An ordered or unordered list of items.
     List {
+        /// The incremental-reveal step at which this block becomes
+        /// visible. See [`ContentBlock::Heading::reveal`].
+        #[serde(skip_serializing_if = "Option::is_none")]
+        reveal: Option<u32>,
         /// Whether the list is ordered (numbered) or unordered (bulleted).
         #[serde(skip_serializing_if = "Option::is_none")]
         ordered: Option<bool>,
@@ -296,6 +340,10 @@ pub enum ContentBlock {
 
     /// A visual element with source URI and accessibility metadata.
     Image {
+        /// The incremental-reveal step at which this block becomes
+        /// visible. See [`ContentBlock::Heading::reveal`].
+        #[serde(skip_serializing_if = "Option::is_none")]
+        reveal: Option<u32>,
         /// URI or file path to the image source.
         src: String,
         /// Alternative text for accessibility.
@@ -313,16 +361,51 @@ pub enum ContentBlock {
     },
 
     /// A horizontal rule separating content sections.
-    Divider,
+    Divider {
+        /// The incremental-reveal step at which this block becomes
+        /// visible. See [`ContentBlock::Heading::reveal`].
+        #[serde(skip_serializing_if = "Option::is_none")]
+        reveal: Option<u32>,
+    },
 
     /// A container for nested content blocks with layout control.
     Container {
+        /// The incremental-reveal step at which this block becomes
+        /// visible. See [`ContentBlock::Heading::reveal`]. Hiding a
+        /// container hides every one of its children regardless of
+        /// their own `reveal` values.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        reveal: Option<u32>,
         /// The child content blocks within this container.
         children: Vec<ContentBlock>,
         /// Layout hint controlling how children are arranged.
         #[serde(skip_serializing_if = "Option::is_none")]
         layout: Option<ContainerLayout>,
     },
+}
+
+impl ContentBlock {
+    /// This block's own reveal marker, if any. `None` is equivalent to
+    /// `Some(0)` for step-visibility purposes: always visible.
+    #[must_use]
+    pub fn reveal(&self) -> Option<u32> {
+        match self {
+            Self::Heading { reveal, .. }
+            | Self::Text { reveal, .. }
+            | Self::Code { reveal, .. }
+            | Self::List { reveal, .. }
+            | Self::Image { reveal, .. }
+            | Self::Divider { reveal }
+            | Self::Container { reveal, .. } => *reveal,
+        }
+    }
+
+    fn children(&self) -> &[ContentBlock] {
+        match self {
+            Self::Container { children, .. } => children,
+            _ => &[],
+        }
+    }
 }
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
@@ -483,5 +566,43 @@ mod tests {
 
         node.view_mode = Some(ViewMode::Default);
         assert_eq!(node.resolved_view_mode(Some(&defaults)), ViewMode::Default);
+    }
+
+    #[test]
+    fn reveal_field_round_trips_and_defaults_to_none() {
+        let block: ContentBlock =
+            serde_json::from_str(r#"{"kind":"text","body":"x","reveal":2}"#).expect("parse");
+        assert_eq!(block.reveal(), Some(2));
+        let json = serde_json::to_string(&block).expect("serialize");
+        assert!(json.contains(r#""reveal":2"#));
+
+        let unmarked: ContentBlock =
+            serde_json::from_str(r#"{"kind":"text","body":"x"}"#).expect("parse");
+        assert_eq!(unmarked.reveal(), None);
+        let json = serde_json::to_string(&unmarked).expect("serialize");
+        assert!(!json.contains("reveal"), "absent reveal stays absent on write: {json}");
+    }
+
+    #[test]
+    fn reveal_levels_collects_distinct_positive_values_recursively() {
+        let node: Node = serde_json::from_str(
+            r#"{"id":"a","content":[
+                {"kind":"text","body":"always"},
+                {"kind":"text","body":"x","reveal":1},
+                {"kind":"text","body":"y","reveal":0},
+                {"kind":"container","children":[
+                    {"kind":"text","body":"z","reveal":1},
+                    {"kind":"text","body":"w","reveal":3}
+                ]}
+            ]}"#,
+        )
+        .expect("parse");
+        assert_eq!(node.reveal_levels(), vec![1, 3]);
+    }
+
+    #[test]
+    fn reveal_levels_is_empty_when_no_block_uses_reveal() {
+        let graph = Graph::from_json(HELLO).expect("parse");
+        assert!(graph.nodes[0].reveal_levels().is_empty());
     }
 }

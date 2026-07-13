@@ -24,6 +24,11 @@ use crate::error::EngineError;
 pub enum Outcome {
     /// The session moved to a new current node.
     Moved,
+    /// A reveal step was consumed: more of the current node's content
+    /// became visible. The current node did NOT change — UI effects tied
+    /// to real navigation (transitions, branch-selection reset) MUST NOT
+    /// fire for this outcome.
+    Revealed,
     /// `next` is blocked: the current node has a branch point awaiting a
     /// choice.
     BlockedByBranch,
@@ -50,6 +55,10 @@ pub struct Session {
     index: HashMap<NodeId, usize>,
     /// Every node ID the presenter has seen this session.
     visited: HashSet<NodeId>,
+    /// The reveal threshold reached at the current node. Reset to `0` on
+    /// every node entry (see `move_to` and `back`) — reveal progress is
+    /// not history-aware.
+    reveal_level: u32,
 }
 
 impl Session {
@@ -76,6 +85,7 @@ impl Session {
             history: Vec::new(),
             index,
             visited,
+            reveal_level: 0,
         })
     }
 
@@ -121,14 +131,52 @@ impl Session {
         &self.visited
     }
 
-    /// Advance along the explicit next edge.
+    /// The reveal threshold currently reached at the current node. A
+    /// block is visible when its own `reveal` value (or `0` if absent)
+    /// is `<=` this.
+    #[must_use]
+    pub fn reveal_level(&self) -> u32 {
+        self.reveal_level
+    }
+
+    /// Whether the current node has reveal steps not yet reached — while
+    /// true, `next()` will reveal rather than navigate, and branch
+    /// selection MUST be unavailable.
+    #[must_use]
+    pub fn has_pending_reveal(&self) -> bool {
+        self.reveal_level < self.current().reveal_levels().last().copied().unwrap_or(0)
+    }
+
+    /// `(revealed, total)` distinct reveal steps for the current node.
+    /// `None` when the node uses no reveal marks at all.
+    #[must_use]
+    pub fn reveal_progress(&self) -> Option<(usize, usize)> {
+        let levels = self.current().reveal_levels();
+        if levels.is_empty() {
+            return None;
+        }
+        let revealed = levels.iter().filter(|&&l| l <= self.reveal_level).count();
+        Some((revealed, levels.len()))
+    }
+
+    /// Advance along the explicit next edge — or, first, reveal more of
+    /// the current node.
     ///
-    /// Blocked at a branch point; reports the end of the path at a
-    /// terminal node.
+    /// If the current node has reveal steps not yet reached, this
+    /// advances to the next one and stops: no branch-point or
+    /// traversal-target check happens on this call. Only once every
+    /// reveal step is exhausted does `next()` fall through to its
+    /// pre-reveal behavior: blocked at a branch point, or reporting the
+    /// end of the path at a terminal node.
     // The spec names this operation `next()`; matching it beats Iterator
     // naming hygiene, and Session is not an iterator.
     #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Outcome {
+        let levels = self.current().reveal_levels();
+        if let Some(&next_level) = levels.iter().find(|&&l| l > self.reveal_level) {
+            self.reveal_level = next_level;
+            return Outcome::Revealed;
+        }
         if self.current().branch_point().is_some() {
             return Outcome::BlockedByBranch;
         }
@@ -142,7 +190,17 @@ impl Session {
     }
 
     /// Select a branch option by its position in the options array.
+    ///
+    /// MUST NOT succeed while the current node has reveal steps not yet
+    /// reached — a presenter cannot skip ahead to a choice by choosing
+    /// early. Callers that route branch-selection keys through their own
+    /// UI SHOULD additionally gate on [`Session::has_pending_reveal`]
+    /// themselves so the same keypress continues revealing instead of
+    /// simply doing nothing (the reference TUI does this).
     pub fn choose(&mut self, option: usize) -> Outcome {
+        if self.has_pending_reveal() {
+            return Outcome::InvalidChoice;
+        }
         let Some(bp) = self.current().branch_point() else {
             return Outcome::InvalidChoice;
         };
@@ -171,6 +229,7 @@ impl Session {
         };
         self.history.pop();
         self.current = idx;
+        self.reveal_level = 0;
         Outcome::Moved
     }
 
@@ -183,6 +242,7 @@ impl Session {
         self.history.push(self.current().id.clone());
         self.current = idx;
         self.visited.insert(self.graph.nodes[idx].id.clone());
+        self.reveal_level = 0;
         Outcome::Moved
     }
 }
@@ -317,5 +377,116 @@ mod tests {
             assert!(visited.contains(id), "missing {id}");
         }
         assert!(!visited.contains("code-demo"));
+    }
+
+    fn session_from(json: &str) -> Session {
+        Session::new(Graph::from_json(json).expect("fixture parses")).expect("non-empty")
+    }
+
+    #[test]
+    fn next_reveals_one_distinct_step_at_a_time_before_moving() {
+        let mut s = session_from(
+            r#"{"nodes":[
+                {"id":"a","traversal":"b","content":[
+                    {"kind":"text","body":"x","reveal":1},
+                    {"kind":"text","body":"y","reveal":2}
+                ]},
+                {"id":"b","content":[]}
+            ]}"#,
+        );
+        assert_eq!(s.next(), Outcome::Revealed);
+        assert_eq!(s.current().id, "a", "reveal does not navigate");
+        assert_eq!(s.next(), Outcome::Revealed);
+        assert_eq!(s.current().id, "a");
+        assert_eq!(s.next(), Outcome::Moved);
+        assert_eq!(s.current().id, "b");
+    }
+
+    #[test]
+    fn next_skips_gaps_in_reveal_numbering_without_a_dead_step() {
+        let mut s = session_from(
+            r#"{"nodes":[
+                {"id":"a","content":[
+                    {"kind":"text","body":"x","reveal":1},
+                    {"kind":"text","body":"y","reveal":5}
+                ]}
+            ]}"#,
+        );
+        assert_eq!(s.next(), Outcome::Revealed);
+        assert_eq!(s.next(), Outcome::Revealed);
+        assert_eq!(
+            s.next(),
+            Outcome::EndOfPath,
+            "exactly two reveal steps, no dead step for the gap between 1 and 5"
+        );
+    }
+
+    #[test]
+    fn next_reveals_before_blocking_on_branch_point() {
+        let mut s = session_from(
+            r#"{"nodes":[
+                {"id":"a","traversal":{"branch-point":{"options":[{"label":"x","target":"b"}]}},"content":[
+                    {"kind":"text","body":"x","reveal":1}
+                ]},
+                {"id":"b","content":[]}
+            ]}"#,
+        );
+        assert_eq!(s.next(), Outcome::Revealed);
+        assert_eq!(s.next(), Outcome::BlockedByBranch);
+    }
+
+    #[test]
+    fn next_reveals_before_reporting_end_of_path() {
+        let mut s = session_from(
+            r#"{"nodes":[
+                {"id":"a","content":[
+                    {"kind":"text","body":"x","reveal":1}
+                ]}
+            ]}"#,
+        );
+        assert_eq!(s.next(), Outcome::Revealed);
+        assert_eq!(s.next(), Outcome::EndOfPath);
+    }
+
+    #[test]
+    fn reveal_resets_on_every_node_entry_including_back() {
+        let mut s = session_from(
+            r#"{"nodes":[
+                {"id":"a","traversal":"b","content":[
+                    {"kind":"text","body":"x","reveal":1}
+                ]},
+                {"id":"b","content":[]}
+            ]}"#,
+        );
+        s.next(); // reveal
+        s.next(); // move to b
+        assert_eq!(s.current().id, "b");
+        s.back();
+        assert_eq!(s.current().id, "a");
+        assert!(s.has_pending_reveal(), "reveal is not remembered across visits");
+        assert_eq!(s.reveal_progress(), Some((0, 1)));
+    }
+
+    #[test]
+    fn reveal_progress_is_none_for_ordinary_nodes() {
+        let s = hello_session();
+        assert_eq!(s.reveal_progress(), None);
+        assert!(!s.has_pending_reveal());
+    }
+
+    #[test]
+    fn choose_is_rejected_while_reveal_is_pending() {
+        let mut s = session_from(
+            r#"{"nodes":[
+                {"id":"a","traversal":{"branch-point":{"options":[{"label":"x","target":"b"}]}},"content":[
+                    {"kind":"text","body":"x","reveal":1}
+                ]},
+                {"id":"b","content":[]}
+            ]}"#,
+        );
+        assert_eq!(s.choose(0), Outcome::InvalidChoice, "reveal not yet exhausted");
+        assert_eq!(s.current().id, "a");
+        s.next(); // consume the reveal step
+        assert_eq!(s.choose(0), Outcome::Moved, "now selectable");
     }
 }

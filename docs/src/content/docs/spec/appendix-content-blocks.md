@@ -28,6 +28,14 @@ For `list`, `items` entries MAY contain inline Markdown formatting, the
 same as `text`'s `body` — the reference renderer runs list items through
 the same inline-Markdown path as text blocks.
 
+Every block kind also accepts an optional `reveal` field for incremental
+reveal — see [§2 Data Model](/spec/data-model/#the-reveal-field-all-kinds)
+and [§3 Traversal](/spec/traversal/#incremental-reveal-precedence). A
+container hidden by its own `reveal` value hides all of its children
+regardless of their own `reveal` values; `fireside-engine::validation`'s
+`reveal-masked-by-container` warning catches the common authoring mistake
+of giving a child a lower value than its enclosing container.
+
 `container` is the only core block that nests other blocks, so it carries most
 of the layout-oriented guidance in this appendix.
 

@@ -124,8 +124,58 @@ or starts. One line per item: status, commit(s), date._
       centered box inside the card, not stretched — confirming the
       assertions match what a presenter would actually see. This closes
       out all of Week 1 (spec patch, fixture corpus, and ASCII art).
-- [ ] P1 terminal images (`ratatui-image`) — not started.
-- [ ] P1 incremental reveal (`reveal` field) — not started.
+- [x] P1 terminal images (`ratatui-image`) spike — **NO-GO**, 2026-07-12.
+      ADR-008 (`.claude/adrs/adr-008-ratatui-image-msrv-spike.md`) records
+      the finding: every `ratatui-image` release compatible with
+      Fireside's current `ratatui 0.30` unconditionally (not
+      feature-gated, not pinnable around) pulls in `icy_sixel` →
+      `quantette` → `wide`/`safe_arch`, which require rustc 1.89/1.90.
+      Verified empirically with a real `cargo +1.88 build` (not just
+      declared `rust-version` metadata) — it fails outright. The only
+      MSRV-1.88-compatible version (`ratatui-image` v8.x) forces a
+      `ratatui` downgrade to 0.29, incompatible with the 0.30 already used
+      throughout `fireside-tui` — rejected as disproportionate. Terminal
+      images remain a placeholder-box gap, unchanged from ADR-004. No
+      code changed; this was a pure spike in a throwaway scratch project.
+      Re-spike only if Fireside's MSRV rises past 1.90 or `icy_sixel`
+      ships a lower-MSRV release.
+- [x] P1 incremental reveal (`reveal` field) — landed 2026-07-12
+      (uncommitted on main). ADR-009
+      (`.claude/adrs/adr-009-incremental-reveal.md`) recorded the design
+      before any code, resolving the plan's two open questions: reveal
+      always fully precedes branch-point/next-target checks on `next()`
+      (unconditionally, even on terminal nodes), and steps are ordinal
+      over the distinct positive `reveal` values actually used in a
+      node's content — not raw magnitudes — so a gap in an author's
+      numbering (e.g. `1` then `3`) can never produce a keypress that
+      reveals nothing. Full speckit pipeline at
+      `specs/006-incremental-reveal/` (spec → plan → tasks → implement,
+      all 50 tasks done). Shipped: `reveal?: int32` (`@minValue(0)`)
+      spread via a shared `Revealable` TypeSpec model into all seven
+      `ContentBlock` variants, protocol bumped to 0.1.2 (additive);
+      `fireside-core::Node::reveal_levels()` (pure, recursive, walks
+      `Container` children); `fireside-engine::Session` gained
+      `Outcome::Revealed`, a `reveal_level` field reset on every node
+      entry (`next`/`choose`/`goto`/`back`, including `back`'s own
+      bypass of the shared navigation helper), and `next()`/`choose()`
+      both gate correctly on pending reveal (`choose()` itself now
+      rejects while reveal is pending, not just the TUI's key routing);
+      `fireside-tui` hides not-yet-revealed blocks structurally (no
+      reserved layout space — verified specifically inside a `columns`
+      container), shows a "N/M revealed" footer badge only while
+      pending, and — a real gap caught while writing the branch-point
+      scenario test, not anticipated in the plan — routes *any*
+      branch-selection keypress (not just the generic "next" key) to
+      continue revealing instead of silently doing nothing, per FR-007.
+      New symmetric `reveal-masked-by-container` WARNING rule in both
+      validators, extending the existing fixture corpus (12 fixtures
+      now, up from 10). 19 new tests (169 total passing), clippy silent,
+      docs site `astro check` clean. Verified live in tmux: bullets
+      reveal one Space-press at a time with correct footer feedback, the
+      branch menu stays hidden until reveal is exhausted, and `Enter`
+      then correctly chooses once it appears — plus a separate tmux
+      check confirming `hello.json` (no reveal marks) renders byte-for-
+      byte unchanged, no footer badge.
 - [ ] P2 mouse / synchronized output / resume — not started.
 - [ ] P2 protocol & workflow hardening (property tests, robustness fixtures,
       CI additions) — not started.

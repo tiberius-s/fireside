@@ -18,8 +18,9 @@ using Versioning;
  * and a cursor plus history stack can build a conforming engine.
  *
  * ## Protocol Version
- * 0.1.1 (0.1.0 documents remain valid; 0.1.1 adds no new fields, only
- * clarified engine behavior and one new validator diagnostic)
+ * 0.1.2 (0.1.1 documents remain valid; 0.1.2 adds the optional `reveal`
+ * field on every content block, for incremental reveal, and one new
+ * validator diagnostic)
  *
  * ## Schema Dialect
  * JSON Schema 2020-12
@@ -32,6 +33,7 @@ namespace Fireside;
 enum Versions {
   v0_1_0: "0.1.0",
   v0_1_1: "0.1.1",
+  v0_1_2: "0.1.2",
 }
 
 // ─── Scalar Types ────────────────────────────────────────────────────────────
@@ -122,8 +124,29 @@ union ContentBlock {
   ContainerBlock,
 }
 
+/**
+ * Shared by every ContentBlock variant: the incremental-reveal step at
+ * which the block becomes visible. Spread into each block model rather
+ * than declared independently seven times.
+ */
+model Revealable {
+  /**
+   * The incremental-reveal step at which this block becomes visible.
+   * Absent or 0 means the block is visible as soon as the node is
+   * entered. A node's reveal steps are the distinct positive `reveal`
+   * values used anywhere in its content (recursively), in ascending
+   * order — see TraversalOps.next() for how engines consume them.
+   * Engines that do not implement reveal MUST ignore this field and
+   * render the block immediately, which is a safe, honest degrade to
+   * "everything visible."
+   */
+  @minValue(0)
+  reveal?: int32;
+}
+
 /** A heading with a level (1–6) and text content. */
 model HeadingBlock {
+  ...Revealable;
   kind: "heading";
 
   /** Heading level from 1 (largest) to 6 (smallest). */
@@ -137,6 +160,7 @@ model HeadingBlock {
 
 /** A block of prose text, optionally with inline Markdown formatting. */
 model TextBlock {
+  ...Revealable;
   kind: "text";
 
   /** The text content. May contain inline Markdown formatting. */
@@ -145,6 +169,7 @@ model TextBlock {
 
 /** A fenced code block with language annotation and optional highlighting. */
 model CodeBlock {
+  ...Revealable;
   kind: "code";
 
   /** Programming language identifier for syntax highlighting. */
@@ -162,6 +187,7 @@ model CodeBlock {
 
 /** An ordered or unordered list of items. */
 model ListBlock {
+  ...Revealable;
   kind: "list";
 
   /** Whether the list is ordered (numbered) or unordered (bulleted). */
@@ -177,6 +203,7 @@ model ListBlock {
 
 /** A visual element with source URI and accessibility metadata. */
 model ImageBlock {
+  ...Revealable;
   kind: "image";
 
   /** URI or file path to the image source. */
@@ -200,6 +227,7 @@ model ImageBlock {
 
 /** A horizontal rule separating content sections. */
 model DividerBlock {
+  ...Revealable;
   kind: "divider";
 }
 
@@ -216,6 +244,7 @@ model DividerBlock {
  * practical limits.
  */
 model ContainerBlock {
+  ...Revealable;
   kind: "container";
 
   /** The child content blocks within this container. */
@@ -414,13 +443,31 @@ model Graph {
  */
 interface TraversalOps {
   /**
-   * Advance to the next node.
+   * Advance to the next node — or, first, reveal more of the current one.
    *
-   * 1. If current node has a branch-point → BLOCKED, wait for choose()
-   * 2. Push current node ID onto history
-   * 3. If traversal is a string, navigate to that target
-   * 4. If traversal.next exists, navigate to that target
-   * 5. If no traversal, no-op (terminal node)
+   * 1. If the current node has reveal steps not yet reached (see the
+   *    `reveal` field on ContentBlock variants), advance to the next
+   *    distinct reveal value greater than the current threshold and
+   *    STOP. Do not proceed to step 2 in this call — reveal always
+   *    completes before anything else, on every node, including nodes
+   *    with no traversal at all.
+   * 2. If current node has a branch-point → BLOCKED, wait for choose()
+   * 3. Push current node ID onto history
+   * 4. If traversal is a string, navigate to that target
+   * 5. If traversal.next exists, navigate to that target
+   * 6. If no traversal, no-op (terminal node)
+   *
+   * A node's reveal steps are the distinct positive `reveal` values used
+   * anywhere in its content (recursively through containers), sorted
+   * ascending — not raw integer magnitudes. This guarantees every next()
+   * call while reveal is pending visibly reveals something, even if an
+   * author's chosen values have gaps. Reveal progress resets to nothing
+   * revealed beyond the always-visible content every time a node is
+   * entered, including via back() — it is not remembered across visits.
+   *
+   * Implementations MUST prevent choose() (or any other UI path that
+   * would select a branch option) from succeeding while step 1 still has
+   * work to do, mirroring the gate next() applies to itself.
    */
   next(): void;
 
@@ -434,6 +481,10 @@ interface TraversalOps {
    * index into the current branch point's options array rather than an
    * option value.
    *
+   * MUST NOT succeed while the current node has reveal steps not yet
+   * reached (see next()) — a presenter cannot skip ahead to a choice by
+   * choosing early.
+   *
    * 1. Push current node ID onto history
    * 2. Navigate to the selected option's target node
    */
@@ -445,6 +496,9 @@ interface TraversalOps {
    * 1. If the ID does not exist, no-op
    * 2. Push current node ID onto history
    * 3. Navigate to the target node
+   *
+   * Resets the target node's reveal progress to nothing-revealed, same
+   * as every other navigation into a node (see next()).
    */
   goto(target: NodeId): void;
 
@@ -455,6 +509,10 @@ interface TraversalOps {
    * 2. Navigate to that node
    * 3. If the stack is empty, no-op
    * 4. Does NOT push to history
+   *
+   * Resets the re-entered node's reveal progress to nothing-revealed,
+   * even if it was fully revealed on an earlier visit — reveal state is
+   * not history-aware (see next()).
    */
   back(): void;
 }
