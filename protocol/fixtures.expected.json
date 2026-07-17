@@ -7,6 +7,8 @@
   "valid/empty-traversal.json": ["empty-traversal"],
   "valid/reveal-not-masked.json": [],
   "valid/reveal-masked-by-container.json": ["reveal-masked-by-container"],
+  "valid/malformed-link-url.json": ["malformed-link-url"],
+  "valid/well-formed-link-url.json": [],
   "invalid/duplicate-node-ids.json": ["unique-node-ids"],
   "invalid/dangling-target.json": ["valid-traversal-target"],
   "invalid/next-branch-point-conflict.json": ["next-branch-point-conflict"],

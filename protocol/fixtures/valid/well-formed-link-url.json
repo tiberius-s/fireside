@@ -1,0 +1,10 @@
+{
+  "nodes": [
+    {
+      "id": "a",
+      "content": [
+        { "kind": "text", "body": "see [here](https://example.com/docs) for more" }
+      ]
+    }
+  ]
+}

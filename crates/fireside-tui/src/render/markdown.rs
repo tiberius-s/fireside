@@ -1,10 +1,13 @@
 //! Minimal inline-Markdown rendering for prose text.
 //!
 //! The spec says `text.body` "may contain inline Markdown formatting" but
-//! does not pin a subset, so this engine supports exactly three spans —
-//! `**bold**`, `*italic*`, and `` `code` `` — and renders unmatched markers
-//! literally. Output is width-wrapped styled lines, because ratatui's
-//! `Paragraph` wrapping cannot be measured ahead of layout.
+//! does not pin a subset, so this engine supports `**bold**`, `*italic*`,
+//! `` `code` ``, and `[label](url)` links (contracts/link-syntax.md),
+//! rendering unmatched markers literally. Output is width-wrapped styled
+//! lines, because ratatui's `Paragraph` wrapping cannot be measured ahead
+//! of layout.
+
+use std::cell::RefCell;
 
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -17,6 +20,55 @@ use crate::theme::Tokens;
 struct Fragment {
     text: String,
     style: Style,
+}
+
+thread_local! {
+    /// Per-frame link registry: index -> URL. `parse_inline` assigns an
+    /// index to each link it finds (via [`Tokens::link`]'s style-encoded
+    /// index) and registers the URL here; `render::apply_hyperlinks`
+    /// recovers it once per frame, after every widget has drawn. Not
+    /// threaded explicitly through `wrap_styled`'s many callers (headings,
+    /// text, lists, containers, code captions) because a URL has no effect
+    /// on layout/wrapping and doesn't belong in that signature. Reset at
+    /// the start of every `render::draw` call ([`reset_links`]) so indices
+    /// never leak between frames.
+    static LINKS: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
+}
+
+/// Clears the per-frame link registry. Called once at the start of
+/// `render::draw`, before any content renders.
+pub(crate) fn reset_links() {
+    LINKS.with(|links| links.borrow_mut().clear());
+}
+
+/// The URL registered at `index`, if any — consumed by
+/// `render::apply_hyperlinks`.
+#[must_use]
+pub(crate) fn link_url(index: usize) -> Option<String> {
+    LINKS.with(|links| links.borrow().get(index).cloned())
+}
+
+fn register_link(url: &str) -> usize {
+    LINKS.with(|links| {
+        let mut links = links.borrow_mut();
+        links.push(url.to_owned());
+        links.len() - 1
+    })
+}
+
+/// Tries to parse a `[label](url)` link starting at `chars[i] == '['`.
+/// Returns `(label, url, index one past the closing paren)` on success —
+/// `None` (an unmatched `[`) is rendered literally, matching how an
+/// unmatched `**`/`` ` `` already behaves.
+fn parse_link(chars: &[char], i: usize) -> Option<(String, String, usize)> {
+    let close_bracket = (i + 1..chars.len()).find(|&j| chars[j] == ']')?;
+    if chars.get(close_bracket + 1) != Some(&'(') {
+        return None;
+    }
+    let close_paren = (close_bracket + 2..chars.len()).find(|&j| chars[j] == ')')?;
+    let label: String = chars[i + 1..close_bracket].iter().collect();
+    let url: String = chars[close_bracket + 2..close_paren].iter().collect();
+    Some((label, url, close_paren + 1))
 }
 
 /// Parse inline markers in `text`, then wrap to `width` columns.
@@ -53,6 +105,24 @@ fn parse_inline(text: &str, base: Style, tokens: &Tokens) -> Vec<Fragment> {
     };
 
     while i < chars.len() {
+        if chars[i] == '[' {
+            match parse_link(&chars, i) {
+                Some((label, url, end)) => {
+                    push_plain(&mut plain, &mut out);
+                    let index = register_link(&url);
+                    out.push(Fragment {
+                        text: label,
+                        style: tokens.link(index),
+                    });
+                    i = end;
+                }
+                None => {
+                    plain.push('[');
+                    i += 1;
+                }
+            }
+            continue;
+        }
         let (marker, style): (&str, Style) = if chars[i..].starts_with(&['*', '*']) {
             ("**", base.add_modifier(Modifier::BOLD))
         } else if chars[i] == '*' {
@@ -223,6 +293,37 @@ mod tests {
     fn unmatched_markers_render_literally() {
         assert_eq!(render("2 * 3 = 6", 40), ["2 * 3 = 6"]);
         assert_eq!(render("*open", 40), ["*open"]);
+    }
+
+    #[test]
+    fn link_marker_is_parsed_alongside_existing_inline_styles() {
+        reset_links();
+        let tokens = Tokens::default();
+        let lines = wrap_styled(
+            "[label](https://example.com) and **bold**",
+            60,
+            Style::new(),
+            &tokens,
+        );
+        let spans: Vec<_> = lines.iter().flat_map(|l| l.spans.iter()).collect();
+
+        let link_span = spans
+            .iter()
+            .find(|s| s.content.as_ref() == "label")
+            .expect("link label span present");
+        let index = Tokens::link_index(link_span.style).expect("link style carries an index");
+        assert_eq!(link_url(index).as_deref(), Some("https://example.com"));
+
+        let bold_span = spans
+            .iter()
+            .find(|s| s.content.as_ref() == "bold")
+            .expect("bold span present");
+        assert!(bold_span.style.add_modifier.contains(Modifier::BOLD));
+    }
+
+    #[test]
+    fn unmatched_link_brackets_render_literally() {
+        assert_eq!(render("[oops(missing paren", 40), ["[oops(missing paren"]);
     }
 
     #[test]

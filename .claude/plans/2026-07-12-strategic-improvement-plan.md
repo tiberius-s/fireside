@@ -176,7 +176,40 @@ or starts. One line per item: status, commit(s), date._
       then correctly chooses once it appears — plus a separate tmux
       check confirming `hello.json` (no reveal marks) renders byte-for-
       byte unchanged, no footer badge.
-- [ ] P2 mouse / synchronized output / resume — not started.
+- [X] P2 mouse / synchronized output / resume / OSC 8 hyperlinks — done
+      2026-07-17. Full speckit pipeline at `specs/007-modern-tui-leverage/`,
+      50/50 tasks done, 188 tests total (up from 169), clippy silent. Four
+      independent stories, no shared Foundational phase (a first for this
+      repo): (1) mouse — click a map row or branch option, hit-tested via
+      pure layout functions shared with `render::draw` so a click can never
+      disagree with what's on screen; verified live in tmux via injected
+      SGR mouse escape sequences (`tmux send-keys -H`). (2) resume — a
+      host-local `resume.json` (XDG state dir, manual `std::env`/`std::path`
+      construction, no new dependency) keyed by the existing content
+      fingerprint; `fireside-tui` gained `initial_node`/`PositionSink`
+      params on `present_authoring` (no file I/O in the crate itself, per
+      the boundary table); verified live in tmux: SIGKILL mid-deck then
+      relaunch reopened on the same slide, reaching the terminal node
+      cleared the record. (3) synchronized output — `BeginSynchronizedUpdate`/
+      `EndSynchronizedUpdate` bracket every `terminal.draw`, no capability
+      query needed (inert-if-unsupported by the escape sequence's own
+      design). (4) OSC 8 hyperlinks — new `[label](url)` inline syntax
+      (engine-extension latitude, no protocol/schema change), rendered via
+      `ratatui-core`'s `CellDiffOption::ForcedWidth` (confirmed live in tmux
+      via a raw hexdump of the actual escape bytes sent to the terminal);
+      required bumping the transitively-resolved `ratatui-core` 0.1.0 →
+      0.1.2 (`ForcedWidth` doesn't exist in 0.1.0) — flagged mid-session and
+      approved by the user, still MSRV-1.88-safe, ~7 new transitive crates
+      compiled. New symmetric `malformed-link-url` WARNING rule in both
+      validators, fixture corpus now 14. One discovered nuance: a
+      multi-word link label renders as separately-OSC8-wrapped adjacent
+      regions (word-wrap splits it into multiple spans), not one continuous
+      region — still fully clickable across the whole label, just
+      structurally split. Not tested against an actual OSC-8-incapable
+      terminal (none available in this environment); the fallback claim
+      rests on the escape sequence being spec-inert when unrecognized, the
+      same reasoning already used for synchronized output and the `fade`
+      transition.
 - [ ] P2 protocol & workflow hardening (property tests, robustness fixtures,
       CI additions) — not started.
 

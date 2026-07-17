@@ -30,7 +30,7 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1784300464.2852278,
+    "mtime": 1784298215.5039554,
     "ast_hash": "13f99ac3b17956f7f38fbf57e6745fb2",
     "semantic_hash": ""
   },
@@ -70,13 +70,13 @@
     "semantic_hash": ""
   },
   "crates/fireside-engine/src/validation.rs": {
-    "mtime": 1784300514.8456924,
-    "ast_hash": "fbcde34c4b419b440a3956816227b8c8",
+    "mtime": 1784299470.777007,
+    "ast_hash": "9b1c7b22aa00b6e6ef0125e99f9095ac",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/app.rs": {
-    "mtime": 1784300514.8506074,
-    "ast_hash": "6e04ab4e7ae1a885a478432f032b676e",
+    "mtime": 1784297724.4654973,
+    "ast_hash": "158676fb095f6e553c38d136835f9a45",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/error.rs": {
@@ -85,22 +85,22 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
-    "mtime": 1784300514.8641973,
-    "ast_hash": "1be077003324f2479b0245a7feb2af6b",
+    "mtime": 1784298532.8592198,
+    "ast_hash": "496e1f11141a02c1833dc6d298823580",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
-    "mtime": 1784300514.8689134,
-    "ast_hash": "e48a01fc2fbcaa28491593d07b3ebcb2",
+    "mtime": 1783910971.9501824,
+    "ast_hash": "6473344050b5f7397ecabcd753fc6ec7",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/mod.rs": {
-    "mtime": 1784300559.783631,
-    "ast_hash": "d2d5d0c1d97b1e7e190d4aa1c17a0319",
+    "mtime": 1784299638.5607882,
+    "ast_hash": "4c5e1457052a43ab450affa83cf994a3",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/theme.rs": {
-    "mtime": 1784300464.2882366,
+    "mtime": 1784298787.0440545,
     "ast_hash": "8d41d1e191256dd673fe24cc27d3aed2",
     "semantic_hash": ""
   },
@@ -165,7 +165,7 @@
     "semantic_hash": "3f3ab63581c42b39a067bb7cbee2849f"
   },
   "protocol/validate.mjs": {
-    "mtime": 1784300464.3016624,
+    "mtime": 1784299403.3419566,
     "ast_hash": "5d5e8b512b88c553aa074f560db4513d",
     "semantic_hash": ""
   },
@@ -385,12 +385,12 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-extensions.md": {
-    "mtime": 1784300464.2885292,
+    "mtime": 1784299688.311809,
     "ast_hash": "d0eb4c0c961b9b4ceb2f89f576894745",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/markdown.rs": {
-    "mtime": 1784300464.2873845,
+    "mtime": 1784299489.122813,
     "ast_hash": "868a4e3860af2a0778eee977346fb23f",
     "semantic_hash": ""
   },
@@ -430,12 +430,12 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/map.rs": {
-    "mtime": 1784300514.8727365,
-    "ast_hash": "db03bbdb755116684d0a1f42007252c1",
+    "mtime": 1784297641.3138924,
+    "ast_hash": "1d9102cf72f2f0e966a211b3dc64bd35",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-strategic-improvement-plan.md": {
-    "mtime": 1784300464.284126,
+    "mtime": 1784300215.0165203,
     "ast_hash": "d9fba9abbfba6d6bd3bc132cd555fb6a",
     "semantic_hash": ""
   },
@@ -675,7 +675,7 @@
     "semantic_hash": ""
   },
   ".specify/feature.json": {
-    "mtime": 1784300464.2844615,
+    "mtime": 1784296383.23209,
     "ast_hash": "eb4b72c618e6fa5785cc76efbcf6b814",
     "semantic_hash": ""
   },
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/import.rs": {
-    "mtime": 1784300514.8347192,
-    "ast_hash": "affe309163802382532e645c44101bad",
+    "mtime": 1783910861.4226959,
+    "ast_hash": "50254cd0761e2f543a81428488063db7",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-007-spec-patch-0-1-1.md": {
@@ -860,7 +860,7 @@
     "semantic_hash": ""
   },
   "protocol/fixtures.expected.json": {
-    "mtime": 1784300464.3008554,
+    "mtime": 1784299438.1867814,
     "ast_hash": "194561536ab8f7149b4e725d30128375",
     "semantic_hash": ""
   },
@@ -1025,67 +1025,67 @@
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/spec.md": {
-    "mtime": 1784300464.303212,
+    "mtime": 1784296366.124394,
     "ast_hash": "93ca2a8fb89ed4a1ea1322b4e33c6ac8",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/checklists/requirements.md": {
-    "mtime": 1784300464.3018842,
+    "mtime": 1784296376.39486,
     "ast_hash": "73981e020453a5bcd735e3585e687121",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/plan.md": {
-    "mtime": 1784300464.3027198,
+    "mtime": 1784297249.1892657,
     "ast_hash": "ccaeeed1b9f0489c2810184edb0778c5",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/research.md": {
-    "mtime": 1784300464.3030367,
+    "mtime": 1784297132.610082,
     "ast_hash": "4209fc4f051c8b3a6239111fbe777415",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/data-model.md": {
-    "mtime": 1784300464.3024232,
+    "mtime": 1784297151.6007326,
     "ast_hash": "78d53b52eebaadab65b064d1c6e9730d",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/contracts/cli-flags.md": {
-    "mtime": 1784300464.3020432,
+    "mtime": 1784297161.1635544,
     "ast_hash": "921350151f564d94a3d375ae0175ff46",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/contracts/resume-state-format.md": {
-    "mtime": 1784300464.3023036,
+    "mtime": 1784297171.8836389,
     "ast_hash": "20184eda2d78f31854055842c5dfba75",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/contracts/link-syntax.md": {
-    "mtime": 1784300464.3021758,
+    "mtime": 1784297192.2558045,
     "ast_hash": "68e7ec6197ad39ac6cbf7453fde25c99",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/quickstart.md": {
-    "mtime": 1784300464.302843,
+    "mtime": 1784297209.1375055,
     "ast_hash": "91c8af70cb45dd6d7c095f6402fb0666",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/tasks.md": {
-    "mtime": 1784300464.304564,
+    "mtime": 1784300238.5333223,
     "ast_hash": "fd38196471e05465746718df9bcaa7c9",
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/resume.rs": {
-    "mtime": 1784300514.8399441,
-    "ast_hash": "631397f15497b60535a92bf6d0ee08a4",
+    "mtime": 1784298209.54705,
+    "ast_hash": "c108c82644c005b5e3239b07e28d4df7",
     "semantic_hash": ""
   },
   "protocol/fixtures/valid/malformed-link-url.json": {
-    "mtime": 1784300464.301067,
+    "mtime": 1784299429.0537674,
     "ast_hash": "8e6f7f3dbcba3a4b601312fa3ec96aab",
     "semantic_hash": ""
   },
   "protocol/fixtures/valid/well-formed-link-url.json": {
-    "mtime": 1784300464.3013732,
+    "mtime": 1784299431.8720133,
     "ast_hash": "101a0ab700e14866b7a82983bd147a34",
     "semantic_hash": ""
   }

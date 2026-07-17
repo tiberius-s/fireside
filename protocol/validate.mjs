@@ -271,6 +271,90 @@ function checkRevealMaskedByContainer(graph) {
 }
 
 /**
+ * Extracts every link destination found in `text`'s `[label](url)` syntax
+ * — mirrors `fireside-tui`'s inline-Markdown parser / `fireside-engine`'s
+ * `find_links`, but only needs the URL portion to validate.
+ */
+function findLinks(text) {
+  const urls = [];
+  let i = 0;
+  while (true) {
+    const open = text.indexOf("[", i);
+    if (open === -1) break;
+    const close = text.indexOf("]", open + 1);
+    if (close === -1) break;
+    if (text[close + 1] === "(") {
+      const parenClose = text.indexOf(")", close + 2);
+      if (parenClose !== -1) {
+        urls.push(text.slice(close + 2, parenClose));
+        i = parenClose + 1;
+        continue;
+      }
+    }
+    i = close + 1;
+  }
+  return urls;
+}
+
+/**
+ * A pragmatic "does this look like a URL" check: a non-empty scheme
+ * (starts with a letter, then letters/digits/`+`/`.`/`-`), a colon, and a
+ * non-empty, whitespace-free remainder.
+ */
+function isWellFormedUrl(url) {
+  const colon = url.indexOf(":");
+  if (colon === -1) return false;
+  const scheme = url.slice(0, colon);
+  const rest = url.slice(colon + 1);
+  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*$/.test(scheme)) return false;
+  return rest.length > 0 && !/\s/.test(rest);
+}
+
+/**
+ * WARNING: A `[label](url)` link's destination doesn't look like a
+ * well-formed URL — a malformed link must not block presenting, so this is
+ * a warning, not an error, matching every other content-quality rule.
+ *
+ * Spec: Engine extension (contracts/link-syntax.md, spec 007)
+ */
+function checkMalformedLinkUrls(graph) {
+  const diagnostics = [];
+
+  function textOf(block) {
+    if (block.kind === "text") return [block.body];
+    if (block.kind === "heading") return [block.text];
+    if (block.kind === "list") return block.items ?? [];
+    return [];
+  }
+
+  function walk(blocks, nodeId) {
+    for (const block of blocks) {
+      for (const text of textOf(block)) {
+        for (const url of findLinks(text ?? "")) {
+          if (!isWellFormedUrl(url)) {
+            diagnostics.push(
+              diagnostic(
+                "warning",
+                "malformed-link-url",
+                `Node "${nodeId}" has a link whose destination "${url}" doesn't look like a well-formed URL (expected something like "scheme://...") — presenting still works, but the link won't be usefully clickable`,
+                { nodeId, url },
+              ),
+            );
+          }
+        }
+      }
+      if (block.kind === "container") walk(block.children ?? [], nodeId);
+    }
+  }
+
+  for (const node of graph.nodes) {
+    walk(node.content ?? [], node.id);
+  }
+
+  return diagnostics;
+}
+
+/**
  * WARNING: All nodes should be reachable from the entry point (index 0).
  *
  * Spec: §4 Validation — Recommended Check 1
@@ -425,6 +509,7 @@ export function validate(graph) {
     ...checkUniqueBranchKeys(graph),
     ...checkEmptyTraversal(graph),
     ...checkRevealMaskedByContainer(graph),
+    ...checkMalformedLinkUrls(graph),
     ...checkReachability(graph, nodeIds),
     ...checkSelfLoops(graph),
     ...checkTrivialCycles(graph),
@@ -457,6 +542,7 @@ Rules (warnings):
   trivial-cycle              Two-node cycles (A→B→A) are likely accidental
   empty-traversal            An empty traversal object ({}) is likely a mistake
   reveal-masked-by-container A child's reveal step is earlier than its enclosing group's
+  malformed-link-url        A [label](url) link's destination doesn't look like a URL
 
 Rules (info):
   dead-end-branch            Branch targets with no traversal are terminal nodes

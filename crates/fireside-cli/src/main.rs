@@ -18,6 +18,7 @@ use fireside_engine::{Diagnostic, Severity, validate};
 use fireside_tui::WriteBackError;
 
 mod import;
+mod resume;
 
 /// The built-in showcase deck presented by `fireside demo`.
 const DEMO_DECK: &str = include_str!("../assets/demo.fireside.json");
@@ -44,6 +45,11 @@ enum Command {
     Present {
         /// Path to the deck file.
         file: PathBuf,
+
+        /// Start from the beginning, ignoring any saved resume position for
+        /// this deck.
+        #[arg(long)]
+        restart: bool,
     },
 
     /// Check a deck and report anything wrong, in plain language.
@@ -101,7 +107,8 @@ enum Template {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match (cli.file, cli.command) {
-        (Some(file), _) | (None, Some(Command::Present { file })) => present(&file),
+        (Some(file), _) => present(&file, false),
+        (None, Some(Command::Present { file, restart })) => present(&file, restart),
         (None, Some(Command::Validate { file, watch })) => validate_file(&file, watch),
         (
             None,
@@ -177,7 +184,7 @@ fn strip_position(err: &serde_json::Error) -> String {
     full.split(" at line ").next().unwrap_or(&full).to_owned()
 }
 
-fn present(path: &Path) -> Result<()> {
+fn present(path: &Path, restart: bool) -> Result<()> {
     let graph = load(path)?;
     let diags = validate(&graph);
     let errors: Vec<_> = diags
@@ -193,12 +200,33 @@ fn present(path: &Path) -> Result<()> {
         std::process::exit(1);
     }
     let watcher = RefCell::new(Watcher::new(path));
-    fireside_tui::present_authoring(
+
+    // Resume-from-fingerprint (spec 007): a resume position is host-local
+    // cache, not part of the deck itself — `--restart` skips the lookup for
+    // this run only, without touching the stored record.
+    let key = resume::fingerprint_key(path);
+    let mut store = resume::ResumeStore::load();
+    let initial_node = store.resolve_initial_node(key.as_deref(), restart);
+    let graph_for_resume = graph.clone();
+
+    let result = fireside_tui::present_authoring(
         graph,
         &mut || watcher.borrow_mut().poll(),
         &mut |graph| watcher.borrow_mut().write_back(graph),
-    )
-    .context("the presenter hit a terminal error")
+        initial_node.as_deref(),
+        &mut |node_id| {
+            let Some(key) = &key else { return };
+            let terminal = graph_for_resume
+                .node(node_id)
+                .is_some_and(fireside_core::Node::is_terminal);
+            if terminal {
+                store.clear(key);
+            } else {
+                store.set(key.clone(), node_id);
+            }
+        },
+    );
+    result.context("the presenter hit a terminal error")
 }
 
 fn demo() -> Result<()> {

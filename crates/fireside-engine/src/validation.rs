@@ -98,6 +98,7 @@ pub fn validate(graph: &Graph) -> Vec<Diagnostic> {
     check_branch_options(graph, &mut diags);
     check_empty_traversal(graph, &mut diags);
     check_reveal_masked_by_container(graph, &mut diags);
+    check_malformed_link_urls(graph, &mut diags);
     check_reachability(graph, &ids, &mut diags);
     check_self_loops(graph, &mut diags);
     check_trivial_cycles(graph, &mut diags);
@@ -271,6 +272,87 @@ fn walk_reveal_masking(blocks: &[ContentBlock], node_id: &str, diags: &mut Vec<D
         }
         walk_reveal_masking(children, node_id, diags);
     }
+}
+
+/// WARNING: a `[label](url)` link's destination doesn't look like a
+/// well-formed URL (contracts/link-syntax.md) — a malformed link must not
+/// block presenting, so this is a warning, not an error, matching every
+/// other content-quality rule in this validator.
+fn check_malformed_link_urls(graph: &Graph, diags: &mut Vec<Diagnostic>) {
+    for node in &graph.nodes {
+        walk_link_urls(&node.content, &node.id, diags);
+    }
+}
+
+fn walk_link_urls(blocks: &[ContentBlock], node_id: &str, diags: &mut Vec<Diagnostic>) {
+    for block in blocks {
+        match block {
+            ContentBlock::Text { body, .. } => check_text_links(body, node_id, diags),
+            ContentBlock::Heading { text, .. } => check_text_links(text, node_id, diags),
+            ContentBlock::List { items, .. } => {
+                for item in items {
+                    check_text_links(item, node_id, diags);
+                }
+            }
+            ContentBlock::Container { children, .. } => walk_link_urls(children, node_id, diags),
+            _ => {}
+        }
+    }
+}
+
+fn check_text_links(text: &str, node_id: &str, diags: &mut Vec<Diagnostic>) {
+    for url in find_links(text) {
+        if !is_well_formed_url(url) {
+            diags.push(Diagnostic::new(
+                Severity::Warning,
+                "malformed-link-url",
+                format!(
+                    "\"{node_id}\" has a link whose destination \"{url}\" doesn't look like a well-formed URL (expected something like \"scheme://...\") — presenting still works, but the link won't be usefully clickable"
+                ),
+                Some(node_id),
+            ));
+        }
+    }
+}
+
+/// Extracts every link destination found in `text`'s `[label](url)` syntax
+/// — a minimal, independent mirror of `fireside-tui`'s inline-Markdown
+/// parser (`fireside-engine` cannot depend on `fireside-tui` per the crate
+/// boundary table, and only needs the URL portion to validate).
+fn find_links(text: &str) -> Vec<&str> {
+    let mut urls = Vec::new();
+    let mut i = 0;
+    while let Some(open_rel) = text[i..].find('[') {
+        let open = i + open_rel;
+        let Some(close_rel) = text[open + 1..].find(']') else {
+            break;
+        };
+        let close = open + 1 + close_rel;
+        if text[close + 1..].starts_with('(')
+            && let Some(paren_close_rel) = text[close + 2..].find(')')
+        {
+            let paren_close = close + 2 + paren_close_rel;
+            urls.push(&text[close + 2..paren_close]);
+            i = paren_close + 1;
+            continue;
+        }
+        i = close + 1;
+    }
+    urls
+}
+
+/// A pragmatic "does this look like a URL" check: a non-empty scheme
+/// (starts with a letter, then letters/digits/`+`/`.`/`-`), a colon, and a
+/// non-empty, whitespace-free remainder.
+fn is_well_formed_url(url: &str) -> bool {
+    let Some(colon) = url.find(':') else {
+        return false;
+    };
+    let (scheme, rest) = (&url[..colon], &url[colon + 1..]);
+    let mut chars = scheme.chars();
+    let starts_ok = chars.next().is_some_and(char::is_alphabetic);
+    let rest_ok = chars.all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '.' | '-'));
+    starts_ok && rest_ok && !rest.is_empty() && !rest.contains(char::is_whitespace)
 }
 
 /// WARNING: nodes should be reachable from the entry point (recommended 1).
@@ -517,6 +599,48 @@ mod tests {
             ]}]}"#,
         );
         assert!(!rules(&diags).contains(&"reveal-masked-by-container"));
+    }
+
+    #[test]
+    fn malformed_link_url_warns() {
+        let diags = diags_for(
+            r#"{"nodes":[{"id":"a","content":[
+                {"kind":"text","body":"see [here](not a url) for more"}
+            ]}]}"#,
+        );
+        let hits: Vec<_> = diags
+            .iter()
+            .filter(|d| d.rule == "malformed-link-url")
+            .collect();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].node.as_deref(), Some("a"));
+        assert_eq!(hits[0].severity, Severity::Warning);
+        assert!(
+            !has_errors(&diags),
+            "a malformed link must not block presenting"
+        );
+    }
+
+    #[test]
+    fn well_formed_link_url_does_not_warn() {
+        let diags = diags_for(
+            r#"{"nodes":[{"id":"a","content":[
+                {"kind":"text","body":"see [here](https://example.com/docs) for more"},
+                {"kind":"heading","level":2,"text":"[in a heading](mailto:a@b.com)"},
+                {"kind":"list","items":["[in a list item](https://example.com)"]}
+            ]}]}"#,
+        );
+        assert!(!rules(&diags).contains(&"malformed-link-url"));
+    }
+
+    #[test]
+    fn text_with_no_links_never_warns() {
+        let diags = diags_for(
+            r#"{"nodes":[{"id":"a","content":[
+            {"kind":"text","body":"plain text with [brackets] but no link syntax"}
+        ]}]}"#,
+        );
+        assert!(!rules(&diags).contains(&"malformed-link-url"));
     }
 
     #[test]

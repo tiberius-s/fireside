@@ -95,4 +95,30 @@ impl Tokens {
             _ => self.text.add_modifier(Modifier::BOLD | Modifier::DIM),
         }
     }
+
+    /// Style for the `index`-th hyperlink label: a real, always-reasonable
+    /// accent-and-underline look on every terminal, plus the link's index
+    /// smuggled into `underline_color`'s red channel (1-based, so `None`
+    /// unambiguously means "not a link"). `render::apply_hyperlinks`
+    /// recovers it after the frame draws, to wrap exactly those cells in
+    /// an OSC 8 escape (see specs/007-modern-tui-leverage/research.md §4).
+    /// No other style in this theme sets `underline_color`, so there is no
+    /// collision to worry about.
+    #[must_use]
+    pub fn link(&self, index: usize) -> Style {
+        let marker = (index % 255) as u8 + 1;
+        self.accent
+            .add_modifier(Modifier::UNDERLINED)
+            .underline_color(Color::Rgb(marker, 0, 0))
+    }
+
+    /// Decodes a link index from a style produced by [`Tokens::link`], if
+    /// any.
+    #[must_use]
+    pub fn link_index(style: Style) -> Option<usize> {
+        match style.underline_color {
+            Some(Color::Rgb(marker, 0, 0)) if marker > 0 => Some(usize::from(marker - 1)),
+            _ => None,
+        }
+    }
 }

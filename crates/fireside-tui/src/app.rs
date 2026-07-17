@@ -8,9 +8,12 @@
 
 use std::time::{Duration, Instant};
 
-use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::event::{
+    Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
+};
 use fireside_core::{ContentBlock, Graph, Node, Transition, ViewMode};
 use fireside_engine::{Outcome, Session, Severity, validate};
+use ratatui::layout::Rect;
 
 use crate::render;
 
@@ -233,7 +236,10 @@ fn to_buffer(text: &str) -> Vec<String> {
 
 /// The `ContentBlock` at `path` within `blocks`, recursing into container
 /// children — the write-side counterpart to `collect_editable`'s addressing.
-fn block_at_mut<'a>(blocks: &'a mut [ContentBlock], path: &[usize]) -> Option<&'a mut ContentBlock> {
+fn block_at_mut<'a>(
+    blocks: &'a mut [ContentBlock],
+    path: &[usize],
+) -> Option<&'a mut ContentBlock> {
     let (&first, rest) = path.split_first()?;
     let block = blocks.get_mut(first)?;
     if rest.is_empty() {
@@ -393,6 +399,7 @@ impl App {
             Msg::Terminal(Event::Key(key)) if key.kind == KeyEventKind::Press => {
                 self.on_key(key);
             }
+            Msg::Terminal(Event::Mouse(mouse)) => self.on_mouse(mouse),
             Msg::Terminal(_) => {}
             Msg::Reload(result) => self.on_reload(result),
             Msg::SaveResult(result) => self.on_save_result(result),
@@ -478,6 +485,47 @@ impl App {
             }
             Screen::Present => self.on_present_key(key.code),
             Screen::Edit { .. } => self.on_edit_key(key),
+        }
+    }
+
+    /// A mouse click, additive on top of every existing keyboard control
+    /// (constitution Principle II: the footer stays the primary, taught
+    /// contract). Only a left-button press is a "click" — other buttons and
+    /// release/drag events are ignored. Hit-testing recomputes the exact
+    /// same pure layout `render::draw` used for the last frame
+    /// (`render::map_row_hit`/`branch_option_hit`), so a click can never
+    /// land somewhere the screen doesn't actually show a target: clicking
+    /// blank space, body text, or (since the branch menu itself is not
+    /// drawn while reveal is pending) a branch option that hasn't appeared
+    /// yet, is always a safe no-op.
+    fn on_mouse(&mut self, event: MouseEvent) {
+        if event.kind != MouseEventKind::Down(MouseButton::Left) {
+            return;
+        }
+        let (col, row) = (event.column, event.row);
+        let (w, h) = self.viewport;
+        let frame_area = Rect::new(0, 0, w, h);
+        match &self.screen {
+            Screen::Map { selected } => {
+                let selected = *selected;
+                if let Some(idx) = render::map_row_hit(self, frame_area, selected, col, row) {
+                    let id = self.session.graph().nodes[idx].id.clone();
+                    self.screen = Screen::Present;
+                    if id != self.session.current().id {
+                        let outcome = self.session.goto(&id);
+                        self.apply(&outcome);
+                    }
+                }
+            }
+            Screen::Present
+                if self.session.branch_point().is_some() && !self.session.has_pending_reveal() =>
+            {
+                if let Some(idx) = render::branch_option_hit(self, frame_area, col, row) {
+                    let outcome = self.session.choose(idx);
+                    self.apply(&outcome);
+                }
+            }
+            _ => {}
         }
     }
 

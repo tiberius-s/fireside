@@ -430,8 +430,17 @@ fn track_span(cell: Track, tokens: &Tokens) -> Span<'static> {
     Span::styled(cell.glyph.to_string(), style)
 }
 
-/// Paint the map overlay.
-pub fn draw(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &Tokens) {
+/// Everything about the map overlay that both drawing and mouse hit-testing
+/// need to agree on: the built lines, which line each station sits on, and
+/// the scrolled viewport actually shown. Pure — no `Frame`, no drawing.
+struct Built {
+    lines: Vec<Line<'static>>,
+    footer: [Line<'static>; 3],
+    /// Line index of each node's station row, indexed by `graph.nodes` index.
+    station_lines: Vec<usize>,
+}
+
+fn build(app: &App, selected: usize, tokens: &Tokens) -> Built {
     let session = app.session();
     let graph = session.graph();
     let visited: HashSet<String> = session.visited().iter().cloned().collect();
@@ -507,17 +516,68 @@ pub fn draw(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &
         Line::styled(" ↑↓ move · Enter jump · Esc close".to_owned(), tokens.muted),
     ];
 
-    let content_w = lines
+    Built {
+        lines,
+        footer,
+        station_lines,
+    }
+}
+
+/// The overlay rect, its content border, and the scrolled rail viewport —
+/// `None` when the overlay has no room to show any rail rows at all.
+struct Placed {
+    rect: Rect,
+    rail_area: Rect,
+    skip: usize,
+}
+
+fn place(built: &Built, area: Rect, selected: usize) -> Option<Placed> {
+    let content_w = built
+        .lines
         .iter()
         .map(Line::width)
-        .chain(footer.iter().map(Line::width))
+        .chain(built.footer.iter().map(Line::width))
         .max()
         .unwrap_or(0) as u16;
     let rect = super::overlay_rect(
         area,
         (content_w + 4).max(46),
-        lines.len() as u16 + footer.len() as u16 + 2,
+        built.lines.len() as u16 + built.footer.len() as u16 + 2,
     );
+    let block = Block::bordered().border_type(BorderType::Rounded);
+    let inner = block.inner(rect);
+    if inner.height <= built.footer.len() as u16 {
+        return None;
+    }
+
+    // The rail viewport scrolls to keep the selected station in view.
+    let view_h = (inner.height - built.footer.len() as u16) as usize;
+    let target = built.station_lines.get(selected).copied().unwrap_or(0);
+    let max_skip = built.lines.len().saturating_sub(view_h);
+    let skip = target.saturating_sub(view_h / 2).min(max_skip);
+    let rail_area = Rect {
+        height: view_h as u16,
+        ..inner
+    };
+    Some(Placed {
+        rect,
+        rail_area,
+        skip,
+    })
+}
+
+/// Paint the map overlay.
+pub fn draw(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &Tokens) {
+    let built = build(app, selected, tokens);
+    let Some(placed) = place(&built, area, selected) else {
+        return;
+    };
+    let Placed {
+        rect,
+        rail_area,
+        skip,
+    } = placed;
+
     frame.render_widget(Clear, rect);
     let block = Block::bordered()
         .border_type(BorderType::Rounded)
@@ -528,20 +588,15 @@ pub fn draw(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &
         ));
     let inner = block.inner(rect);
     frame.render_widget(block, rect);
-    if inner.height <= footer.len() as u16 {
-        return;
-    }
 
-    // The rail viewport scrolls to keep the selected station in view.
-    let view_h = (inner.height - footer.len() as u16) as usize;
-    let target = station_lines.get(selected).copied().unwrap_or(0);
-    let max_skip = lines.len().saturating_sub(view_h);
-    let skip = target.saturating_sub(view_h / 2).min(max_skip);
-    let visible: Vec<Line<'static>> = lines.iter().skip(skip).take(view_h).cloned().collect();
-    let rail_area = Rect {
-        height: view_h as u16,
-        ..inner
-    };
+    let max_skip = built.lines.len().saturating_sub(rail_area.height as usize);
+    let visible: Vec<Line<'static>> = built
+        .lines
+        .iter()
+        .skip(skip)
+        .take(rail_area.height as usize)
+        .cloned()
+        .collect();
     frame.render_widget(Paragraph::new(Text::from(visible)), rail_area);
     if skip > 0 {
         super::indicator(frame, rail_area, 0, "▲", tokens);
@@ -550,11 +605,43 @@ pub fn draw(frame: &mut Frame, area: Rect, app: &App, selected: usize, tokens: &
         super::indicator(frame, rail_area, rail_area.height - 1, "▼", tokens);
     }
     let footer_area = Rect {
-        y: inner.y + view_h as u16,
-        height: footer.len() as u16,
+        y: inner.y + rail_area.height,
+        height: built.footer.len() as u16,
         ..inner
     };
-    frame.render_widget(Paragraph::new(Text::from(footer.to_vec())), footer_area);
+    frame.render_widget(
+        Paragraph::new(Text::from(built.footer.to_vec())),
+        footer_area,
+    );
+}
+
+/// Which node index (into `graph.nodes`) sits at `(col, row)` of the map
+/// overlay drawn over `frame_area` — recomputes the same pure `build`/`place`
+/// geometry `draw` uses, so a click can never disagree with what's on
+/// screen. `None` when the click missed every station row.
+#[must_use]
+pub(crate) fn hit_test(
+    app: &App,
+    frame_area: Rect,
+    selected: usize,
+    col: u16,
+    row: u16,
+) -> Option<usize> {
+    let tokens = Tokens::default();
+    let built = build(app, selected, &tokens);
+    let placed = place(&built, frame_area, selected)?;
+    if col < placed.rail_area.x
+        || col >= placed.rail_area.right()
+        || row < placed.rail_area.y
+        || row >= placed.rail_area.bottom()
+    {
+        return None;
+    }
+    let clicked_line = placed.skip + (row - placed.rail_area.y) as usize;
+    built
+        .station_lines
+        .iter()
+        .position(|&line| line == clicked_line)
 }
 
 #[cfg(test)]

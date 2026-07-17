@@ -90,7 +90,13 @@ fn render_block(
         ContentBlock::Divider { .. } => divider(width, tokens),
         ContentBlock::Container {
             children, layout, ..
-        } => container(children, layout.unwrap_or_default(), width, tokens, reveal_level),
+        } => container(
+            children,
+            layout.unwrap_or_default(),
+            width,
+            tokens,
+            reveal_level,
+        ),
     }
 }
 
@@ -171,7 +177,11 @@ fn code(
     let prefix = if line_numbers { num_width + 4 } else { 2 };
 
     let box_width = if is_ascii_art(language) {
-        let content_max = source.lines().map(UnicodeWidthStr::width).max().unwrap_or(0);
+        let content_max = source
+            .lines()
+            .map(UnicodeWidthStr::width)
+            .max()
+            .unwrap_or(0);
         (prefix + content_max)
             .max(label_prefix.width())
             .min(full_width)
@@ -471,7 +481,10 @@ fn center(
 ) -> Vec<Line<'static>> {
     let inner_width = (u32::from(width) * 4 / 5) as u16;
     let mut lines = Vec::new();
-    for (i, child) in visible_blocks(children, reveal_level).into_iter().enumerate() {
+    for (i, child) in visible_blocks(children, reveal_level)
+        .into_iter()
+        .enumerate()
+    {
         if i > 0 {
             lines.push(Line::default());
         }
@@ -708,7 +721,10 @@ mod tests {
         };
         let lines = flat(&render(&block, 40, &Tokens::default()));
         let box_width = lines.iter().map(|l| l.width()).max().unwrap_or(0);
-        assert!(box_width < 40, "box should not stretch full width: {lines:?}");
+        assert!(
+            box_width < 40,
+            "box should not stretch full width: {lines:?}"
+        );
         // The bottom rule is pure pad + dashes, so its leading-space count
         // is exactly the centering pad with no ambiguity from content
         // whitespace — every other line must share that same prefix.
@@ -719,7 +735,10 @@ mod tests {
             lines.iter().all(|l| l.starts_with(&pad_str)),
             "every line shares the same leading pad {pad}: {lines:?}"
         );
-        assert!(pad > 0, "content should be centered, not left-aligned: {lines:?}");
+        assert!(
+            pad > 0,
+            "content should be centered, not left-aligned: {lines:?}"
+        );
     }
 
     #[test]
@@ -768,7 +787,11 @@ mod tests {
         };
         let lines = flat(&render(&block, 40, &Tokens::default()));
         assert!(lines[0].starts_with("─ rust "), "{lines:?}");
-        assert_eq!(lines[0].chars().count(), 40, "top rule fills full width: {lines:?}");
+        assert_eq!(
+            lines[0].chars().count(),
+            40,
+            "top rule fills full width: {lines:?}"
+        );
         let bottom = lines.last().expect("bottom rule present");
         assert_eq!(
             bottom.chars().count(),
@@ -821,7 +844,10 @@ mod tests {
             show_line_numbers: None,
         };
         let lines = flat(&render(&block, 40, &Tokens::default()));
-        assert!(lines[0].contains("code"), "top rule shows the label: {lines:?}");
+        assert!(
+            lines[0].contains("code"),
+            "top rule shows the label: {lines:?}"
+        );
         let last = lines.last().expect("bottom rule present");
         assert!(!last.is_empty(), "bottom rule is not empty: {lines:?}");
     }
@@ -885,12 +911,18 @@ mod tests {
         // column would use — not squeezed into a half-width column with
         // an empty second slot.
         let lead = hidden[0].find("left").unwrap_or(0);
-        assert!(lead < 3, "left column not squeezed into half width: {hidden:?}");
+        assert!(
+            lead < 3,
+            "left column not squeezed into half width: {hidden:?}"
+        );
 
         let shown = flat(&render_block(&block, 30, &Tokens::default(), 1));
         assert_eq!(shown.len(), 1);
         let pos_l = shown[0].find("left").expect("left present");
         let pos_r = shown[0].find("right").expect("right present");
-        assert!(pos_l < pos_r, "both columns side by side once revealed: {shown:?}");
+        assert!(
+            pos_l < pos_r,
+            "both columns side by side once revealed: {shown:?}"
+        );
     }
 }

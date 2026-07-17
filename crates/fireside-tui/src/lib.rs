@@ -11,9 +11,12 @@ pub mod render;
 pub mod theme;
 
 use std::fmt;
+use std::io;
 use std::time::Duration;
 
-use crossterm::event;
+use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture};
+use crossterm::execute;
+use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
 use fireside_core::Graph;
 use fireside_engine::Session;
 
@@ -30,6 +33,12 @@ pub type ReloadSource<'a> = &'a mut dyn FnMut() -> Option<Result<Graph, String>>
 /// a quick edit. The presenter itself never touches the filesystem; the
 /// caller owns the I/O and reports back whether the save succeeded.
 pub type WriteBackSink<'a> = &'a mut dyn FnMut(&Graph) -> Result<(), WriteBackError>;
+
+/// A position-changed sink: called with the new current node id every time
+/// it changes (including once, immediately, with the starting node). The
+/// presenter itself never touches the filesystem; a caller that wants to
+/// persist "where the presenter is" (e.g. resume-on-relaunch) owns all I/O.
+pub type PositionSink<'a> = &'a mut dyn FnMut(&str);
 
 /// Why a quick-edit save could not be applied.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -77,14 +86,26 @@ pub fn present(graph: Graph) -> Result<(), TuiError> {
 /// Returns [`TuiError::Engine`] for an unpresentable graph and
 /// [`TuiError::Io`] for terminal failures.
 pub fn present_watching(graph: Graph, source: ReloadSource<'_>) -> Result<(), TuiError> {
-    present_authoring(graph, source, &mut |_| Err(WriteBackError::Unavailable))
+    present_authoring(
+        graph,
+        source,
+        &mut |_| Err(WriteBackError::Unavailable),
+        None,
+        &mut |_| {},
+    )
 }
 
 /// Present a graph with live reload and quick-edit write-back: on top of
 /// `present_watching`'s reload polling, a presenter can quick-edit the
 /// current node's heading/text blocks and save — the edited graph is
 /// handed to `sink`, which owns all file I/O (`fireside-tui` performs
-/// none), per ADR-005.
+/// none), per ADR-005. `initial_node` (when it names a real node) opens the
+/// presentation there instead of the graph's normal entry node — an unknown
+/// id is a guarded no-op, per `Session::goto`, falling back to the entry
+/// node exactly as an unrecognized `goto` always has. `on_position_changed`
+/// is called with the current node id once at startup and again every time
+/// it changes, for a caller that wants to persist "where the presenter is"
+/// (e.g. resume-on-relaunch) — `fireside-tui` performs no file I/O itself.
 ///
 /// # Errors
 ///
@@ -94,11 +115,22 @@ pub fn present_authoring(
     graph: Graph,
     source: ReloadSource<'_>,
     sink: WriteBackSink<'_>,
+    initial_node: Option<&str>,
+    on_position_changed: PositionSink<'_>,
 ) -> Result<(), TuiError> {
-    let session = Session::new(graph)?;
+    let mut session = Session::new(graph)?;
+    if let Some(id) = initial_node {
+        let _ = session.goto(id);
+    }
     let mut app = App::new(session);
     let mut terminal = ratatui::init();
-    let result = event_loop(&mut terminal, &mut app, source, sink);
+    // Mouse is additive on top of the keyboard contract (constitution
+    // Principle II) — enabled/disabled around the same window raw mode is,
+    // so a panic or early return still leaves the terminal in mouse-off,
+    // cooked-mode state via `ratatui::restore()`.
+    let _ = execute!(io::stdout(), EnableMouseCapture);
+    let result = event_loop(&mut terminal, &mut app, source, sink, on_position_changed);
+    let _ = execute!(io::stdout(), DisableMouseCapture);
     ratatui::restore();
     result
 }
@@ -108,7 +140,10 @@ fn event_loop(
     app: &mut App,
     source: ReloadSource<'_>,
     sink: WriteBackSink<'_>,
+    on_position_changed: PositionSink<'_>,
 ) -> Result<(), TuiError> {
+    let mut last_id = app.session().current().id.clone();
+    on_position_changed(&last_id);
     while !app.should_quit() {
         // A pending save is handled before any reload check, in the very
         // next iteration after the save keypress. The keypress that sets
@@ -135,7 +170,14 @@ fn event_loop(
         {
             app.update(Msg::Reload(result));
         }
+        // Synchronized output eliminates any visible tearing mid-transition;
+        // it is just an escape-sequence pair a terminal either honors or
+        // silently ignores (DEC private mode 2026), so no capability query
+        // is needed — the same "invisible if unsupported" reasoning already
+        // used for the `fade` transition's fallback (Appendix D).
+        let _ = execute!(io::stdout(), BeginSynchronizedUpdate);
         terminal.draw(|frame| render::draw(frame, app))?;
+        let _ = execute!(io::stdout(), EndSynchronizedUpdate);
         // The timeout lets expired flash messages clear without input; a
         // fading slide polls fast so it brightens on time.
         let timeout = if app.fading() {
@@ -146,6 +188,40 @@ fn event_loop(
         if event::poll(timeout)? {
             app.update(Msg::Terminal(event::read()?));
         }
+        let current_id = &app.session().current().id;
+        if *current_id != last_id {
+            last_id = current_id.clone();
+            on_position_changed(&last_id);
+        }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use crossterm::Command;
+    use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
+
+    /// `event_loop` brackets every `terminal.draw` with these two exact
+    /// escape sequences (DEC private mode 2026) via `execute!` — this pins
+    /// down the byte-level contract `crossterm::terminal::{Begin,End}SynchronizedUpdate`
+    /// promise to emit, which is what `event_loop` relies on being a no-op
+    /// on a terminal that doesn't understand it (research.md §3). The full
+    /// "no visible tearing" claim itself is a real-terminal property, not
+    /// something a headless test can observe — proven in tmux instead
+    /// (quickstart.md §3).
+    #[test]
+    fn synchronized_update_commands_are_the_expected_escape_sequences() {
+        let mut begin = String::new();
+        BeginSynchronizedUpdate
+            .write_ansi(&mut begin)
+            .expect("write_ansi");
+        assert_eq!(begin, "\x1b[?2026h");
+
+        let mut end = String::new();
+        EndSynchronizedUpdate
+            .write_ansi(&mut end)
+            .expect("write_ansi");
+        assert_eq!(end, "\x1b[?2026l");
+    }
 }

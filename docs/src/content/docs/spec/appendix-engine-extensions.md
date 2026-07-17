@@ -24,8 +24,12 @@ These are documented engine choices within latitude the spec already
 grants, not extensions:
 
 - **Inline Markdown in `text.body`** — the spec allows inline Markdown
-  without pinning a subset. The engine renders `**bold**`, `*italic*`, and
-  `` `code` ``; unmatched markers render literally.
+  without pinning a subset. The engine renders `**bold**`, `*italic*`,
+  `` `code` ``, and `[label](url)` links; unmatched markers render
+  literally. A link's label renders as a distinctly-styled, clickable OSC 8
+  hyperlink on terminals that support it, and as plain readable text
+  otherwise; a malformed destination gets a `malformed-link-url` validation
+  warning (spec 007 — Modern TUI leverage).
 - **Unknown document fields** are ignored on read; the schema layer owns
   strictness (spec §4 Layer 1).
 - **`fade` transition** — currently rendered as an instant switch, the

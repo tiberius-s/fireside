@@ -489,9 +489,13 @@ fn unique_id(base: &str, existing: &[(String, String)]) -> String {
 /// Second pass: builds each section's content blocks and resolves its
 /// branch declaration (if any), using the ids `collect_node_ids` already
 /// found.
-fn parse_sections(source: &str, node_ids: &[(String, String)]) -> Result<Vec<Section>, ImportError> {
-    let events: Vec<(Event<'_>, Range<usize>)> =
-        Parser::new_ext(source, Options::empty()).into_offset_iter().collect();
+fn parse_sections(
+    source: &str,
+    node_ids: &[(String, String)],
+) -> Result<Vec<Section>, ImportError> {
+    let events: Vec<(Event<'_>, Range<usize>)> = Parser::new_ext(source, Options::empty())
+        .into_offset_iter()
+        .collect();
     let mut sections = Vec::new();
     let mut node_index = 0usize;
     let mut i = 0usize;
@@ -552,7 +556,10 @@ fn parse_sections(source: &str, node_ids: &[(String, String)]) -> Result<Vec<Sec
                             section: heading_text,
                         });
                     }
-                    blocks.push(ContentBlock::Text { reveal: None, body: text });
+                    blocks.push(ContentBlock::Text {
+                        reveal: None,
+                        body: text,
+                    });
                 }
                 Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(info))) => {
                     let lang = info.to_string();
@@ -634,7 +641,9 @@ fn build_graph(frontmatter: Frontmatter, sections: Vec<Section>) -> Graph {
                     next: None,
                     branch_point: Some(branch_point),
                 })),
-                None => ids.get(idx + 1).map(|next| TraversalSpec::Target(next.clone())),
+                None => ids
+                    .get(idx + 1)
+                    .map(|next| TraversalSpec::Target(next.clone())),
             };
             Node {
                 id: section.id,
@@ -742,8 +751,8 @@ mod tests {
 
     #[test]
     fn collect_node_ids_requires_at_least_one_h2() {
-        let err = collect_node_ids("# Just an H1\n\nNo sections here.\n")
-            .expect_err("no ## headings");
+        let err =
+            collect_node_ids("# Just an H1\n\nNo sections here.\n").expect_err("no ## headings");
         assert!(matches!(err, ImportError::NoHeadings));
     }
 
@@ -769,7 +778,9 @@ mod tests {
             other => panic!("expected a list block, got {other:?}"),
         }
         match &graph.nodes[1].content[0] {
-            ContentBlock::Code { language, source, .. } => {
+            ContentBlock::Code {
+                language, source, ..
+            } => {
                 assert_eq!(language.as_deref(), Some("rust"));
                 assert!(source.contains("println!"));
             }
@@ -819,7 +830,8 @@ mod tests {
 
     #[test]
     fn import_rejects_content_after_a_branch_fence() {
-        let src = "## Choose\n\n```branch\n- [A](#a)\n```\n\nMore text after the fence.\n\n## A\n\nHi.\n";
+        let src =
+            "## Choose\n\n```branch\n- [A](#a)\n```\n\nMore text after the fence.\n\n## A\n\nHi.\n";
         let err = import(src).expect_err("content after branch fence");
         assert!(matches!(err, ImportError::ContentAfterBranch { .. }));
     }
@@ -840,11 +852,14 @@ mod tests {
 
     #[test]
     fn import_converts_a_standalone_image_and_a_divider() {
-        let src = "## Slide\n\n![a diagram](diagram.png \"A caption\")\n\n---\n\nAfter the divider.\n";
+        let src =
+            "## Slide\n\n![a diagram](diagram.png \"A caption\")\n\n---\n\nAfter the divider.\n";
         let graph = import(src).expect("imports cleanly");
         let blocks = &graph.nodes[0].content;
         match &blocks[0] {
-            ContentBlock::Image { src, alt, caption, .. } => {
+            ContentBlock::Image {
+                src, alt, caption, ..
+            } => {
                 assert_eq!(src, "diagram.png");
                 assert_eq!(alt.as_deref(), Some("a diagram"));
                 assert_eq!(caption.as_deref(), Some("A caption"));

@@ -31,6 +31,11 @@ const PAD_Y: u16 = 1;
 /// Paint one frame.
 pub fn draw(frame: &mut Frame, app: &App) {
     let tokens = Tokens::default();
+    // Every link fragment parsed this frame registers its URL under a
+    // fresh index (`markdown::register_link`) — clearing first means a
+    // link's index (and thus its `Tokens::link` marker style) never
+    // accidentally survives from the previous frame's registry.
+    markdown::reset_links();
     let area = frame.area();
     if area.width < 10 || area.height < 4 {
         frame.render_widget(Paragraph::new("Too small"), area);
@@ -57,6 +62,59 @@ pub fn draw(frame: &mut Frame, app: &App) {
         Screen::Map { selected } => map::draw(frame, area, app, *selected, &tokens),
         Screen::Edit { fields, focused } => draw_edit(frame, area, fields, *focused, &tokens),
     }
+
+    apply_hyperlinks(frame.buffer_mut());
+}
+
+/// Rewrites every contiguous run of [`Tokens::link`]-styled cells in the
+/// frame's buffer into a real OSC 8 hyperlink: the run's first cell gets
+/// the OSC 8 open sequence + the run's visible text + OSC 8 close, with
+/// [`CellDiffOption::ForcedWidth`] set to the run's real column width —
+/// ratatui's buffer-diff iterator (`BufferDiff::next`) advances past
+/// exactly `width - 1` further cells whenever it sees `ForcedWidth`, the
+/// same mechanism it uses internally for wide (CJK) characters, so those
+/// trailing cells are never independently diffed/written regardless of
+/// their own content (research.md §4 in specs/007-modern-tui-leverage/).
+/// They are still blanked to a single space, matching the "no double-width
+/// cell followed by non-blank content" well-formedness `Buffer::diff`'s own
+/// docs assume — keeping the raw buffer sane for any direct reader (tests
+/// included), not just the diffed/backend path. A terminal that doesn't
+/// understand OSC 8 simply doesn't act on the inert escape bytes; the
+/// label prints as plain, distinctly-styled text either way (FR-013/FR-014).
+fn apply_hyperlinks(buffer: &mut ratatui::buffer::Buffer) {
+    use ratatui::buffer::CellDiffOption;
+    use std::num::NonZeroU16;
+
+    let area = buffer.area;
+    for y in area.top()..area.bottom() {
+        let mut x = area.left();
+        while x < area.right() {
+            let Some(index) = Tokens::link_index(buffer[(x, y)].style()) else {
+                x += 1;
+                continue;
+            };
+            let Some(url) = markdown::link_url(index) else {
+                x += 1;
+                continue;
+            };
+            let start = x;
+            let mut text = String::new();
+            while x < area.right() && Tokens::link_index(buffer[(x, y)].style()) == Some(index) {
+                text.push_str(buffer[(x, y)].symbol());
+                x += 1;
+            }
+            let Some(width) = NonZeroU16::new(x - start) else {
+                continue;
+            };
+            let wrapped = format!("\u{1b}]8;;{url}\u{1b}\\{text}\u{1b}]8;;\u{1b}\\");
+            let cell = &mut buffer[(start, y)];
+            cell.set_symbol(&wrapped);
+            cell.set_diff_option(CellDiffOption::ForcedWidth(width));
+            for skip_x in (start + 1)..x {
+                buffer[(skip_x, y)].set_symbol(" ");
+            }
+        }
+    }
 }
 
 /// The largest useful scroll offset at the given terminal size. Shared with
@@ -68,7 +126,7 @@ pub fn max_scroll(app: &App, width: u16, height: u16) -> u16 {
         body.height = body.height.saturating_sub(notes.height);
     }
     let surf = surface(app.view_mode(), body);
-    let total = node_lines(app, surf.width, &Tokens::default()).len() as u16;
+    let total = node_lines(app, surf.width, &Tokens::default()).lines.len() as u16;
     total.saturating_sub(surf.height)
 }
 
@@ -230,12 +288,25 @@ fn header_rail(app: &App, width: u16, tokens: &Tokens) -> Line<'static> {
     Line::from(spans)
 }
 
+/// The node's full line flow plus, when the flow ends in a branch menu, the
+/// line index of each option's label row — the row a mouse click must land
+/// on to choose that option (`hit_test::branch_option_at`). Kept alongside
+/// the lines themselves, computed once, so drawing and hit-testing can never
+/// disagree about where an option actually is on screen.
+struct NodeLines {
+    lines: Vec<Line<'static>>,
+    /// Line index of each branch option's label row, parallel to
+    /// `branch_point().options`. Empty when there is no branch menu.
+    option_rows: Vec<usize>,
+}
+
 /// The node's full line flow: content blocks, then the branch menu or the
 /// end-of-path marker.
-fn node_lines(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+fn node_lines(app: &App, width: u16, tokens: &Tokens) -> NodeLines {
     let node = app.session().current();
     let mut lines =
         blocks::render_blocks(&node.content, width, tokens, app.session().reveal_level());
+    let mut option_rows = Vec::new();
 
     let pending_reveal = app.session().has_pending_reveal();
     if let Some(bp) = app.session().branch_point().filter(|_| !pending_reveal) {
@@ -269,6 +340,7 @@ fn node_lines(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
             if let Some(key) = &opt.key {
                 spans.push(Span::styled(format!("  [{key}]"), tokens.muted));
             }
+            option_rows.push(lines.len());
             lines.push(Line::from(spans));
             if let Some(desc) = &opt.description {
                 for d in markdown::wrap_styled(desc, width.saturating_sub(7), tokens.muted, tokens)
@@ -285,7 +357,49 @@ fn node_lines(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
         }
         lines.extend(end_marker(app, width, tokens));
     }
-    lines
+    NodeLines { lines, option_rows }
+}
+
+/// The content card/flow's inner rect for a line flow of `total` lines —
+/// pure geometry, no drawing. Shared by `draw_content` (which additionally
+/// paints the card border) and mouse hit-testing (which only needs to know
+/// where each line landed).
+fn content_inner(body: Rect, surf: &Surface, total: u16) -> (Option<Rect>, Rect) {
+    if surf.card {
+        let card_width = surf.width + 2 + 2 * PAD_X;
+        let card_height = surf.height + 2 + 2 * PAD_Y;
+        let card_area = Rect {
+            x: body.x + (body.width - card_width) / 2,
+            y: body.y + (body.height - card_height) / 2,
+            width: card_width,
+            height: card_height,
+        };
+        let block = Block::bordered().border_type(BorderType::Rounded);
+        let full = block.inner(card_area).inner(Margin {
+            horizontal: PAD_X,
+            vertical: PAD_Y,
+        });
+        let inner = if total < full.height {
+            Rect {
+                y: full.y + (full.height - total) / 2,
+                height: total,
+                ..full
+            }
+        } else {
+            full
+        };
+        (Some(card_area), inner)
+    } else {
+        let width = surf.width.min(body.width);
+        let height = total.min(body.height);
+        let inner = Rect {
+            x: body.x + (body.width - width) / 2,
+            y: body.y + (body.height - height) / 2,
+            width,
+            height,
+        };
+        (None, inner)
+    }
 }
 
 /// The close of a path. The deck should land, not shrug: a centered rule
@@ -347,7 +461,7 @@ fn end_marker(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
 
 fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
     let surf = surface(app.view_mode(), body);
-    let lines = node_lines(app, surf.width, tokens);
+    let NodeLines { lines, .. } = node_lines(app, surf.width, tokens);
     let total = lines.len() as u16;
     // During a fade-in the whole slide starts dim and brightens.
     let base = if app.fading() {
@@ -356,45 +470,15 @@ fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
         Style::new()
     };
 
-    let inner = if surf.card {
+    let (card_area, inner) = content_inner(body, &surf, total);
+    if let Some(card_area) = card_area {
         // The slide card: one constant stage for the whole deck — the same
         // frame on every slide — with the content flow centered inside it.
-        let card_width = surf.width + 2 + 2 * PAD_X;
-        let card_height = surf.height + 2 + 2 * PAD_Y;
-        let card_area = Rect {
-            x: body.x + (body.width - card_width) / 2,
-            y: body.y + (body.height - card_height) / 2,
-            width: card_width,
-            height: card_height,
-        };
         let block = Block::bordered()
             .border_type(BorderType::Rounded)
             .border_style(tokens.border.patch(base));
-        let full = block.inner(card_area).inner(Margin {
-            horizontal: PAD_X,
-            vertical: PAD_Y,
-        });
         frame.render_widget(block, card_area);
-        if total < full.height {
-            Rect {
-                y: full.y + (full.height - total) / 2,
-                height: total,
-                ..full
-            }
-        } else {
-            full
-        }
-    } else {
-        // Bare flow (fullscreen, tiny terminals): centered when it fits.
-        let width = surf.width.min(body.width);
-        let height = total.min(body.height);
-        Rect {
-            x: body.x + (body.width - width) / 2,
-            y: body.y + (body.height - height) / 2,
-            width,
-            height,
-        }
-    };
+    }
 
     let max = total.saturating_sub(inner.height);
     let scroll = app.scroll().min(max);
@@ -528,9 +612,7 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, tokens: &Tokens) {
     };
 
     let mut spans = vec![Span::raw(" ")];
-    if pending_reveal
-        && let Some((revealed, total)) = session.reveal_progress()
-    {
+    if pending_reveal && let Some((revealed, total)) = session.reveal_progress() {
         spans.push(Span::styled(
             format!("{revealed}/{total} revealed"),
             tokens.accent.add_modifier(Modifier::BOLD),
@@ -625,7 +707,12 @@ fn draw_edit(
         };
         lines.push(Line::styled(format!(" {label}"), label_style));
         for (row, text) in field.buffer.iter().enumerate() {
-            lines.push(edit_line(text, i == focused && row == field.cursor.0, field.cursor.1, tokens));
+            lines.push(edit_line(
+                text,
+                i == focused && row == field.cursor.0,
+                field.cursor.1,
+                tokens,
+            ));
         }
         lines.push(Line::default());
     }
@@ -645,7 +732,9 @@ fn edit_line(text: &str, cursor_here: bool, col: usize, tokens: &Tokens) -> Line
     let chars: Vec<char> = text.chars().collect();
     let before: String = chars[..col.min(chars.len())].iter().collect();
     let at = chars.get(col).copied().unwrap_or(' ');
-    let after: String = chars.get(col + 1..).map_or(String::new(), |s| s.iter().collect());
+    let after: String = chars
+        .get(col + 1..)
+        .map_or(String::new(), |s| s.iter().collect());
     Line::from(vec![
         Span::raw("  "),
         Span::styled(before, tokens.text),
@@ -661,6 +750,7 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
         ("↑ / ↓", "pick a choice · scroll"),
         ("1–9 or a letter", "take a choice directly"),
         ("m", "map — see and jump anywhere"),
+        ("click", "a map row or branch option to select it"),
         ("f", "fullscreen on/off"),
         ("s", "speaker notes"),
         ("e", "quick-edit heading/text on this slide"),
@@ -697,6 +787,53 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
         tokens.muted,
     ));
     frame.render_widget(Paragraph::new(Text::from(lines)), inner);
+}
+
+/// Whether `(col, row)` falls inside `rect` — small helper since the
+/// `ratatui::layout::Rect` version pinned here has no `contains` for a bare
+/// coordinate pair.
+fn rect_contains(rect: Rect, col: u16, row: u16) -> bool {
+    col >= rect.x && col < rect.right() && row >= rect.y && row < rect.bottom()
+}
+
+/// Which branch option (if any) sits at `(col, row)` of the just-drawn
+/// frame — recomputes the same pure layout `draw`/`draw_content` use, so a
+/// click can never disagree with what is actually on screen. `None` when
+/// there is no branch menu, or the click missed every option's row.
+#[must_use]
+pub fn branch_option_hit(app: &App, frame_area: Rect, col: u16, row: u16) -> Option<usize> {
+    let tokens = Tokens::default();
+    let (_, mut content, _) = areas(app.view_mode(), frame_area);
+    if let Some(notes) = notes_panel(app, content) {
+        content.height = content.height.saturating_sub(notes.height);
+    }
+    let surf = surface(app.view_mode(), content);
+    let NodeLines { lines, option_rows } = node_lines(app, surf.width, &tokens);
+    if option_rows.is_empty() {
+        return None;
+    }
+    let total = lines.len() as u16;
+    let (_, inner) = content_inner(content, &surf, total);
+    if !rect_contains(inner, col, row) {
+        return None;
+    }
+    let max = total.saturating_sub(inner.height);
+    let scroll = app.scroll().min(max);
+    let clicked_line = scroll as usize + (row - inner.y) as usize;
+    option_rows.iter().position(|&r| r == clicked_line)
+}
+
+/// Which map row (if any) sits at `(col, row)` of the just-drawn frame —
+/// delegates to `map::hit_test`, the map screen's own pure geometry.
+#[must_use]
+pub fn map_row_hit(
+    app: &App,
+    frame_area: Rect,
+    selected: usize,
+    col: u16,
+    row: u16,
+) -> Option<usize> {
+    map::hit_test(app, frame_area, selected, col, row)
 }
 
 #[cfg(test)]
@@ -1044,6 +1181,100 @@ mod tests {
         assert!(s.contains("you are here"), "glyph legend shown: {s}");
     }
 
+    /// Send a left-button click at `(col, row)`, sized against `(w, h)` so
+    /// `App`'s tracked viewport matches what was actually rendered.
+    fn click_at(app: &mut App, w: u16, h: u16, col: u16, row: u16) {
+        app.update(Msg::Terminal(Event::Resize(w, h)));
+        app.update(Msg::Terminal(Event::Mouse(crossterm::event::MouseEvent {
+            kind: crossterm::event::MouseEventKind::Down(crossterm::event::MouseButton::Left),
+            column: col,
+            row,
+            modifiers: KeyModifiers::NONE,
+        })));
+    }
+
+    #[test]
+    fn clicking_a_map_row_navigates_to_that_slide() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char('m'));
+        let (w, h) = (80, 24);
+        let buf = buffer(&app, w, h);
+        let (x, y) = locate(&buf, w, h, " features ");
+        click_at(&mut app, w, h, x, y);
+        assert_eq!(*app.screen(), Screen::Present, "click closed the map");
+        assert_eq!(app.session().current().id, "features", "click navigated");
+    }
+
+    #[test]
+    fn clicking_a_branch_option_chooses_it() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' ')); // features
+        press(&mut app, KeyCode::Char(' ')); // choose (branch point)
+        let (w, h) = (80, 24);
+        let buf = buffer(&app, w, h);
+        // Option 2 is "Layout demo" per `arrows_and_enter_choose_an_option`.
+        let (x, y) = locate(&buf, w, h, "Layout demo");
+        click_at(&mut app, w, h, x, y);
+        assert_eq!(
+            app.session().current().id,
+            "layout-demo",
+            "click chose the same target arrows+Enter would"
+        );
+    }
+
+    #[test]
+    fn clicking_outside_any_interactive_row_is_inert() {
+        let mut app = app();
+        press(&mut app, KeyCode::Char('m'));
+        let before = app.session().current().id.clone();
+        // Row 0 is inside the overlay's top border, not a station row.
+        click_at(&mut app, 80, 24, 40, 0);
+        assert_eq!(
+            *app.screen(),
+            Screen::Map { selected: 0 },
+            "still on the map"
+        );
+        assert_eq!(app.session().current().id, before, "nothing navigated");
+    }
+
+    #[test]
+    fn clicking_a_branch_option_row_before_it_is_drawn_is_inert() {
+        // While reveal is pending the branch menu is not rendered at all
+        // (mirrors the keyboard gate) — a click where the menu would
+        // eventually appear has nothing to land on, so it does nothing.
+        const DECK: &str = r#"{"nodes":[
+            {"id":"a","traversal":{"branch-point":{"options":[
+                {"label":"One","key":"1","target":"b"}
+            ]}},"content":[
+                {"kind":"text","body":"x","reveal":1}
+            ]},
+            {"id":"b","content":[]}
+        ]}"#;
+        let mut app = App::new(
+            Session::new(Graph::from_json(DECK).expect("fixture parses")).expect("non-empty"),
+        );
+        let (w, h) = (80, 24);
+        click_at(&mut app, w, h, 40, 12);
+        assert_eq!(app.session().current().id, "a", "no navigation happened");
+        assert!(
+            app.session().has_pending_reveal(),
+            "the click did not consume the reveal step either"
+        );
+    }
+
+    #[test]
+    fn keyboard_only_flows_are_unaffected_by_mouse_support() {
+        // No `Msg::Terminal(Event::Mouse(..))` anywhere in this test —
+        // a regression guarantee that mouse support changed nothing about
+        // the existing keyboard-only path (FR-003).
+        let mut app = app();
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Char(' '));
+        press(&mut app, KeyCode::Down);
+        press(&mut app, KeyCode::Enter);
+        assert_eq!(app.session().current().id, "layout-demo");
+    }
+
     #[test]
     fn header_rule_carries_the_mini_rail() {
         let mut app = app();
@@ -1242,7 +1473,10 @@ mod tests {
         let s = screen(&app, 80, 24);
         assert!(s.contains("Always visible"), "{s}");
         assert!(!s.contains("First reveal"), "not yet revealed: {s}");
-        assert!(s.contains("0/2 revealed"), "footer shows reveal progress: {s}");
+        assert!(
+            s.contains("0/2 revealed"),
+            "footer shows reveal progress: {s}"
+        );
 
         press(&mut app, KeyCode::Char(' '));
         let s = screen(&app, 80, 24);
@@ -1253,7 +1487,10 @@ mod tests {
         press(&mut app, KeyCode::Char(' '));
         let s = screen(&app, 80, 24);
         assert!(s.contains("Second reveal"), "{s}");
-        assert!(!s.contains("revealed"), "badge gone once reveal is exhausted: {s}");
+        assert!(
+            !s.contains("revealed"),
+            "badge gone once reveal is exhausted: {s}"
+        );
     }
 
     #[test]
@@ -1310,8 +1547,14 @@ mod tests {
     fn reveal_marks_do_not_change_a_deck_that_never_uses_them() {
         let app = app();
         let s = screen(&app, 80, 24);
-        assert!(!s.contains("revealed"), "no reveal badge on an ordinary deck: {s}");
-        assert!(s.contains("Space next"), "ordinary footer hint unchanged: {s}");
+        assert!(
+            !s.contains("revealed"),
+            "no reveal badge on an ordinary deck: {s}"
+        );
+        assert!(
+            s.contains("Space next"),
+            "ordinary footer hint unchanged: {s}"
+        );
     }
 
     #[test]
@@ -1328,7 +1571,10 @@ mod tests {
 
         let s = screen(&app, 80, 24);
         assert!(s.contains("Left column"), "{s}");
-        assert!(!s.contains("Right column"), "right column not yet revealed: {s}");
+        assert!(
+            !s.contains("Right column"),
+            "right column not yet revealed: {s}"
+        );
 
         press(&mut app, KeyCode::Char(' '));
         let s = screen(&app, 80, 24);
@@ -1423,7 +1669,11 @@ mod tests {
         // The event loop hands the sink's outcome back via `Msg::SaveResult`;
         // here we simulate a successful write.
         app.update(Msg::SaveResult(Ok(())));
-        assert_eq!(*app.screen(), Screen::Present, "a successful save closes the modal");
+        assert_eq!(
+            *app.screen(),
+            Screen::Present,
+            "a successful save closes the modal"
+        );
 
         let node = saved.node("features").expect("features node still exists");
         match &node.content[0] {
@@ -1498,7 +1748,11 @@ mod tests {
             .take_pending_save()
             .expect("retry produces a pending save with the same edit");
         app.update(Msg::SaveResult(Ok(())));
-        assert_eq!(*app.screen(), Screen::Present, "a successful retry closes the modal");
+        assert_eq!(
+            *app.screen(),
+            Screen::Present,
+            "a successful retry closes the modal"
+        );
         match &saved.node("features").expect("features node").content[0] {
             ContentBlock::Heading { text, .. } => assert_eq!(text, "XCore Features"),
             other => panic!("expected the heading block, got {other:?}"),
@@ -1563,7 +1817,10 @@ mod tests {
         for (error, expect_contains) in [
             (crate::WriteBackError::Unavailable, "no file to save to"),
             (crate::WriteBackError::Conflict, "changed on disk"),
-            (crate::WriteBackError::Io("disk full".to_owned()), "disk full"),
+            (
+                crate::WriteBackError::Io("disk full".to_owned()),
+                "disk full",
+            ),
         ] {
             let mut app = app();
             app.update(Msg::SaveResult(Err(error.to_string())));
@@ -1578,5 +1835,54 @@ mod tests {
         app.update(Msg::SaveResult(Ok(())));
         let s = screen(&app, 80, 24);
         assert!(s.contains("Saved"), "{s}");
+    }
+
+    #[test]
+    fn link_cell_carries_osc8_escape_with_forced_width() {
+        const DECK: &str = r#"{"nodes":[{"id":"a","content":[
+            {"kind":"text","body":"See [docs](https://example.com) here"}
+        ]}]}"#;
+        let app = App::new(
+            Session::new(Graph::from_json(DECK).expect("fixture parses")).expect("non-empty"),
+        );
+        let (w, h) = (80, 24);
+        let buf = buffer(&app, w, h);
+
+        let mut found = None;
+        'outer: for y in 0..h {
+            for x in 0..w {
+                if buf[(x, y)].symbol().contains("\u{1b}]8;;") {
+                    found = Some((x, y));
+                    break 'outer;
+                }
+            }
+        }
+        let (x, y) = found.expect("a link cell is present on screen");
+        let cell = &buf[(x, y)];
+        assert!(
+            cell.symbol().contains("https://example.com"),
+            "cell carries the url: {:?}",
+            cell.symbol()
+        );
+        assert!(
+            cell.symbol().contains("docs"),
+            "cell carries the label: {:?}",
+            cell.symbol()
+        );
+        match cell.diff_option {
+            ratatui::buffer::CellDiffOption::ForcedWidth(width) => {
+                assert_eq!(width.get(), 4, "\"docs\" is 4 columns wide");
+            }
+            other => panic!("expected ForcedWidth, got {other:?}"),
+        }
+        // The label's other 3 columns are blanked, not left with stray
+        // leftover characters from the original per-character cells.
+        for dx in 1..4 {
+            assert_eq!(
+                buf[(x + dx, y)].symbol(),
+                " ",
+                "trailing label cell at dx={dx} is blanked"
+            );
+        }
     }
 }
