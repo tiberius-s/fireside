@@ -30,3 +30,25 @@ the wire format needs a spec change and an ADR (`.claude/adrs/`) first.
   commit `tsp-output/` (CI enforces this)
 - `npm run check --prefix docs` — docs site check
 - `graphify update .` — refresh the knowledge graph after code changes
+
+## Before handing off any change
+
+Run `scripts/verify.sh` (add `--skip-slow` for a faster inner-loop pass,
+but run the full version at least once before calling work done). It runs
+every check every CI workflow actually runs, job for job — not just the
+commands above. This exists because those two things have drifted before:
+a `main.tsp` doc-comment-only edit changed generated JSON Schema
+`description` text and got pushed without a `tsp-output/` rebuild, which
+only CI caught. Two gotchas the script encodes so you don't have to
+remember them:
+
+- **Any edit to `protocol/main.tsp`, including doc comments, requires
+  `cd protocol && npm run build` before committing** — doc comments flow
+  into the generated schemas' `description` fields, so even a
+  comment-only change can drift `tsp-output/` out of sync.
+- **GitHub Actions workflow files are not named what they say they are.**
+  `.github/workflows/models.yml`'s `name:` field is `Protocol` — it shows
+  up in the Actions tab and `gh run list` as "Protocol", not "models". Use
+  `gh api repos/<owner>/<repo>/actions/workflows` (or just read the
+  `name:` field in each file) rather than guessing from filenames when
+  investigating a failed run.

@@ -10164,6 +10164,76 @@
       "norm_label": "main()"
     },
     {
+      "label": "verify.sh",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "id": "scripts_verify",
+      "community": 219,
+      "norm_label": "verify.sh"
+    },
+    {
+      "label": "verify.sh script",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "id": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
+      "community": 219,
+      "norm_label": "verify.sh script"
+    },
+    {
+      "label": "step()",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L27",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "scripts_verify_step",
+      "community": 219,
+      "norm_label": "step()"
+    },
+    {
+      "label": "ok()",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L28",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "scripts_verify_ok",
+      "community": 219,
+      "norm_label": "ok()"
+    },
+    {
+      "label": "warn()",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L29",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "scripts_verify_warn",
+      "community": 219,
+      "norm_label": "warn()"
+    },
+    {
       "label": "skills-lock.json",
       "file_type": "code",
       "source_file": "skills-lock.json",
@@ -15982,6 +16052,16 @@
       "id": "agents_everyday_commands",
       "community": 153,
       "norm_label": "everyday commands"
+    },
+    {
+      "label": "Before handing off any change",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "agents_before_handing_off_any_change",
+      "community": 153,
+      "norm_label": "before handing off any change"
     },
     {
       "label": "CLAUDE.md",
@@ -47472,6 +47552,79 @@
       "target": "protocol_validate_validate"
     },
     {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_verify",
+      "target": "scripts_verify_ok"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_verify",
+      "target": "scripts_verify_step"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_verify",
+      "target": "scripts_verify_warn"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_verify",
+      "target": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L34",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
+      "target": "scripts_verify_ok"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L32",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
+      "target": "scripts_verify_step"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L49",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
+      "target": "scripts_verify_warn"
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "skills-lock.json",
@@ -52800,6 +52953,16 @@
       "confidence_score": 1.0,
       "source": "agents",
       "target": "agents_fireside_agent_guide"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "agents_fireside_agent_guide",
+      "target": "agents_before_handing_off_any_change",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -60865,5 +61028,5 @@
       "source_file": "docs/src/content/docs/spec/data-model.md"
     }
   ],
-  "built_at_commit": "06a7f26aad834b0402f0d90ef5e3f30de67433f0"
+  "built_at_commit": "5b759e7aaac20f64ef69f1c2db235c3680924c41"
 }

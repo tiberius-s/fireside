@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-17)
 
 ## Corpus Check
-- 224 files · ~239,093 words
+- 225 files · ~240,020 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2424 nodes · 3459 edges · 219 communities (182 shown, 37 thin omitted)
+- 2429 nodes · 3466 edges · 220 communities (183 shown, 37 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 36 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `06a7f26a`
+- Built from commit: `5b759e7a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -232,6 +232,7 @@
 - [[_COMMUNITY_Community 216|Community 216]]
 - [[_COMMUNITY_Community 217|Community 217]]
 - [[_COMMUNITY_Community 218|Community 218]]
+- [[_COMMUNITY_Community 219|Community 219]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `app()` - 47 edges
@@ -283,7 +284,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (219 total, 37 thin omitted)
+## Communities (220 total, 37 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -1004,6 +1005,10 @@ Nodes (8): ADR-010: Container nesting depth limit, Consequences, Context, Decisi
 ### Community 216 - "Community 216"
 Cohesion: 0.50
 Nodes (3): description, nodes, title
+
+### Community 219 - "Community 219"
+Cohesion: 0.70
+Nodes (4): ok(), step(), warn(), verify.sh script
 
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]

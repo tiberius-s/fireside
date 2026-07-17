@@ -31,5 +31,5 @@
         "kind",
         "children"
     ],
-    "description": "A container for nested content blocks with layout control.\n\nContainer layout hints control how children are arranged:\n\n- `\"stack\"` (default) — vertical stacking, top-aligned\n- `\"columns\"` — side-by-side arrangement, left to right in array order\n- `\"center\"` — centered vertically and horizontally\n\nThere is no protocol limit on nesting depth. Engines MAY impose\npractical limits."
+    "description": "A container for nested content blocks with layout control.\n\nContainer layout hints control how children are arranged:\n\n- `\"stack\"` (default) — vertical stacking, top-aligned\n- `\"columns\"` — side-by-side arrangement, left to right in array order\n- `\"center\"` — centered vertically and horizontally\n\nThere is no protocol limit on nesting depth. Engines MAY impose\npractical limits. (The reference implementation imposes a maximum\nnesting depth of 8 — see ADR-010 — as an example other engines may\nchoose to match or diverge from.)"
 }

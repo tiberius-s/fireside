@@ -380,8 +380,8 @@
     "semantic_hash": "95de58270b165f852c9882b692084267"
   },
   "AGENTS.md": {
-    "mtime": 1783873673.5094833,
-    "ast_hash": "3e53cb71ded50d2aa79292a37f172e54",
+    "mtime": 1784316302.4947574,
+    "ast_hash": "dd582cc6a1b424d4ac6d891e62a5886d",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-extensions.md": {
@@ -1152,6 +1152,11 @@
   "protocol/fixtures/valid/nesting-depth-at-limit.json": {
     "mtime": 1784303356.850244,
     "ast_hash": "b34d644d904f793821dfac6323abaa7b",
+    "semantic_hash": ""
+  },
+  "scripts/verify.sh": {
+    "mtime": 1784316272.1327941,
+    "ast_hash": "e89161347085cf4083971e910a8399c9",
     "semantic_hash": ""
   }
 }

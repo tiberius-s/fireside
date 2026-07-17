@@ -10164,6 +10164,76 @@
       "norm_label": "main()"
     },
     {
+      "label": "verify.sh",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "id": "scripts_verify",
+      "community": 219,
+      "norm_label": "verify.sh"
+    },
+    {
+      "label": "verify.sh script",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "id": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
+      "community": 219,
+      "norm_label": "verify.sh script"
+    },
+    {
+      "label": "step()",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L27",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "scripts_verify_step",
+      "community": 219,
+      "norm_label": "step()"
+    },
+    {
+      "label": "ok()",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L28",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "scripts_verify_ok",
+      "community": 219,
+      "norm_label": "ok()"
+    },
+    {
+      "label": "warn()",
+      "file_type": "code",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L29",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "scripts_verify_warn",
+      "community": 219,
+      "norm_label": "warn()"
+    },
+    {
       "label": "skills-lock.json",
       "file_type": "code",
       "source_file": "skills-lock.json",
@@ -11707,7 +11777,7 @@
       "label": "Executive Summary",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L216",
+      "source_location": "L257",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_executive_summary",
       "community": 6,
@@ -11717,7 +11787,7 @@
       "label": "1. Current-State Analysis",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L236",
+      "source_location": "L277",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_1_current_state_analysis",
       "community": 6,
@@ -11727,7 +11797,7 @@
       "label": "What is verifiably solid",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L238",
+      "source_location": "L279",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_what_is_verifiably_solid",
       "community": 6,
@@ -11737,7 +11807,7 @@
       "label": "Known, deliberate gaps (ADR-004 follow-ups)",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L260",
+      "source_location": "L301",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_known_deliberate_gaps_adr_004_follow_ups",
       "community": 6,
@@ -11747,7 +11817,7 @@
       "label": "Competitive survey (what presenters expect elsewhere)",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L269",
+      "source_location": "L310",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_competitive_survey_what_presenters_expect_elsewhere",
       "community": 6,
@@ -11757,7 +11827,7 @@
       "label": "Protocol ambiguities found in this audit (spec, `protocol/main.tsp`)",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L282",
+      "source_location": "L323",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_protocol_ambiguities_found_in_this_audit_spec_protocol_main_tsp",
       "community": 6,
@@ -11767,7 +11837,7 @@
       "label": "2. Prioritized Improvements",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L312",
+      "source_location": "L353",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_2_prioritized_improvements",
       "community": 6,
@@ -11777,7 +11847,7 @@
       "label": "P0 \u2014 Authoring path (the ADR-004 acknowledged debt)",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L314",
+      "source_location": "L355",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_p0_authoring_path_the_adr_004_acknowledged_debt",
       "community": 6,
@@ -11787,7 +11857,7 @@
       "label": "P1 \u2014 Terminal images + bounded ASCII art (the deferred polish)",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L340",
+      "source_location": "L381",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_p1_terminal_images_bounded_ascii_art_the_deferred_polish",
       "community": 6,
@@ -11797,7 +11867,7 @@
       "label": "P1 \u2014 Incremental reveal (\"fragments\")",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L361",
+      "source_location": "L402",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_p1_incremental_reveal_fragments",
       "community": 6,
@@ -11807,7 +11877,7 @@
       "label": "P2 \u2014 Modern TUI leverage",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L371",
+      "source_location": "L412",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_p2_modern_tui_leverage",
       "community": 6,
@@ -11817,7 +11887,7 @@
       "label": "P2 \u2014 Protocol & workflow hardening",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L385",
+      "source_location": "L426",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_p2_protocol_workflow_hardening",
       "community": 6,
@@ -11827,7 +11897,7 @@
       "label": "P3 \u2014 Later, each behind its own decision",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L401",
+      "source_location": "L442",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_p3_later_each_behind_its_own_decision",
       "community": 6,
@@ -11837,7 +11907,7 @@
       "label": "3. Phase 1 Roadmap (2\u20133 weeks)",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L408",
+      "source_location": "L449",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_3_phase_1_roadmap_2_3_weeks",
       "community": 6,
@@ -11847,7 +11917,7 @@
       "label": "4. Open Questions / Prototyping Needed",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L435",
+      "source_location": "L476",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_4_open_questions_prototyping_needed",
       "community": 6,
@@ -11857,7 +11927,7 @@
       "label": "5. Documentation Audit & Plan",
       "file_type": "document",
       "source_file": ".claude/plans/2026-07-12-strategic-improvement-plan.md",
-      "source_location": "L450",
+      "source_location": "L491",
       "_origin": "ast",
       "id": "plans_2026_07_12_strategic_improvement_plan_5_documentation_audit_plan",
       "community": 6,
@@ -47472,6 +47542,79 @@
       "target": "protocol_validate_validate"
     },
     {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "scripts_verify",
+      "target": "scripts_verify_ok",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "scripts_verify",
+      "target": "scripts_verify_step",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "scripts_verify",
+      "target": "scripts_verify_warn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "scripts_verify",
+      "target": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L34",
+      "weight": 1.0,
+      "context": "call",
+      "source": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
+      "target": "scripts_verify_ok",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L32",
+      "weight": 1.0,
+      "context": "call",
+      "source": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
+      "target": "scripts_verify_step",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/verify.sh",
+      "source_location": "L49",
+      "weight": 1.0,
+      "context": "call",
+      "source": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
+      "target": "scripts_verify_warn",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "skills-lock.json",
@@ -60865,5 +61008,5 @@
       "source_file": "docs/src/content/docs/spec/data-model.md"
     }
   ],
-  "built_at_commit": "06a7f26aad834b0402f0d90ef5e3f30de67433f0"
+  "built_at_commit": "5b759e7aaac20f64ef69f1c2db235c3680924c41"
 }

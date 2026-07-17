@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-strategic-improvement-plan.md": {
-    "mtime": 1784300622.6469717,
-    "ast_hash": "d9fba9abbfba6d6bd3bc132cd555fb6a",
+    "mtime": 1784303797.016643,
+    "ast_hash": "c4355249a855c1c4dff260f9bb950b94",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-sdd-retrofit-report.md": {
@@ -1130,8 +1130,8 @@
     "semantic_hash": ""
   },
   "specs/008-protocol-workflow-hardening/tasks.md": {
-    "mtime": 1784303682.3809803,
-    "ast_hash": "b4d9c43824307cf7d44c648cb196d582",
+    "mtime": 1784303815.234114,
+    "ast_hash": "d2db6a85f6a1587e6e82d6aea532f99d",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-010-container-nesting-depth-limit.md": {
@@ -1152,6 +1152,11 @@
   "protocol/fixtures/valid/nesting-depth-at-limit.json": {
     "mtime": 1784303356.850244,
     "ast_hash": "b34d644d904f793821dfac6323abaa7b",
+    "semantic_hash": ""
+  },
+  "scripts/verify.sh": {
+    "mtime": 1784316272.1327941,
+    "ast_hash": "e89161347085cf4083971e910a8399c9",
     "semantic_hash": ""
   }
 }

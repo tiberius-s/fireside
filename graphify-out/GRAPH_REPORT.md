@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-17)
 
 ## Corpus Check
-- 224 files · ~239,434 words
+- 225 files · ~240,202 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2424 nodes · 3459 edges · 219 communities (182 shown, 37 thin omitted)
+- 2430 nodes · 3467 edges · 220 communities (183 shown, 37 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 36 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `06a7f26a`
+- Built from commit: `5b759e7a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -232,6 +232,7 @@
 - [[_COMMUNITY_Community 216|Community 216]]
 - [[_COMMUNITY_Community 217|Community 217]]
 - [[_COMMUNITY_Community 218|Community 218]]
+- [[_COMMUNITY_Community 219|Community 219]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `app()` - 47 edges
@@ -283,7 +284,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (219 total, 37 thin omitted)
+## Communities (220 total, 37 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -818,8 +819,8 @@ Cohesion: 0.29
 Nodes (6): Decision: `empty-traversal` fires only for the object form, Decision: fixture corpus format — one shared expectations file, Decision: fixture directory split (`valid/` vs `invalid/`), Decision: protocol version bump lands via `Versions` enum addition only, Decision: `unique-branch-keys` doc fix has no fixture behavior change, Research: Protocol spec patch 0.1.1
 
 ### Community 153 - "Community 153"
-Cohesion: 0.50
-Nodes (3): Everyday commands, Fireside — Agent Guide, Spec-driven workflow
+Cohesion: 0.40
+Nodes (4): Before handing off any change, Everyday commands, Fireside — Agent Guide, Spec-driven workflow
 
 ### Community 154 - "Community 154"
 Cohesion: 0.40
@@ -1005,12 +1006,16 @@ Nodes (8): ADR-010: Container nesting depth limit, Consequences, Context, Decisi
 Cohesion: 0.50
 Nodes (3): description, nodes, title
 
+### Community 219 - "Community 219"
+Cohesion: 0.70
+Nodes (4): ok(), step(), warn(), verify.sh script
+
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1207 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1202 more)
+- **1208 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1203 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **37 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1024,7 +1029,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `TUI App Core`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1209 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1210 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.08035714285714286 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
