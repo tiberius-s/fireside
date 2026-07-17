@@ -463,7 +463,10 @@ mod tests {
         assert_eq!(s.current().id, "b");
         s.back();
         assert_eq!(s.current().id, "a");
-        assert!(s.has_pending_reveal(), "reveal is not remembered across visits");
+        assert!(
+            s.has_pending_reveal(),
+            "reveal is not remembered across visits"
+        );
         assert_eq!(s.reveal_progress(), Some((0, 1)));
     }
 
@@ -484,7 +487,11 @@ mod tests {
                 {"id":"b","content":[]}
             ]}"#,
         );
-        assert_eq!(s.choose(0), Outcome::InvalidChoice, "reveal not yet exhausted");
+        assert_eq!(
+            s.choose(0),
+            Outcome::InvalidChoice,
+            "reveal not yet exhausted"
+        );
         assert_eq!(s.current().id, "a");
         s.next(); // consume the reveal step
         assert_eq!(s.choose(0), Outcome::Moved, "now selectable");

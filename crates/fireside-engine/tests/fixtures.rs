@@ -44,10 +44,7 @@ fn fixture_corpus_matches_documented_expectations() {
 
     for (subdir, expect_errors) in [("valid", false), ("invalid", true)] {
         for path in fixture_paths(&fixtures_dir.join(subdir)) {
-            let rel_key = format!(
-                "{subdir}/{}",
-                path.file_name().unwrap().to_string_lossy()
-            );
+            let rel_key = format!("{subdir}/{}", path.file_name().unwrap().to_string_lossy());
             seen_keys.insert(rel_key.clone());
 
             let expected_rules: BTreeSet<String> = expected
@@ -65,8 +62,7 @@ fn fixture_corpus_matches_documented_expectations() {
                 .unwrap_or_else(|e| panic!("fixture {} is a valid Graph: {e}", path.display()));
             let diags = validate(&graph);
 
-            let actual_rules: BTreeSet<String> =
-                diags.iter().map(|d| d.rule.to_owned()).collect();
+            let actual_rules: BTreeSet<String> = diags.iter().map(|d| d.rule.to_owned()).collect();
 
             assert_eq!(
                 actual_rules, expected_rules,
@@ -88,5 +84,8 @@ fn fixture_corpus_matches_documented_expectations() {
         seen_keys, documented_keys,
         "fixtures on disk and fixtures.expected.json entries must match exactly"
     );
-    assert!(checked >= 10, "expected at least 10 fixtures, checked {checked}");
+    assert!(
+        checked >= 10,
+        "expected at least 10 fixtures, checked {checked}"
+    );
 }

@@ -188,7 +188,9 @@ fn new_without_a_name_prompts_interactively() {
         .write_stdin("My Workshop\n3\nGrace Hopper\n")
         .assert()
         .success()
-        .stdout(predicate::str::contains("Created my-workshop.fireside.json"));
+        .stdout(predicate::str::contains(
+            "Created my-workshop.fireside.json",
+        ));
 
     let file = temp.path().join("my-workshop.fireside.json");
     let contents = std::fs::read_to_string(&file).expect("scaffold is readable");

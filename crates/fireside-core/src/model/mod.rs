@@ -580,7 +580,10 @@ mod tests {
             serde_json::from_str(r#"{"kind":"text","body":"x"}"#).expect("parse");
         assert_eq!(unmarked.reveal(), None);
         let json = serde_json::to_string(&unmarked).expect("serialize");
-        assert!(!json.contains("reveal"), "absent reveal stays absent on write: {json}");
+        assert!(
+            !json.contains("reveal"),
+            "absent reveal stays absent on write: {json}"
+        );
     }
 
     #[test]
