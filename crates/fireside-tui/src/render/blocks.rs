@@ -539,6 +539,60 @@ mod tests {
         assert_eq!(lines, ["Hi", "──"]);
     }
 
+    /// Spec 008 US4: proves the H1 underline rule (sized to the text's
+    /// rendered width, per `heading()`'s `Line::width().min(width)`) is
+    /// measured by true display width, not `char` count — CJK ideographs
+    /// are double-width, so a char-counting bug would produce a
+    /// noticeably shorter (wrong) rule. The expected rule length is
+    /// computed via the same `unicode-width` crate the production code
+    /// uses (not a hand-picked magic number), so this test is about
+    /// proving display-width measurement is used consistently, not about
+    /// asserting a specific width value.
+    #[test]
+    fn heading_with_emoji_and_cjk_measures_by_display_width() {
+        let text = "你好 🎉 world";
+        let expected_width = UnicodeWidthStr::width(text);
+        assert_ne!(
+            expected_width,
+            text.chars().count(),
+            "the fixture must actually differ under width vs. char-count \
+             measurement, or this test proves nothing"
+        );
+
+        let block = ContentBlock::Heading {
+            reveal: None,
+            level: 1,
+            text: text.into(),
+        };
+        // Wide enough that the heading doesn't wrap — isolates the
+        // underline-sizing behavior this test targets.
+        let lines = flat(&render(&block, 40, &Tokens::default()));
+        assert_eq!(lines[0], text);
+        assert_eq!(lines[1].chars().count(), expected_width);
+        assert!(lines[1].chars().all(|c| c == '─'));
+    }
+
+    /// Spec 008 US4: a heading with wide characters clipped/wrapped at a
+    /// narrow width must never overflow that width when measured by true
+    /// display width (a byte- or char-counting bug could either overflow
+    /// visually or clip too aggressively).
+    #[test]
+    fn heading_with_cjk_wraps_without_overflowing_narrow_width() {
+        let block = ContentBlock::Heading {
+            reveal: None,
+            level: 1,
+            text: "你好世界这是一个很长的标题".into(),
+        };
+        let width = 10;
+        let lines = render(&block, width, &Tokens::default());
+        for line in &lines {
+            assert!(
+                line.width() <= width as usize,
+                "line {line:?} overflows width {width}"
+            );
+        }
+    }
+
     #[test]
     fn h2_gets_an_accent_bar() {
         let block = ContentBlock::Heading {
@@ -614,6 +668,62 @@ mod tests {
         let pos_l = lines[0].find("left").expect("left present");
         let pos_r = lines[0].find("right").expect("right present");
         assert!(pos_l < pos_r);
+    }
+
+    /// Spec 008 US4: a column's right-hand neighbor starts at a fixed
+    /// offset (`col_width + GUTTER`) computed purely from the container
+    /// width — it must be identical whether the left column holds
+    /// wide (CJK) or ASCII content of the same true display width. The
+    /// ASCII comparison string's length is derived from the CJK string's
+    /// *measured* width (not hand-picked), so this test is agnostic to
+    /// the exact width the `unicode-width` crate assigns to any given
+    /// character — it only asserts the two are measured consistently.
+    #[test]
+    fn columns_with_wide_characters_stay_aligned() {
+        let cjk_left = "你好世界";
+        let ascii_left = "a".repeat(UnicodeWidthStr::width(cjk_left));
+        assert_ne!(
+            cjk_left.chars().count(),
+            ascii_left.chars().count(),
+            "the fixture must actually exercise a char-count vs. \
+             display-width difference, or this test proves nothing"
+        );
+
+        let build = |left: &str| ContentBlock::Container {
+            reveal: None,
+            layout: Some(ContainerLayout::Columns),
+            children: vec![
+                ContentBlock::Text {
+                    reveal: None,
+                    body: left.to_owned(),
+                },
+                ContentBlock::Text {
+                    reveal: None,
+                    body: "MARK".into(),
+                },
+            ],
+        };
+
+        let cjk_lines = flat(&render(&build(cjk_left), 30, &Tokens::default()));
+        let ascii_lines = flat(&render(&build(&ascii_left), 30, &Tokens::default()));
+
+        // `str::find` returns a *byte* offset, not a display column — CJK
+        // characters are 3 bytes each in UTF-8, so the byte offset of
+        // "MARK" legitimately differs even when its display column
+        // doesn't. Measure the column position instead: the display width
+        // of everything before "MARK".
+        let column_of_mark = |line: &str| {
+            let byte_pos = line.find("MARK").expect("MARK present");
+            UnicodeWidthStr::width(&line[..byte_pos])
+        };
+        let cjk_col = column_of_mark(&cjk_lines[0]);
+        let ascii_col = column_of_mark(&ascii_lines[0]);
+        assert_eq!(
+            cjk_col, ascii_col,
+            "the right column must start at the same display column regardless \
+             of whether the left column's content is CJK or ASCII, given equal \
+             display width: cjk_lines={cjk_lines:?} ascii_lines={ascii_lines:?}"
+        );
     }
 
     #[test]

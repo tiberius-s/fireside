@@ -210,8 +210,49 @@ or starts. One line per item: status, commit(s), date._
       rests on the escape sequence being spec-inert when unrecognized, the
       same reasoning already used for synchronized output and the `fade`
       transition.
-- [ ] P2 protocol & workflow hardening (property tests, robustness fixtures,
-      CI additions) — not started.
+- [X] P2 protocol & workflow hardening — done 2026-07-17. Full speckit
+      pipeline at `specs/008-protocol-workflow-hardening/`, 33/33 tasks
+      done, 195 tests total (up from 188), clippy silent. Four independent
+      stories, no shared Foundational phase (same pattern as spec 007):
+      (1) property tests (`proptest`, dev-dependency only in
+      `fireside-core`/`fireside-engine` — never a production dependency,
+      MSRV-1.88-verified) — `graph_round_trips_through_json` (arbitrary
+      `Graph` values, hand-written `Strategy` impls rather than
+      `proptest-derive` to keep the recursive `Container` case bounded and
+      avoid a proc-macro dep) and
+      `session_history_and_visited_stay_truthful` (arbitrary op sequences
+      against `Session`, including illegal ops); both manually verified to
+      catch reintroduced historical bugs with a minimal shrunk
+      counterexample before being trusted. Found and fixed a wrong
+      assumption made during planning: `Session::history()` holds nodes
+      _prior to_ current, not including it — the true invariant is
+      `history() == path[..len-1]`, not "last entry equals current" as
+      tasks.md first assumed. (2) conformance corpus hardening — new
+      `container-nesting-depth-exceeded` ERROR rule (max depth 8,
+      ADR-010 at `.claude/adrs/adr-010-container-nesting-depth-limit.md`,
+      symmetric in both validators) plus a ~1,000-node performance fixture
+      asserted under a 1s load+validate budget; fixture corpus now 17,
+      parity-divergence check re-verified (deliberately mismatched a rule
+      string, confirmed the Node-side runner caught it, reverted). (3) a
+      watcher regression test proved `fireside-cli`'s `Watcher::poll`
+      already survives a rapid invalid-then-valid write sequence
+      (truncated JSON → different malformed payload → valid) with zero
+      production code changes needed — passed against the unmodified
+      implementation on the first run. (4) two new `fireside-tui` scenario
+      tests closed an emoji/CJK render-width coverage gap, confirming the
+      existing `unicode-width`-based measurement (already correct, no
+      fix needed); a bug turned up in the _test_ itself while writing it
+      (`str::find` returns a byte offset, not a display column — CJK
+      characters are 3 bytes each in UTF-8) and was fixed before landing.
+      Plus one concrete CI gap closed: `cargo-deny`
+      (`.github/workflows/audit.yml`) previously ran only on push-to-main
+      and a weekly cron, not on pull requests — added a `pull_request`
+      trigger so a disallowed license/advisory blocks merge, not just
+      flags it after the fact. The existing `msrv` job
+      (`.github/workflows/rust.yml`, `cargo check --workspace` on an
+      actual pinned 1.88 toolchain) was confirmed to already satisfy the
+      plan's "cargo msrv verify" ask — no redundant `cargo-msrv` job
+      added. This closes out the entire 2026-07-12 strategic plan.
 
 ## Executive Summary
 

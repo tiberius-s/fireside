@@ -89,3 +89,38 @@ fn fixture_corpus_matches_documented_expectations() {
         "expected at least 10 fixtures, checked {checked}"
     );
 }
+
+/// Spec 008 US2, SC-003: a ~1,000-node deck must load and validate in
+/// under 1 second — generous headroom above what a simple linear-chain
+/// graph (no I/O beyond one file read) should take even on a loaded CI
+/// runner, per `specs/008-protocol-workflow-hardening/research.md` §7.
+/// A regression tripwire, not a benchmark: this is one assertion inside
+/// the normal test suite, not a separate `criterion` harness.
+#[test]
+fn large_deck_loads_and_validates_within_budget() {
+    let path = protocol_dir()
+        .join("fixtures")
+        .join("valid")
+        .join("large-deck-1000-nodes.json");
+    let contents = fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("reading fixture {}: {e}", path.display()));
+
+    let start = std::time::Instant::now();
+    let graph = Graph::from_json(&contents).expect("large-deck fixture is a valid Graph");
+    assert!(
+        graph.nodes.len() >= 1000,
+        "fixture should have at least 1,000 nodes, has {}",
+        graph.nodes.len()
+    );
+    let diags = validate(&graph);
+    let elapsed = start.elapsed();
+
+    assert!(
+        diags.is_empty(),
+        "large-deck fixture should be diagnostic-free, got {diags:?}"
+    );
+    assert!(
+        elapsed < std::time::Duration::from_secs(1),
+        "loading + validating a ~1,000-node deck took {elapsed:?}, over the 1s budget"
+    );
+}

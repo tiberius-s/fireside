@@ -241,7 +241,9 @@ model DividerBlock {
  * - `"center"` — centered vertically and horizontally
  *
  * There is no protocol limit on nesting depth. Engines MAY impose
- * practical limits.
+ * practical limits. (The reference implementation imposes a maximum
+ * nesting depth of 8 — see ADR-010 — as an example other engines may
+ * choose to match or diverge from.)
  */
 model ContainerBlock {
   ...Revealable;

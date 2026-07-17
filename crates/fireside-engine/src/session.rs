@@ -248,6 +248,130 @@ impl Session {
 }
 
 #[cfg(test)]
+mod proptest_support {
+    //! Test-only generators for session-invariant property tests, per
+    //! `specs/008-protocol-workflow-hardening/research.md` §3. Written
+    //! independently of `fireside-core`'s own `proptest_support` module
+    //! (which is `#[cfg(test)]`-private to that crate) rather than shared
+    //! via a test-utility crate, per Constitution Principle III (no new
+    //! crate, no new dependency): each crate's tests own their generators,
+    //! and this one is scoped to what session replay actually needs
+    //! (navigable graphs), not the full wire-format generality
+    //! `fireside-core`'s round-trip property requires.
+
+    use proptest::collection::vec;
+    use proptest::prelude::*;
+
+    use fireside_core::{BranchOption, BranchPoint, Graph, Node, Traversal, TraversalSpec};
+
+    /// One step of a generated navigation sequence. `Choose` carries an
+    /// option *index* (matching `Session::choose`'s actual signature, a
+    /// `usize` position in the branch point's `options` array — not a key
+    /// string), deliberately including out-of-range indices so illegal
+    /// `choose` calls are exercised, not just legal ones.
+    #[derive(Debug, Clone)]
+    pub(super) enum SessionOp {
+        Next,
+        Choose(usize),
+        Goto(String),
+        Back,
+    }
+
+    fn arbitrary_op(ids: Vec<String>) -> impl Strategy<Value = SessionOp> {
+        prop_oneof![
+            3 => Just(SessionOp::Next),
+            2 => (0usize..4).prop_map(SessionOp::Choose),
+            2 => arbitrary_target(ids).prop_map(SessionOp::Goto),
+            1 => Just(SessionOp::Back),
+        ]
+    }
+
+    /// A target id: usually one that exists in the graph, occasionally a
+    /// deliberately unknown one — `goto`/traversal targets must be
+    /// exercised against both to prove `UnknownNode` never corrupts state.
+    fn arbitrary_target(existing: Vec<String>) -> impl Strategy<Value = String> {
+        if existing.is_empty() {
+            return Just("missing".to_owned()).boxed();
+        }
+        prop_oneof![
+            4 => proptest::sample::select(existing),
+            1 => Just("does-not-exist".to_owned()),
+        ]
+        .boxed()
+    }
+
+    /// A small, navigable graph: `n` nodes with unique, predictable ids
+    /// (`"n0".."n{n-1}"`), each with either no traversal (terminal), a
+    /// `next` edge, or a branch point with 1-3 options — targets drawn
+    /// from `arbitrary_target` so both resolvable and dangling edges
+    /// appear. Content is deliberately empty: this generator exercises
+    /// history/visited invariants, not reveal semantics (already covered
+    /// by the hand-written reveal tests above).
+    fn arbitrary_graph_of_size(n: usize) -> impl Strategy<Value = Graph> {
+        let ids: Vec<String> = (0..n).map(|i| format!("n{i}")).collect();
+        let node_strategies: Vec<_> = ids
+            .iter()
+            .map(|id| arbitrary_node(id.clone(), ids.clone()))
+            .collect();
+        node_strategies.prop_map(|nodes| Graph {
+            fireside_version: None,
+            title: None,
+            author: None,
+            date: None,
+            description: None,
+            version: None,
+            defaults: None,
+            nodes,
+        })
+    }
+
+    fn arbitrary_node(id: String, ids: Vec<String>) -> impl Strategy<Value = Node> {
+        let traversal = prop_oneof![
+            1 => Just(None),
+            3 => arbitrary_target(ids.clone())
+                .prop_map(|target| Some(TraversalSpec::Target(target))),
+            3 => arbitrary_target(ids.clone()).prop_map(|next| Some(TraversalSpec::Rules(
+                Traversal { next: Some(next), branch_point: None }
+            ))),
+            2 => vec(arbitrary_branch_option(ids.clone()), 1..4).prop_map(|options| Some(
+                TraversalSpec::Rules(Traversal {
+                    next: None,
+                    branch_point: Some(BranchPoint { prompt: None, options }),
+                })
+            )),
+        ];
+        traversal.prop_map(move |traversal| Node {
+            id: id.clone(),
+            title: None,
+            view_mode: None,
+            transition: None,
+            speaker_notes: None,
+            traversal,
+            content: Vec::new(),
+        })
+    }
+
+    fn arbitrary_branch_option(ids: Vec<String>) -> impl Strategy<Value = BranchOption> {
+        arbitrary_target(ids).prop_map(|target| BranchOption {
+            label: "option".to_owned(),
+            key: None,
+            target,
+            description: None,
+        })
+    }
+
+    /// An arbitrary valid `(Graph, Vec<SessionOp>)` pair: 1-8 nodes, 0-30
+    /// operations drawn against that graph's actual (and occasionally
+    /// fictitious) node ids.
+    pub(super) fn arbitrary_graph_and_ops() -> impl Strategy<Value = (Graph, Vec<SessionOp>)> {
+        (1usize..8).prop_flat_map(|n| {
+            let ids: Vec<String> = (0..n).map(|i| format!("n{i}")).collect();
+            (arbitrary_graph_of_size(n), vec(arbitrary_op(ids), 0..30))
+        })
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -495,5 +619,85 @@ mod tests {
         assert_eq!(s.current().id, "a");
         s.next(); // consume the reveal step
         assert_eq!(s.choose(0), Outcome::Moved, "now selectable");
+    }
+
+    proptest::proptest! {
+        /// For any valid graph and any sequence of legal-or-illegal
+        /// navigation operations, `Session::history()` always exactly
+        /// matches the path actually walked so far *excluding* the
+        /// current node (per `move_to`'s contract: history holds prior
+        /// nodes, the ones `back()` can return to — `current()` is always
+        /// one step ahead of `history().last()`), and every node ever
+        /// reported as visited is a real node in the graph (spec 008 US1,
+        /// FR-002/FR-003). Illegal ops (`choose` with no branch point,
+        /// `goto` to a nonexistent id, `back` with empty history) are
+        /// deliberately included in the generated sequence and asserted
+        /// to leave both `history()` and `current()` untouched, per the
+        /// "failed operations never mutate history" invariant documented
+        /// at the top of this module.
+        #[test]
+        fn session_history_and_visited_stay_truthful(
+            (graph, ops) in proptest_support::arbitrary_graph_and_ops()
+        ) {
+            let node_ids: std::collections::HashSet<String> =
+                graph.nodes.iter().map(|n| n.id.clone()).collect();
+            let mut session = Session::new(graph).expect("generator always produces >=1 node");
+
+            // `path` mirrors the full sequence of nodes entered, including
+            // the starting entry node — `history()` is always `path` minus
+            // its last element, and `current()` is always `path`'s last.
+            let mut path = vec![session.current().id.clone()];
+
+            for op in ops {
+                let before_history = session.history().to_vec();
+                let before_current = session.current().id.clone();
+
+                let moved = match op {
+                    proptest_support::SessionOp::Next => session.next() == Outcome::Moved,
+                    proptest_support::SessionOp::Choose(i) => session.choose(i) == Outcome::Moved,
+                    proptest_support::SessionOp::Goto(ref target) => {
+                        session.goto(target) == Outcome::Moved
+                    }
+                    proptest_support::SessionOp::Back => {
+                        let was_back = session.back() == Outcome::Moved;
+                        if was_back {
+                            path.pop();
+                        }
+                        was_back
+                    }
+                };
+
+                // `Back`'s path bookkeeping already happened above (it
+                // pops rather than pushes); every other op that moved
+                // pushes the new current node.
+                if moved && !matches!(op, proptest_support::SessionOp::Back) {
+                    path.push(session.current().id.clone());
+                }
+
+                if !moved {
+                    proptest::prop_assert_eq!(
+                        session.history(),
+                        before_history.as_slice(),
+                        "a non-moving op must not touch history"
+                    );
+                    proptest::prop_assert_eq!(
+                        &session.current().id,
+                        &before_current,
+                        "a non-moving op must not change the current node"
+                    );
+                }
+
+                let expected_history = &path[..path.len() - 1];
+                proptest::prop_assert_eq!(session.history(), expected_history);
+                proptest::prop_assert_eq!(&session.current().id, path.last().expect("non-empty"));
+
+                for id in session.visited() {
+                    proptest::prop_assert!(
+                        node_ids.contains(id),
+                        "visited node {id} is not a real node in the graph"
+                    );
+                }
+            }
+        }
     }
 }

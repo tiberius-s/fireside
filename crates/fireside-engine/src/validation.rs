@@ -96,6 +96,7 @@ pub fn validate(graph: &Graph) -> Vec<Diagnostic> {
     check_valid_targets(graph, &ids, &mut diags);
     check_next_branch_point_conflict(graph, &mut diags);
     check_branch_options(graph, &mut diags);
+    check_container_nesting_depth(graph, &mut diags);
     check_empty_traversal(graph, &mut diags);
     check_reveal_masked_by_container(graph, &mut diags);
     check_malformed_link_urls(graph, &mut diags);
@@ -236,6 +237,41 @@ fn check_empty_traversal(graph: &Graph, diags: &mut Vec<Diagnostic>) {
             ));
         }
     }
+}
+
+/// The reference implementation's chosen maximum `Container` nesting
+/// depth (ADR-010). Unlike the content-quality warnings below, an
+/// over-nested document risks pathological recursion in both validators
+/// and the renderer, so this is ERROR severity — the same class as
+/// `unique-node-ids`/`valid-traversal-target`.
+const MAX_CONTAINER_NESTING_DEPTH: u32 = 8;
+
+/// ERROR: a node's content nests `Container` blocks deeper than
+/// [`MAX_CONTAINER_NESTING_DEPTH`] (ADR-010).
+fn check_container_nesting_depth(graph: &Graph, diags: &mut Vec<Diagnostic>) {
+    for node in &graph.nodes {
+        let depth = node.content.iter().map(container_depth).max().unwrap_or(0);
+        if depth > MAX_CONTAINER_NESTING_DEPTH {
+            diags.push(Diagnostic::new(
+                Severity::Error,
+                "container-nesting-depth-exceeded",
+                format!(
+                    "\"{}\" nests containers {depth} levels deep, past the maximum of {MAX_CONTAINER_NESTING_DEPTH} — flatten the layout",
+                    node.id
+                ),
+                Some(&node.id),
+            ));
+        }
+    }
+}
+
+/// `0` for a non-container leaf; `1 + max(child depth)` for a `Container`
+/// (data-model.md's formula, `specs/008-protocol-workflow-hardening/`).
+fn container_depth(block: &ContentBlock) -> u32 {
+    let ContentBlock::Container { children, .. } = block else {
+        return 0;
+    };
+    1 + children.iter().map(container_depth).max().unwrap_or(0)
 }
 
 /// WARNING: a child block's own `reveal` value is lower than its

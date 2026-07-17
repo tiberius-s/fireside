@@ -9,8 +9,11 @@
   "valid/reveal-masked-by-container.json": ["reveal-masked-by-container"],
   "valid/malformed-link-url.json": ["malformed-link-url"],
   "valid/well-formed-link-url.json": [],
+  "valid/nesting-depth-at-limit.json": [],
+  "valid/large-deck-1000-nodes.json": [],
   "invalid/duplicate-node-ids.json": ["unique-node-ids"],
   "invalid/dangling-target.json": ["valid-traversal-target"],
   "invalid/next-branch-point-conflict.json": ["next-branch-point-conflict"],
-  "invalid/duplicate-branch-keys.json": ["unique-branch-keys"]
+  "invalid/duplicate-branch-keys.json": ["unique-branch-keys"],
+  "invalid/nesting-depth-exceeds-limit.json": ["container-nesting-depth-exceeded"]
 }

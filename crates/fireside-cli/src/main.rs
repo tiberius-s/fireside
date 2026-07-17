@@ -987,6 +987,48 @@ mod tests {
         assert_eq!(reparsed, graph, "the retried save must win");
     }
 
+    /// Spec 008 US3: closes a coverage gap the single-malformed-write
+    /// tests above don't reach — recovery must not depend on the invalid
+    /// streak "settling" first. Drives `Watcher::poll()` directly (rather
+    /// than through `watch_report`, which builds a fresh `Watcher` per
+    /// call) through valid → truncated → still-invalid (different
+    /// malformed payload) → valid again, asserting no panic at any step
+    /// and that each poll's `Result` matches its file's actual state.
+    #[test]
+    fn watcher_recovers_after_a_rapid_invalid_then_valid_sequence() {
+        let temp = tempfile::tempdir().expect("temp dir");
+        let deck = temp.path().join("deck.json");
+        std::fs::write(&deck, SPOTLESS_DECK).expect("write fixture");
+
+        let mut watcher = Watcher::new(&deck);
+
+        // A non-atomic editor save caught mid-write: truncated JSON.
+        std::fs::write(&deck, "{\n  \"nodes\": [{\"id\"").expect("simulate truncated save");
+        match watcher.poll() {
+            Some(Err(_)) => {}
+            other => panic!("expected a reload error for truncated JSON, got {other:?}"),
+        }
+
+        // A second, differently-broken write before a valid one lands —
+        // recovery must not require the invalid streak to "settle".
+        std::fs::write(&deck, "not json at all").expect("simulate a second broken save");
+        match watcher.poll() {
+            Some(Err(_)) => {}
+            other => panic!("expected a reload error for the second broken save, got {other:?}"),
+        }
+
+        // The save completes: valid JSON, different content than the
+        // original so the fingerprint is guaranteed to differ.
+        let recovered = r#"{"nodes":[{"id":"a","title":"recovered","content":[]}]}"#;
+        std::fs::write(&deck, recovered).expect("simulate the completed save");
+        match watcher.poll() {
+            Some(Ok(graph)) => {
+                assert_eq!(graph.nodes[0].title.as_deref(), Some("recovered"));
+            }
+            other => panic!("expected a successful reload once the file is valid, got {other:?}"),
+        }
+    }
+
     #[test]
     fn write_back_reports_io_failure_without_panicking() {
         let temp = tempfile::tempdir().expect("temp dir");

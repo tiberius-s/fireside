@@ -448,6 +448,235 @@ pub enum ContainerLayout {
 }
 
 #[cfg(test)]
+mod proptest_support {
+    //! Hand-written `proptest::Strategy` generators for the wire-format
+    //! types, per `specs/008-protocol-workflow-hardening/research.md` §2.
+    //! Written by hand rather than via `proptest-derive` so the recursive
+    //! `Container` case can be bounded with `prop_recursive` directly, and
+    //! so `fireside-core`'s production dependency list (Principle III)
+    //! never needs a proc-macro crate — this module is `#[cfg(test)]`
+    //! only.
+
+    use proptest::collection::vec;
+    use proptest::option;
+    use proptest::prelude::*;
+
+    use super::{
+        BranchOption, BranchPoint, ContainerLayout, ContentBlock, Graph, Node, NodeDefaults,
+        Transition, Traversal, TraversalSpec, ViewMode,
+    };
+
+    /// Short, printable strings — arbitrary Unicode `String` is valid input
+    /// too, but keeps failing cases small and readable when shrunk.
+    fn arbitrary_string() -> impl Strategy<Value = String> {
+        "[a-zA-Z0-9 _.,!?-]{0,12}"
+    }
+
+    fn arbitrary_view_mode() -> impl Strategy<Value = ViewMode> {
+        prop_oneof![Just(ViewMode::Default), Just(ViewMode::Fullscreen)]
+    }
+
+    fn arbitrary_transition() -> impl Strategy<Value = Transition> {
+        prop_oneof![Just(Transition::None), Just(Transition::Fade)]
+    }
+
+    fn arbitrary_container_layout() -> impl Strategy<Value = ContainerLayout> {
+        prop_oneof![
+            Just(ContainerLayout::Stack),
+            Just(ContainerLayout::Columns),
+            Just(ContainerLayout::Center),
+        ]
+    }
+
+    /// A non-container leaf block: every `ContentBlock` variant except
+    /// `Container` itself, which `arbitrary_content_block` wraps this in
+    /// via `prop_recursive`.
+    fn arbitrary_leaf_block() -> impl Strategy<Value = ContentBlock> {
+        let reveal = option::of(any::<u32>());
+        prop_oneof![
+            (reveal.clone(), 1u8..=6, arbitrary_string()).prop_map(|(reveal, level, text)| {
+                ContentBlock::Heading {
+                    reveal,
+                    level,
+                    text,
+                }
+            }),
+            (reveal.clone(), arbitrary_string())
+                .prop_map(|(reveal, body)| ContentBlock::Text { reveal, body }),
+            (
+                reveal.clone(),
+                option::of(arbitrary_string()),
+                arbitrary_string(),
+                option::of(vec(any::<u32>(), 0..4)),
+                option::of(any::<bool>()),
+            )
+                .prop_map(
+                    |(reveal, language, source, highlight_lines, show_line_numbers)| {
+                        ContentBlock::Code {
+                            reveal,
+                            language,
+                            source,
+                            highlight_lines,
+                            show_line_numbers,
+                        }
+                    }
+                ),
+            (
+                reveal.clone(),
+                option::of(any::<bool>()),
+                vec(arbitrary_string(), 0..5),
+            )
+                .prop_map(|(reveal, ordered, items)| ContentBlock::List {
+                    reveal,
+                    ordered,
+                    items
+                }),
+            (
+                reveal.clone(),
+                arbitrary_string(),
+                option::of(arbitrary_string()),
+                option::of(arbitrary_string()),
+                option::of(any::<u16>()),
+                option::of(any::<u16>()),
+            )
+                .prop_map(|(reveal, src, alt, caption, width, height)| {
+                    ContentBlock::Image {
+                        reveal,
+                        src,
+                        alt,
+                        caption,
+                        width,
+                        height,
+                    }
+                }),
+            reveal.prop_map(|reveal| ContentBlock::Divider { reveal }),
+        ]
+    }
+
+    /// Bounds `Container` nesting to a shallow depth during generation —
+    /// independent of (and much smaller than) the validator's depth-8
+    /// limit added by this same feature; this bound only exists to keep
+    /// generated cases small and shrinking fast.
+    fn arbitrary_content_block() -> impl Strategy<Value = ContentBlock> {
+        arbitrary_leaf_block().prop_recursive(3, 12, 4, |inner| {
+            (
+                option::of(any::<u32>()),
+                vec(inner, 1..4),
+                option::of(arbitrary_container_layout()),
+            )
+                .prop_map(|(reveal, children, layout)| ContentBlock::Container {
+                    reveal,
+                    children,
+                    layout,
+                })
+        })
+    }
+
+    fn arbitrary_branch_option() -> impl Strategy<Value = BranchOption> {
+        (
+            arbitrary_string(),
+            option::of(arbitrary_string()),
+            arbitrary_string(),
+            option::of(arbitrary_string()),
+        )
+            .prop_map(|(label, key, target, description)| BranchOption {
+                label,
+                key,
+                target,
+                description,
+            })
+    }
+
+    fn arbitrary_branch_point() -> impl Strategy<Value = BranchPoint> {
+        (
+            option::of(arbitrary_string()),
+            vec(arbitrary_branch_option(), 1..4),
+        )
+            .prop_map(|(prompt, options)| BranchPoint { prompt, options })
+    }
+
+    fn arbitrary_traversal_spec() -> impl Strategy<Value = TraversalSpec> {
+        prop_oneof![
+            arbitrary_string().prop_map(TraversalSpec::Target),
+            (
+                option::of(arbitrary_string()),
+                option::of(arbitrary_branch_point())
+            )
+                .prop_map(|(next, branch_point)| TraversalSpec::Rules(Traversal {
+                    next,
+                    branch_point,
+                })),
+        ]
+    }
+
+    fn arbitrary_node() -> impl Strategy<Value = Node> {
+        (
+            arbitrary_string(),
+            option::of(arbitrary_string()),
+            option::of(arbitrary_view_mode()),
+            option::of(arbitrary_transition()),
+            option::of(arbitrary_string()),
+            option::of(arbitrary_traversal_spec()),
+            vec(arbitrary_content_block(), 0..4),
+        )
+            .prop_map(
+                |(id, title, view_mode, transition, speaker_notes, traversal, content)| Node {
+                    id,
+                    title,
+                    view_mode,
+                    transition,
+                    speaker_notes,
+                    traversal,
+                    content,
+                },
+            )
+    }
+
+    fn arbitrary_node_defaults() -> impl Strategy<Value = NodeDefaults> {
+        (
+            option::of(arbitrary_view_mode()),
+            option::of(arbitrary_transition()),
+        )
+            .prop_map(|(view_mode, transition)| NodeDefaults {
+                view_mode,
+                transition,
+            })
+    }
+
+    /// An arbitrary `Graph`. Deliberately does **not** enforce
+    /// protocol-level semantic validity (unique node ids, resolvable
+    /// traversal targets) — the round-trip property this feeds
+    /// (`graph_round_trips_through_json`) is a pure serde property,
+    /// independent of `fireside-engine::validate`.
+    pub(super) fn arbitrary_graph() -> impl Strategy<Value = Graph> {
+        (
+            option::of(arbitrary_string()),
+            option::of(arbitrary_string()),
+            option::of(arbitrary_string()),
+            option::of(arbitrary_string()),
+            option::of(arbitrary_string()),
+            option::of(arbitrary_string()),
+            option::of(arbitrary_node_defaults()),
+            vec(arbitrary_node(), 0..6),
+        )
+            .prop_map(
+                |(fireside_version, title, author, date, description, version, defaults, nodes)| {
+                    Graph {
+                        fireside_version,
+                        title,
+                        author,
+                        date,
+                        description,
+                        version,
+                        defaults,
+                        nodes,
+                    }
+                },
+            )
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -607,5 +836,20 @@ mod tests {
     fn reveal_levels_is_empty_when_no_block_uses_reveal() {
         let graph = Graph::from_json(HELLO).expect("parse");
         assert!(graph.nodes[0].reveal_levels().is_empty());
+    }
+
+    proptest::proptest! {
+        /// Any structurally valid `Graph` value survives a
+        /// serialize/deserialize round trip unchanged (spec 008 US1,
+        /// FR-001). Uses `to_json_pretty`/`from_json` — the same pair every
+        /// real caller (`fireside-cli`) uses — rather than the compact
+        /// `serde_json::to_string` used by some unit tests above, so the
+        /// property matches production round-trip behavior exactly.
+        #[test]
+        fn graph_round_trips_through_json(graph in proptest_support::arbitrary_graph()) {
+            let json = graph.to_json_pretty().expect("serialize");
+            let again = Graph::from_json(&json).expect("re-parse");
+            proptest::prop_assert_eq!(graph, again);
+        }
     }
 }

@@ -232,6 +232,50 @@ function checkEmptyTraversal(graph) {
 }
 
 /**
+ * The reference implementation's chosen maximum `Container` nesting depth
+ * (ADR-010). Unlike the content-quality warnings below, an over-nested
+ * document risks pathological recursion in both validators and the
+ * renderer, so this is ERROR severity — the same class as
+ * `unique-node-ids`/`valid-traversal-target`.
+ */
+const MAX_CONTAINER_NESTING_DEPTH = 8;
+
+/** `0` for a non-container leaf; `1 + max(child depth)` for a `container`. */
+function containerDepth(block) {
+  if (block.kind !== "container") return 0;
+  const children = block.children ?? [];
+  return 1 + children.reduce((max, child) => Math.max(max, containerDepth(child)), 0);
+}
+
+/**
+ * ERROR: A node's content nests `container` blocks deeper than
+ * `MAX_CONTAINER_NESTING_DEPTH` (ADR-010, spec 008
+ * protocol-workflow-hardening).
+ *
+ * Spec: §ContainerBlock doc comment — "Engines MAY impose practical limits"
+ */
+function checkContainerNestingDepth(graph) {
+  const diagnostics = [];
+
+  for (const node of graph.nodes) {
+    const content = node.content ?? [];
+    const depth = content.reduce((max, block) => Math.max(max, containerDepth(block)), 0);
+    if (depth > MAX_CONTAINER_NESTING_DEPTH) {
+      diagnostics.push(
+        diagnostic(
+          "error",
+          "container-nesting-depth-exceeded",
+          `Node "${node.id}" nests containers ${depth} levels deep, past the maximum of ${MAX_CONTAINER_NESTING_DEPTH} — flatten the layout`,
+          { nodeId: node.id, depth },
+        ),
+      );
+    }
+  }
+
+  return diagnostics;
+}
+
+/**
  * WARNING: A child block's own `reveal` value is lower than its
  * enclosing container's — the child can never actually appear before the
  * container does, so the lower number is misleading rather than
@@ -507,6 +551,7 @@ export function validate(graph) {
     ...checkValidTargets(graph, nodeIds),
     ...checkNextBranchPointConflict(graph),
     ...checkUniqueBranchKeys(graph),
+    ...checkContainerNestingDepth(graph),
     ...checkEmptyTraversal(graph),
     ...checkRevealMaskedByContainer(graph),
     ...checkMalformedLinkUrls(graph),
@@ -535,6 +580,7 @@ Rules (errors):
   valid-traversal-target     All traversal/branch targets must reference existing nodes
   next-branch-point-conflict A node must not have both next and branch-point
   unique-branch-keys         Branch option keys must be unique per branch-point
+  container-nesting-depth-exceeded  Containers must not nest deeper than 8 levels
 
 Rules (warnings):
   unreachable-node           Nodes should be reachable from entry point

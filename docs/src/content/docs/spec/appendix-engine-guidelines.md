@@ -39,6 +39,11 @@ For `container` blocks:
 - Treat `children` as a local composition tree.
 - Resolve container `layout` before laying out children.
 - Preserve child order unless the selected layout explicitly reflows it.
+- There is no protocol limit on nesting depth; engines MAY impose practical
+  limits to bound recursive validation/rendering against pathological
+  input. The reference implementation imposes a maximum nesting depth of 8
+  (see ADR-010) as an example other engines may choose to match or diverge
+  from.
 
 ## Input and Error Strategy
 

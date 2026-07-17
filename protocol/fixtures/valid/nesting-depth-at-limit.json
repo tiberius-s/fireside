@@ -1,0 +1,53 @@
+{
+  "nodes": [
+    {
+      "id": "a",
+      "content": [
+        {
+          "kind": "container",
+          "children": [
+            {
+              "kind": "container",
+              "children": [
+                {
+                  "kind": "container",
+                  "children": [
+                    {
+                      "kind": "container",
+                      "children": [
+                        {
+                          "kind": "container",
+                          "children": [
+                            {
+                              "kind": "container",
+                              "children": [
+                                {
+                                  "kind": "container",
+                                  "children": [
+                                    {
+                                      "kind": "container",
+                                      "children": [
+                                        {
+                                          "kind": "text",
+                                          "body": "leaf"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -30,13 +30,13 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1784298215.5039554,
-    "ast_hash": "13f99ac3b17956f7f38fbf57e6745fb2",
+    "mtime": 1784303509.904671,
+    "ast_hash": "4df6677cb9133e2326e200ca930f83cd",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1783901340.116238,
-    "ast_hash": "ac9e5d275adbddcbc0fe5fc41ca43c6a",
+    "mtime": 1784301926.1530755,
+    "ast_hash": "f957d85d59748e1627f03ea27ecf923b",
     "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
@@ -50,8 +50,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-core/src/model/mod.rs": {
-    "mtime": 1783911265.4086046,
-    "ast_hash": "d64640d7ac004bcc8db9da6e152ebaf8",
+    "mtime": 1784303722.7169292,
+    "ast_hash": "cc6e668513642e54c31a3daa64c49d71",
     "semantic_hash": ""
   },
   "crates/fireside-engine/src/error.rs": {
@@ -65,18 +65,18 @@
     "semantic_hash": ""
   },
   "crates/fireside-engine/src/session.rs": {
-    "mtime": 1783911036.3720798,
-    "ast_hash": "1dcf36432c526cc7741ab052312d8db9",
+    "mtime": 1784303722.7207472,
+    "ast_hash": "1e2650d33527bf6c6ea4253978933248",
     "semantic_hash": ""
   },
   "crates/fireside-engine/src/validation.rs": {
-    "mtime": 1784299470.777007,
-    "ast_hash": "9b1c7b22aa00b6e6ef0125e99f9095ac",
+    "mtime": 1784303722.7235875,
+    "ast_hash": "91429feee260fb56e6db59433ed27f14",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/app.rs": {
-    "mtime": 1784297724.4654973,
-    "ast_hash": "158676fb095f6e553c38d136835f9a45",
+    "mtime": 1784300622.6488001,
+    "ast_hash": "6e04ab4e7ae1a885a478432f032b676e",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/error.rs": {
@@ -85,22 +85,22 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
-    "mtime": 1784298532.8592198,
-    "ast_hash": "496e1f11141a02c1833dc6d298823580",
+    "mtime": 1784300622.6490002,
+    "ast_hash": "1be077003324f2479b0245a7feb2af6b",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
-    "mtime": 1783910971.9501824,
-    "ast_hash": "6473344050b5f7397ecabcd753fc6ec7",
+    "mtime": 1784303660.7927358,
+    "ast_hash": "7b060cde20129a64b4631d2ed16b1578",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/mod.rs": {
-    "mtime": 1784299638.5607882,
-    "ast_hash": "4c5e1457052a43ab450affa83cf994a3",
+    "mtime": 1784300622.6501033,
+    "ast_hash": "d2d5d0c1d97b1e7e190d4aa1c17a0319",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/theme.rs": {
-    "mtime": 1784298787.0440545,
+    "mtime": 1784300622.6505034,
     "ast_hash": "8d41d1e191256dd673fe24cc27d3aed2",
     "semantic_hash": ""
   },
@@ -165,8 +165,8 @@
     "semantic_hash": "3f3ab63581c42b39a067bb7cbee2849f"
   },
   "protocol/validate.mjs": {
-    "mtime": 1784299403.3419566,
-    "ast_hash": "5d5e8b512b88c553aa074f560db4513d",
+    "mtime": 1784303336.999161,
+    "ast_hash": "20b32dd15fee384498cbca32bb2a22b6",
     "semantic_hash": ""
   },
   ".claude/CLAUDE.md": {
@@ -255,9 +255,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/audit.yml": {
-    "mtime": 1771562062.1535382,
-    "ast_hash": "4c63a30d3c8b5944f6f7356750cadc00",
-    "semantic_hash": "4c63a30d3c8b5944f6f7356750cadc00"
+    "mtime": 1784303691.5899692,
+    "ast_hash": "50f3d5cc24f04505df5224b194e1b22d",
+    "semantic_hash": ""
   },
   ".github/workflows/docs.yml": {
     "mtime": 1771191034.804106,
@@ -340,8 +340,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-guidelines.md": {
-    "mtime": 1783902775.7658134,
-    "ast_hash": "4716693efe833c79e6c7860261a77ba2",
+    "mtime": 1784303257.852191,
+    "ast_hash": "ae22085e7f506ca7df64eb93dbcbb58d",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/data-model.md": {
@@ -385,12 +385,12 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-extensions.md": {
-    "mtime": 1784299688.311809,
+    "mtime": 1784300622.6507711,
     "ast_hash": "d0eb4c0c961b9b4ceb2f89f576894745",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/markdown.rs": {
-    "mtime": 1784299489.122813,
+    "mtime": 1784300622.6497302,
     "ast_hash": "868a4e3860af2a0778eee977346fb23f",
     "semantic_hash": ""
   },
@@ -430,12 +430,12 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/map.rs": {
-    "mtime": 1784297641.3138924,
-    "ast_hash": "1d9102cf72f2f0e966a211b3dc64bd35",
+    "mtime": 1784300622.6493874,
+    "ast_hash": "db03bbdb755116684d0a1f42007252c1",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-strategic-improvement-plan.md": {
-    "mtime": 1784300215.0165203,
+    "mtime": 1784300622.6469717,
     "ast_hash": "d9fba9abbfba6d6bd3bc132cd555fb6a",
     "semantic_hash": ""
   },
@@ -675,8 +675,8 @@
     "semantic_hash": ""
   },
   ".specify/feature.json": {
-    "mtime": 1784296383.23209,
-    "ast_hash": "eb4b72c618e6fa5785cc76efbcf6b814",
+    "mtime": 1784302310.8648045,
+    "ast_hash": "a2a455f01209fe325429aaa5e5b33498",
     "semantic_hash": ""
   },
   "specs/001-validate-watch/plan.md": {
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/import.rs": {
-    "mtime": 1783910861.4226959,
-    "ast_hash": "50254cd0761e2f543a81428488063db7",
+    "mtime": 1784300622.6478562,
+    "ast_hash": "affe309163802382532e645c44101bad",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-007-spec-patch-0-1-1.md": {
@@ -855,13 +855,13 @@
     "semantic_hash": ""
   },
   "crates/fireside-engine/tests/fixtures.rs": {
-    "mtime": 1783903059.3116024,
-    "ast_hash": "5b9d916bde98d9cccb98265939dbe024",
+    "mtime": 1784303410.2711873,
+    "ast_hash": "16eff539d47efd64a4dd81639ab26b2f",
     "semantic_hash": ""
   },
   "protocol/fixtures.expected.json": {
-    "mtime": 1784299438.1867814,
-    "ast_hash": "194561536ab8f7149b4e725d30128375",
+    "mtime": 1784303396.1550357,
+    "ast_hash": "b5d812dfe212ee3866f2550b08229251",
     "semantic_hash": ""
   },
   "protocol/fixtures/invalid/dangling-target.json": {
@@ -1025,68 +1025,133 @@
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/spec.md": {
-    "mtime": 1784296366.124394,
+    "mtime": 1784300622.662531,
     "ast_hash": "93ca2a8fb89ed4a1ea1322b4e33c6ac8",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/checklists/requirements.md": {
-    "mtime": 1784296376.39486,
+    "mtime": 1784300622.6610022,
     "ast_hash": "73981e020453a5bcd735e3585e687121",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/plan.md": {
-    "mtime": 1784297249.1892657,
+    "mtime": 1784300622.6619878,
     "ast_hash": "ccaeeed1b9f0489c2810184edb0778c5",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/research.md": {
-    "mtime": 1784297132.610082,
+    "mtime": 1784300622.6623406,
     "ast_hash": "4209fc4f051c8b3a6239111fbe777415",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/data-model.md": {
-    "mtime": 1784297151.6007326,
+    "mtime": 1784300622.6616404,
     "ast_hash": "78d53b52eebaadab65b064d1c6e9730d",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/contracts/cli-flags.md": {
-    "mtime": 1784297161.1635544,
+    "mtime": 1784300622.6612072,
     "ast_hash": "921350151f564d94a3d375ae0175ff46",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/contracts/resume-state-format.md": {
-    "mtime": 1784297171.8836389,
+    "mtime": 1784300622.6615,
     "ast_hash": "20184eda2d78f31854055842c5dfba75",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/contracts/link-syntax.md": {
-    "mtime": 1784297192.2558045,
+    "mtime": 1784300622.661355,
     "ast_hash": "68e7ec6197ad39ac6cbf7453fde25c99",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/quickstart.md": {
-    "mtime": 1784297209.1375055,
+    "mtime": 1784300622.6621573,
     "ast_hash": "91c8af70cb45dd6d7c095f6402fb0666",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/tasks.md": {
-    "mtime": 1784300238.5333223,
+    "mtime": 1784300622.662803,
     "ast_hash": "fd38196471e05465746718df9bcaa7c9",
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/resume.rs": {
-    "mtime": 1784298209.54705,
-    "ast_hash": "c108c82644c005b5e3239b07e28d4df7",
+    "mtime": 1784300622.6483917,
+    "ast_hash": "631397f15497b60535a92bf6d0ee08a4",
     "semantic_hash": ""
   },
   "protocol/fixtures/valid/malformed-link-url.json": {
-    "mtime": 1784299429.0537674,
+    "mtime": 1784300622.6598322,
     "ast_hash": "8e6f7f3dbcba3a4b601312fa3ec96aab",
     "semantic_hash": ""
   },
   "protocol/fixtures/valid/well-formed-link-url.json": {
-    "mtime": 1784299431.8720133,
+    "mtime": 1784300622.6599743,
     "ast_hash": "101a0ab700e14866b7a82983bd147a34",
+    "semantic_hash": ""
+  },
+  "specs/008-protocol-workflow-hardening/spec.md": {
+    "mtime": 1784302291.3099663,
+    "ast_hash": "fafb656c763d0b638867ee8c3ef37d47",
+    "semantic_hash": ""
+  },
+  "specs/008-protocol-workflow-hardening/checklists/requirements.md": {
+    "mtime": 1784302303.3481648,
+    "ast_hash": "758aff8efcba849b5f1b9ab70bb98892",
+    "semantic_hash": ""
+  },
+  "specs/008-protocol-workflow-hardening/plan.md": {
+    "mtime": 1784302599.218143,
+    "ast_hash": "d4fc1ab93a0d66d0523afd231390d30b",
+    "semantic_hash": ""
+  },
+  "specs/008-protocol-workflow-hardening/research.md": {
+    "mtime": 1784302443.5527694,
+    "ast_hash": "05880d5980e0b8e460385d1d751b563c",
+    "semantic_hash": ""
+  },
+  "specs/008-protocol-workflow-hardening/data-model.md": {
+    "mtime": 1784302464.3241994,
+    "ast_hash": "6f946ea634a59c5706bb1b23b5ad90c4",
+    "semantic_hash": ""
+  },
+  "specs/008-protocol-workflow-hardening/contracts/container-nesting-depth-rule.md": {
+    "mtime": 1784302489.1698802,
+    "ast_hash": "122455616fd773477b89b16b06f175dc",
+    "semantic_hash": ""
+  },
+  "specs/008-protocol-workflow-hardening/contracts/ci-workflow-changes.md": {
+    "mtime": 1784302495.2918143,
+    "ast_hash": "4f03a3cfe2eafdc57a8fb72eedf86df9",
+    "semantic_hash": ""
+  },
+  "specs/008-protocol-workflow-hardening/quickstart.md": {
+    "mtime": 1784302540.5642684,
+    "ast_hash": "99d180116fedd854391a8a67e1f0413b",
+    "semantic_hash": ""
+  },
+  "specs/008-protocol-workflow-hardening/tasks.md": {
+    "mtime": 1784303682.3809803,
+    "ast_hash": "b4d9c43824307cf7d44c648cb196d582",
+    "semantic_hash": ""
+  },
+  ".claude/adrs/adr-010-container-nesting-depth-limit.md": {
+    "mtime": 1784303238.2276454,
+    "ast_hash": "b64493b5c616b5e59ad283be8e54091c",
+    "semantic_hash": ""
+  },
+  "protocol/fixtures/invalid/nesting-depth-exceeds-limit.json": {
+    "mtime": 1784303356.850413,
+    "ast_hash": "41aa784d4e254f292f06c1306567231f",
+    "semantic_hash": ""
+  },
+  "protocol/fixtures/valid/large-deck-1000-nodes.json": {
+    "mtime": 1784303385.293271,
+    "ast_hash": "a3e926cefce6d395cd35dfe9e442ae94",
+    "semantic_hash": ""
+  },
+  "protocol/fixtures/valid/nesting-depth-at-limit.json": {
+    "mtime": 1784303356.850244,
+    "ast_hash": "b34d644d904f793821dfac6323abaa7b",
     "semantic_hash": ""
   }
 }
