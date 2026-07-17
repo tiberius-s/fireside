@@ -11934,6 +11934,136 @@
       "norm_label": "5. documentation audit & plan"
     },
     {
+      "label": "2026-07-17-research-and-improvement-plan.md",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan",
+      "community": 220,
+      "norm_label": "2026-07-17-research-and-improvement-plan.md"
+    },
+    {
+      "label": "Fireside \u2014 Research Findings & Strategic Improvement Plan (2026-07)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "community": 220,
+      "norm_label": "fireside \u2014 research findings & strategic improvement plan (2026-07)"
+    },
+    {
+      "label": "Context",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_context",
+      "community": 220,
+      "norm_label": "context"
+    },
+    {
+      "label": "Executive summary of findings",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_executive_summary_of_findings",
+      "community": 220,
+      "norm_label": "executive summary of findings"
+    },
+    {
+      "label": "Stream ordering & dependencies",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_stream_ordering_dependencies",
+      "community": 220,
+      "norm_label": "stream ordering & dependencies"
+    },
+    {
+      "label": "Wave 1 \u2014 Stream A: code health refactors (pure refactor, zero behavior change)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_wave_1_stream_a_code_health_refactors_pure_refactor_zero_behavior_change",
+      "community": 220,
+      "norm_label": "wave 1 \u2014 stream a: code health refactors (pure refactor, zero behavior change)"
+    },
+    {
+      "label": "Wave 1 \u2014 Stream B: CI hardening + minimal release",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_wave_1_stream_b_ci_hardening_minimal_release",
+      "community": 220,
+      "norm_label": "wave 1 \u2014 stream b: ci hardening + minimal release"
+    },
+    {
+      "label": "Wave 2 \u2014 Documentation (Stream D)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_wave_2_documentation_stream_d",
+      "community": 220,
+      "norm_label": "wave 2 \u2014 documentation (stream d)"
+    },
+    {
+      "label": "Wave 2 \u2014 ASCII art feature (Stream C)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_wave_2_ascii_art_feature_stream_c",
+      "community": 220,
+      "norm_label": "wave 2 \u2014 ascii art feature (stream c)"
+    },
+    {
+      "label": "Ongoing \u2014 AI capabilities (Stream E)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L93",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_ongoing_ai_capabilities_stream_e",
+      "community": 220,
+      "norm_label": "ongoing \u2014 ai capabilities (stream e)"
+    },
+    {
+      "label": "Continuous \u2014 Rust learning path (Stream F)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L103",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_continuous_rust_learning_path_stream_f",
+      "community": 220,
+      "norm_label": "continuous \u2014 rust learning path (stream f)"
+    },
+    {
+      "label": "Verification",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L112",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_verification",
+      "community": 220,
+      "norm_label": "verification"
+    },
+    {
+      "label": "Appendix \u2014 key external references",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L120",
+      "_origin": "ast",
+      "id": "plans_2026_07_17_research_and_improvement_plan_appendix_key_external_references",
+      "community": 220,
+      "norm_label": "appendix \u2014 key external references"
+    },
+    {
       "label": "SKILL.md",
       "file_type": "document",
       "source_file": ".claude/skills/graphify/SKILL.md",
@@ -49147,6 +49277,126 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan",
+      "target": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L120",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_appendix_key_external_references",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_context",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L103",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_continuous_rust_learning_path_stream_f",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_executive_summary_of_findings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L93",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_ongoing_ai_capabilities_stream_e",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_stream_ordering_dependencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_verification",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_wave_1_stream_a_code_health_refactors_pure_refactor_zero_behavior_change",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_wave_1_stream_b_ci_hardening_minimal_release",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_wave_2_ascii_art_feature_stream_c",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
+      "target": "plans_2026_07_17_research_and_improvement_plan_wave_2_documentation_stream_d",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": ".claude/skills/graphify/SKILL.md",
       "source_location": "L6",
       "weight": 1.0,
@@ -52960,9 +53210,9 @@
       "source_file": "AGENTS.md",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agents_fireside_agent_guide",
-      "target": "agents_before_handing_off_any_change",
-      "confidence_score": 1.0
+      "target": "agents_before_handing_off_any_change"
     },
     {
       "relation": "contains",
@@ -61028,5 +61278,5 @@
       "source_file": "docs/src/content/docs/spec/data-model.md"
     }
   ],
-  "built_at_commit": "5b759e7aaac20f64ef69f1c2db235c3680924c41"
+  "built_at_commit": "83a1b1d81f794e3a93c213262c809fcc1d2531ed"
 }

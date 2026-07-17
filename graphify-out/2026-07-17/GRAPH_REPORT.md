@@ -1,11 +1,11 @@
 # Graph Report - fireside  (2026-07-17)
 
 ## Corpus Check
-- 225 files · ~240,020 words
+- 225 files · ~240,202 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2429 nodes · 3466 edges · 220 communities (183 shown, 37 thin omitted)
+- 2430 nodes · 3467 edges · 220 communities (183 shown, 37 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 36 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
@@ -819,8 +819,8 @@ Cohesion: 0.29
 Nodes (6): Decision: `empty-traversal` fires only for the object form, Decision: fixture corpus format — one shared expectations file, Decision: fixture directory split (`valid/` vs `invalid/`), Decision: protocol version bump lands via `Versions` enum addition only, Decision: `unique-branch-keys` doc fix has no fixture behavior change, Research: Protocol spec patch 0.1.1
 
 ### Community 153 - "Community 153"
-Cohesion: 0.50
-Nodes (3): Everyday commands, Fireside — Agent Guide, Spec-driven workflow
+Cohesion: 0.40
+Nodes (4): Before handing off any change, Everyday commands, Fireside — Agent Guide, Spec-driven workflow
 
 ### Community 154 - "Community 154"
 Cohesion: 0.40
@@ -1015,7 +1015,7 @@ Nodes (4): ok(), step(), warn(), verify.sh script
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1207 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1202 more)
+- **1208 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1203 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **37 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1029,7 +1029,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `TUI App Core`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1209 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1210 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.08035714285714286 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**

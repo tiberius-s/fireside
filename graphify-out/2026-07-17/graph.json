@@ -16054,6 +16054,16 @@
       "norm_label": "everyday commands"
     },
     {
+      "label": "Before handing off any change",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "agents_before_handing_off_any_change",
+      "community": 153,
+      "norm_label": "before handing off any change"
+    },
+    {
       "label": "CLAUDE.md",
       "file_type": "document",
       "source_file": "CLAUDE.md",
@@ -47547,9 +47557,9 @@
       "source_file": "scripts/verify.sh",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_verify",
-      "target": "scripts_verify_ok",
-      "confidence_score": 1.0
+      "target": "scripts_verify_ok"
     },
     {
       "relation": "defines",
@@ -47557,9 +47567,9 @@
       "source_file": "scripts/verify.sh",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_verify",
-      "target": "scripts_verify_step",
-      "confidence_score": 1.0
+      "target": "scripts_verify_step"
     },
     {
       "relation": "defines",
@@ -47567,9 +47577,9 @@
       "source_file": "scripts/verify.sh",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_verify",
-      "target": "scripts_verify_warn",
-      "confidence_score": 1.0
+      "target": "scripts_verify_warn"
     },
     {
       "relation": "contains",
@@ -47577,9 +47587,9 @@
       "source_file": "scripts/verify.sh",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_verify",
-      "target": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
-      "confidence_score": 1.0
+      "target": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry"
     },
     {
       "relation": "calls",
@@ -47588,9 +47598,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
-      "target": "scripts_verify_ok",
-      "confidence_score": 1.0
+      "target": "scripts_verify_ok"
     },
     {
       "relation": "calls",
@@ -47599,9 +47609,9 @@
       "source_location": "L32",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
-      "target": "scripts_verify_step",
-      "confidence_score": 1.0
+      "target": "scripts_verify_step"
     },
     {
       "relation": "calls",
@@ -47610,9 +47620,9 @@
       "source_location": "L49",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "users_tiberius_development_rust_fireside_scripts_verify_sh__entry",
-      "target": "scripts_verify_warn",
-      "confidence_score": 1.0
+      "target": "scripts_verify_warn"
     },
     {
       "relation": "contains",
@@ -52943,6 +52953,16 @@
       "confidence_score": 1.0,
       "source": "agents",
       "target": "agents_fireside_agent_guide"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "agents_fireside_agent_guide",
+      "target": "agents_before_handing_off_any_change",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
