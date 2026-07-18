@@ -579,6 +579,14 @@ fn parse_sections(
                             section: heading_text,
                         });
                     }
+                    if lang == "ascii-art" {
+                        blocks.push(ContentBlock::AsciiArt {
+                            reveal: None,
+                            art: body,
+                            alt: None,
+                        });
+                        continue;
+                    }
                     blocks.push(ContentBlock::Code {
                         reveal: None,
                         language: (!lang.is_empty()).then_some(lang),
@@ -868,5 +876,18 @@ mod tests {
         }
         assert!(matches!(blocks[1], ContentBlock::Divider { .. }));
         assert!(matches!(blocks[2], ContentBlock::Text { .. }));
+    }
+
+    #[test]
+    fn import_converts_an_ascii_art_fence_into_a_real_block() {
+        let src = "## Slide\n\n```ascii-art\n _ __\n| '__|\n| |\n|_|\n```\n";
+        let graph = import(src).expect("imports cleanly");
+        match &graph.nodes[0].content[0] {
+            ContentBlock::AsciiArt { art, alt, .. } => {
+                assert!(art.contains("| '__|"));
+                assert_eq!(*alt, None);
+            }
+            other => panic!("expected an ascii-art block, got {other:?}"),
+        }
     }
 }

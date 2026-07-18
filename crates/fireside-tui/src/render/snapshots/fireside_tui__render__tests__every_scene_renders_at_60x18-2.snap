@@ -11,7 +11,7 @@ expression: "screen(&app, 60, 18)"
 │                                                          │
 │     • Graph-native traversal with explicit edges         │
 │     • Branching with decision points                     │
-│     • 7 content block types                              │
+│     • 8 content block types                              │
 │     • Two-tier validation (schema + semantic)            │
 │                                                          │
 │                    ─────────────────                     │

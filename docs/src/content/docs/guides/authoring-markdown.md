@@ -73,7 +73,7 @@ fireside talk.fireside.json
 | `##` heading                       | Starts a new node; its text is the node's `title` |
 | paragraph text                     | `text` block, inline `**bold**`/`_italic_`/`` `code` `` preserved |
 | `- item` / `1. item`               | `list` block (`ordered: true` for numbered lists) |
-| fenced code block                  | `code` block, language tag preserved   |
+| fenced code block                  | `code` block, language tag preserved (` ```ascii-art ` fences become an `ascii-art` block instead — see below) |
 | a paragraph containing only one image | `image` block (`alt`/title captured) |
 | `---` horizontal rule              | `divider` block                        |
 
@@ -113,6 +113,30 @@ single character a presenter can press to choose that option directly.
 document; an unresolved target fails the import with the line number and
 the slug it couldn't find. Content after a `branch` fence within the same
 section is also rejected — the fence must be the section's last element.
+
+## ASCII art
+
+A fence tagged ` ```ascii-art ` imports as a real `ascii-art` block, not a
+`code` block — the natural way to get generated art into a Markdown-authored
+deck without hand-editing the compiled JSON:
+
+```markdown
+## Welcome
+
+​```ascii-art
+ _____ ___ ____  _____ ____ ___ ____  _____
+|  ___|_ _|  _ \| ____/ ___|_ _|  _ \| ____|
+| |_   | || |_) |  _| \___ \| || | | |  _|
+|  _|  | ||  _ <| |___ ___) | || |_| | |___
+|_|   |___|_| \_\_____|____/___|____/|_____|
+​```
+```
+
+Generate the fence contents with `fireside art text "<phrase>"` or
+`fireside art image <path>` and paste the output straight in — see
+[CLI Reference](/reference/cli/#fireside-art-text-phrase). Alternatively,
+`fireside new --banner` skips Markdown entirely and generates a title
+banner directly into a scaffolded deck.
 
 ## What v1 import doesn't carry over
 

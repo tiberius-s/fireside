@@ -1,5 +1,5 @@
 {
-  "fireside-version": "0.1.0",
+  "fireside-version": "0.1.3",
   "title": "Fireside Demo",
   "description": "A tour of everything a deck can do.",
   "defaults": {
@@ -16,7 +16,11 @@
           "kind": "container",
           "layout": "center",
           "children": [
-            { "kind": "heading", "level": 1, "text": "Fireside" },
+            {
+              "kind": "ascii-art",
+              "art": " _____ ___ ____  _____ ____ ___ ____  _____ \n|  ___|_ _|  _ \\| ____/ ___|_ _|  _ \\| ____|\n| |_   | || |_) |  _| \\___ \\| || | | |  _|  \n|  _|  | ||  _ <| |___ ___) | || |_| | |___ \n|_|   |___|_| \\_\\_____|____/___|____/|_____|\n                                            \n",
+              "alt": "Fireside"
+            },
             { "kind": "text", "body": "Branching presentations, in your terminal." },
             { "kind": "divider" },
             { "kind": "text", "body": "Press **Space** to begin. Press **?** any time for help." }

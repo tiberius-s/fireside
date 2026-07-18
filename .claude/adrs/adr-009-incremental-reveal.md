@@ -168,3 +168,13 @@ existing `empty-traversal`/`unreachable-node` warnings from ADR-007.
 - Extend `protocol/fixtures/` with cases for the new
   `reveal-masked-by-container` warning, following the existing
   `fixtures.expected.json` pattern from ADR-007's corpus.
+
+### Follow-up (2026-07-18)
+
+Same reversal as ADR-007's follow-up: `hello.json` is no longer treated
+as a frozen compat baseline — it's bumped to `"fireside-version":
+"0.1.3"` as of the ascii-art feature. This ADR's "not required to bump"
+reasoning for 0.1.2/reveal is left as historical record; reveal marks
+themselves were **not** retroactively backfilled into `hello.json` in
+this pass — flagged as a separate, later decision if wanted, not bundled
+into the ascii-art fix. See ADR-012's follow-up for the full rationale.

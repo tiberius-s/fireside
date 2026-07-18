@@ -74,6 +74,7 @@ defaults.
 | `name`         | Deck title, slugified into the output filename `<slug>.fireside.json`. Omit to be prompted. |
 | `--template`   | `linear`, `branching` (default), or `workshop` — see below.          |
 | `--author`     | Author name embedded in the deck.                                    |
+| `--banner`     | Adds an ASCII title banner (a FIGlet rendering of the deck's title) as an `ascii-art` block on the first slide. Skipped, with a note, if the title renders too wide to fit the card — deck creation still succeeds. |
 
 Templates:
 
@@ -83,7 +84,8 @@ Templates:
   exercises, each flowing into the next.
 
 Every generated node carries a `speaker-notes` hint describing what to
-replace. `new` refuses to overwrite an existing file with the same name.
+replace. Without a name, `new` also asks whether to add the title banner.
+`new` refuses to overwrite an existing file with the same name.
 
 **Exit codes:** `0` on success; `1` if the name is empty after slugifying, or
 the target file already exists.
@@ -91,8 +93,11 @@ the target file already exists.
 ## `fireside import <input.md> [output]`
 
 Compiles a Markdown file into a deck: `##` headings become nodes in document
-order, and a ` ```branch ` fence turns a section into a branch point. See
-[Authoring a Deck in Markdown](/guides/authoring-markdown/) for the syntax.
+order, a ` ```branch ` fence turns a section into a branch point, and a
+` ```ascii-art ` fence becomes a real `ascii-art` block — paste the output
+of `art text`/`art image` straight into one, no hand-editing the generated
+JSON required. See [Authoring a Deck in Markdown](/guides/authoring-markdown/)
+for the syntax.
 
 | Argument | Effect                                                                          |
 | -------- | -------------------------------------------------------------------------------- |
@@ -112,9 +117,14 @@ branch line) or the generated deck fails validation.
 
 Turns `phrase` into a large stylized text banner (a FIGlet-style rendering)
 and prints it to stdout — no external tool or website needed. This is an
-authoring-time convenience: it doesn't read or write a deck file. Paste the
-output into an `ascii-art` block's `art` field (see
-[§2 Data Model, AsciiArtBlock](/spec/data-model/#asciiartblock)).
+authoring-time convenience: it doesn't read or write a deck file itself, but
+two things in the CLI consume its output for you: `fireside new --banner`
+generates one from the deck's title automatically, and `fireside import`
+promotes any ` ```ascii-art ` fence in your Markdown source to a real block
+— paste this command's output there instead of hand-editing JSON. You can
+still paste it into an `ascii-art` block's `art` field by hand (see
+[§2 Data Model, AsciiArtBlock](/spec/data-model/#asciiartblock)) if you'd
+rather.
 
 Characters the built-in font has no letterform for are skipped, not fatal —
 `fireside art text "Hi 🔥"` still produces output for `Hi`. Only a phrase
@@ -139,14 +149,20 @@ written to disk.
 **Exit codes:** `0` on success; `1` if `path` doesn't exist or isn't a
 readable image — reported with a clear message, never a panic.
 
+The source photo below ("People sitting around a camp fire" by Hynek Janáč,
+[CC0 1.0](https://commons.wikimedia.org/wiki/File:People_sitting_around_a_camp_fire.jpg),
+Wikimedia Commons) is what the recording converts — shown here so you can
+compare input and output directly, not just take the GIF's word for it:
+
+![The source photo used in the recording below](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/demo-art.png)
+
 ![Converting a local image into ASCII shading with fireside art image](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/art-image.gif)
 
 ## `fireside demo`
 
-Presents the built-in showcase deck — no file needed. Useful for seeing most
-content block kinds and both view modes without writing any JSON first.
-(`ascii-art` isn't in the demo deck — see `fireside art text`/`fireside art
-image` above to try it.)
+Presents the built-in showcase deck — no file needed. Useful for seeing every
+content block kind, including `ascii-art` on the welcome slide, and both view
+modes without writing any JSON first.
 
 **Exit codes:** `0` on a clean exit; `1` on a terminal presenter error.
 

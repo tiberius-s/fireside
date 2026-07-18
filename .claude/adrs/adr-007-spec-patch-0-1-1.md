@@ -150,3 +150,15 @@ WARNING rule. All 0.1.x-additive per Principle I.
 - When real image rendering lands (P1), `blocks.rs::image()` will need to
   actually implement the clamp rule this ADR only documents — tracked as
   future work under the P1 image stage, not here.
+
+### Follow-up (2026-07-18)
+
+The "hello.json NOT bumped" decision above is superseded: the user
+clarified that `docs/examples/hello.json` should grow to showcase every
+protocol feature as it ships, not stay pinned to a compat baseline —
+"canonical" means comprehensive, not frozen. `hello.json` now declares
+`"fireside-version": "0.1.3"` (as of the ascii-art feature). This ADR's
+0.1.1-specific reasoning ("nothing requires 0.1.1 documents to exist,
+only permits them") is left as historical record of the original
+(now-reversed) policy; see ADR-012's own follow-up note for the fuller
+rationale and the corresponding constitution amendment.

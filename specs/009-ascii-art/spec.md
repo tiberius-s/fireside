@@ -225,6 +225,15 @@ produces neither.
 - **FR-014**: The image-conversion command MUST report a clear,
   actionable error — not a crash — when given a path that does not exist
   or is not a readable image.
+- **FR-015** *(added 2026-07-18)*: Scaffolding a new deck MUST offer an
+  opt-in way to generate a title banner from the deck's title directly
+  into the first slide, without a separate copy-paste step. If the
+  banner cannot be generated or would not fit, deck creation MUST still
+  succeed — the banner is a decoration, not a requirement.
+- **FR-016** *(added 2026-07-18)*: Compiling a Markdown deck MUST
+  recognize art already generated and pasted into the source (via a
+  dedicated fence syntax) and promote it to a real ascii-art block,
+  rather than misclassifying it as a source-code listing.
 
 ### Key Entities
 
@@ -252,10 +261,15 @@ produces neither.
 
 ## Assumptions
 
-- The two generation commands are authoring-time conveniences that print
-  ready-to-use art for the author to place into a deck; they do not
-  themselves edit a deck file automatically. Deck editing remains a
-  manual (or existing quick-edit / import) step.
+- The two generation commands (`art text`/`art image`) are
+  authoring-time conveniences that print ready-to-use art; they do not
+  edit a deck file themselves. **Superseded 2026-07-18** (follow-up
+  pass): two real hooks now close the "manual step" this assumption
+  originally accepted — `fireside new --banner` generates a banner from
+  the deck title directly into a scaffolded deck, and `fireside import`
+  promotes a ` ```ascii-art ` fence in Markdown source to a real block.
+  Hand-editing the JSON, or a quick-edit, remains available for anyone
+  who wants it, but is no longer the only path.
 - No color or per-line reveal is in scope — ascii-art is plain
   monospace text revealed as a whole, matching how every other content
   block already behaves.

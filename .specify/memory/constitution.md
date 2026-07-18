@@ -55,7 +55,10 @@ traversal behavior may exist in code that is not in the spec. Any extension
 MUST be specified first and registered in the spec's "Engine Extensions"
 appendix before implementation begins. `docs/examples/hello.json` is the
 canonical document — it MUST parse, validate, and present correctly after
-every change.
+every change, and SHOULD be extended to showcase new protocol features as
+they ship rather than held at an old-version baseline (clarified
+2026-07-18, ADR-012 follow-up: "canonical" means comprehensive, not
+frozen).
 
 *Rationale: the protocol is a portable format; third-party engines can only
 trust it if the reference implementation never drifts ahead of the spec.*
@@ -178,4 +181,4 @@ disagree, the constitution wins.
 - **Compliance review**: every `/speckit-plan` run re-checks this file via
   its Constitution Check gate; reviewers verify compliance on every PR.
 
-**Version**: 1.2.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-18
+**Version**: 1.2.1 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-18

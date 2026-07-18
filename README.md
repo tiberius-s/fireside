@@ -51,8 +51,10 @@ a cursor plus a history stack can build a conforming engine.
 - **Two-layer validation** — JSON Schema for structure, semantic rules for
   graph integrity
 - **Incremental reveal** — stage content within a slide, one piece at a time
-- **ASCII art** — turn a phrase or a local image into ready-to-paste text art
-  with `fireside art text`/`fireside art image`, no external tool needed
+- **ASCII art** — turn a phrase or a local image into text art with
+  `fireside art text`/`fireside art image`, no external tool needed; drop it
+  straight into a deck with `fireside new --banner` or an `` ```ascii-art ``
+  fence in `fireside import`
 - **A presenter built for the room** — quick-edit a slide without leaving the
   terminal, an elapsed-time timer, and resume exactly where you left off
 
@@ -73,8 +75,9 @@ fireside art text <phrase> generate a text banner to paste in
 
 `present` takes `--restart` (skip the saved resume position); `validate`
 takes `--watch` (re-check on every save); `new` takes `--template` (`linear`,
-`branching`, `workshop`) and `--author`; `art image <path>` (a sibling of
-`art text`) takes `--width`. Full flag and exit-code reference:
+`branching`, `workshop`), `--author`, and `--banner` (an ASCII title banner
+generated from the deck title); `art image <path>` (a sibling of `art text`)
+takes `--width`. Full flag and exit-code reference:
 [CLI Reference](https://tiberius-s.github.io/fireside/reference/cli/).
 
 ## Repository structure

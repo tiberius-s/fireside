@@ -1,6 +1,11 @@
-//! `fireside art`: authoring-time ASCII art generation. Both verbs print
-//! ready-to-paste art to stdout; neither edits a deck file
-//! (`specs/009-ascii-art/contracts/cli-art-command.md`).
+//! `fireside art`: authoring-time ASCII art generation. [`art_text`]/
+//! [`art_image`] print ready-to-paste art to stdout for the standalone
+//! `fireside art` verb; [`render_text_banner`]/[`render_image_ascii`] are
+//! the same conversions as plain functions, reused by `new.rs`'s
+//! `--banner` flag and by nothing else — neither this module nor its
+//! callers edit a deck file directly (`import.rs`'s `ascii-art` fence
+//! handling is separate: it promotes art *already pasted* into Markdown,
+//! rather than generating it).
 
 use std::path::Path;
 
@@ -9,17 +14,23 @@ use figlet_rs::FIGlet;
 use rascii_art::RenderOptions;
 
 /// Turn `phrase` into a stylized text banner via the built-in FIGlet
-/// standard font and print it to stdout. Characters the font has no
-/// letterform for are skipped, not fatal — this only fails when *no*
-/// character in `phrase` is recognized (FR-013).
-pub(crate) fn art_text(phrase: &str) -> Result<()> {
+/// standard font. Characters the font has no letterform for are
+/// skipped, not fatal — this only fails when *no* character in `phrase`
+/// is recognized (FR-013).
+pub(crate) fn render_text_banner(phrase: &str) -> Result<String> {
     let font = FIGlet::standard()
         .map_err(anyhow::Error::msg)
         .context("could not load the built-in banner font")?;
     let figure = font
         .convert(phrase)
         .with_context(|| format!("no recognized characters in \"{phrase}\" — nothing to render"))?;
-    println!("{figure}");
+    Ok(figure.to_string())
+}
+
+/// Prints [`render_text_banner`]'s output to stdout — the standalone
+/// `fireside art text` verb.
+pub(crate) fn art_text(phrase: &str) -> Result<()> {
+    println!("{}", render_text_banner(phrase)?);
     Ok(())
 }
 
@@ -27,12 +38,12 @@ pub(crate) fn art_text(phrase: &str) -> Result<()> {
 /// threshold `ascii-art-too-wide` validates against
 /// (`crates/fireside-engine/src/validation.rs`), so the default output
 /// already fits the presentation card.
-const DEFAULT_ART_WIDTH: u32 = 76;
+pub(crate) const DEFAULT_ART_WIDTH: u32 = 76;
 
-/// Convert the image at `path` to ASCII shading via `rascii_art` and
-/// print it to stdout. Reports a clear, actionable error — never a
-/// panic — when `path` doesn't exist or isn't a readable image (FR-014).
-pub(crate) fn art_image(path: &Path, width: Option<u32>) -> Result<()> {
+/// Convert the image at `path` to ASCII shading via `rascii_art`.
+/// Reports a clear, actionable error — never a panic — when `path`
+/// doesn't exist or isn't a readable image (FR-014).
+pub(crate) fn render_image_ascii(path: &Path, width: Option<u32>) -> Result<String> {
     let path_str = path
         .to_str()
         .with_context(|| format!("{} is not valid UTF-8", path.display()))?;
@@ -40,6 +51,12 @@ pub(crate) fn art_image(path: &Path, width: Option<u32>) -> Result<()> {
     let mut out = String::new();
     rascii_art::render_to(path_str, &mut out, &options)
         .with_context(|| format!("could not read {} as an image", path.display()))?;
-    println!("{out}");
+    Ok(out)
+}
+
+/// Prints [`render_image_ascii`]'s output to stdout — the standalone
+/// `fireside art image` verb.
+pub(crate) fn art_image(path: &Path, width: Option<u32>) -> Result<()> {
+    println!("{}", render_image_ascii(path, width)?);
     Ok(())
 }

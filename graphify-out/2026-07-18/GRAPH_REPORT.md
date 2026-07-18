@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-18)
 
 ## Corpus Check
-- 258 files · ~306,054 words
+- 258 files · ~312,216 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2692 nodes · 3739 edges · 249 communities (206 shown, 43 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.83)
+- 2706 nodes · 3767 edges · 248 communities (205 shown, 43 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c3cbbbe1`
+- Built from commit: `688751a8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -256,7 +256,6 @@
 - [[_COMMUNITY_Community 240|Community 240]]
 - [[_COMMUNITY_Community 241|Community 241]]
 - [[_COMMUNITY_Community 242|Community 242]]
-- [[_COMMUNITY_Community 243|Community 243]]
 - [[_COMMUNITY_Community 244|Community 244]]
 - [[_COMMUNITY_Community 245|Community 245]]
 - [[_COMMUNITY_Community 246|Community 246]]
@@ -317,7 +316,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (249 total, 43 thin omitted)
+## Communities (248 total, 43 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -692,8 +691,8 @@ Cohesion: 0.20
 Nodes (9): 1. Confirm non-watch behavior is unchanged (FR-002), 2. Start watch mode and see the immediate first check (FR-003), 3. Introduce a semantic error and save (User Story 1, FR-004/FR-005), 4. Fix it and save again, 5. Introduce a JSON syntax error (User Story 2, FR-006), 6. Delete the file (edge case, FR-009), 7. Stop with Ctrl-C (FR-010), Automated coverage (+1 more)
 
 ### Community 106 - "Community 106"
-Cohesion: 0.15
-Nodes (23): Command, PathBuf, Drop, art_image_converts_a_readable_file(), art_image_reports_a_clear_error_for_a_missing_file(), art_text_partial_recognition_still_produces_output(), art_text_prints_a_multiline_banner(), art_text_with_no_recognized_characters_errors_clearly() (+15 more)
+Cohesion: 0.14
+Nodes (25): Command, PathBuf, Drop, art_image_converts_a_readable_file(), art_image_reports_a_clear_error_for_a_missing_file(), art_text_partial_recognition_still_produces_output(), art_text_prints_a_multiline_banner(), art_text_with_no_recognized_characters_errors_clearly() (+17 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.15
@@ -817,7 +816,7 @@ Nodes (4): Canonical Terms, Conversational Layer, Traversal Verbs, Ubiquitous La
 
 ### Community 137 - "Community 137"
 Cohesion: 0.12
-Nodes (45): BranchPoint, ContentBlock, Display, Formatter, Graph, Option, Result, String (+37 more)
+Nodes (46): BranchPoint, ContentBlock, Display, Formatter, Graph, Option, Result, String (+38 more)
 
 ### Community 138 - "Community 138"
 Cohesion: 0.50
@@ -832,8 +831,8 @@ Cohesion: 0.50
 Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphify reference: incremental update and cluster-only
 
 ### Community 148 - "Community 148"
-Cohesion: 0.22
-Nodes (8): ADR-007: Protocol spec patch 0.1.1 — resolve audit ambiguities, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+Cohesion: 0.20
+Nodes (9): ADR-007: Protocol spec patch 0.1.1 — resolve audit ambiguities, Consequences, Context, Decision, Follow-up (2026-07-18), Negative or Trade-offs, Neutral / Follow-up, Positive (+1 more)
 
 ### Community 149 - "Community 149"
 Cohesion: 0.15
@@ -916,8 +915,8 @@ Cohesion: 0.22
 Nodes (8): ADR-008: ratatui-image MSRV spike — no-go for now, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
 
 ### Community 181 - "Community 181"
-Cohesion: 0.22
-Nodes (8): ADR-009: Incremental reveal via a `reveal` ContentBlock field, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+Cohesion: 0.20
+Nodes (9): ADR-009: Incremental reveal via a `reveal` ContentBlock field, Consequences, Context, Decision, Follow-up (2026-07-18), Negative or Trade-offs, Neutral / Follow-up, Positive (+1 more)
 
 ### Community 182 - "Community 182"
 Cohesion: 0.15
@@ -1056,8 +1055,8 @@ Cohesion: 0.22
 Nodes (8): Branch points, Fullscreen and speaker notes, Incremental reveal, Moving through a deck, Other keys while presenting, Quick-editing a slide, Resuming after a crash or exit, The map
 
 ### Community 223 - "Community 223"
-Cohesion: 0.25
-Nodes (7): A linear talk, Branch points, Re-running import, The shape, Validation is not optional, What each Markdown element becomes, What v1 import doesn't carry over
+Cohesion: 0.22
+Nodes (8): A linear talk, ASCII art, Branch points, Re-running import, The shape, Validation is not optional, What each Markdown element becomes, What v1 import doesn't carry over
 
 ### Community 224 - "Community 224"
 Cohesion: 0.33
@@ -1084,8 +1083,8 @@ Cohesion: 0.15
 Nodes (19): Path, Result, String, Diagnostic, Error, CoreError, EngineError, TuiError (+11 more)
 
 ### Community 230 - "Community 230"
-Cohesion: 0.22
-Nodes (8): ADR-012: ASCII art as a new `ascii-art` ContentBlock kind (protocol 0.1.3), Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+Cohesion: 0.20
+Nodes (9): ADR-012: ASCII art as a new `ascii-art` ContentBlock kind (protocol 0.1.3), Consequences, Context, Decision, Follow-up (2026-07-18, second pass), Negative or Trade-offs, Neutral / Follow-up, Positive (+1 more)
 
 ### Community 231 - "Community 231"
 Cohesion: 0.14
@@ -1123,24 +1122,20 @@ Nodes (4): Contract: `fireside art` subcommand, `fireside art image <PATH> [--wi
 Cohesion: 0.22
 Nodes (8): Prerequisites, Quickstart: validating the ASCII art content block, Regression check, Scenario 1 — banner generation (US1), Scenario 2 — image conversion (US2), Scenario 3 — hand-typed art and reveal composition (US3), Scenario 4 — validator catches oversized/empty art (US4), Scenario 5 — compatibility break is real and clear (spec Edge Cases, FR-011)
 
-### Community 243 - "Community 243"
-Cohesion: 0.47
-Nodes (5): Option, Path, Result, art_image(), art_text()
-
 ### Community 244 - "Community 244"
-Cohesion: 0.17
-Nodes (11): Dependencies & Execution Order, Implementation Strategy, Parallel Execution Examples, Phase 1: Setup, Phase 2: Foundational (blocking prerequisite for all user stories), Phase 3: User Story 1 - Author turns a title into a stylized banner (Priority: P1), Phase 4: User Story 2 - Author converts an existing image into ASCII art (Priority: P1), Phase 5: User Story 3 - Ascii-art appears alongside other content, on its own or hand-authored (Priority: P2) (+3 more)
+Cohesion: 0.15
+Nodes (12): Dependencies & Execution Order, Follow-up (2026-07-18, second pass), Implementation Strategy, Parallel Execution Examples, Phase 1: Setup, Phase 2: Foundational (blocking prerequisite for all user stories), Phase 3: User Story 1 - Author turns a title into a stylized banner (Priority: P1), Phase 4: User Story 2 - Author converts an existing image into ASCII art (Priority: P1) (+4 more)
 
 ### Community 245 - "Community 245"
-Cohesion: 0.23
-Nodes (17): BufRead, Graph, Option, Result, String, Value, every_starter_template_carries_speaker_note_hints(), every_starter_template_validates_clean() (+9 more)
+Cohesion: 0.14
+Nodes (28): BufRead, Option, Path, Result, String, Graph, Option, Result (+20 more)
 
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1353 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1348 more)
+- **1357 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1352 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **43 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1150,11 +1145,11 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `Community 228`, `TUI App Core`?**
-  _High betweenness centrality (0.007) - this node is a cross-community bridge._
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1355 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1359 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.1 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**

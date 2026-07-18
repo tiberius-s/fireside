@@ -185,3 +185,54 @@ single most-requested use case per spec.md's Why-this-priority) → Phase 4
 (authoring-safety warnings) → Phase 7 (polish). Each phase after
 Foundational is independently shippable and independently testable per
 its own Independent Test criterion in spec.md.
+
+## Follow-up (2026-07-18, second pass)
+
+User review after ship found the feature landed as a disconnected CLI
+utility rather than a presentation feature — two corrections to T046's
+premise and one scope addition, all closed in this pass (see ADR-012's
+own "Follow-up (second pass)" note for the full rationale):
+
+- **T046 correction**: "demo deck intentionally does not gain an
+  `ascii-art` block per ADR-012's Consequences" was a misapplication —
+  that ADR section is about `docs/examples/hello.json`, not
+  `crates/fireside-cli/assets/demo.fireside.json`. Fixed: the `welcome`
+  node's heading is now a FIGlet `ascii-art` banner;
+  `demo_deck_shows_every_block_kind` now asserts 8 kinds, not 7.
+- **`docs/examples/hello.json` correction**: no longer held at a frozen
+  baseline (superseded ADR-007/ADR-009 precedent, constitution Principle
+  I amended 1.2.0 → 1.2.1). Bumped to `"fireside-version": "0.1.3"`,
+  gained an `ascii-art` block in `intro`, "7 content block types" →
+  "8". `canonical_example_parses`'s `nodes.len() == 6` assertion still
+  holds (art added to an existing node, not a new one).
+- **T047 (new): `fireside new --banner`.** Generates a FIGlet banner from
+  the deck title and prepends it as an `ascii-art` block on the first
+  slide (`crates/fireside-cli/src/new.rs::add_title_banner`); skipped
+  gracefully (deck creation still succeeds, a note is printed) when the
+  title can't be rendered or would exceed the 76-column width limit.
+  Interactive `new` (no name given) asks a fourth question. Closes the
+  "manual step" gap spec.md's Assumptions section originally accepted.
+- **T048 (new): `import` ascii-art fence.** A ` ```ascii-art ` fenced
+  code block in Markdown source now imports as a real `ContentBlock::
+  AsciiArt`, not a generic `Code` block with `language: "ascii-art"`
+  (`crates/fireside-cli/src/import.rs`, same special-casing pattern as
+  the existing ` ```branch ` fence). Closes the other half of the
+  "manual step" gap: generate via `art text`/`art image`, paste into the
+  fence, `import` promotes it automatically.
+- **T049 (new): demo image.** `.github/demo-art.png` (a synthetic
+  gradient placeholder) replaced with a real CC0 photo ("People sitting
+  around a camp fire" by Hynek Janáč, Wikimedia Commons), and the source
+  photo is now embedded in `reference/cli.md` next to the `art image`
+  GIF so the reader sees input and output together. `.github/demo.gif`
+  and `.github/art-image.gif` regenerated via `scripts/demos.sh`.
+
+Verified: `cargo test --workspace` (all green, including two new unit
+tests in `new.rs`, one in `import.rs`, two new e2e tests in
+`cli_e2e.rs`), `cargo clippy --workspace --all-targets -- -D warnings`
+clean, `cargo fmt --check` clean, `node protocol/validate.mjs
+docs/examples/hello.json` and the demo deck both 0 errors/0 warnings
+(same pre-existing info note as before), `scripts/verify.sh --skip-slow`
+green, `docs`'s `npm run check && npm run build` clean, a tmux
+real-terminal smoke of `fireside demo` confirming the FIGlet banner
+renders correctly on the welcome screen, and scratch-dir smokes of both
+`fireside new --banner` and the `import` ascii-art-fence workflow.

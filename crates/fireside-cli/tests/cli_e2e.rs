@@ -199,6 +199,31 @@ fn new_without_a_name_prompts_interactively() {
 }
 
 #[test]
+fn new_with_banner_flag_embeds_ascii_art_and_validates() {
+    let temp = tempfile::tempdir().expect("temp dir");
+
+    fireside()
+        .current_dir(temp.path())
+        .arg("new")
+        .arg("Test Talk")
+        .arg("--banner")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Created test-talk.fireside.json"));
+
+    let file = temp.path().join("test-talk.fireside.json");
+    let contents = std::fs::read_to_string(&file).expect("scaffold is readable");
+    assert!(contents.contains("\"kind\": \"ascii-art\""));
+
+    fireside()
+        .arg("validate")
+        .arg(&file)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("0 error(s)"));
+}
+
+#[test]
 fn new_refuses_to_overwrite() {
     let temp = tempfile::tempdir().expect("temp dir");
     fireside()
@@ -265,6 +290,29 @@ fn import_refuses_to_overwrite_an_existing_output() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("already exists"));
+}
+
+#[test]
+fn import_ascii_art_fence_becomes_a_real_block() {
+    let temp = tempfile::tempdir().expect("temp dir");
+    let input = temp.path().join("talk.md");
+    std::fs::write(
+        &input,
+        "## Welcome\n\n```ascii-art\n _ __\n| '__|\n| |\n|_|\n```\n",
+    )
+    .expect("write fixture");
+
+    fireside()
+        .current_dir(temp.path())
+        .arg("import")
+        .arg("talk.md")
+        .assert()
+        .success();
+
+    let output = temp.path().join("talk.fireside.json");
+    let contents = std::fs::read_to_string(&output).expect("scaffold is readable");
+    assert!(contents.contains("\"kind\": \"ascii-art\""));
+    assert!(!contents.contains("\"kind\": \"code\""));
 }
 
 #[test]

@@ -1,9 +1,15 @@
 # Contract: `fireside art` subcommand
 
-Authoring-time convenience only. Neither verb reads or writes a deck
-file — both print ready-to-paste art to stdout. Getting the output into a
-deck remains a manual step (hand-edit, quick-edit, or a future `import`
-extension), per spec 009's Assumptions.
+Authoring-time convenience. Neither verb reads or writes a deck file
+itself — both print ready-to-paste art to stdout. Getting the output
+into a deck no longer requires a manual step, though one is still
+available: **updated 2026-07-18** — `fireside new --banner` generates a
+banner from the deck title directly into a scaffolded deck (see
+`crates/fireside-cli/src/new.rs::add_title_banner`), and `fireside
+import` promotes a ` ```ascii-art ` fence in Markdown source to a real
+block (see `crates/fireside-cli/src/import.rs`). Hand-editing the
+generated JSON, or quick-edit, remains available for anyone who'd rather
+paste by hand.
 
 ## `fireside art text <PHRASE>`
 
@@ -42,11 +48,9 @@ non-zero — it never panics.
   (`rascii_art`'s `colored()` render option is left off; `figlet-rs`
   has no color concept). Matches the wire contract's requirement that
   `ascii-art` block content stay plain text (constitution Principle IV).
-- No trailing deck-JSON wrapping — output is the raw art text, so an
-  author can decide for themselves whether to paste it as an
-  `ascii-art` block's `art` value, a `CodeBlock`, or anywhere else. A
+- No trailing deck-JSON wrapping — output is the raw art text. A
   `--json` convenience flag that wraps the output as a ready-to-paste
-  `{"kind":"ascii-art","art":"..."}` fragment is a plausible follow-up,
-  not required by spec 009's functional requirements — left for `tasks.md`
-  to size and, if included, ship as an additive flag rather than a
-  behavior change to the default output.
+  `{"kind":"ascii-art","art":"..."}` fragment was considered here and
+  not built: `new --banner` and `import`'s ascii-art fence (added
+  2026-07-18, see the top of this file) cover the two real workflows
+  more directly than a JSON-fragment flag would have.

@@ -130,3 +130,42 @@ was when those two rules shipped.
 - `fireside-cli`'s two new dependencies (`figlet-rs`, `rascii_art`) are
   tracked in the constitution's Principle III amendment accompanying this
   feature, not duplicated here.
+
+### Follow-up (2026-07-18, second pass)
+
+Two corrections after user review of the shipped feature:
+
+1. **The `fireside demo` showcase deck was wrongly excluded.** Task T046
+   (spec 009) cited this ADR's hello.json reasoning to justify keeping
+   `ascii-art` out of `crates/fireside-cli/assets/demo.fireside.json` too
+   — but that reasoning is about `docs/examples/hello.json` specifically
+   (the protocol's canonical cross-version example) and never applied to
+   the CLI's own bundled demo deck, which ships in lockstep with the
+   engine and has no cross-version constraint. Net effect: the feature
+   was invisible in the one place a non-technical presenter would see it
+   working, and the generation commands (`art text`/`art image`) were a
+   disconnected utility rather than a presentation feature. Fixed: the
+   `welcome` node's heading is now a FIGlet `ascii-art` banner;
+   `demo_deck_shows_every_block_kind` asserts 8 kinds.
+2. **`docs/examples/hello.json` itself is no longer treated as a frozen
+   baseline.** The "does not gain an ascii-art block" trade-off recorded
+   above is superseded by user decision: "canonical" means the example
+   showcases everything the protocol currently offers, not a compat
+   snapshot pinned to an old version — the constitution's actual text
+   ("MUST parse, validate, and present correctly after every change")
+   doesn't mandate the frozen reading this ADR (and ADR-007/ADR-009
+   before it) added. `hello.json` now declares `"fireside-version":
+   "0.1.3"` and includes an `ascii-art` block in its `intro` node; the
+   stale "7 content block types" list item was corrected to "8". See the
+   constitution's Principle I amendment (1.2.0 → 1.2.1) for the durable
+   wording change, and ADR-007/ADR-009 for their own short follow-up
+   notes. **Not done in this pass**: retroactively adding reveal marks
+   (ADR-009) to `hello.json` — flagged, not bundled in, since it's a
+   separate decision from the ascii-art fix this pass addressed.
+
+Also added in this pass, closing the "authoring workflow" gap the
+original Consequences section left as a manual step: `fireside new
+--banner` generates a title banner directly into a scaffolded deck, and
+`fireside import` promotes a ` ```ascii-art ` fence to a real block
+instead of a generic code block. Both are `fireside-cli`-only, no
+protocol change.

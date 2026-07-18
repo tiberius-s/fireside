@@ -30,13 +30,13 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1784397136.395351,
-    "ast_hash": "db5b60bff998940119d95e9d9ff13544",
+    "mtime": 1784402072.6723418,
+    "ast_hash": "daa98127f01b810cdb760574a1294be9",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1784397198.003333,
-    "ast_hash": "15e0a21e703aebe2d2a5a760f23ca4ba",
+    "mtime": 1784402400.0804846,
+    "ast_hash": "965028aba2e58b1eb456bcd0033a2baf",
     "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
@@ -110,9 +110,9 @@
     "semantic_hash": ""
   },
   "docs/examples/hello.json": {
-    "mtime": 1776616767.3491697,
-    "ast_hash": "32a6eec4e2603a654b3670ae06b712cf",
-    "semantic_hash": "32a6eec4e2603a654b3670ae06b712cf"
+    "mtime": 1784402277.9646552,
+    "ast_hash": "b45679b6b131c11ecb85f0fc1573a27f",
+    "semantic_hash": ""
   },
   "docs/package.json": {
     "mtime": 1771186168.445452,
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784399055.103051,
-    "ast_hash": "63db4d607bccfa10d91d49100ffba3ed",
+    "mtime": 1784402380.6252565,
+    "ast_hash": "4d64eb775bcc25f49e7aaad2affe77a0",
     "semantic_hash": ""
   },
   "crates/fireside-cli/README.md": {
@@ -420,13 +420,13 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/assets/demo.fireside.json": {
-    "mtime": 1784394004.4424474,
-    "ast_hash": "2f350f298e09129f6ccf3536f705742a",
+    "mtime": 1784402263.8974833,
+    "ast_hash": "7c1d8d3fe35438966e17b7d7cc2c3a35",
     "semantic_hash": ""
   },
   ".github/demo.gif": {
-    "mtime": 1784394342.2374866,
-    "ast_hash": "3f4983ff99571eda70fcb021d0803a30",
+    "mtime": 1784402605.2942908,
+    "ast_hash": "04c01cf602385206a3b748f38336f0ed",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/map.rs": {
@@ -600,8 +600,8 @@
     "semantic_hash": ""
   },
   ".specify/memory/constitution.md": {
-    "mtime": 1784396647.9274673,
-    "ast_hash": "e089884e5ff69dcbd74f89e4c4286828",
+    "mtime": 1784402833.485237,
+    "ast_hash": "b9bac3ac3fd1a983a5c3b36a7c60d8b5",
     "semantic_hash": ""
   },
   ".specify/templates/checklist-template.md": {
@@ -800,13 +800,13 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/import.rs": {
-    "mtime": 1784300622.6478562,
-    "ast_hash": "affe309163802382532e645c44101bad",
+    "mtime": 1784402192.6164796,
+    "ast_hash": "9e7a82fcc20ab0a35ed9399c1d8f45b2",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-007-spec-patch-0-1-1.md": {
-    "mtime": 1783902427.5089135,
-    "ast_hash": "83b6501bd521b38efd9c567c4af9e228",
+    "mtime": 1784402788.8795333,
+    "ast_hash": "3c74f742350e67ab48435665c76e3cf6",
     "semantic_hash": ""
   },
   "specs/004-spec-patch-0-1-1/spec.md": {
@@ -965,8 +965,8 @@
     "semantic_hash": ""
   },
   ".claude/adrs/adr-009-incremental-reveal.md": {
-    "mtime": 1783910032.363893,
-    "ast_hash": "aa367cd2c1ba1736c604c3b89007d0d7",
+    "mtime": 1784402801.670509,
+    "ast_hash": "5d1feb972ba6b460959cbff331c667cf",
     "semantic_hash": ""
   },
   "specs/006-incremental-reveal/spec.md": {
@@ -1165,8 +1165,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/cli.md": {
-    "mtime": 1784399414.7633739,
-    "ast_hash": "4c8e35b3bebe276140c9c7e91e13c1c2",
+    "mtime": 1784402346.875957,
+    "ast_hash": "a92e79a778645735492637cf233e7f01",
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/presenting.md": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/authoring-markdown.md": {
-    "mtime": 1784394637.3884888,
-    "ast_hash": "de0da98e878f4a16f3aa4d60fff2779b",
+    "mtime": 1784402365.1540656,
+    "ast_hash": "a333f461217aad8927b38792d75cfc0b",
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/conformance.md": {
@@ -1220,8 +1220,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/new.rs": {
-    "mtime": 1784344638.681832,
-    "ast_hash": "3bd13cc7f96b091ddcfa1edab40adb2b",
+    "mtime": 1784402443.013225,
+    "ast_hash": "5458bb3e71b6810e56ab054c32de4502",
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/report.rs": {
@@ -1290,8 +1290,8 @@
     "semantic_hash": ""
   },
   "specs/009-ascii-art/spec.md": {
-    "mtime": 1784396287.7388587,
-    "ast_hash": "18ff6c73e1370d1932731eda809abd6c",
+    "mtime": 1784402882.9722853,
+    "ast_hash": "12d46ffedb22251c634409c447263818",
     "semantic_hash": ""
   },
   ".github/import.gif": {
@@ -1330,8 +1330,8 @@
     "semantic_hash": ""
   },
   "specs/009-ascii-art/contracts/cli-art-command.md": {
-    "mtime": 1784396566.9721918,
-    "ast_hash": "8f64de3984d32c2e1aa3e1d4e8af7680",
+    "mtime": 1784402901.5456998,
+    "ast_hash": "c63433d57cda05fca2a36a9c769e9f71",
     "semantic_hash": ""
   },
   "specs/009-ascii-art/quickstart.md": {
@@ -1340,18 +1340,18 @@
     "semantic_hash": ""
   },
   ".claude/adrs/adr-012-ascii-art-protocol-change.md": {
-    "mtime": 1784396628.713086,
-    "ast_hash": "0ab8c92d352e8489b037a8cdc63e4e1c",
+    "mtime": 1784402820.661502,
+    "ast_hash": "1800170d5a694a37f8ea60e9f20aa675",
     "semantic_hash": ""
   },
   "specs/009-ascii-art/tasks.md": {
-    "mtime": 1784397710.394159,
-    "ast_hash": "b850e2d53ac3772761e2ae67fd1328aa",
+    "mtime": 1784402858.9902837,
+    "ast_hash": "d809f1f89139f48bc0394c365944bdf3",
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/art.rs": {
-    "mtime": 1784397485.4377966,
-    "ast_hash": "ff53f71c02f9c111170dd8abd6cff831",
+    "mtime": 1784402052.0693645,
+    "ast_hash": "3fb2072d6af4549d18992a99770e5b78",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/fixtures/tiny.png": {
@@ -1375,13 +1375,13 @@
     "semantic_hash": ""
   },
   ".github/demo-art.png": {
-    "mtime": 1784399223.9318671,
-    "ast_hash": "47004d3a61a6c5a6f7cb32e6f0e4f36e",
+    "mtime": 1784402306.6027873,
+    "ast_hash": "f78af57b895855f98ea0aaff4984d576",
     "semantic_hash": ""
   },
   ".github/art-image.gif": {
-    "mtime": 1784399337.5770025,
-    "ast_hash": "c7dcb5df7afb064a08d9381a7136c64a",
+    "mtime": 1784402620.2489202,
+    "ast_hash": "c6b802c5ecaee116201b7a01c292b07b",
     "semantic_hash": ""
   },
   ".github/art-text.gif": {

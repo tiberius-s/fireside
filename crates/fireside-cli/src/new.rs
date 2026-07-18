@@ -5,9 +5,10 @@ use std::io::{self, BufRead, Write};
 use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
-use fireside_core::Graph;
+use fireside_core::{ContentBlock, Graph};
 
 use crate::Template;
+use crate::art::{DEFAULT_ART_WIDTH, render_text_banner};
 use crate::slugify;
 use crate::templates::{branching_template, linear_template, workshop_template};
 
@@ -15,9 +16,15 @@ pub(crate) fn new_deck(
     name: Option<String>,
     template: Option<Template>,
     author: Option<String>,
+    banner: bool,
 ) -> Result<()> {
-    let (name, template, author) = match name {
-        Some(name) => (name, template.unwrap_or(Template::Branching), author),
+    let (name, template, author, banner) = match name {
+        Some(name) => (
+            name,
+            template.unwrap_or(Template::Branching),
+            author,
+            banner,
+        ),
         None => interactive_new()?,
     };
 
@@ -30,16 +37,51 @@ pub(crate) fn new_deck(
         bail!("{} already exists — pick another name", path.display());
     }
 
-    let json = starter_deck(&name, template, author.as_deref())?
+    let mut graph = starter_deck(&name, template, author.as_deref())?;
+    let banner_skipped = banner && !add_title_banner(&mut graph, &name);
+
+    let json = graph
         .to_json_pretty()
         .context("could not serialize the starter deck")?;
     std::fs::write(&path, json + "\n")
         .with_context(|| format!("could not write {}", path.display()))?;
 
     println!("Created {}.", path.display());
+    if banner_skipped {
+        println!("Note: the title banner was too wide to fit and was skipped.");
+    }
     println!("\nPresent it:   fireside {}", path.display());
     println!("Check it:     fireside validate {}", path.display());
     Ok(())
+}
+
+/// Generates a FIGlet banner from `title` and prepends it as an
+/// [`ContentBlock::AsciiArt`] block to the first node's content.
+/// Returns `false` (a no-op, never an error) when the banner can't be
+/// generated at all (e.g. a title with no recognized character) or
+/// would exceed [`DEFAULT_ART_WIDTH`] — a starter deck must always
+/// validate clean, so a banner that can't be made to fit is silently
+/// skipped rather than failing deck creation over a decoration.
+fn add_title_banner(graph: &mut Graph, title: &str) -> bool {
+    let Ok(art) = render_text_banner(title) else {
+        return false;
+    };
+    let widest = art.lines().map(str::len).max().unwrap_or(0);
+    if widest > DEFAULT_ART_WIDTH as usize {
+        return false;
+    }
+    let Some(first) = graph.nodes.first_mut() else {
+        return false;
+    };
+    first.content.insert(
+        0,
+        ContentBlock::AsciiArt {
+            reveal: None,
+            art,
+            alt: Some(title.to_owned()),
+        },
+    );
+    true
 }
 
 /// Reads one line from stdin, printing `label` first as a prompt. `Ok(None)`
@@ -55,10 +97,10 @@ fn prompt_line(stdin: &mut impl BufRead, label: &str) -> Result<Option<String>> 
     Ok(Some(line.trim().to_string()))
 }
 
-/// Asks the three questions a new deck needs — title, template, author —
-/// and returns sensible answers for whichever were skipped. Only reached
-/// when `fireside new` is run without a name.
-fn interactive_new() -> Result<(String, Template, Option<String>)> {
+/// Asks the four questions a new deck needs — title, template, author,
+/// title banner — and returns sensible answers for whichever were
+/// skipped. Only reached when `fireside new` is run without a name.
+fn interactive_new() -> Result<(String, Template, Option<String>, bool)> {
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
 
@@ -89,7 +131,12 @@ fn interactive_new() -> Result<(String, Template, Option<String>)> {
 
     let author = prompt_line(&mut stdin, "Author (optional): ")?.filter(|s| !s.is_empty());
 
-    Ok((name, template, author))
+    let banner = matches!(
+        prompt_line(&mut stdin, "Add an ASCII title banner? [y/N]: ")?,
+        Some(s) if matches!(s.to_lowercase().as_str(), "y" | "yes")
+    );
+
+    Ok((name, template, author, banner))
 }
 
 fn starter_deck(name: &str, template: Template, author: Option<&str>) -> Result<Graph> {
@@ -146,5 +193,42 @@ mod tests {
         let graph = starter_deck("Test Deck", Template::Branching, Some("Ada Lovelace"))
             .expect("branching template builds");
         assert_eq!(graph.author.as_deref(), Some("Ada Lovelace"));
+    }
+
+    #[test]
+    fn add_title_banner_prepends_an_ascii_art_block_and_stays_clean() {
+        let mut graph =
+            starter_deck("Test Deck", Template::Branching, None).expect("template builds");
+        let before = graph.nodes[0].content.len();
+        assert!(add_title_banner(&mut graph, "Test Deck"));
+        assert_eq!(graph.nodes[0].content.len(), before + 1);
+        match &graph.nodes[0].content[0] {
+            ContentBlock::AsciiArt { alt, .. } => assert_eq!(alt.as_deref(), Some("Test Deck")),
+            other => panic!("expected an ascii-art block, got {other:?}"),
+        }
+        let diags = validate(&graph);
+        let serious: Vec<_> = diags
+            .iter()
+            .filter(|d| d.severity >= Severity::Warning)
+            .collect();
+        assert!(
+            serious.is_empty(),
+            "banner must not break validation: {serious:?}"
+        );
+    }
+
+    #[test]
+    fn add_title_banner_skips_gracefully_when_the_title_is_too_wide() {
+        let mut graph =
+            starter_deck("Test Deck", Template::Branching, None).expect("template builds");
+        let before = graph.nodes[0].content.len();
+        let long_title = "A Title So Long It Cannot Possibly Fit The Card";
+        assert!(!add_title_banner(&mut graph, long_title));
+        assert_eq!(graph.nodes[0].content.len(), before, "no block inserted");
+        let diags = validate(&graph);
+        assert!(
+            diags.iter().all(|d| d.severity < Severity::Warning),
+            "skipped banner must leave the deck spotless: {diags:?}"
+        );
     }
 }

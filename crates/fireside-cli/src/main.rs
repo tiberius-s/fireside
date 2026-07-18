@@ -81,6 +81,11 @@ enum Command {
         /// Author name to embed in the deck.
         #[arg(long)]
         author: Option<String>,
+
+        /// Add an ASCII title banner (generated from the deck's title)
+        /// to the first slide.
+        #[arg(long)]
+        banner: bool,
     },
 
     /// See what Fireside can do — no file needed.
@@ -151,8 +156,9 @@ fn main() -> Result<()> {
                 name,
                 template,
                 author,
+                banner,
             }),
-        ) => new::new_deck(name, template, author),
+        ) => new::new_deck(name, template, author, banner),
         (None, Some(Command::Demo)) => demo(),
         (None, Some(Command::Import { input, output })) => import_file(&input, output.as_deref()),
         (None, Some(Command::Art { mode })) => match mode {
@@ -322,6 +328,7 @@ mod tests {
             "image",
             "divider",
             "container",
+            "ascii-art",
         ] {
             assert!(
                 DEMO_DECK.contains(&format!("\"kind\": \"{kind}\"")),
