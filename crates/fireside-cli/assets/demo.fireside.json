@@ -139,12 +139,28 @@
       "content": [
         { "kind": "heading", "level": 2, "text": "A few more touches" },
         {
-          "kind": "list",
-          "ordered": true,
-          "items": [
-            "The map (**m**) shows every slide and jumps anywhere",
-            "The timer (**t**) keeps your talk on time",
-            "Speaker notes (**s**) stay off screen until you want them"
+          "kind": "text",
+          "body": "Press **Space** to reveal these one at a time."
+        },
+        {
+          "kind": "container",
+          "layout": "stack",
+          "children": [
+            {
+              "kind": "text",
+              "body": "The map (**m**) shows every slide and jumps anywhere",
+              "reveal": 1
+            },
+            {
+              "kind": "text",
+              "body": "The timer (**t**) keeps your talk on time",
+              "reveal": 2
+            },
+            {
+              "kind": "text",
+              "body": "Speaker notes (**s**) stay off screen until you want them",
+              "reveal": 3
+            }
           ]
         }
       ]

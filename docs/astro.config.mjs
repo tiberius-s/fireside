@@ -3,7 +3,7 @@ import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
 
 export default defineConfig({
-  site: 'https://tiberius.github.io',
+  site: 'https://tiberius-s.github.io',
   base: '/fireside',
   output: 'static',
   trailingSlash: 'always',
@@ -15,10 +15,10 @@ export default defineConfig({
       disable404Route: true,
       lastUpdated: true,
       social: {
-        github: 'https://github.com/tiberius/fireside',
+        github: 'https://github.com/tiberius-s/fireside',
       },
       editLink: {
-        baseUrl: 'https://github.com/tiberius/fireside/edit/main/docs/',
+        baseUrl: 'https://github.com/tiberius-s/fireside/edit/main/docs/',
       },
       tableOfContents: {
         minHeadingLevel: 2,

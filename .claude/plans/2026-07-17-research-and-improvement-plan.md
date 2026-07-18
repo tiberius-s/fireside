@@ -241,6 +241,58 @@ descoped by user decision. Remaining plan work is Wave 2: Docs (D), ASCII
 art (C), the ongoing AI-capabilities items (E) not already covered by
 B-2/B-3/B-5 above, and the Rust learning path (F).
 
+- [x] D — Wave 2 documentation stream — done 2026-07-18 (uncommitted on
+      main). Before starting, verified the Stream D write-up above was
+      already stale: commit `2dabf88` (landed 2026-07-17, right after this
+      plan was written) had independently added `guides/presenting.md`,
+      `guides/authoring-markdown.md`, `reference/cli.md`,
+      `reference/conformance.md`, and fixed the sidebar §4→§6 gap — so "no
+      user guide exists" was no longer true. This pass covered what was
+      actually still missing, confirmed by reading the current files rather
+      than trusting the original audit: (1) `docs/astro.config.mjs` still
+      said `tiberius` in `site`/`social.github`/`editLink.baseUrl` against
+      the real remote `tiberius-s/fireside` — fixed. (2) `docs/README.md`
+      still described a `schemas/`/`decisions/` structure that never
+      existed and named the wrong three guides — rewritten to match the
+      real `guides/`/`reference/` layout. (3) Root `README.md` gained
+      badges (CI + MIT), an Install section (`cargo install --path
+      crates/fireside-cli`, MSRV 1.88, truecolor/size note — no GitHub
+      Releases mention since B-7 is descoped), the missing `import`
+      subcommand and flag summary, and a refreshed feature list
+      (reveal/quick-edit/timer/resume). (4) Added a "Requirements" section
+      to `guides/getting-started.md` (truecolor, monospace+box-drawing
+      font, ~80×24). (5) VHS demos: gave the demo deck's `extras` node real
+      `reveal` usage (a 3-child stack container, `reveal: 1/2/3`, replacing
+      its old plain list — verified `node protocol/validate.mjs` still 0
+      errors/0 warnings and both `demo_deck_*` tests in `main.rs` still
+      pass), then split `.github/demo.tape` into six tapes/GIFs (`demo`
+      refreshed + new `reveal`, `quick-edit`, `import`, `validate-watch`,
+      `timer-map`), added `scripts/demos.sh` to regenerate them, and wrote
+      a tiny `.github/demo-import.md` fixture + `.github/demo-watch-toggle.sh`
+      helper (kept the JSON-quote-matching sed out of the VHS tape itself —
+      `vhs validate` rejected `\"` escapes inline). Embedded the four
+      feature GIFs into `guides/presenting.md` (reveal, quick-edit,
+      timer/map) and `guides/authoring-markdown.md` (import) and
+      `reference/cli.md` (validate --watch) via raw.githubusercontent.com
+      URLs, since the docs site can't use repo-relative image paths.
+      User decisions: ADRs stay in `.claude/adrs/` only — not surfaced on
+      the Starlight site, not linked from `docs/README.md` (they're
+      AI/maintainer artifacts, not public docs); `CHANGELOG.md` skipped
+      entirely this pass (no tagged release to log against — revisit
+      alongside B-7 if it returns). `docs/dist/` was already gitignored,
+      no action needed. Verified: `node protocol/validate.mjs
+      crates/fireside-cli/assets/demo.fireside.json` (0/0/1, same info note
+      as before), `cargo test --workspace`, `cargo clippy --workspace
+      --all-targets -- -D warnings`, `cargo fmt --check`, `cd docs && npm
+      run check && npm run build` all clean, all six GIFs regenerated via
+      `scripts/demos.sh` and eyeballed frame-by-frame (via `ffmpeg`
+      frame extraction, since no image-preview tool was available) for
+      correctness — including confirming quick-edit's heading actually
+      changed to "Fireside!" and reloaded, and the map/timer GIF shows the
+      branch structure and elapsed timer — and a tmux smoke of `fireside
+      demo` walking the map to `extras` and pressing Space four times,
+      confirming 0/3 → 1/3 → 2/3 → 3/3 revealed then the move to `finale`.
+
 ## Context
 
 The user requested a six-area research engagement: (1) architecture/Rust best practices, (2) full documentation review, (3) build/deploy evaluation, (4) AI capabilities for the dev workflow, (5) a personal Rust learning path (Node/TS-first background, C# secondary), (6) ASCII art support. Three parallel repo audits (architecture, docs, CI/build) plus external research were completed. The user has decided:

@@ -27,6 +27,8 @@ time before moving to the next slide. Going back (`←`) always leaves reveal
 and returns to the previous slide directly — reveal steps aren't
 individually undoable.
 
+![Revealing a slide's content one piece at a time](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/reveal.gif)
+
 ## Branch points
 
 At a branch point the footer reads `↑↓ choose · Enter go`:
@@ -56,6 +58,8 @@ marker for where you are (`◉`), where you've been (`●`), where you haven't
 The map is the fastest way to skip ahead, backtrack past several slides at
 once, or recover if you've lost track of where a branch went.
 
+![Toggling the elapsed timer and opening the map](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/timer-map.gif)
+
 ## Other keys while presenting
 
 | Key | Effect                                                             |
@@ -83,6 +87,8 @@ it, or a `sync` from another tool), `Ctrl+S` reports a conflict and leaves
 your edit in the modal instead of overwriting it silently — press `Ctrl+S`
 again to overwrite deliberately, or `Esc` to abandon your edit and pick up
 the external change instead.
+
+![Quick-editing a slide's heading and saving in place](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/quick-edit.gif)
 
 ## Resuming after a crash or exit
 

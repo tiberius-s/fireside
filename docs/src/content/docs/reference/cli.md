@@ -56,6 +56,8 @@ one-line summary.
 This is the authoring loop: an editor on one side, `fireside validate --watch`
 on the other, errors appearing as you save.
 
+![fireside validate --watch catching a broken branch target, then a fix](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/validate-watch.gif)
+
 **Exit codes:** `0` if the deck has no error-severity diagnostics (warnings
 and info are fine); `1` otherwise. `--watch` never exits on its own — only on
 interruption.

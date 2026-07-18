@@ -12,12 +12,19 @@ This directory contains the Fireside Protocol specification site built with Astr
 
 - `src/content/docs/index.md` — landing page
 - `src/content/docs/spec/` — 6 normative chapters + 3 non-normative appendices
-- `src/content/docs/schemas/` — schema reference pages (graph, node, content-blocks)
-- `src/content/docs/guides/` — 3 user guides (getting-started, branching-adventures, for-designers)
-- `src/content/docs/decisions/` — Architecture Decision Records (ADRs)
+- `src/content/docs/guides/` — 3 user guides: `getting-started` (build a small
+  graph by hand), `authoring-markdown` (compile a talk with `fireside import`),
+  `presenting` (every key the TUI responds to)
+- `src/content/docs/reference/` — `cli` (every subcommand/flag/exit code),
+  `data-model-quick-reference`, `domain-vocabulary`, `conformance`
 
-Sidebar groups are configured in `astro.config.mjs` using `autogenerate` so newly added
-pages under these directories are picked up automatically.
+Sidebar groups are configured explicitly in `astro.config.mjs` (not
+`autogenerate`), so a new page under any of these directories also needs a
+matching entry added to the sidebar there.
+
+Architecture Decision Records live in `.claude/adrs/` at the repo root — they're
+project-history artifacts for maintainers/AI agents, not published on this
+site.
 
 ## Local Development
 

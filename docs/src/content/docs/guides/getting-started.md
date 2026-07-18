@@ -9,6 +9,14 @@ The point of the example is not to show every feature in the protocol. It is to
 show the smallest graph that still demonstrates entry, branching, rejoin, and a
 terminal node.
 
+## Requirements
+
+The presenter renders with 24-bit RGB colors and has no 256-color fallback, so
+you'll need a truecolor terminal (most modern terminal emulators; set
+`COLORTERM=truecolor` if colors look off). It also expects a monospace font
+with Unicode box-drawing support, and is most comfortable at ~80 columns by
+24 rows or larger — narrower windows still work, but content wraps tighter.
+
 ## What you will make
 
 A four-node graph with one entry node, one branch point, one optional detail

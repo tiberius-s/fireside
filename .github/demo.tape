@@ -51,9 +51,22 @@ Sleep 3.5s
 Escape
 Sleep 800ms
 
-# Take the extras path via its shortcut key, then finish.
+# Take the extras path via its shortcut key, and reveal its tips one at a
+# time (see reveal.tape for a focused look at incremental reveal).
 Type "e"
-Sleep 2.5s
+Sleep 1.5s
+Space
+Sleep 1.2s
+Space
+Sleep 1.2s
+Space
+Sleep 1.5s
+
+# The elapsed timer.
+Type "t"
+Sleep 1.5s
+
+# Finish.
 Space
 Sleep 3s
 
