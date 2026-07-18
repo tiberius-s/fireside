@@ -77,6 +77,8 @@ severity, since the corpus asserts exact ID sets.
 | `container-nesting-depth-exceeded`     | Error    | A `container` block nests deeper than the reference limit (8; see ADR-010, `.claude/adrs/adr-010-container-nesting-depth-limit.md`). |
 | `empty-traversal`                      | Warning  | `"traversal": {}` — present but sets neither `next` nor `branch-point`.  |
 | `reveal-masked-by-container`           | Warning  | A block's `reveal` value is lower than its enclosing container's, so it can never appear first. |
+| `ascii-art-too-wide`                   | Warning  | An `ascii-art` block's widest line exceeds 76 columns and may not fit the presentation card. |
+| `ascii-art-empty`                      | Warning  | An `ascii-art` block has no art content.                                 |
 | `malformed-link-url`                   | Warning  | An inline `[label](url)` link's URL doesn't look like a usable destination. |
 | `unreachable-node`                     | Warning  | A node has no traversal path from the entry node.                        |
 | `self-loop`                            | Warning  | A node's `next` (or a branch option) targets itself.                     |

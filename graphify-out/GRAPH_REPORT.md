@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-18)
 
 ## Corpus Check
-- 258 files · ~297,983 words
+- 258 files · ~306,065 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2690 nodes · 3737 edges · 248 communities (205 shown, 43 thin omitted)
+- 2692 nodes · 3739 edges · 249 communities (206 shown, 43 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ae600cda`
+- Built from commit: `c3cbbbe1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -258,6 +258,7 @@
 - [[_COMMUNITY_Community 242|Community 242]]
 - [[_COMMUNITY_Community 243|Community 243]]
 - [[_COMMUNITY_Community 244|Community 244]]
+- [[_COMMUNITY_Community 245|Community 245]]
 - [[_COMMUNITY_Community 246|Community 246]]
 - [[_COMMUNITY_Community 247|Community 247]]
 - [[_COMMUNITY_Community 248|Community 248]]
@@ -316,15 +317,15 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (248 total, 43 thin omitted)
+## Communities (249 total, 43 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
 Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_the_source_exactly(), rust_keywords_strings_and_comments_get_distinct_styles() (+4 more)
 
 ### Community 1 - "CLI Commands"
-Cohesion: 0.07
-Nodes (51): BufRead, Command, Graph, Option, Path, PathBuf, Result, String (+43 more)
+Cohesion: 0.10
+Nodes (34): Command, Graph, Option, Path, PathBuf, Result, String, Graph (+26 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -1047,8 +1048,8 @@ Cohesion: 0.14
 Nodes (13): Appendix — key external references, Context, Continuous — Rust learning path (Stream F), Executive summary of findings, Fireside — Research Findings & Strategic Improvement Plan (2026-07), Ongoing — AI capabilities (Stream E), Progress Log, Stream ordering & dependencies (+5 more)
 
 ### Community 221 - "Community 221"
-Cohesion: 0.29
-Nodes (6): Common conventions across verbs, `fireside demo`, `fireside import <input.md> [output]`, `fireside new [name]`, `fireside present <file>`, `fireside validate <file>`
+Cohesion: 0.22
+Nodes (8): Common conventions across verbs, `fireside art image <path> [--width N]`, `fireside art text <phrase>`, `fireside demo`, `fireside import <input.md> [output]`, `fireside new [name]`, `fireside present <file>`, `fireside validate <file>`
 
 ### Community 222 - "Community 222"
 Cohesion: 0.22
@@ -1130,12 +1131,16 @@ Nodes (5): Option, Path, Result, art_image(), art_text()
 Cohesion: 0.17
 Nodes (11): Dependencies & Execution Order, Implementation Strategy, Parallel Execution Examples, Phase 1: Setup, Phase 2: Foundational (blocking prerequisite for all user stories), Phase 3: User Story 1 - Author turns a title into a stylized banner (Priority: P1), Phase 4: User Story 2 - Author converts an existing image into ASCII art (Priority: P1), Phase 5: User Story 3 - Ascii-art appears alongside other content, on its own or hand-authored (Priority: P2) (+3 more)
 
+### Community 245 - "Community 245"
+Cohesion: 0.23
+Nodes (17): BufRead, Graph, Option, Result, String, Value, every_starter_template_carries_speaker_note_hints(), every_starter_template_validates_clean() (+9 more)
+
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1351 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1346 more)
+- **1353 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1348 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **43 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1149,9 +1154,9 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `Community 228`, `TUI App Core`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1353 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1355 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.06949152542372881 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**

@@ -35,6 +35,7 @@ must contain at least one node, the first node is the graph entry point, and
 | `image`     | Visual assets              |
 | `divider`   | Visual separation          |
 | `container` | Nested composition         |
+| `ascii-art` | Pre-rendered ASCII/text art |
 
 ## Traversal Operations
 
@@ -69,3 +70,6 @@ Transition:
 Versions:
 
 - `0.1.0`
+- `0.1.1`
+- `0.1.2` — adds the optional `reveal` field (incremental reveal)
+- `0.1.3` — adds the `ascii-art` block kind (not safely readable by older engines — see [§2 Data Model, AsciiArtBlock](/spec/data-model/#asciiartblock))

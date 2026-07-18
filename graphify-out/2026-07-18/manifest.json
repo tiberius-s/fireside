@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784393971.792959,
-    "ast_hash": "3aa97db0422dd7945a59ec8cf9ce1626",
+    "mtime": 1784399055.103051,
+    "ast_hash": "63db4d607bccfa10d91d49100ffba3ed",
     "semantic_hash": ""
   },
   "crates/fireside-cli/README.md": {
@@ -325,9 +325,9 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/data-model-quick-reference.md": {
-    "mtime": 1776614252.6686535,
-    "ast_hash": "4aa49a4bfeced0da4fbf1d0b193e410d",
-    "semantic_hash": "4aa49a4bfeced0da4fbf1d0b193e410d"
+    "mtime": 1784398996.3683724,
+    "ast_hash": "71f663b62588cda67a854391224ed840",
+    "semantic_hash": ""
   },
   "docs/src/content/docs/reference/domain-vocabulary.md": {
     "mtime": 1776614252.6903918,
@@ -335,8 +335,8 @@
     "semantic_hash": "4a36166c1136e2710f6b17eac60610f7"
   },
   "docs/src/content/docs/spec/appendix-content-blocks.md": {
-    "mtime": 1783911400.6920826,
-    "ast_hash": "6f0843a887a2354d4cd1252b3ea3c564",
+    "mtime": 1784398959.8149235,
+    "ast_hash": "dc05de72a5c8ba5c71767339cd98da99",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-guidelines.md": {
@@ -345,14 +345,14 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/data-model.md": {
-    "mtime": 1784397611.992949,
-    "ast_hash": "0db897c222dea3d7f4ee82f210b49df5",
+    "mtime": 1784397624.7243836,
+    "ast_hash": "b82a947b14e45c77ced5d8680090ec82",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/introduction.md": {
-    "mtime": 1776614525.5916274,
-    "ast_hash": "a4ee67c597aebab04957c4d20018fa2f",
-    "semantic_hash": "a4ee67c597aebab04957c4d20018fa2f"
+    "mtime": 1784397633.9801881,
+    "ast_hash": "02012a587be4cc448b4a8923cc4b32c9",
+    "semantic_hash": ""
   },
   "docs/src/content/docs/spec/mental-models.md": {
     "mtime": 1776614252.6687424,
@@ -370,8 +370,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/validation.md": {
-    "mtime": 1783911415.6183002,
-    "ast_hash": "4d9fd6429c560d3fbf4b279c3b9392e1",
+    "mtime": 1784398977.433033,
+    "ast_hash": "e9d758c8a1a4c4062765bc1aa2687f04",
     "semantic_hash": ""
   },
   "protocol/tspconfig.yaml": {
@@ -1165,8 +1165,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/cli.md": {
-    "mtime": 1784394645.702646,
-    "ast_hash": "6036a527023e5e29bfc4e1bef3f7158c",
+    "mtime": 1784399408.619191,
+    "ast_hash": "531f0dbaee76bfca129bad2ca05bca91",
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/presenting.md": {
@@ -1180,8 +1180,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/conformance.md": {
-    "mtime": 1784340504.47773,
-    "ast_hash": "772025a67ee6597b9945ee96f19887c2",
+    "mtime": 1784398923.261643,
+    "ast_hash": "ff264ee5b0cc5fdb346b8ea34b27d624",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/header.rs": {
@@ -1240,8 +1240,8 @@
     "semantic_hash": ""
   },
   "scripts/demos.sh": {
-    "mtime": 1784394220.7298126,
-    "ast_hash": "38a498a2408db6fafcf0fd1b294dbfcb",
+    "mtime": 1784399246.4018178,
+    "ast_hash": "5c348df48d32bb69fef705b3aa51b6da",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-011-ascii-art-crate-msrv-spike.md": {
@@ -1345,8 +1345,8 @@
     "semantic_hash": ""
   },
   "specs/009-ascii-art/tasks.md": {
-    "mtime": 1784397470.6170876,
-    "ast_hash": "32edc2b78e7bf1e3e19e5270e667f66d",
+    "mtime": 1784397710.394159,
+    "ast_hash": "b850e2d53ac3772761e2ae67fd1328aa",
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/art.rs": {
@@ -1372,6 +1372,21 @@
   "protocol/fixtures/valid/ascii-art-too-wide.json": {
     "mtime": 1784397379.1259112,
     "ast_hash": "300bcf58183013a9a2ffebea6c96c922",
+    "semantic_hash": ""
+  },
+  ".github/demo-art.png": {
+    "mtime": 1784399223.9318671,
+    "ast_hash": "47004d3a61a6c5a6f7cb32e6f0e4f36e",
+    "semantic_hash": ""
+  },
+  ".github/art-image.gif": {
+    "mtime": 1784399337.5770025,
+    "ast_hash": "c7dcb5df7afb064a08d9381a7136c64a",
+    "semantic_hash": ""
+  },
+  ".github/art-text.gif": {
+    "mtime": 1784399322.9782195,
+    "ast_hash": "de61f05f13f5f82c8dced4831f87e804",
     "semantic_hash": ""
   }
 }

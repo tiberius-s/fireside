@@ -13,7 +13,7 @@ if ! command -v vhs >/dev/null 2>&1; then
     exit 1
 fi
 
-all_tapes=(demo reveal quick-edit import validate-watch timer-map)
+all_tapes=(demo reveal quick-edit import validate-watch timer-map art-text art-image)
 
 if [ "$#" -gt 0 ]; then
     tapes=("$@")

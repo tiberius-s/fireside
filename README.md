@@ -44,12 +44,15 @@ generates JSON Schema (2020-12). Any runtime that can parse JSON and maintain
 a cursor plus a history stack can build a conforming engine.
 
 - **4 operations** — next, choose, goto, back
-- **7 content blocks** — heading, text, code, list, image, divider, container
+- **8 content blocks** — heading, text, code, list, image, divider, container,
+  ascii-art
 - **Explicit edges** — no implicit sequential fallback; every traversal edge
   is visible in the document
 - **Two-layer validation** — JSON Schema for structure, semantic rules for
   graph integrity
 - **Incremental reveal** — stage content within a slide, one piece at a time
+- **ASCII art** — turn a phrase or a local image into ready-to-paste text art
+  with `fireside art text`/`fireside art image`, no external tool needed
 - **A presenter built for the room** — quick-edit a slide without leaving the
   terminal, an elapsed-time timer, and resume exactly where you left off
 
@@ -65,11 +68,13 @@ fireside <file>            present a deck (live-reloads on save)
 fireside validate <file>   check a deck for problems, in plain language
 fireside new <name>        create a starter deck
 fireside import <file.md>  compile a Markdown talk into a deck
+fireside art text <phrase> generate a text banner to paste in
 ```
 
 `present` takes `--restart` (skip the saved resume position); `validate`
 takes `--watch` (re-check on every save); `new` takes `--template` (`linear`,
-`branching`, `workshop`) and `--author`. Full flag and exit-code reference:
+`branching`, `workshop`) and `--author`; `art image <path>` (a sibling of
+`art text`) takes `--width`. Full flag and exit-code reference:
 [CLI Reference](https://tiberius-s.github.io/fireside/reference/cli/).
 
 ## Repository structure

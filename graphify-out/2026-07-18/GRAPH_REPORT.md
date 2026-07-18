@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-18)
 
 ## Corpus Check
-- 258 files · ~297,820 words
+- 258 files · ~306,054 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2689 nodes · 3736 edges · 249 communities (206 shown, 43 thin omitted)
+- 2692 nodes · 3739 edges · 249 communities (206 shown, 43 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ae600cda`
+- Built from commit: `c3cbbbe1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -612,8 +612,8 @@ Cohesion: 0.40
 Nodes (4): [Category 1], [Category 2], [CHECKLIST TYPE] Checklist: [FEATURE NAME], Notes
 
 ### Community 79 - "Community 79"
-Cohesion: 0.50
-Nodes (5): Appendix C — Content Block Reference, ContainerBlock, ContentBlock Union (7 core kinds), ContentBlock Union, The `reveal` field (all kinds)
+Cohesion: 0.40
+Nodes (6): Appendix C — Content Block Reference, AsciiArtBlock, ContainerBlock, ContentBlock Union (7 core kinds), ContentBlock Union, The `reveal` field (all kinds)
 
 ### Community 83 - "Community 83"
 Cohesion: 0.83
@@ -1048,8 +1048,8 @@ Cohesion: 0.14
 Nodes (13): Appendix — key external references, Context, Continuous — Rust learning path (Stream F), Executive summary of findings, Fireside — Research Findings & Strategic Improvement Plan (2026-07), Ongoing — AI capabilities (Stream E), Progress Log, Stream ordering & dependencies (+5 more)
 
 ### Community 221 - "Community 221"
-Cohesion: 0.29
-Nodes (6): Common conventions across verbs, `fireside demo`, `fireside import <input.md> [output]`, `fireside new [name]`, `fireside present <file>`, `fireside validate <file>`
+Cohesion: 0.22
+Nodes (8): Common conventions across verbs, `fireside art image <path> [--width N]`, `fireside art text <phrase>`, `fireside demo`, `fireside import <input.md> [output]`, `fireside new [name]`, `fireside present <file>`, `fireside validate <file>`
 
 ### Community 222 - "Community 222"
 Cohesion: 0.22
@@ -1140,7 +1140,7 @@ Nodes (17): BufRead, Graph, Option, Result, String, Value, every_starter_templat
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1350 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1345 more)
+- **1353 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1348 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **43 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1149,15 +1149,15 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Community 122`, `Community 228`?**
+- **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
-- **Why does `EngineError` connect `Presentation Session` to `TUI App Core`?**
-  _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `Community 228`, `TUI App Core`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1352 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1355 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.1 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
+- **Should `TUI App Core` be split into smaller, more focused modules?**
+  _Cohesion score 0.06720321931589537 - nodes in this community are weakly interconnected._

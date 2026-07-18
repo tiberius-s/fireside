@@ -3,7 +3,7 @@ title: 'CLI Reference'
 description: 'Every fireside subcommand, its flags, and its exit codes.'
 ---
 
-The `fireside` binary has five verbs. Running `fireside` with no arguments
+The `fireside` binary has six verbs. Running `fireside` with no arguments
 prints this same summary:
 
 ```text
@@ -13,6 +13,7 @@ fireside validate <file>   check a deck for problems
 fireside new               create a deck (asks a few questions)
 fireside new <name>        create a starter deck instantly
 fireside import <file.md>  compile a Markdown talk into a deck
+fireside art text <phrase> generate a text banner to paste in
 ```
 
 `fireside <file>` is shorthand for `fireside present <file>` — the `present`
@@ -107,10 +108,45 @@ existing output file.
 (no `##` headings, a nested list, an unresolved branch link, a malformed
 branch line) or the generated deck fails validation.
 
+## `fireside art text <phrase>`
+
+Turns `phrase` into a large stylized text banner (a FIGlet-style rendering)
+and prints it to stdout — no external tool or website needed. This is an
+authoring-time convenience: it doesn't read or write a deck file. Paste the
+output into an `ascii-art` block's `art` field (see
+[§2 Data Model, AsciiArtBlock](/spec/data-model/#asciiartblock)).
+
+Characters the built-in font has no letterform for are skipped, not fatal —
+`fireside art text "Hi 🔥"` still produces output for `Hi`. Only a phrase
+with *no* recognized character fails.
+
+**Exit codes:** `0` on success; `1` if no character in `phrase` is
+recognized.
+
+![Generating a stylized text banner with fireside art text](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/art-text.gif)
+
+## `fireside art image <path> [--width N]`
+
+Converts the image at `path` to ASCII shading and prints it to stdout — same
+authoring-time convenience as `art text`, and just as file-free: nothing is
+written to disk.
+
+| Argument/Flag | Effect                                                               |
+| -------------- | --------------------------------------------------------------------- |
+| `path`         | Path to a local image file.                                          |
+| `--width`      | Output width in columns. Defaults to 76 — the same width the `ascii-art-too-wide` validator warns past, so default output already fits the presentation card. |
+
+**Exit codes:** `0` on success; `1` if `path` doesn't exist or isn't a
+readable image — reported with a clear message, never a panic.
+
+![Converting a local image into ASCII shading with fireside art image](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/art-image.gif)
+
 ## `fireside demo`
 
-Presents the built-in showcase deck — no file needed. Useful for seeing every
-content block kind and both view modes without writing any JSON first.
+Presents the built-in showcase deck — no file needed. Useful for seeing most
+content block kinds and both view modes without writing any JSON first.
+(`ascii-art` isn't in the demo deck — see `fireside art text`/`fireside art
+image` above to try it.)
 
 **Exit codes:** `0` on a clean exit; `1` on a terminal presenter error.
 

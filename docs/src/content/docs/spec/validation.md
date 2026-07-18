@@ -64,13 +64,17 @@ nodes or declares contradictory traversal rules.
   (`reveal-masked-by-container`) — the block can never actually appear
   before its container does, so the lower value is misleading rather than
   functional.
+- An `ascii-art` block's widest line exceeding a practical presentation
+  width (`ascii-art-too-wide`; the reference implementation uses 76
+  columns) or with no art content at all (`ascii-art-empty`).
 
 ## ContentBlock Validation Rules
 
 ### Core Blocks
 
 Core kinds (`heading`, `text`, `code`, `list`, `image`, `divider`,
-`container`) MUST validate against their specific block schemas.
+`container`, `ascii-art`) MUST validate against their specific block
+schemas.
 
 ## Error Severity Guidance
 

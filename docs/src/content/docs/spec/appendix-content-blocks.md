@@ -18,6 +18,7 @@ data model with a quick rendering-oriented view.
 | `image`     | Visual assets                   | `src`, optional `alt`, `caption`, `width`, `height`                   |
 | `divider`   | Visual separation               | `kind` only                                                           |
 | `container` | Nested composition              | `children`, optional `layout`                                         |
+| `ascii-art` | Pre-rendered ASCII/text art     | `art`, optional `alt`                                                 |
 
 For `image`, `width` and `height` are measured in terminal cells: `width` in
 columns, `height` in rows. Percentage sizing is out of scope for 0.1.0.
@@ -44,6 +45,16 @@ of the layout-oriented guidance in this appendix.
 | `kind`     | `"container"`    | Yes                 |
 | `children` | `ContentBlock[]` | Yes (`minItems: 1`) |
 | `layout`   | `"stack" \| "columns" \| "center"` | No (default `"stack"`) |
+
+For `ascii-art` (added in `0.1.3`), `art` is pre-rendered, plain-text
+content — engines render it as-is, centered and sized to its own widest
+line, the same treatment the reference renderer already gives a
+language-less `code` block. No engine generates or transforms the art at
+render time; text-to-banner and image-to-ASCII conversion are authoring-time
+concerns (see the reference implementation's `fireside art text`/`fireside
+art image` commands). Unlike every other core block, `ascii-art` is not
+safely ignorable by an engine older than `0.1.3` — see
+[§2 Data Model, AsciiArtBlock](/spec/data-model/#asciiartblock).
 
 ## Rendering Notes
 

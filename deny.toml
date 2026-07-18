@@ -26,6 +26,17 @@ db-urls = ["https://github.com/rustsec/advisory-db"]
 ignore = [
   # bincode: unmaintained (RUSTSEC-2025-0141) — transitive dep, no direct usage
   "RUSTSEC-2025-0141",
+  # ansi_term: unmaintained (RUSTSEC-2021-0139) — transitive dep of rascii_art
+  # (fireside-cli's ascii-art image conversion, ADR-011). rascii_art declares
+  # it as a plain, non-optional dependency; no safe upgrade or feature-gated
+  # opt-out exists upstream. No direct usage — fireside never constructs an
+  # ansi_term type. Re-check when rascii_art next publishes.
+  "RUSTSEC-2021-0139",
+  # paste: unmaintained (RUSTSEC-2024-0436) — transitive dep via
+  # rascii_art -> image -> exr -> pulp -> paste (same ADR-011 feature). A
+  # proc-macro helper several layers deep in the EXR image codec path; no
+  # direct usage, no safe upgrade available upstream.
+  "RUSTSEC-2024-0436",
 ]
 
 [bans]
