@@ -68,6 +68,46 @@ PR shows up later._
       warning is gone from `cargo check`/`clippy`, `cargo clippy
       --workspace --all-targets -- -D warnings` and `cargo fmt --check`
       stay clean, all 195 tests still pass.
+- [x] A-2 — split `main.rs` (1096 → 297 lines) — done 2026-07-17
+      (uncommitted on main). Followed the existing `import.rs`/`resume.rs`
+      precedent (sibling modules of the crate root, `pub(crate)` for
+      anything a parent or sibling needs — same rule confirmed working in
+      A-1: private items defined in a module are already visible to all
+      of that module's descendants, so e.g. `Template` and `load` stayed
+      plain private and `new.rs`/`report.rs` see them for free). New
+      files: `watch.rs` (`Watcher`, `fingerprint`, `watch_loop`, 274
+      lines), `report.rs` (`parse_report`, `strip_position`,
+      `diagnostics_report`, `watch_report`, `validate_file`, 218 lines),
+      `new.rs` (`new_deck`, `prompt_line`, `interactive_new`,
+      `starter_deck`, 150 lines), `templates.rs` (the three
+      `serde_json::json!` starter-deck builders, 222 lines — kept as
+      `json!` rather than `include_str!` assets per the plan, since they
+      interpolate the author's deck name and `json!` handles the
+      escaping). One re-export needed: `resume.rs` already did `use
+      crate::fingerprint;` (crate-root path) before this split;
+      `fingerprint`'s implementation moved into `watch.rs`, so `main.rs`
+      re-exports it (`use watch::fingerprint;`) to keep `resume.rs`
+      untouched — same technique as A-1's `content::indicator`
+      re-export. The 16 `main.rs` tests split along exactly the lines
+      they were already testing: 2 stayed in `main.rs` (they test
+      `DEMO_DECK`), 3 moved to `new.rs` (they test `starter_deck`), 6 to
+      `report.rs` (they test `parse_report`/`watch_report`), 5 to
+      `watch.rs` (they test `Watcher`) — no test needed to move to
+      `templates.rs`, since `starter_deck`'s tests already exercise the
+      templates indirectly. `SPOTLESS_DECK` duplicated (a two-line JSON
+      literal) rather than shared, since both test modules needing it are
+      small and a shared test-fixture module would be more machinery than
+      the duplication it removes. Verified: `cargo check -p fireside-cli
+      --all-targets` was clean on the first attempt (no back-and-forth
+      needed once the private-item-visible-to-descendants rule was
+      applied consistently), `cargo clippy --workspace --all-targets -- -D
+      warnings` clean, `cargo fmt --check` clean, `cargo test --workspace`
+      195/195 (same total as before), full `scripts/verify.sh` green, a
+      functional smoke test in a scratch dir (`fireside new --template
+      linear`, `fireside validate`, `fireside validate --watch`, the
+      no-args teaching text — the exact four dispatch paths whose
+      call-targets moved) all behaved identically, and a tmux launch of
+      `fireside demo` rendered and quit cleanly.
 
 ## Context
 
