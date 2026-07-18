@@ -1,0 +1,22 @@
+---
+source: crates/fireside-tui/src/render/tests.rs
+expression: "screen(&app, 60, 18)"
+---
+ Hello, Fireside                   layout-demo  ·  4/6 seen 
+──●───●───●───◉───○─■───────────────────────────────────────
+                                                            
+╭──────────────────────────────────────────────────────────╮
+│                                                          │
+│   ▎ Container Layouts                                    │
+│                                                          │
+│   Left column — containers   Right column — replaces     │
+│   with layout: "columns"     node-level split layouts    │
+│   arrange children side by   with an explicit,           │
+│   side.                      composable pattern.         │
+│                                                          │
+│                    ─────────────────                     │
+│                                             ▼ more (↓)   │
+│                                                          │
+╰──────────────────────────────────────────────────────────╯
+                                                            
+ Space next  ·  ← back  ·  m map  ·  e edit  ·  ? help  ·  q

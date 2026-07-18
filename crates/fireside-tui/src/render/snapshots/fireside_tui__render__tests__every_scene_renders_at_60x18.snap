@@ -1,0 +1,22 @@
+---
+source: crates/fireside-tui/src/render/tests.rs
+expression: "screen(&app, 60, 18)"
+---
+ Hello, Fireside                         intro  ·  1/6 seen 
+──◉───○───○─────────────────────────────────────────────────
+                                                            
+╭──────────────────────────────────────────────────────────╮
+│                                                          │
+│                                                          │
+│                                                          │
+│                     Hello, Fireside                      │
+│                     ───────────────                      │
+│                                                          │
+│          A portable format for graph-structured          │
+│                      presentations.                      │
+│                                                          │
+│                                                          │
+│                                                          │
+╰──────────────────────────────────────────────────────────╯
+                                                            
+ Space next  ·  ← back  ·  m map  ·  e edit  ·  ? help  ·  q

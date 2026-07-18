@@ -504,6 +504,122 @@ fn check_dead_end_branches(graph: &Graph, diags: &mut Vec<Diagnostic>) {
 }
 
 #[cfg(test)]
+mod proptest_support {
+    //! Hand-written generators for graphs that may or may not be
+    //! semantically valid — `validate()` must never panic on any of
+    //! them. Deliberately its own generator rather than reusing
+    //! `session.rs`'s (which only needs navigable graphs, no fuzzing
+    //! toward invalid shapes) or `fireside-core`'s (`#[cfg(test)]`-private
+    //! to that crate, unreachable from here across the crate boundary):
+    //! this one leans into the shapes `validate`'s checks specifically
+    //! look for — a small, reused id alphabet so duplicates and dangling
+    //! targets are common rather than vanishingly rare, traversal that
+    //! deliberately sets both `next` and `branch-point` sometimes, and
+    //! container nesting bounded just past the validator's depth-8 limit
+    //! so both at-limit and over-limit shapes actually occur.
+
+    use proptest::collection::vec;
+    use proptest::option;
+    use proptest::prelude::*;
+
+    use fireside_core::{
+        BranchOption, BranchPoint, ContentBlock, Graph, Node, Traversal, TraversalSpec,
+    };
+
+    /// A handful of short, reused ids — deliberately not unique per node,
+    /// so `unique-node-ids` and dangling-target shapes both occur often.
+    fn arbitrary_id() -> impl Strategy<Value = String> {
+        "[a-c][0-9]?".prop_map(String::from)
+    }
+
+    fn arbitrary_branch_option() -> impl Strategy<Value = BranchOption> {
+        (arbitrary_id(), option::of(arbitrary_id())).prop_map(|(target, key)| BranchOption {
+            label: "opt".to_owned(),
+            key,
+            target,
+            description: None,
+        })
+    }
+
+    fn arbitrary_traversal() -> impl Strategy<Value = Option<TraversalSpec>> {
+        prop_oneof![
+            2 => Just(None),
+            3 => arbitrary_id().prop_map(|t| Some(TraversalSpec::Target(t))),
+            2 => arbitrary_id().prop_map(|next| Some(TraversalSpec::Rules(Traversal {
+                next: Some(next),
+                branch_point: None,
+            }))),
+            2 => vec(arbitrary_branch_option(), 0..3).prop_map(|options| Some(
+                TraversalSpec::Rules(Traversal { next: None, branch_point: Some(BranchPoint { prompt: None, options }) })
+            )),
+            // Deliberately invalid: both `next` and `branch-point` set.
+            1 => (arbitrary_id(), vec(arbitrary_branch_option(), 0..3)).prop_map(|(next, options)| Some(
+                TraversalSpec::Rules(Traversal {
+                    next: Some(next),
+                    branch_point: Some(BranchPoint { prompt: None, options }),
+                })
+            )),
+        ]
+    }
+
+    fn arbitrary_leaf_block() -> impl Strategy<Value = ContentBlock> {
+        let reveal = option::of(0u32..4);
+        prop_oneof![
+            reveal.clone().prop_map(|reveal| ContentBlock::Text {
+                reveal,
+                body: "text with a [link](not really a url)".to_owned(),
+            }),
+            reveal.prop_map(|reveal| ContentBlock::Divider { reveal }),
+        ]
+    }
+
+    /// Nesting bounded to 10 (just past the validator's depth-8 limit,
+    /// see ADR-010) so both at-limit and over-limit shapes actually get
+    /// generated, not just the vastly more common shallow case.
+    fn arbitrary_content_block() -> impl Strategy<Value = ContentBlock> {
+        arbitrary_leaf_block().prop_recursive(10, 20, 3, |inner| {
+            (option::of(0u32..4), vec(inner, 0..3)).prop_map(|(reveal, children)| {
+                ContentBlock::Container {
+                    reveal,
+                    children,
+                    layout: None,
+                }
+            })
+        })
+    }
+
+    fn arbitrary_node() -> impl Strategy<Value = Node> {
+        (
+            arbitrary_id(),
+            arbitrary_traversal(),
+            vec(arbitrary_content_block(), 0..3),
+        )
+            .prop_map(|(id, traversal, content)| Node {
+                id,
+                title: None,
+                view_mode: None,
+                transition: None,
+                speaker_notes: None,
+                traversal,
+                content,
+            })
+    }
+
+    pub(super) fn arbitrary_graph() -> impl Strategy<Value = Graph> {
+        vec(arbitrary_node(), 1..6).prop_map(|nodes| Graph {
+            fireside_version: None,
+            title: None,
+            author: None,
+            date: None,
+            description: None,
+            version: None,
+            defaults: None,
+            nodes,
+        })
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use fireside_core::Graph;
@@ -715,5 +831,32 @@ mod tests {
             ]}"#,
         );
         assert_eq!(diags[0].severity, Severity::Error);
+    }
+
+    proptest::proptest! {
+        /// For any generated graph — deliberately including duplicate
+        /// ids, dangling targets, conflicting `next`/`branch-point`
+        /// traversal, empty branch options, malformed-looking links, and
+        /// container nesting past the depth-8 limit — `validate()` must
+        /// never panic, and every diagnostic that names a node must name
+        /// a node that actually exists in the graph: a diagnostic
+        /// pointing at a phantom node would be worse than useless to a
+        /// presenter trying to act on it.
+        #[test]
+        fn validate_never_panics_and_only_names_real_nodes(
+            graph in proptest_support::arbitrary_graph()
+        ) {
+            let ids: HashSet<&str> = graph.nodes.iter().map(|n| n.id.as_str()).collect();
+            let diags = validate(&graph);
+            for d in &diags {
+                if let Some(node) = &d.node {
+                    proptest::prop_assert!(
+                        ids.contains(node.as_str()),
+                        "diagnostic [{}] names node {node:?}, which doesn't exist in the graph",
+                        d.rule
+                    );
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,22 @@
+---
+source: crates/fireside-tui/src/render/tests.rs
+expression: "screen(&app, 60, 18)"
+---
+ Hello, Fireside                      features  ·  2/6 seen 
+──●───◉───○─────────────────────────────────────────────────
+                                                            
+╭──────────────────────────────────────────────────────────╮
+│                                                          │
+│   ▎ Core Features                                        │
+│                                                          │
+│     • Graph-native traversal with explicit edges         │
+│     • Branching with decision points                     │
+│     • 7 content block types                              │
+│     • Two-tier validation (schema + semantic)            │
+│                                                          │
+│                    ─────────────────                     │
+│                                             ▼ more (↓)   │
+│                                                          │
+╰──────────────────────────────────────────────────────────╯
+                                                            
+ Space next  ·  ← back  ·  m map  ·  e edit  ·  ? help  ·  q

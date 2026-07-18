@@ -54,6 +54,9 @@ plist = "1.8"
 font-kit = "0.14"
 image = "0.25"
 
+# Dev / test only
+insta = "1"
+
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
 

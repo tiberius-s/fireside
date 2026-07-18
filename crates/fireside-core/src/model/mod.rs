@@ -609,7 +609,7 @@ mod proptest_support {
         ]
     }
 
-    fn arbitrary_node() -> impl Strategy<Value = Node> {
+    pub(super) fn arbitrary_node() -> impl Strategy<Value = Node> {
         (
             arbitrary_string(),
             option::of(arbitrary_string()),
@@ -850,6 +850,26 @@ mod tests {
             let json = graph.to_json_pretty().expect("serialize");
             let again = Graph::from_json(&json).expect("re-parse");
             proptest::prop_assert_eq!(graph, again);
+        }
+
+        /// `reveal_levels()` is always sorted ascending, free of
+        /// duplicates, and contains no non-positive values — regardless
+        /// of what `reveal` values (repeats, zeros, out-of-order nesting)
+        /// the node's content actually uses. The engine's reveal-gating
+        /// (`Session::next`/`has_pending_reveal`) trusts this ordering
+        /// without re-sorting, so a regression here would silently break
+        /// reveal progression rather than fail loudly.
+        #[test]
+        fn reveal_levels_are_sorted_deduped_and_positive(node in proptest_support::arbitrary_node()) {
+            let levels = node.reveal_levels();
+            proptest::prop_assert!(
+                levels.iter().all(|&l| l > 0),
+                "no non-positive reveal levels: {levels:?}"
+            );
+            let mut sorted = levels.clone();
+            sorted.sort_unstable();
+            sorted.dedup();
+            proptest::prop_assert_eq!(&levels, &sorted, "levels must already be sorted and deduped");
         }
     }
 }

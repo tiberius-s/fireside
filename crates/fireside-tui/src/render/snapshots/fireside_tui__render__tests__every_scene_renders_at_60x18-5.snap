@@ -1,0 +1,22 @@
+---
+source: crates/fireside-tui/src/render/tests.rs
+expression: "screen(&app, 60, 18)"
+---
+ Hello, Fireside                   layout-demo  ·  4/6 seen 
+─╭ Map — Enter jumps ─────────────────────────────────────╮─
+ │ │                                                     ▲│ 
+╭│ ●            features                                  │╮
+││ │                                                      ││
+││ ●            choose                                    ││
+││ ├──┬──╮     [a] code-demo · [b] layout-demo · [c] thank││
+││ ○  ╎  ╎      code-demo                                 ││
+││ ╰──┼──┼──╮                                             ││
+││ ╭──╯  ╎  ╎                                             ││
+││ ◉     ╎  ╎   layout-demo                               ││
+││ ├─────┴──╯                                             ││
+││ ○            thanks  ■                                 ││
+││                                                        ││
+││ ◉ you are here  ● seen  ○ not yet  ■ end               ││
+╰│ ↑↓ move · Enter jump · Esc close                       │╯
+ ╰────────────────────────────────────────────────────────╯ 
+ Space next  ·  ← back  ·  m map  ·  e edit  ·  ? help  ·  q

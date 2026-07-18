@@ -108,6 +108,83 @@ PR shows up later._
       no-args teaching text — the exact four dispatch paths whose
       call-targets moved) all behaved identically, and a tmux launch of
       `fireside demo` rendered and quit cleanly.
+- [x] A-3 — incremental `insta` adoption — done 2026-07-17 (uncommitted
+      on main). `insta = "1"` (v1.48.0 resolved) added to
+      `[workspace.dependencies]`, consumed as a dev-dependency of
+      `fireside-tui` only (`insta = { workspace = true }` — empty
+      `[dev-dependencies]` table left over from the removed
+      `pretty_assertions` now has a real entry); MSRV-1.88-verified via
+      `cargo +1.88 check -p fireside-tui --all-targets` before touching
+      any test code. Converted 5 of the 51 scenario tests per the plan's
+      migration rule (whole-layout comparisons only, semantic `contains()`
+      behavior contracts left untouched): the two named in the plan
+      (`every_scene_renders_at_60x18` — 6 snapshots across one walk,
+      `the_ending_is_centered_not_left_aligned`) plus three more that fit
+      the same "card/reveal layout" description —
+      `default_view_frames_the_slide_in_a_rounded_card`,
+      `fullscreen_uses_the_full_width_not_the_measure`,
+      `hidden_column_reserves_no_width_until_revealed_at_80x24` (2
+      snapshots, before/after reveal). Explicitly left as-is:
+      `the_card_is_the_same_stage_on_every_slide` and
+      `ascii_art_code_block_centers_within_the_card_at_80x24` compare two
+      renders against each other rather than pinning one golden layout,
+      so they don't fit `assert_snapshot!`;
+      `wide_terminals_keep_a_readable_measure` asserts a single precise
+      x-coordinate via `buffer()`/`locate()`, already tight and
+      mechanically different from the `screen()`-string tests. 11
+      `.snap` files generated via `INSTA_UPDATE=always` (no `cargo-insta`
+      binary needed) and eyeballed for sanity — e.g. the
+      before/after-reveal pair visibly shows the second column appear.
+      Proved the regression-catching claim the same way the fixture
+      corpus was proved earlier in this project: hand-corrupted one
+      `.snap` file's card corner, confirmed both plain `cargo test` and
+      `cargo nextest run` (installed locally for this check — CI's actual
+      runner, not just `cargo test`) fail with a readable diff and a
+      `.snap.new` pending file, then restored it and reconfirmed green.
+      Verified: 195/195 tests (`cargo nextest run --workspace`), clippy
+      `--all-targets -D warnings` clean, fmt clean, full
+      `scripts/verify.sh` green.
+- [x] A-4 — proptests — done 2026-07-18 (uncommitted on main). **This
+      closes out Stream A end to end.** Discovered the core serde
+      round-trip property the plan asked for
+      (`graph_round_trips_through_json`, `fireside-core`) already existed
+      from spec 008 — its generator already covers all 7 `ContentBlock`
+      kinds, nested containers via `prop_recursive`, and `reveal` on
+      every variant — so no new work was needed there; verified rather
+      than re-added. Added the three genuinely-missing properties: (1)
+      `reveal_levels_are_sorted_deduped_and_positive`
+      (`fireside-core::model::tests`) — bumped the existing
+      `arbitrary_node` generator to `pub(super)` and reused it directly.
+      (2) `reveal_state_stays_valid_and_next_back_are_consistent`
+      (`fireside-engine::session::tests`) — added a new
+      `arbitrary_reveal_graph_and_ops` generator (layers reveal-bearing
+      content onto the existing navigation generator via `prop_map`,
+      deliberately kept separate from `arbitrary_graph_and_ops` per that
+      generator's own doc comment, which says content is empty on
+      purpose for the history property) checking, per arbitrary op: reveal
+      state is always `0` or a real level the current node declares;
+      `next()` while a reveal is pending always reveals and never moves
+      the node (FR-007); and `back()` always undoes a moving `next()`
+      back to the same node id (though not its reveal progress, which
+      resets by design on any node entry). (3)
+      `validate_never_panics_and_only_names_real_nodes`
+      (`fireside-engine::validation::tests`) — a new, deliberately
+      separate generator (crate-boundary and `#[cfg(test)]`-privacy rule
+      out reusing either of the other two crates' generators, per the
+      precedent already documented in `session.rs`'s own generator
+      comment) biased toward the shapes the validator specifically
+      checks: a 3-id alphabet so duplicates/dangling targets are common,
+      occasional `next`+`branch-point` conflicts, and container nesting
+      bounded to 10 (just past the depth-8 limit) so both at-limit and
+      over-limit shapes actually occur. Proved all three new properties
+      catch real regressions, not just that they pass — the same
+      discipline as A-3's snapshot check and the original spec 008
+      property tests: hand-injected one bug per property (disabled the
+      `next()` reveal gate; removed `reveal_levels`'s sort/dedup; made
+      `container_depth` panic past a shallow threshold), confirmed each
+      failed with a small, readable shrunk counterexample, then reverted.
+      198/198 tests (up from 195), clippy `--all-targets -D warnings`
+      clean, fmt clean, full `scripts/verify.sh` green.
 
 ## Context
 

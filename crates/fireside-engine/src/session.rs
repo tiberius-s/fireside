@@ -260,9 +260,12 @@ mod proptest_support {
     //! `fireside-core`'s round-trip property requires.
 
     use proptest::collection::vec;
+    use proptest::option;
     use proptest::prelude::*;
 
-    use fireside_core::{BranchOption, BranchPoint, Graph, Node, Traversal, TraversalSpec};
+    use fireside_core::{
+        BranchOption, BranchPoint, ContentBlock, Graph, Node, Traversal, TraversalSpec,
+    };
 
     /// One step of a generated navigation sequence. `Choose` carries an
     /// option *index* (matching `Session::choose`'s actual signature, a
@@ -367,6 +370,49 @@ mod proptest_support {
         (1usize..8).prop_flat_map(|n| {
             let ids: Vec<String> = (0..n).map(|i| format!("n{i}")).collect();
             (arbitrary_graph_of_size(n), vec(arbitrary_op(ids), 0..30))
+        })
+    }
+
+    /// Like `arbitrary_node`, but with 0-3 leaf blocks each independently
+    /// marked `reveal: None` or a small positive level — small range
+    /// keeps `reveal_levels()` short so shrunk failures stay readable.
+    /// Traversal/targets are unchanged from `arbitrary_node`; only
+    /// content differs, since reveal-gating is a property of a node's
+    /// content, not its edges.
+    fn arbitrary_reveal_node(id: String, ids: Vec<String>) -> impl Strategy<Value = Node> {
+        let content = vec(
+            option::of(0u32..4).prop_map(|reveal| ContentBlock::Divider { reveal }),
+            0..3,
+        );
+        (arbitrary_node(id, ids), content).prop_map(|(mut node, content)| {
+            node.content = content;
+            node
+        })
+    }
+
+    /// Like `arbitrary_graph_and_ops`, but nodes carry reveal marks — for
+    /// exercising reveal-gating invariants (`next` pausing on unrevealed
+    /// content, `back` undoing a moving `next`) rather than the
+    /// history/visited bookkeeping `arbitrary_graph_and_ops` targets.
+    pub(super) fn arbitrary_reveal_graph_and_ops() -> impl Strategy<Value = (Graph, Vec<SessionOp>)>
+    {
+        (1usize..8).prop_flat_map(|n| {
+            let ids: Vec<String> = (0..n).map(|i| format!("n{i}")).collect();
+            let node_strategies: Vec<_> = ids
+                .iter()
+                .map(|id| arbitrary_reveal_node(id.clone(), ids.clone()))
+                .collect();
+            let graph = node_strategies.prop_map(|nodes| Graph {
+                fireside_version: None,
+                title: None,
+                author: None,
+                date: None,
+                description: None,
+                version: None,
+                defaults: None,
+                nodes,
+            });
+            (graph, vec(arbitrary_op(ids), 0..30))
         })
     }
 }
@@ -697,6 +743,78 @@ mod tests {
                         "visited node {id} is not a real node in the graph"
                     );
                 }
+            }
+        }
+
+        /// Reveal-gating invariants under an arbitrary op sequence on
+        /// reveal-bearing content: (1) `reveal_level()` is always either
+        /// `0` or one of the current node's own `reveal_levels()` — never
+        /// a value the node doesn't actually declare, even across
+        /// navigation that resets it; (2) calling `next()` while a
+        /// reveal is pending returns `Revealed`, never `Moved`, and
+        /// leaves `current()` unchanged — the node itself does not
+        /// advance until every reveal step is exhausted (spec FR-007);
+        /// (3) whenever `next()` does move (`Outcome::Moved`), an
+        /// immediate `back()` returns to that exact node id — `back`
+        /// inverts a moving `next`, though not necessarily its reveal
+        /// progress, since re-entering any node always resets
+        /// `reveal_level` to `0` by design.
+        #[test]
+        fn reveal_state_stays_valid_and_next_back_are_consistent(
+            (graph, ops) in proptest_support::arbitrary_reveal_graph_and_ops()
+        ) {
+            let mut session = Session::new(graph).expect("generator always produces >=1 node");
+
+            for op in ops {
+                let pending_before = session.has_pending_reveal();
+                let id_before = session.current().id.clone();
+
+                if matches!(op, proptest_support::SessionOp::Next) {
+                    let outcome = session.next();
+                    if pending_before {
+                        proptest::prop_assert_eq!(
+                            outcome,
+                            Outcome::Revealed,
+                            "next() with a pending reveal must reveal, not do anything else"
+                        );
+                        proptest::prop_assert_eq!(
+                            &session.current().id,
+                            &id_before,
+                            "a revealing next() must not change the current node"
+                        );
+                    } else if outcome == Outcome::Moved {
+                        proptest::prop_assert_eq!(
+                            session.back(),
+                            Outcome::Moved,
+                            "back() must undo a moving next()"
+                        );
+                        proptest::prop_assert_eq!(
+                            &session.current().id,
+                            &id_before,
+                            "back() after a moving next() must return to the same node"
+                        );
+                    }
+                } else {
+                    match op {
+                        proptest_support::SessionOp::Choose(i) => {
+                            session.choose(i);
+                        }
+                        proptest_support::SessionOp::Goto(ref target) => {
+                            session.goto(target);
+                        }
+                        proptest_support::SessionOp::Back => {
+                            session.back();
+                        }
+                        proptest_support::SessionOp::Next => unreachable!("handled above"),
+                    }
+                }
+
+                let levels = session.current().reveal_levels();
+                proptest::prop_assert!(
+                    session.reveal_level() == 0 || levels.contains(&session.reveal_level()),
+                    "reveal_level {} is not 0 and not among the current node's own levels {levels:?}",
+                    session.reveal_level()
+                );
             }
         }
     }

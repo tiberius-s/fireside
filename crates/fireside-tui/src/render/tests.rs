@@ -138,20 +138,7 @@ fn the_ending_is_centered_not_left_aligned() {
     press(&mut app, KeyCode::Char(' '));
     press(&mut app, KeyCode::Char(' '));
     press(&mut app, KeyCode::Char('c')); // thanks (terminal)
-    let s = screen(&app, 80, 24);
-    // The header mini-rail also carries a ■; the end marker is the one
-    // set off with spaces inside the card.
-    let line = s.lines().find(|l| l.contains(" ■ ")).expect("end mark row");
-    let lead = line.chars().take_while(|c| *c == ' ' || *c == '│').count();
-    assert!(lead > 20, "end mark sits centered, lead was {lead}");
-    let text = s
-        .lines()
-        .find(|l| l.contains("End of this path"))
-        .expect("closing text row");
-    assert!(
-        text.trim_start_matches(['│', ' '])
-            .starts_with("End of this path")
-    );
+    insta::assert_snapshot!(screen(&app, 80, 24));
 }
 
 #[test]
@@ -182,26 +169,22 @@ fn timer_survives_fullscreen_and_flash() {
 
 #[test]
 fn every_scene_renders_at_60x18() {
-    // Walk the whole deck at a small size: no panics, key content visible.
+    // Walk the whole deck at a small size: no panics, and each state's
+    // full layout is pinned so a regression shows up as a snapshot diff
+    // rather than requiring a bespoke assertion per scene.
     let mut app = app();
-    let s = screen(&app, 60, 18);
-    assert!(s.contains("Hello, Fireside"));
+    insta::assert_snapshot!(screen(&app, 60, 18));
     press(&mut app, KeyCode::Char(' ')); // features
-    let s = screen(&app, 60, 18);
-    assert!(s.contains("Core Features"));
+    insta::assert_snapshot!(screen(&app, 60, 18));
     press(&mut app, KeyCode::Char(' ')); // choose
-    let s = screen(&app, 60, 18);
-    assert!(s.contains("▸"), "branch menu renders");
+    insta::assert_snapshot!(screen(&app, 60, 18));
     press(&mut app, KeyCode::Char('b')); // layout-demo (columns)
-    let s = screen(&app, 60, 18);
-    assert!(s.contains("Left column"), "columns content present: {s}");
+    insta::assert_snapshot!(screen(&app, 60, 18));
     press(&mut app, KeyCode::Char('m'));
-    let s = screen(&app, 60, 18);
-    assert!(s.contains("Map — Enter jumps"), "map overlay fits");
+    insta::assert_snapshot!(screen(&app, 60, 18));
     press(&mut app, KeyCode::Esc);
     press(&mut app, KeyCode::Char('?'));
-    let s = screen(&app, 60, 18);
-    assert!(s.contains(" Keys "), "help overlay fits");
+    insta::assert_snapshot!(screen(&app, 60, 18));
 }
 
 #[test]
@@ -525,9 +508,7 @@ fn locate(buf: &ratatui::buffer::Buffer, width: u16, height: u16, needle: &str) 
 #[test]
 fn default_view_frames_the_slide_in_a_rounded_card() {
     let app = app();
-    let s = screen(&app, 80, 24);
-    assert!(s.contains('╭') && s.contains('╰'), "card corners visible");
-    assert!(s.contains("─────"), "header rule visible");
+    insta::assert_snapshot!(screen(&app, 80, 24));
 }
 
 #[test]
@@ -563,16 +544,7 @@ fn fullscreen_uses_the_full_width_not_the_measure() {
     press(&mut app, KeyCode::Char(' '));
     press(&mut app, KeyCode::Char(' '));
     press(&mut app, KeyCode::Char('a')); // code-demo is fullscreen
-    let s = screen(&app, 120, 30);
-    assert!(!s.contains('╭'), "no card in fullscreen");
-    let rule_row = s
-        .lines()
-        .find(|l| l.contains("─ rust "))
-        .expect("code header rule");
-    assert!(
-        rule_row.trim_end().chars().count() > 100,
-        "code box spans the width"
-    );
+    insta::assert_snapshot!(screen(&app, 120, 30));
 }
 
 #[test]
@@ -725,23 +697,13 @@ fn hidden_column_reserves_no_width_until_revealed_at_80x24() {
     let mut app =
         App::new(Session::new(Graph::from_json(DECK).expect("fixture parses")).expect("non-empty"));
 
-    let s = screen(&app, 80, 24);
-    assert!(s.contains("Left column"), "{s}");
-    assert!(
-        !s.contains("Right column"),
-        "right column not yet revealed: {s}"
-    );
+    // Before reveal: the hidden column reserves no width, so the layout
+    // itself is different, not just the text — worth a snapshot of the
+    // whole frame rather than a content-presence check.
+    insta::assert_snapshot!(screen(&app, 80, 24));
 
     press(&mut app, KeyCode::Char(' '));
-    let s = screen(&app, 80, 24);
-    let row = s
-        .lines()
-        .find(|l| l.contains("Left column"))
-        .expect("columns row visible");
-    assert!(
-        row.contains("Right column"),
-        "both columns visible side by side once revealed: {row:?}"
-    );
+    insta::assert_snapshot!(screen(&app, 80, 24));
 }
 
 #[test]

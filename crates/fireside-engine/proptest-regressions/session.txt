@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 96bac12e5be38544d1008b764c9b4d4bea4316d115923be2edcc9a200690c3fa # shrinks to (graph, ops) = (Graph { fireside_version: None, title: None, author: None, date: None, description: None, version: None, defaults: None, nodes: [Node { id: "n0", title: None, view_mode: None, transition: None, speaker_notes: None, traversal: None, content: [Divider { reveal: Some(1) }] }] }, [Next])

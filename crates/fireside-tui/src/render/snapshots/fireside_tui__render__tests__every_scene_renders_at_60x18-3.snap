@@ -1,0 +1,22 @@
+---
+source: crates/fireside-tui/src/render/tests.rs
+expression: "screen(&app, 60, 18)"
+---
+ Hello, Fireside                        choose  ·  3/6 seen 
+──●───●───◉─────────────────────────────────────────────────
+                                                            
+╭──────────────────────────────────────────────────────────╮
+│                                                          │
+│   ▎ Pick a Path                                          │
+│                                                          │
+│   Branching is a first-class protocol concept.           │
+│                                                          │
+│   What would you like to explore?                        │
+│                                                          │
+│    ▸ 1.  Code demo   [a]                                 │
+│      2.  Layout demo   [b]                               │
+│      3.  Finish   [c]                                    │
+│                                                          │
+╰──────────────────────────────────────────────────────────╯
+                                                            
+ ↑↓ choose  ·  Enter go  ·  ← back  ·  m map  ·  e edit  ·
