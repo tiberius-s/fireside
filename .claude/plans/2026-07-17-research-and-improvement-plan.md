@@ -185,6 +185,47 @@ PR shows up later._
       failed with a small, readable shrunk counterexample, then reverted.
       198/198 tests (up from 195), clippy `--all-targets -D warnings`
       clean, fmt clean, full `scripts/verify.sh` green.
+- [x] B-2 — protocol parity in CI — done 2026-07-18 (uncommitted on main).
+      Added two steps to the `validate` job in `models.yml`, after the
+      existing `tsp-output` zero-diff check: `node run-fixtures.mjs` (Rust
+      side already covered separately by engine fixture tests in
+      `rust.yml`) and `node validate.mjs ../docs/examples/hello.json`
+      (relative path since the job's `working-directory` default is
+      `protocol`). Widened the job's `paths` filter to include
+      `docs/examples/**` so an example-only edit still triggers the check.
+      Verified both commands locally first: 17/17 fixtures match, and
+      `hello.json` validates with 0 errors/0 warnings (1 info, the known
+      `dead-end-branch` note).
+- [x] B-3 — Dependabot — done 2026-07-18 (uncommitted on main). New
+      `.github/dependabot.yml`, four `package-ecosystem` entries (`cargo`
+      at `/`, `github-actions` at `/`, `npm` at `/docs`, `npm` at
+      `/protocol`), all weekly with a `minor-and-patch` update-type group
+      per the plan (protocol npm bumps stay guarded by the existing
+      tsp-output zero-diff gate in B-2/models.yml).
+- [x] B-4 — docs build-once — done 2026-07-18 (uncommitted on main). The
+      `validate` job now uploads the Pages artifact itself (guarded by
+      `if: github.event_name == 'push' && github.ref == 'refs/heads/main'`,
+      right after its existing `npm run build`); `deploy` dropped its own
+      checkout/setup-node/install/build steps entirely and just runs
+      `deploy-pages@v4` against the artifact `needs: validate` already
+      produced. Halves docs CI work on every main push.
+- [x] B-5 — coverage (informational) — done 2026-07-18 (uncommitted on
+      main). New `coverage` job in `rust.yml`: `llvm-tools-preview` +
+      `cargo-llvm-cov`/`nextest` via `taiki-e/install-action`, then three
+      steps over one instrumented run rather than `--lcov` and
+      `--summary-only` on a single invocation (the two are different
+      report-output modes and don't compose): `cargo llvm-cov nextest
+      --workspace --no-report` to collect profile data once, `cargo
+      llvm-cov report --summary-only >> $GITHUB_STEP_SUMMARY` for the
+      human-readable table, `cargo llvm-cov report --lcov --output-path
+      lcov.info` + `actions/upload-artifact@v4` for the lcov file.
+      `continue-on-error: true` on the job — informational only, no
+      baseline/gate yet per the plan. Deferred to a follow-up session per
+      user decision 2026-07-18: B-6 (Claude review workflow — needs an
+      `ANTHROPIC_API_KEY` repo secret) and B-7 (release.yml — needs a
+      rehearsal tag). All four `.github/workflows/*.yml` + the new
+      `dependabot.yml` validated with `yaml.safe_load` (not run in CI
+      itself, just local syntax sanity).
 
 ## Context
 

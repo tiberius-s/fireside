@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - 'protocol/**'
+      - 'docs/examples/**'
       - '.github/workflows/models.yml'
   push:
     branches:
       - main
     paths:
       - 'protocol/**'
+      - 'docs/examples/**'
       - '.github/workflows/models.yml'
   workflow_dispatch:
 
@@ -46,3 +48,9 @@ jobs:
             echo "::error::tsp-output/ has uncommitted changes — run 'npm run build' in protocol/ and commit the result."
             exit 1
           fi
+
+      - name: Fixture corpus parity (Rust vs. Node validators)
+        run: node run-fixtures.mjs
+
+      - name: Canonical example validates
+        run: node validate.mjs ../docs/examples/hello.json
