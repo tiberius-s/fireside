@@ -9,13 +9,3 @@ split-debuginfo = "packed"
 [profile.test]
 # Keep test builds reasonably fast
 opt-level = 1
-
-[profile.release]
-# Optimize for runtime performance
-lto = true
-codegen-units = 1
-strip = false
-
-[build]
-# Parallel front-end compilation across crates
-pipelined-compilation = true

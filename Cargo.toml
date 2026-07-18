@@ -54,11 +54,6 @@ plist = "1.8"
 font-kit = "0.14"
 image = "0.25"
 
-# Dev moved to workspace.dev-dependencies
-
-[workspace.dev-dependencies]
-pretty_assertions = "1"
-
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
 

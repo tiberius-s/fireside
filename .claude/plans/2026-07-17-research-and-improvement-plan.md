@@ -4,6 +4,71 @@
 > and execution; results land as a PR. This file is the as-approved local version —
 > reconcile against the PR if the refined plan diverges.
 
+## Progress Log
+
+_Update this section (don't just rely on git log) whenever a plan item lands
+or starts. One line per item: status, date. Checked 2026-07-17: no cloud
+(Ultraplan) PR exists yet on `origin` (`gh pr list` empty, no branches
+besides `main`) — the work below was done directly in this local session
+instead, ahead of/independent from that cloud run. Reconcile if an Ultraplan
+PR shows up later._
+
+- [x] B-1 — CI/config correctness fixes — done 2026-07-17 (uncommitted on
+      main). `rust.yml`: clippy and the MSRV check now run
+      `--all-targets`, so CI actually lints test code (a hard prerequisite
+      for A-1/A-2, since both move `#[cfg(test)]` code across files).
+      `.cargo/config.toml`: deleted the shadowing `[profile.release]`
+      block (`strip = false`) and the invalid `pipelined-compilation` key
+      — confirmed via `nm` that the release binary is now actually
+      stripped (127 symbols vs. previously unstripped), which it silently
+      wasn't before since the config override always won over
+      `Cargo.toml`'s `strip = true`. Removed the no-op
+      `libfontconfig1-dev` apt installs in all three `rust.yml` jobs
+      (confirmed zero `fontconfig` hits in `Cargo.lock`). Bumped
+      `actions/checkout@v4`→`@v5` and `actions/setup-node@v4`→`@v5` across
+      all four workflow files.
+- [x] A-1 — split `render/mod.rs` (1888 → 212 lines) — done 2026-07-17
+      (uncommitted on main). Production code moved verbatim into
+      `header.rs` (113 lines), `content.rs` (277), `footer.rs` (115),
+      `overlays.rs` (135), `hits.rs` (58, `branch_option_hit`/
+      `map_row_hit` re-exported so `render::` call sites in `app.rs` are
+      unchanged); `mod.rs` kept `draw`/`areas`/`surface`/`Surface`/
+      `overlay_rect`/`apply_hyperlinks`/`max_scroll`/the three layout
+      consts, all still default-private and thus automatically visible to
+      every child module (Rust's "private is visible to descendants"
+      rule) — only the reverse direction (child exposing something to the
+      parent or a sibling) needed explicit `pub(super)`. One cross-module
+      wrinkle: `map.rs` already called `super::indicator` and
+      `super::overlay_rect`; `overlay_rect` stayed put so that call was
+      untouched, but `indicator` moved into `content.rs` per the plan's
+      file assignment, so `mod.rs` re-exports it
+      (`use content::indicator;`) to keep `map.rs` byte-identical. All 51
+      scenario tests moved verbatim to `render/tests.rs` (`#[cfg(test)]
+      mod tests;`), same module path `render::tests::*` as before — no
+      snapshot-name churn when A-3 (insta) lands. Verified: `cargo test
+      --workspace` (195 passed, same total as before the split),
+      `cargo clippy --workspace --all-targets -- -D warnings` clean
+      (would have caught unlinted moved test code without B-1), `cargo
+      fmt` (only whitespace/import-order diffs from de-nesting), full
+      `scripts/verify.sh` green, and a real-terminal tmux smoke of
+      `fireside demo` exercising the map screen and the quick-edit modal
+      (the two overlays that moved) — both rendered correctly.
+      Pre-existing, unrelated to this work: `cargo check`/`clippy` warned
+      `unused manifest key: workspace.dev-dependencies` on every run.
+      Fixed 2026-07-17: `git log -p` showed `[workspace.dev-dependencies]`
+      was never valid — it started life as a plain `[dev-dependencies]`
+      table at the workspace root (also not a real Cargo.toml section),
+      then got "fixed" by renaming to `workspace.dev-dependencies`, which
+      isn't real either. `pretty_assertions` was consequently never
+      resolvable and — confirmed via
+      `grep -rn pretty_assertions --include='*.rs'` — never imported by
+      any crate either, so the honest fix was deleting the dead section
+      entirely rather than resurrecting an unused dependency (also not on
+      any crate's Principle III allowlist). Verified: the manifest
+      warning is gone from `cargo check`/`clippy`, `cargo clippy
+      --workspace --all-targets -- -D warnings` and `cargo fmt --check`
+      stay clean, all 195 tests still pass.
+
 ## Context
 
 The user requested a six-area research engagement: (1) architecture/Rust best practices, (2) full documentation review, (3) build/deploy evaluation, (4) AI capabilities for the dev workflow, (5) a personal Rust learning path (Node/TS-first background, C# secondary), (6) ASCII art support. Three parallel repo audits (architecture, docs, CI/build) plus external research were completed. The user has decided:

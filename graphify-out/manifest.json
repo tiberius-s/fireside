@@ -255,24 +255,24 @@
     "semantic_hash": ""
   },
   ".github/workflows/audit.yml": {
-    "mtime": 1784303691.5899692,
-    "ast_hash": "50f3d5cc24f04505df5224b194e1b22d",
+    "mtime": 1784343208.785522,
+    "ast_hash": "cd95a0b7297101869c590ba40fb46406",
     "semantic_hash": ""
   },
   ".github/workflows/docs.yml": {
-    "mtime": 1771191034.804106,
-    "ast_hash": "dad279974993405a582d79b50706d971",
-    "semantic_hash": "dad279974993405a582d79b50706d971"
+    "mtime": 1784343208.7865064,
+    "ast_hash": "ccaea5a3cd8862b1cf537ea892e6b734",
+    "semantic_hash": ""
   },
   ".github/workflows/models.yml": {
-    "mtime": 1776546567.7790303,
-    "ast_hash": "c73ecbc9e7575c295b8951cf753956e5",
-    "semantic_hash": "c73ecbc9e7575c295b8951cf753956e5"
+    "mtime": 1784343208.7837274,
+    "ast_hash": "d82ef21e52d96a3e72dfdfab41baa183",
+    "semantic_hash": ""
   },
   ".github/workflows/rust.yml": {
-    "mtime": 1771562758.4440231,
-    "ast_hash": "4d1cdfa5f27e2a6a9360250bfa25e940",
-    "semantic_hash": "4d1cdfa5f27e2a6a9360250bfa25e940"
+    "mtime": 1784343199.9971697,
+    "ast_hash": "4102651338c755c63c1c88dc18ac2487",
+    "semantic_hash": ""
   },
   "CLAUDE.md": {
     "mtime": 1783873839.549089,
@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-strategic-improvement-plan.md": {
-    "mtime": 1784303797.016643,
-    "ast_hash": "c4355249a855c1c4dff260f9bb950b94",
+    "mtime": 1784340592.0580118,
+    "ast_hash": "9bf3a358d73a81949456907f9962e42d",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-12-sdd-retrofit-report.md": {
@@ -1182,6 +1182,36 @@
   "docs/src/content/docs/reference/conformance.md": {
     "mtime": 1784340504.47773,
     "ast_hash": "772025a67ee6597b9945ee96f19887c2",
+    "semantic_hash": ""
+  },
+  "crates/fireside-tui/src/render/header.rs": {
+    "mtime": 1784343604.1921535,
+    "ast_hash": "d5cb3870a7e920550789c86f69dc6e05",
+    "semantic_hash": ""
+  },
+  "crates/fireside-tui/src/render/content.rs": {
+    "mtime": 1784343633.209705,
+    "ast_hash": "d4ebb4199e7d5e3b476f647b74825e6c",
+    "semantic_hash": ""
+  },
+  "crates/fireside-tui/src/render/footer.rs": {
+    "mtime": 1784343646.2352767,
+    "ast_hash": "361e358974aab6a66ba586ec726f81e5",
+    "semantic_hash": ""
+  },
+  "crates/fireside-tui/src/render/overlays.rs": {
+    "mtime": 1784343663.1251972,
+    "ast_hash": "5de4c89dc0d985dc9de041a25d36d09c",
+    "semantic_hash": ""
+  },
+  "crates/fireside-tui/src/render/hits.rs": {
+    "mtime": 1784343673.3404796,
+    "ast_hash": "36356177963814f8c5102024aeadf37b",
+    "semantic_hash": ""
+  },
+  "crates/fireside-tui/src/render/tests.rs": {
+    "mtime": 1784343780.8987212,
+    "ast_hash": "c7905b35ef4f8998c6b440a27ce103dc",
     "semantic_hash": ""
   }
 }
