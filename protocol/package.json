@@ -28,8 +28,8 @@
   "author": "Tiberius Silivestru <tiberius.silivestru@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@typespec/compiler": "^1.11.0",
-    "@typespec/json-schema": "^1.11.0",
+    "@typespec/compiler": "^1.14.0",
+    "@typespec/json-schema": "^1.14.0",
     "@typespec/versioning": "latest"
   },
   "devDependencies": {
