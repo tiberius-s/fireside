@@ -220,12 +220,26 @@ PR shows up later._
       human-readable table, `cargo llvm-cov report --lcov --output-path
       lcov.info` + `actions/upload-artifact@v4` for the lcov file.
       `continue-on-error: true` on the job — informational only, no
-      baseline/gate yet per the plan. Deferred to a follow-up session per
-      user decision 2026-07-18: B-6 (Claude review workflow — needs an
-      `ANTHROPIC_API_KEY` repo secret) and B-7 (release.yml — needs a
-      rehearsal tag). All four `.github/workflows/*.yml` + the new
-      `dependabot.yml` validated with `yaml.safe_load` (not run in CI
-      itself, just local syntax sanity).
+      baseline/gate yet per the plan. All four `.github/workflows/*.yml` +
+      the new `dependabot.yml` validated with `yaml.safe_load` (not run in
+      CI itself, just local syntax sanity).
+- [ ] B-6 — Claude review workflow — **descoped, out of plan scope**, user
+      decision 2026-07-18: not needed at this time (this session initially
+      deferred it to "later," then the user clarified it should come out
+      of this plan entirely rather than stay queued as Stream B follow-up
+      work). Revisit only if the user raises it again; the design in the
+      Stream B section below is still valid if so (needs an
+      `ANTHROPIC_API_KEY` repo secret).
+- [ ] B-7 — minimal `release.yml` — **descoped, out of plan scope**, same
+      user decision 2026-07-18. Stream A/B code-health and CI-hardening
+      work is otherwise complete. Revisit only if the user raises it
+      again; the design below is still valid if so (needs a rehearsal tag
+      before the real one).
+
+**Stream B is closed as of 2026-07-18** — B-1 through B-5 done, B-6/B-7
+descoped by user decision. Remaining plan work is Wave 2: Docs (D), ASCII
+art (C), the ongoing AI-capabilities items (E) not already covered by
+B-2/B-3/B-5 above, and the Rust learning path (F).
 
 ## Context
 
@@ -317,9 +331,9 @@ Files touched: `protocol/main.tsp`, regenerated `tsp-output/` (zero-diff gate), 
 
 Already in place and working: clippy/rustfmt/rust-analyzer, cargo-nextest, cargo-audit + cargo-deny (weekly cron), proptest, graphify knowledge graph, Spec Kit pipeline, tmux smoke-test discipline. Additions, by ROI:
 
-1. **`anthropics/claude-code-action` PR review workflow (S)** — the repo already has heavy Claude tooling locally but nothing in CI. Add a review workflow on `pull_request` (needs `ANTHROPIC_API_KEY` secret). Start review-only (no auto-fix). Part of Stream B.
-2. **Coverage via `cargo-llvm-cov` (S)** — informational first (upload to the job summary / Codecov), gate later if signal is good. Part of Stream B.
-3. **Dependabot (S)** — cargo + github-actions + npm (docs/) ecosystems, grouped monthly. Part of Stream B.
+1. **`anthropics/claude-code-action` PR review workflow (S)** — **descoped 2026-07-18** (see B-6 above, not needed at this time).
+2. **Coverage via `cargo-llvm-cov` (S)** — **done 2026-07-18** as B-5: informational job in `rust.yml`, uploads job-summary table + lcov artifact, no gate yet.
+3. **Dependabot (S)** — **done 2026-07-18** as B-3: `.github/dependabot.yml`, cargo + github-actions + npm (docs/ and protocol/), grouped weekly (not monthly — matches the plan's Stream B wording, which said weekly).
 4. **Property-based testing expansion** — proptest already a dev-dep; Stream A adds serde round-trip + traversal-invariant proptests. Consider `cargo-mutants` mutation testing later as an occasional audit, not CI (runtime cost).
 5. **Deferred/rejected**: cargo-fuzz (needs nightly; validator input is JSON — proptest round-trips cover most of it), semantic-release for Rust (contradicts minimal-release decision), AI test generation in CI (Spec Kit + TDD skill already covers authoring-time).
 
