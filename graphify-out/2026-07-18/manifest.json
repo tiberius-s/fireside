@@ -345,14 +345,14 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/data-model.md": {
-    "mtime": 1784397624.7243836,
-    "ast_hash": "b82a947b14e45c77ced5d8680090ec82",
+    "mtime": 1784397611.992949,
+    "ast_hash": "0db897c222dea3d7f4ee82f210b49df5",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/introduction.md": {
-    "mtime": 1784397633.9801881,
-    "ast_hash": "02012a587be4cc448b4a8923cc4b32c9",
-    "semantic_hash": ""
+    "mtime": 1776614525.5916274,
+    "ast_hash": "a4ee67c597aebab04957c4d20018fa2f",
+    "semantic_hash": "a4ee67c597aebab04957c4d20018fa2f"
   },
   "docs/src/content/docs/spec/mental-models.md": {
     "mtime": 1776614252.6687424,
@@ -1345,8 +1345,8 @@
     "semantic_hash": ""
   },
   "specs/009-ascii-art/tasks.md": {
-    "mtime": 1784397710.394159,
-    "ast_hash": "b850e2d53ac3772761e2ae67fd1328aa",
+    "mtime": 1784397470.6170876,
+    "ast_hash": "32edc2b78e7bf1e3e19e5270e667f66d",
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/art.rs": {

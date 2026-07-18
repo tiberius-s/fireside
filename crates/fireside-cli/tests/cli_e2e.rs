@@ -266,3 +266,58 @@ fn import_refuses_to_overwrite_an_existing_output() {
         .failure()
         .stderr(predicate::str::contains("already exists"));
 }
+
+#[test]
+fn art_text_prints_a_multiline_banner() {
+    fireside()
+        .arg("art")
+        .arg("text")
+        .arg("Fireside")
+        .assert()
+        .success()
+        .stdout(predicate::function(|s: &str| s.lines().count() > 1));
+}
+
+#[test]
+fn art_text_partial_recognition_still_produces_output() {
+    fireside()
+        .arg("art")
+        .arg("text")
+        .arg("Hi 🔥")
+        .assert()
+        .success()
+        .stdout(predicate::str::is_empty().not());
+}
+
+#[test]
+fn art_text_with_no_recognized_characters_errors_clearly() {
+    fireside()
+        .arg("art")
+        .arg("text")
+        .arg("🔥🔥🔥")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("no recognized characters"));
+}
+
+#[test]
+fn art_image_converts_a_readable_file() {
+    fireside()
+        .arg("art")
+        .arg("image")
+        .arg(Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/tiny.png"))
+        .assert()
+        .success()
+        .stdout(predicate::function(|s: &str| s.lines().count() > 1));
+}
+
+#[test]
+fn art_image_reports_a_clear_error_for_a_missing_file() {
+    fireside()
+        .arg("art")
+        .arg("image")
+        .arg("nonexistent.png")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("could not read"));
+}

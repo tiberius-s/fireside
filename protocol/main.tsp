@@ -18,9 +18,13 @@ using Versioning;
  * and a cursor plus history stack can build a conforming engine.
  *
  * ## Protocol Version
- * 0.1.2 (0.1.1 documents remain valid; 0.1.2 adds the optional `reveal`
- * field on every content block, for incremental reveal, and one new
- * validator diagnostic)
+ * 0.1.3 (0.1.1 and 0.1.2 documents remain valid; 0.1.3 adds a new
+ * `ascii-art` block kind and two new validator diagnostics. Unlike every
+ * prior version bump, this one is NOT a safe degrade for older engines:
+ * `ascii-art` is a new tagged-union member, not an additive optional
+ * field, so a document using it MUST be rejected outright — not silently
+ * skipped or misrendered — by any engine built before 0.1.3. See
+ * ADR-012.)
  *
  * ## Schema Dialect
  * JSON Schema 2020-12
@@ -34,6 +38,7 @@ enum Versions {
   v0_1_0: "0.1.0",
   v0_1_1: "0.1.1",
   v0_1_2: "0.1.2",
+  v0_1_3: "0.1.3",
 }
 
 // ─── Scalar Types ────────────────────────────────────────────────────────────
@@ -109,7 +114,7 @@ enum ContainerLayout {
  * Content blocks use a tagged discriminated union keyed by the `kind` field.
  * Each variant represents a distinct type of presentable content.
  *
- * Conforming engines MUST support all 7 block kinds.
+ * Conforming engines MUST support all 8 block kinds.
  *
  * Block order within a node's `content` array is significant. Blocks
  * MUST be rendered in array order.
@@ -122,6 +127,7 @@ union ContentBlock {
   ImageBlock,
   DividerBlock,
   ContainerBlock,
+  AsciiArtBlock,
 }
 
 /**
@@ -255,6 +261,29 @@ model ContainerBlock {
 
   /** Layout hint controlling how children are arranged. Defaults to `stack`. */
   layout?: ContainerLayout = ContainerLayout.stack;
+}
+
+/**
+ * Pre-rendered ASCII/text art, generated at authoring time (e.g. via a
+ * text-to-banner or image-to-ASCII conversion tool). Engines render the
+ * art as-is, centered and sized to its own content, the same visual
+ * treatment already given to language-less code blocks (spec 005) —
+ * this kind exists so that treatment has an unambiguous, purpose-built
+ * home instead of overloading CodeBlock.
+ *
+ * Unlike every prior additive change to this protocol, a document using
+ * this block kind is NOT safely readable by an engine built before
+ * version 0.1.3 — see the Protocol Version banner above and ADR-012.
+ */
+model AsciiArtBlock {
+  ...Revealable;
+  kind: "ascii-art";
+
+  /** The pre-rendered multi-line art content, as plain text. */
+  art: string;
+
+  /** Alternative text description, for anyone who can't see the art. */
+  alt?: string;
 }
 
 // ─── Traversal ───────────────────────────────────────────────────────────────

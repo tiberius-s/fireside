@@ -76,17 +76,18 @@ optionally, the traversal rule that determines how the presenter leaves it.
 ## ContentBlock Union
 
 `ContentBlock` is a tagged union keyed by `kind`. Conforming engines must
-support the seven core block kinds shown below.
+support the eight core block kinds shown below.
 
-| Kind        | Purpose                                                       |
-| ----------- | ------------------------------------------------------------- |
-| `heading`   | Section titles and hierarchy.                                 |
-| `text`      | Prose or narrative text.                                      |
-| `code`      | Source code with optional language and highlighting metadata. |
-| `list`      | Ordered or unordered string lists.                            |
-| `image`     | Visual assets with accessibility and sizing metadata.         |
-| `divider`   | Visual separation between sections.                           |
-| `container` | Nested block composition with a layout hint.                  |
+| Kind         | Purpose                                                       |
+| ------------ | -------------------------------------------------------------- |
+| `heading`    | Section titles and hierarchy.                                 |
+| `text`       | Prose or narrative text.                                      |
+| `code`       | Source code with optional language and highlighting metadata. |
+| `list`       | Ordered or unordered string lists.                             |
+| `image`      | Visual assets with accessibility and sizing metadata.         |
+| `divider`    | Visual separation between sections.                           |
+| `container`  | Nested block composition with a layout hint.                  |
+| `ascii-art`  | Pre-rendered ASCII/text art, generated at authoring time.      |
 
 ### The `reveal` field (all kinds)
 
@@ -112,6 +113,26 @@ layout hint for the local arrangement of those children.
 | `kind`     | `"container"`    | Yes                 | Tagged union discriminator.                         |
 | `children` | `ContentBlock[]` | Yes (`minItems: 1`) | Child block order is significant.                   |
 | `layout`   | `"stack" \| "columns" \| "center"` | No (default `"stack"`) | Layout hint for arranging children. |
+
+### AsciiArtBlock
+
+`ascii-art` carries pre-rendered ASCII/text art, generated at authoring
+time (a text-to-banner or image-to-ASCII tool, or hand-typed). Engines
+render the art as-is, centered and sized to its own content — no runtime
+generation happens in an engine.
+
+| Property | Type      | Required | Notes                                                    |
+| -------- | --------- | -------- | --------------------------------------------------------- |
+| `kind`   | `"ascii-art"` | Yes  | Tagged union discriminator.                              |
+| `art`    | `string`  | Yes      | The pre-rendered multi-line art content, as plain text.  |
+| `alt`    | `string?` | No       | Alternative text description, for anyone who can't see the art. |
+
+Added in protocol `0.1.3`. Unlike every prior version's additions,
+`ascii-art` is a new tagged-union member, not an additive optional field
+— a document using it is **not** safely readable by an engine built
+before `0.1.3`; such an engine MUST reject the whole document rather than
+silently drop or misrender the block. See the `AsciiArtBlock` model
+comment in `protocol/main.tsp` for the full rationale.
 
 ## Traversal Types
 

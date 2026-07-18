@@ -99,6 +99,8 @@ pub fn validate(graph: &Graph) -> Vec<Diagnostic> {
     check_container_nesting_depth(graph, &mut diags);
     check_empty_traversal(graph, &mut diags);
     check_reveal_masked_by_container(graph, &mut diags);
+    check_ascii_art_too_wide(graph, &mut diags);
+    check_ascii_art_empty(graph, &mut diags);
     check_malformed_link_urls(graph, &mut diags);
     check_reachability(graph, &ids, &mut diags);
     check_self_loops(graph, &mut diags);
@@ -307,6 +309,79 @@ fn walk_reveal_masking(blocks: &[ContentBlock], node_id: &str, diags: &mut Vec<D
             }
         }
         walk_reveal_masking(children, node_id, diags);
+    }
+}
+
+/// The presentation card's usable width, in columns — "80-col terminal
+/// minus card chrome" (spec 005's existing reasoning for the same class
+/// of content). Widest-line measurement here counts Unicode scalar
+/// values (`chars().count()`), not true display width: `fireside-engine`
+/// cannot depend on `unicode-width` (crate boundary table, Principle
+/// III), so this is a documented approximation, exact for the common
+/// case (plain ASCII art) and only imprecise for wide/combining Unicode
+/// characters — the same pragmatic tolerance every other content-quality
+/// check in this validator already accepts (e.g. `malformed-link-url`'s
+/// "looks like a URL" heuristic).
+const MAX_ASCII_ART_WIDTH: usize = 76;
+
+/// WARNING: an `AsciiArt` block's widest line exceeds
+/// [`MAX_ASCII_ART_WIDTH`].
+fn check_ascii_art_too_wide(graph: &Graph, diags: &mut Vec<Diagnostic>) {
+    for node in &graph.nodes {
+        walk_ascii_art(&node.content, &node.id, diags, |art, node_id, diags| {
+            let widest = art
+                .lines()
+                .map(str::chars)
+                .map(Iterator::count)
+                .max()
+                .unwrap_or(0);
+            if widest > MAX_ASCII_ART_WIDTH {
+                diags.push(Diagnostic::new(
+                    Severity::Warning,
+                    "ascii-art-too-wide",
+                    format!(
+                        "\"{node_id}\" has an ascii-art block {widest} columns wide, past the {MAX_ASCII_ART_WIDTH}-column limit — it may not fit the presentation card"
+                    ),
+                    Some(node_id),
+                ));
+            }
+        });
+    }
+}
+
+/// WARNING: an `AsciiArt` block's `art` is empty or whitespace-only.
+fn check_ascii_art_empty(graph: &Graph, diags: &mut Vec<Diagnostic>) {
+    for node in &graph.nodes {
+        walk_ascii_art(&node.content, &node.id, diags, |art, node_id, diags| {
+            if art.trim().is_empty() {
+                diags.push(Diagnostic::new(
+                    Severity::Warning,
+                    "ascii-art-empty",
+                    format!("\"{node_id}\" has an ascii-art block with no art content"),
+                    Some(node_id),
+                ));
+            }
+        });
+    }
+}
+
+/// Walks `blocks` recursively (through `Container` children, like
+/// `walk_reveal_masking`/`walk_link_urls`), calling `check` on every
+/// `AsciiArt` block's `art` string.
+fn walk_ascii_art(
+    blocks: &[ContentBlock],
+    node_id: &str,
+    diags: &mut Vec<Diagnostic>,
+    check: impl Fn(&str, &str, &mut Vec<Diagnostic>) + Copy,
+) {
+    for block in blocks {
+        match block {
+            ContentBlock::AsciiArt { art, .. } => check(art, node_id, diags),
+            ContentBlock::Container { children, .. } => {
+                walk_ascii_art(children, node_id, diags, check);
+            }
+            _ => {}
+        }
     }
 }
 
@@ -751,6 +826,45 @@ mod tests {
             ]}]}"#,
         );
         assert!(!rules(&diags).contains(&"reveal-masked-by-container"));
+    }
+
+    #[test]
+    fn ascii_art_too_wide_warns_on_oversized_art() {
+        let wide_line = "x".repeat(MAX_ASCII_ART_WIDTH + 1);
+        let diags = diags_for(&format!(
+            r#"{{"nodes":[{{"id":"a","content":[{{"kind":"ascii-art","art":"{wide_line}"}}]}}]}}"#
+        ));
+        let hits: Vec<_> = diags
+            .iter()
+            .filter(|d| d.rule == "ascii-art-too-wide")
+            .collect();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].node.as_deref(), Some("a"));
+        assert_eq!(hits[0].severity, Severity::Warning);
+        assert!(!has_errors(&diags));
+    }
+
+    #[test]
+    fn ascii_art_empty_warns_on_blank_art() {
+        let diags =
+            diags_for(r#"{"nodes":[{"id":"a","content":[{"kind":"ascii-art","art":"   "}]}]}"#);
+        let hits: Vec<_> = diags
+            .iter()
+            .filter(|d| d.rule == "ascii-art-empty")
+            .collect();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].node.as_deref(), Some("a"));
+        assert_eq!(hits[0].severity, Severity::Warning);
+        assert!(!has_errors(&diags));
+    }
+
+    #[test]
+    fn ascii_art_within_limits_produces_no_warning() {
+        let diags = diags_for(
+            r#"{"nodes":[{"id":"a","content":[{"kind":"ascii-art","art":"  o.o  \n /---\\ "}]}]}"#,
+        );
+        assert!(!rules(&diags).contains(&"ascii-art-too-wide"));
+        assert!(!rules(&diags).contains(&"ascii-art-empty"));
     }
 
     #[test]

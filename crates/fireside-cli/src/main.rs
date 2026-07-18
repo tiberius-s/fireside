@@ -14,6 +14,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use fireside_core::{CoreError, Graph};
 use fireside_engine::{Severity, validate};
 
+mod art;
 mod import;
 mod new;
 mod report;
@@ -94,6 +95,35 @@ enum Command {
         /// extension replaced by `.fireside.json`.
         output: Option<PathBuf>,
     },
+
+    /// Generate ASCII art to paste into a deck.
+    Art {
+        #[command(subcommand)]
+        mode: ArtMode,
+    },
+}
+
+/// The two ways to generate ASCII art (spec 009): a stylized text banner,
+/// or a conversion of a local image. Both print to stdout; neither edits
+/// a deck file.
+#[derive(Debug, Subcommand)]
+enum ArtMode {
+    /// Turn a short phrase into a stylized text banner.
+    Text {
+        /// The phrase to render.
+        phrase: String,
+    },
+
+    /// Convert a local image file into ASCII art.
+    Image {
+        /// Path to the image file.
+        path: PathBuf,
+
+        /// Output width in columns. Defaults to a size that fits the
+        /// standard presentation card.
+        #[arg(long)]
+        width: Option<u32>,
+    },
 }
 
 /// The shape of deck `fireside new` scaffolds. Each demonstrates one
@@ -125,6 +155,10 @@ fn main() -> Result<()> {
         ) => new::new_deck(name, template, author),
         (None, Some(Command::Demo)) => demo(),
         (None, Some(Command::Import { input, output })) => import_file(&input, output.as_deref()),
+        (None, Some(Command::Art { mode })) => match mode {
+            ArtMode::Text { phrase } => art::art_text(&phrase),
+            ArtMode::Image { path, width } => art::art_image(&path, width),
+        },
         (None, None) => {
             // No arguments: teach, don't error.
             println!("fireside — present branching decks in the terminal\n");
@@ -134,6 +168,7 @@ fn main() -> Result<()> {
             println!("  fireside new               create a deck (asks a few questions)");
             println!("  fireside new <name>        create a starter deck instantly");
             println!("  fireside import <file.md>  compile a Markdown talk into a deck");
+            println!("  fireside art text <phrase> generate a text banner to paste in");
             println!("\nTry: fireside demo");
             Ok(())
         }

@@ -22,7 +22,10 @@
         },
         {
             "$ref": "ContainerBlock.json"
+        },
+        {
+            "$ref": "AsciiArtBlock.json"
         }
     ],
-    "description": "A ContentBlock is an atomic content element within a Node.\n\nContent blocks use a tagged discriminated union keyed by the `kind` field.\nEach variant represents a distinct type of presentable content.\n\nConforming engines MUST support all 7 block kinds.\n\nBlock order within a node's `content` array is significant. Blocks\nMUST be rendered in array order."
+    "description": "A ContentBlock is an atomic content element within a Node.\n\nContent blocks use a tagged discriminated union keyed by the `kind` field.\nEach variant represents a distinct type of presentable content.\n\nConforming engines MUST support all 8 block kinds.\n\nBlock order within a node's `content` array is significant. Blocks\nMUST be rendered in array order."
 }

@@ -592,6 +592,46 @@ fn ascii_art_code_block_centers_within_the_card_at_80x24() {
 }
 
 #[test]
+fn ascii_art_block_renders_centered_and_sized_to_content() {
+    const NARROW: &str = r#"{"nodes":[{"id":"a","content":[
+        {"kind":"ascii-art","art":" /\\_/\\ \n( o.o )\n > ^ < "}
+    ]}]}"#;
+    const WIDE_CODE: &str = r#"{"nodes":[{"id":"a","content":[
+        {"kind":"code","language":"rust","source":" /\\_/\\ \n( o.o )\n > ^ < "}
+    ]}]}"#;
+
+    let art_app = App::new(
+        Session::new(Graph::from_json(NARROW).expect("ascii-art fixture parses"))
+            .expect("non-empty"),
+    );
+    let wide_app = App::new(
+        Session::new(Graph::from_json(WIDE_CODE).expect("rust fixture parses")).expect("non-empty"),
+    );
+
+    let art_screen = screen(&art_app, 80, 24);
+    let wide_screen = screen(&wide_app, 80, 24);
+    assert!(art_screen.contains("ascii-art"), "{art_screen}");
+
+    let art_row = art_screen
+        .lines()
+        .find(|l| l.contains("o.o"))
+        .expect("art row visible at 80x24");
+    let wide_row = wide_screen
+        .lines()
+        .find(|l| l.contains("o.o"))
+        .expect("full-width row visible at 80x24");
+
+    let art_col = art_row.find("o.o").expect("column of ascii-art");
+    let wide_col = wide_row.find("o.o").expect("column of full-width block");
+    assert!(
+        art_col > wide_col,
+        "ascii-art block (col {art_col}) should be centered/indented further than a \
+         full-width block (col {wide_col}) at the same 80x24 size: \
+         art={art_row:?} wide={wide_row:?}"
+    );
+}
+
+#[test]
 fn reveal_hides_content_until_next_is_pressed_enough_times() {
     const DECK: &str = r#"{"nodes":[{"id":"a","content":[
         {"kind":"text","body":"Always visible"},
@@ -683,6 +723,28 @@ fn reveal_marks_do_not_change_a_deck_that_never_uses_them() {
     assert!(
         s.contains("Space next"),
         "ordinary footer hint unchanged: {s}"
+    );
+}
+
+#[test]
+fn ascii_art_reveal_gated_block_appears_as_one_unit() {
+    const DECK: &str = r#"{"nodes":[{"id":"a","content":[
+        {"kind":"text","body":"Always visible"},
+        {"kind":"ascii-art","art":"first line\nsecond line","reveal":1}
+    ]}]}"#;
+    let mut app =
+        App::new(Session::new(Graph::from_json(DECK).expect("fixture parses")).expect("non-empty"));
+
+    let s = screen(&app, 80, 24);
+    assert!(s.contains("Always visible"), "{s}");
+    assert!(!s.contains("first line"), "not yet revealed: {s}");
+    assert!(!s.contains("second line"), "not yet revealed: {s}");
+
+    press(&mut app, KeyCode::Char(' '));
+    let s = screen(&app, 80, 24);
+    assert!(
+        s.contains("first line") && s.contains("second line"),
+        "every line of the art appears together on the same press: {s}"
     );
 }
 

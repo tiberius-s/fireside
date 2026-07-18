@@ -50,7 +50,7 @@ core block set.
 
 1. Parses and validates Fireside JSON documents.
 2. Implements traversal semantics (`Next`, `Choose`, `Goto`, `Back`).
-3. Renders all seven core block kinds.
+3. Renders all eight core block kinds.
 4. Preserves the protocol's traversal and history rules.
 
 ## Design Principles

@@ -315,6 +315,91 @@ function checkRevealMaskedByContainer(graph) {
 }
 
 /**
+ * The presentation card's usable width, in columns — "80-col terminal
+ * minus card chrome" (spec 005's existing reasoning for the same class
+ * of content). Widest-line measurement counts Unicode scalar values
+ * (`[...line].length`), not true display width, mirroring the Rust
+ * validator's own documented approximation (`fireside-engine` cannot
+ * depend on `unicode-width`, for the same reason this file doesn't
+ * either — keeping both validators' measurements identical is what
+ * "symmetric" parity means here).
+ *
+ * Spec: specs/009-ascii-art/data-model.md
+ */
+const MAX_ASCII_ART_WIDTH = 76;
+
+/**
+ * Walks `blocks` recursively (through `container` children, like
+ * `checkRevealMaskedByContainer`/`checkMalformedLinkUrls`), calling
+ * `check` on every `ascii-art` block's `art` string.
+ */
+function walkAsciiArt(blocks, nodeId, check) {
+  for (const block of blocks) {
+    if (block.kind === "ascii-art") {
+      check(block.art ?? "", nodeId);
+    } else if (block.kind === "container") {
+      walkAsciiArt(block.children ?? [], nodeId, check);
+    }
+  }
+}
+
+/**
+ * WARNING: An `ascii-art` block's widest line exceeds
+ * `MAX_ASCII_ART_WIDTH`.
+ *
+ * Spec: specs/009-ascii-art/data-model.md
+ */
+function checkAsciiArtTooWide(graph) {
+  const diagnostics = [];
+
+  for (const node of graph.nodes) {
+    walkAsciiArt(node.content ?? [], node.id, (art, nodeId) => {
+      const widest = art
+        .split("\n")
+        .reduce((max, line) => Math.max(max, [...line].length), 0);
+      if (widest > MAX_ASCII_ART_WIDTH) {
+        diagnostics.push(
+          diagnostic(
+            "warning",
+            "ascii-art-too-wide",
+            `Node "${nodeId}" has an ascii-art block ${widest} columns wide, past the ${MAX_ASCII_ART_WIDTH}-column limit — it may not fit the presentation card`,
+            { nodeId, widest },
+          ),
+        );
+      }
+    });
+  }
+
+  return diagnostics;
+}
+
+/**
+ * WARNING: An `ascii-art` block's `art` is empty or whitespace-only.
+ *
+ * Spec: specs/009-ascii-art/data-model.md
+ */
+function checkAsciiArtEmpty(graph) {
+  const diagnostics = [];
+
+  for (const node of graph.nodes) {
+    walkAsciiArt(node.content ?? [], node.id, (art, nodeId) => {
+      if (art.trim().length === 0) {
+        diagnostics.push(
+          diagnostic(
+            "warning",
+            "ascii-art-empty",
+            `Node "${nodeId}" has an ascii-art block with no art content`,
+            { nodeId },
+          ),
+        );
+      }
+    });
+  }
+
+  return diagnostics;
+}
+
+/**
  * Extracts every link destination found in `text`'s `[label](url)` syntax
  * — mirrors `fireside-tui`'s inline-Markdown parser / `fireside-engine`'s
  * `find_links`, but only needs the URL portion to validate.
@@ -554,6 +639,8 @@ export function validate(graph) {
     ...checkContainerNestingDepth(graph),
     ...checkEmptyTraversal(graph),
     ...checkRevealMaskedByContainer(graph),
+    ...checkAsciiArtTooWide(graph),
+    ...checkAsciiArtEmpty(graph),
     ...checkMalformedLinkUrls(graph),
     ...checkReachability(graph, nodeIds),
     ...checkSelfLoops(graph),
@@ -588,6 +675,8 @@ Rules (warnings):
   trivial-cycle              Two-node cycles (A→B→A) are likely accidental
   empty-traversal            An empty traversal object ({}) is likely a mistake
   reveal-masked-by-container A child's reveal step is earlier than its enclosing group's
+  ascii-art-too-wide         An ascii-art block's widest line exceeds 76 columns
+  ascii-art-empty            An ascii-art block has no art content
   malformed-link-url        A [label](url) link's destination doesn't look like a URL
 
 Rules (info):

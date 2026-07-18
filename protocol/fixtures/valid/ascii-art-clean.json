@@ -1,0 +1,14 @@
+{
+  "nodes": [
+    {
+      "id": "a",
+      "content": [
+        {
+          "kind": "ascii-art",
+          "art": "  o.o  \n /---\\ ",
+          "alt": "a simple face"
+        }
+      ]
+    }
+  ]
+}

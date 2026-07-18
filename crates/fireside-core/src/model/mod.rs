@@ -382,6 +382,22 @@ pub enum ContentBlock {
         #[serde(skip_serializing_if = "Option::is_none")]
         layout: Option<ContainerLayout>,
     },
+
+    /// Pre-rendered ASCII/text art, generated at authoring time. See
+    /// [`ADR-012`](https://github.com/tiberius-s/fireside/blob/main/.claude/adrs/adr-012-ascii-art-protocol-change.md)
+    /// for why this is a new block kind rather than an additive field.
+    AsciiArt {
+        /// The incremental-reveal step at which this block becomes
+        /// visible. See [`ContentBlock::Heading::reveal`].
+        #[serde(skip_serializing_if = "Option::is_none")]
+        reveal: Option<u32>,
+        /// The pre-rendered multi-line art content, as plain text.
+        art: String,
+        /// Alternative text description, for anyone who can't see the
+        /// art.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        alt: Option<String>,
+    },
 }
 
 impl ContentBlock {
@@ -396,6 +412,7 @@ impl ContentBlock {
             | Self::List { reveal, .. }
             | Self::Image { reveal, .. }
             | Self::Divider { reveal }
+            | Self::AsciiArt { reveal, .. }
             | Self::Container { reveal, .. } => *reveal,
         }
     }
@@ -549,7 +566,11 @@ mod proptest_support {
                         height,
                     }
                 }),
-            reveal.prop_map(|reveal| ContentBlock::Divider { reveal }),
+            reveal
+                .clone()
+                .prop_map(|reveal| ContentBlock::Divider { reveal }),
+            (reveal, arbitrary_string(), option::of(arbitrary_string()))
+                .prop_map(|(reveal, art, alt)| ContentBlock::AsciiArt { reveal, art, alt }),
         ]
     }
 
@@ -776,6 +797,40 @@ mod tests {
         assert!(json.contains(r#""kind":"code""#));
         assert!(json.contains(r#""highlight-lines""#));
         assert!(json.contains(r#""show-line-numbers""#));
+    }
+
+    #[test]
+    fn ascii_art_block_round_trips_with_kebab_case_wire_format() {
+        let block: ContentBlock =
+            serde_json::from_str(r#"{"kind":"ascii-art","art":"x","alt":"y","reveal":1}"#)
+                .expect("parse");
+        assert_eq!(block.reveal(), Some(1));
+        let ContentBlock::AsciiArt { art, alt, .. } = &block else {
+            panic!("expected AsciiArt");
+        };
+        assert_eq!(art, "x");
+        assert_eq!(alt.as_deref(), Some("y"));
+
+        let json = serde_json::to_string(&block).expect("serialize");
+        assert!(json.contains(r#""kind":"ascii-art""#));
+        assert!(json.contains(r#""art":"x""#));
+        assert!(json.contains(r#""alt":"y""#));
+
+        let no_alt: ContentBlock =
+            serde_json::from_str(r#"{"kind":"ascii-art","art":"x"}"#).expect("parse");
+        let json = serde_json::to_string(&no_alt).expect("serialize");
+        assert!(!json.contains("alt"), "absent alt stays absent: {json}");
+    }
+
+    #[test]
+    fn unknown_kind_produces_clear_parse_error() {
+        let err = Graph::from_json(r#"{"nodes":[{"id":"a","content":[{"kind":"not-a-kind"}]}]}"#)
+            .expect_err("unrecognized kind must fail to parse");
+        let message = err.to_string();
+        assert!(
+            message.contains("unknown variant"),
+            "expected an unknown-variant error, got: {message}"
+        );
     }
 
     #[test]

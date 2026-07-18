@@ -97,6 +97,7 @@ fn render_block(
             tokens,
             reveal_level,
         ),
+        ContentBlock::AsciiArt { art, alt, .. } => ascii_art(art, alt.as_deref(), width, tokens),
     }
 }
 
@@ -156,6 +157,21 @@ fn is_ascii_art(language: Option<&str>) -> bool {
     matches!(language, None | Some("text") | Some("ascii"))
 }
 
+/// Box width for a sized-to-content, centered block: the content's widest
+/// line plus `prefix`, or `label_width`, whichever is larger, capped at
+/// `full_width`. Shared by `code()`'s ASCII-art path (spec 005) and
+/// `ascii_art()` (spec 009) so both give the same "sized to itself,
+/// centered" treatment from one formula.
+fn centered_box_width<'a>(
+    label_width: usize,
+    lines: impl Iterator<Item = &'a str>,
+    prefix: usize,
+    full_width: usize,
+) -> usize {
+    let content_max = lines.map(UnicodeWidthStr::width).max().unwrap_or(0);
+    (prefix + content_max).max(label_width).min(full_width)
+}
+
 fn code(
     language: Option<&str>,
     source: &str,
@@ -177,14 +193,7 @@ fn code(
     let prefix = if line_numbers { num_width + 4 } else { 2 };
 
     let box_width = if is_ascii_art(language) {
-        let content_max = source
-            .lines()
-            .map(UnicodeWidthStr::width)
-            .max()
-            .unwrap_or(0);
-        (prefix + content_max)
-            .max(label_prefix.width())
-            .min(full_width)
+        centered_box_width(label_prefix.width(), source.lines(), prefix, full_width)
     } else {
         full_width
     };
@@ -236,6 +245,42 @@ fn code(
         }
         spans.extend(content);
         lines.push(Line::from(spans));
+    }
+    lines.push(Line::styled("─".repeat(box_width), tokens.border));
+
+    let pad = full_width.saturating_sub(box_width) / 2;
+    if pad > 0 {
+        for line in &mut lines {
+            let mut spans = vec![Span::raw(" ".repeat(pad))];
+            spans.extend(std::mem::take(&mut line.spans));
+            line.spans = spans;
+        }
+    }
+    lines
+}
+
+/// Pre-rendered ASCII/text art (spec 009): centered and sized to its own
+/// widest line, the same box treatment `code()` gives a language-less
+/// code block, but with no syntax highlighting, line numbers, or
+/// highlighted-line concept — this kind has none of those fields. `alt`
+/// is accessibility metadata, not on-screen text (see
+/// `contracts/ascii-art-block.md`), so it is not rendered.
+fn ascii_art(art: &str, _alt: Option<&str>, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+    let full_width = width as usize;
+    let prefix = 2;
+    let mut top = "─ ascii-art ─".to_owned();
+    let box_width = centered_box_width(top.width(), art.lines(), prefix, full_width);
+
+    let fill = box_width.saturating_sub(top.width());
+    top.push_str(&"─".repeat(fill));
+
+    let mut lines = vec![Line::styled(top, tokens.border)];
+    let avail = box_width.saturating_sub(prefix);
+    for raw in art.lines() {
+        lines.push(Line::from(vec![
+            Span::styled("  ".to_owned(), tokens.muted),
+            Span::styled(clip(raw, avail), tokens.code),
+        ]));
     }
     lines.push(Line::styled("─".repeat(box_width), tokens.border));
 
