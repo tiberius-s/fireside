@@ -3920,7 +3920,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "crates_fireside_engine_src_lib_rs_src_lib",
-      "community": 21,
+      "community": 4,
       "norm_label": "lib.rs"
     },
     {
@@ -16444,6 +16444,86 @@
       "norm_label": "404.md"
     },
     {
+      "label": "authoring-markdown.md",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "guides_authoring_markdown",
+      "community": 223,
+      "norm_label": "authoring-markdown.md"
+    },
+    {
+      "label": "The shape",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "guides_authoring_markdown_the_shape",
+      "community": 223,
+      "norm_label": "the shape"
+    },
+    {
+      "label": "A linear talk",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "guides_authoring_markdown_a_linear_talk",
+      "community": 223,
+      "norm_label": "a linear talk"
+    },
+    {
+      "label": "What each Markdown element becomes",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L67",
+      "_origin": "ast",
+      "id": "guides_authoring_markdown_what_each_markdown_element_becomes",
+      "community": 223,
+      "norm_label": "what each markdown element becomes"
+    },
+    {
+      "label": "Branch points",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L82",
+      "_origin": "ast",
+      "id": "guides_authoring_markdown_branch_points",
+      "community": 223,
+      "norm_label": "branch points"
+    },
+    {
+      "label": "What v1 import doesn't carry over",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L115",
+      "_origin": "ast",
+      "id": "guides_authoring_markdown_what_v1_import_doesn_t_carry_over",
+      "community": 223,
+      "norm_label": "what v1 import doesn't carry over"
+    },
+    {
+      "label": "Validation is not optional",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L124",
+      "_origin": "ast",
+      "id": "guides_authoring_markdown_validation_is_not_optional",
+      "community": 223,
+      "norm_label": "validation is not optional"
+    },
+    {
+      "label": "Re-running import",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L132",
+      "_origin": "ast",
+      "id": "guides_authoring_markdown_re_running_import",
+      "community": 223,
+      "norm_label": "re-running import"
+    },
+    {
       "label": "getting-started.md",
       "file_type": "document",
       "source_file": "docs/src/content/docs/guides/getting-started.md",
@@ -16514,6 +16594,96 @@
       "norm_label": "what to try next"
     },
     {
+      "label": "presenting.md",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "guides_presenting",
+      "community": 222,
+      "norm_label": "presenting.md"
+    },
+    {
+      "label": "Moving through a deck",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "guides_presenting_moving_through_a_deck",
+      "community": 222,
+      "norm_label": "moving through a deck"
+    },
+    {
+      "label": "Incremental reveal",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "guides_presenting_incremental_reveal",
+      "community": 222,
+      "norm_label": "incremental reveal"
+    },
+    {
+      "label": "Branch points",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "guides_presenting_branch_points",
+      "community": 222,
+      "norm_label": "branch points"
+    },
+    {
+      "label": "The map",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "guides_presenting_the_map",
+      "community": 222,
+      "norm_label": "the map"
+    },
+    {
+      "label": "Other keys while presenting",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "guides_presenting_other_keys_while_presenting",
+      "community": 222,
+      "norm_label": "other keys while presenting"
+    },
+    {
+      "label": "Quick-editing a slide",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L70",
+      "_origin": "ast",
+      "id": "guides_presenting_quick_editing_a_slide",
+      "community": 222,
+      "norm_label": "quick-editing a slide"
+    },
+    {
+      "label": "Resuming after a crash or exit",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L87",
+      "_origin": "ast",
+      "id": "guides_presenting_resuming_after_a_crash_or_exit",
+      "community": 222,
+      "norm_label": "resuming after a crash or exit"
+    },
+    {
+      "label": "Fullscreen and speaker notes",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L97",
+      "_origin": "ast",
+      "id": "guides_presenting_fullscreen_and_speaker_notes",
+      "community": 222,
+      "norm_label": "fullscreen and speaker notes"
+    },
+    {
       "label": "index.md",
       "file_type": "document",
       "source_file": "docs/src/content/docs/index.md",
@@ -16547,7 +16717,7 @@
       "label": "What Fireside Gives You",
       "file_type": "document",
       "source_file": "docs/src/content/docs/index.md",
-      "source_location": "L50",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "docs_index_what_fireside_gives_you",
       "community": 135,
@@ -16557,11 +16727,141 @@
       "label": "What Fireside Does Not Define",
       "file_type": "document",
       "source_file": "docs/src/content/docs/index.md",
-      "source_location": "L58",
+      "source_location": "L63",
       "_origin": "ast",
       "id": "docs_index_what_fireside_does_not_define",
       "community": 135,
       "norm_label": "what fireside does not define"
+    },
+    {
+      "label": "cli.md",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "reference_cli",
+      "community": 221,
+      "norm_label": "cli.md"
+    },
+    {
+      "label": "`fireside present <file>`",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "reference_cli_fireside_present_file",
+      "community": 221,
+      "norm_label": "`fireside present <file>`"
+    },
+    {
+      "label": "`fireside validate <file>`",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "reference_cli_fireside_validate_file",
+      "community": 221,
+      "norm_label": "`fireside validate <file>`"
+    },
+    {
+      "label": "`fireside new [name]`",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "reference_cli_fireside_new_name",
+      "community": 221,
+      "norm_label": "`fireside new [name]`"
+    },
+    {
+      "label": "`fireside import <input.md> [output]`",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L88",
+      "_origin": "ast",
+      "id": "reference_cli_fireside_import_input_md_output",
+      "community": 221,
+      "norm_label": "`fireside import <input.md> [output]`"
+    },
+    {
+      "label": "`fireside demo`",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L108",
+      "_origin": "ast",
+      "id": "reference_cli_fireside_demo",
+      "community": 221,
+      "norm_label": "`fireside demo`"
+    },
+    {
+      "label": "Common conventions across verbs",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L115",
+      "_origin": "ast",
+      "id": "reference_cli_common_conventions_across_verbs",
+      "community": 221,
+      "norm_label": "common conventions across verbs"
+    },
+    {
+      "label": "conformance.md",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "reference_conformance",
+      "community": 224,
+      "norm_label": "conformance.md"
+    },
+    {
+      "label": "The corpus",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "reference_conformance_the_corpus",
+      "community": 224,
+      "norm_label": "the corpus"
+    },
+    {
+      "label": "Running the corpus",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "reference_conformance_running_the_corpus",
+      "community": 224,
+      "norm_label": "running the corpus"
+    },
+    {
+      "label": "Claiming conformance",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "reference_conformance_claiming_conformance",
+      "community": 224,
+      "norm_label": "claiming conformance"
+    },
+    {
+      "label": "Rule catalog",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L68",
+      "_origin": "ast",
+      "id": "reference_conformance_rule_catalog",
+      "community": 224,
+      "norm_label": "rule catalog"
+    },
+    {
+      "label": "Regenerating expectations",
+      "file_type": "document",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L90",
+      "_origin": "ast",
+      "id": "reference_conformance_regenerating_expectations",
+      "community": 224,
+      "norm_label": "regenerating expectations"
     },
     {
       "label": "data-model-quick-reference.md",
@@ -49280,9 +49580,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan",
-      "target": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07"
     },
     {
       "relation": "contains",
@@ -49290,9 +49590,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L120",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_appendix_key_external_references",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_appendix_key_external_references"
     },
     {
       "relation": "contains",
@@ -49300,9 +49600,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_context",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_context"
     },
     {
       "relation": "contains",
@@ -49310,9 +49610,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L103",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_continuous_rust_learning_path_stream_f",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_continuous_rust_learning_path_stream_f"
     },
     {
       "relation": "contains",
@@ -49320,9 +49620,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_executive_summary_of_findings",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_executive_summary_of_findings"
     },
     {
       "relation": "contains",
@@ -49330,9 +49630,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L93",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_ongoing_ai_capabilities_stream_e",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_ongoing_ai_capabilities_stream_e"
     },
     {
       "relation": "contains",
@@ -49340,9 +49640,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_stream_ordering_dependencies",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_stream_ordering_dependencies"
     },
     {
       "relation": "contains",
@@ -49350,9 +49650,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L112",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_verification",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_verification"
     },
     {
       "relation": "contains",
@@ -49360,9 +49660,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L37",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_wave_1_stream_a_code_health_refactors_pure_refactor_zero_behavior_change",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_wave_1_stream_a_code_health_refactors_pure_refactor_zero_behavior_change"
     },
     {
       "relation": "contains",
@@ -49370,9 +49670,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L49",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_wave_1_stream_b_ci_hardening_minimal_release",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_wave_1_stream_b_ci_hardening_minimal_release"
     },
     {
       "relation": "contains",
@@ -49380,9 +49680,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L77",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_wave_2_ascii_art_feature_stream_c",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_wave_2_ascii_art_feature_stream_c"
     },
     {
       "relation": "contains",
@@ -49390,9 +49690,9 @@
       "source_file": ".claude/plans/2026-07-17-research-and-improvement-plan.md",
       "source_location": "L65",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_17_research_and_improvement_plan_fireside_research_findings_strategic_improvement_plan_2026_07",
-      "target": "plans_2026_07_17_research_and_improvement_plan_wave_2_documentation_stream_d",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_17_research_and_improvement_plan_wave_2_documentation_stream_d"
     },
     {
       "relation": "contains",
@@ -53507,6 +53807,76 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_authoring_markdown",
+      "target": "guides_authoring_markdown_a_linear_talk"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_authoring_markdown",
+      "target": "guides_authoring_markdown_branch_points"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L132",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_authoring_markdown",
+      "target": "guides_authoring_markdown_re_running_import"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_authoring_markdown",
+      "target": "guides_authoring_markdown_the_shape"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L124",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_authoring_markdown",
+      "target": "guides_authoring_markdown_validation_is_not_optional"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L67",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_authoring_markdown",
+      "target": "guides_authoring_markdown_what_each_markdown_element_becomes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/authoring-markdown.md",
+      "source_location": "L115",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_authoring_markdown",
+      "target": "guides_authoring_markdown_what_v1_import_doesn_t_carry_over"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/src/content/docs/guides/getting-started.md",
       "source_location": "L102",
       "weight": 1.0,
@@ -53567,6 +53937,86 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_presenting",
+      "target": "guides_presenting_branch_points"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L97",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_presenting",
+      "target": "guides_presenting_fullscreen_and_speaker_notes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L22",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_presenting",
+      "target": "guides_presenting_incremental_reveal"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_presenting",
+      "target": "guides_presenting_moving_through_a_deck"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L59",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_presenting",
+      "target": "guides_presenting_other_keys_while_presenting"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L70",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_presenting",
+      "target": "guides_presenting_quick_editing_a_slide"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L87",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_presenting",
+      "target": "guides_presenting_resuming_after_a_crash_or_exit"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/guides/presenting.md",
+      "source_location": "L44",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "guides_presenting",
+      "target": "guides_presenting_the_map"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/src/content/docs/index.md",
       "source_location": "L32",
       "weight": 1.0,
@@ -53603,6 +54053,116 @@
       "confidence_score": 1.0,
       "source": "docs_index",
       "target": "docs_index_what_fireside_gives_you"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L115",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_cli",
+      "target": "reference_cli_common_conventions_across_verbs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L108",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_cli",
+      "target": "reference_cli_fireside_demo"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L88",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_cli",
+      "target": "reference_cli_fireside_import_input_md_output"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L63",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_cli",
+      "target": "reference_cli_fireside_new_name"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_cli",
+      "target": "reference_cli_fireside_present_file"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/cli.md",
+      "source_location": "L45",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_cli",
+      "target": "reference_cli_fireside_validate_file"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_conformance",
+      "target": "reference_conformance_claiming_conformance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L90",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_conformance",
+      "target": "reference_conformance_regenerating_expectations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L68",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_conformance",
+      "target": "reference_conformance_rule_catalog"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_conformance",
+      "target": "reference_conformance_running_the_corpus"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/src/content/docs/reference/conformance.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "reference_conformance",
+      "target": "reference_conformance_the_corpus"
     },
     {
       "relation": "contains",
@@ -61278,5 +61838,5 @@
       "source_file": "docs/src/content/docs/spec/data-model.md"
     }
   ],
-  "built_at_commit": "83a1b1d81f794e3a93c213262c809fcc1d2531ed"
+  "built_at_commit": "e59b2952e24eff25b1c81de7d2600295560febb0"
 }

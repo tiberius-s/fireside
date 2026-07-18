@@ -44,8 +44,13 @@ in mind makes the set easier to navigate.
 | [Validation](spec/validation/)                           | Schema and semantic validation expectations.            |
 | [Content blocks](spec/appendix-content-blocks/)          | Non-normative rendering guidance for blocks.            |
 | [Engine guidance](spec/appendix-engine-guidelines/)      | Non-normative implementation guidance for runtimes.     |
+| [Engine extensions](spec/appendix-engine-extensions/)    | Registry of engine-specific extensions and their edge-case behavior. |
 | [Domain vocabulary](reference/domain-vocabulary/)        | Canonical and conversational terminology.               |
 | [Quick reference](reference/data-model-quick-reference/) | Compact lookup page for the core types.                 |
+| [CLI reference](reference/cli/)                          | Every `fireside` subcommand, flag, and exit code.        |
+| [Conformance](reference/conformance/)                    | How to check a third-party engine's validator against the shared fixture corpus. |
+| [Authoring in Markdown](guides/authoring-markdown/)      | Compile a Markdown talk into a deck with `fireside import`. |
+| [Presenting a deck](guides/presenting/)                  | Every key the TUI responds to, plus map/notes/fullscreen/resume. |
 
 ## What Fireside Gives You
 

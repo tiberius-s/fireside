@@ -253,6 +253,38 @@ or starts. One line per item: status, commit(s), date._
       actual pinned 1.88 toolchain) was confirmed to already satisfy the
       plan's "cargo msrv verify" ask — no redundant `cargo-msrv` job
       added. This closes out the entire 2026-07-12 strategic plan.
+- [X] §5 Documentation Audit — done 2026-07-17. Docs-only, no ADR/speckit
+      pipeline (no Rust/protocol change). Closed all six gaps: (1) new
+      `reference/cli.md` — every verb (`present`/`validate`/`new`/`demo`/
+      `import`), every flag, and exit codes, sourced from
+      `fireside-cli/src/main.rs` rather than paraphrased from memory. (2) new
+      `guides/presenting.md` — the full keyboard/mouse table (movement,
+      reveal, branch points, map, quick-edit, resume), sourced from
+      `fireside-tui/src/app.rs`'s actual key handlers and footer/help
+      strings, not just the in-app footer text, so map/notes/fullscreen
+      workflows get the explanation the footer has no room for. (3) the
+      sidebar §5 gap (§4 Validation → §6 Serialization, no §5) — fixed by
+      renumbering `serialization.md` to §5 rather than inventing filler
+      content, updating its one cross-reference in `data-model.md` and the
+      sidebar label in `astro.config.mjs`. (4) new
+      `guides/authoring-markdown.md` — the `##`-heading-to-node model and
+      the ` ```branch ` fence syntax, including what v1 import deliberately
+      drops (columns, speaker notes, per-slide view-mode/transition), sourced
+      from `fireside-cli/src/import.rs` and `specs/003-markdown-import/`.
+      "Images and ASCII art" guide from the original audit item is skipped
+      since images stayed NO-GO (ADR-008) — nothing new to document. (5) new
+      `reference/conformance.md` — how the shared fixture corpus
+      (`protocol/fixtures/`, `fixtures.expected.json`) is run by both
+      validators and how a third-party engine can check itself against it,
+      plus a generated rule-ID/severity table from `validation.rs`. (6) spec
+      appendices already carried the ambiguity resolutions from spec patch
+      0.1.1 (ADR-007) — verified, no new content needed. `index.md`'s
+      Specification Map and reading-order tables updated to list every new
+      page (also added the pre-existing but previously unlisted Appendix D —
+      Engine Extensions, found while auditing the table). Verified with
+      `npm run build` and `npm run check` in `docs/` — 18 pages generate
+      clean, 0 astro-check errors. This closes the Documentation Audit and,
+      with it, the entire 2026-07-12 strategic plan end to end.
 
 ## Executive Summary
 

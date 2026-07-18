@@ -32,7 +32,7 @@ export default defineConfig({
             { label: '§2 Data Model', link: '/spec/data-model/' },
             { label: '§3 Traversal', link: '/spec/traversal/' },
             { label: '§4 Validation', link: '/spec/validation/' },
-            { label: '§6 Serialization', link: '/spec/serialization/' },
+            { label: '§5 Serialization', link: '/spec/serialization/' },
             { label: 'Mental Models', link: '/spec/mental-models/' },
             { label: 'Appendix B — Engine Guidelines', link: '/spec/appendix-engine-guidelines/' },
             { label: 'Appendix C — Content Blocks', link: '/spec/appendix-content-blocks/' },
@@ -46,13 +46,17 @@ export default defineConfig({
           label: 'Guides',
           items: [
             { label: 'Your First Fireside Graph', link: '/guides/getting-started/' },
+            { label: 'Authoring a Deck in Markdown', link: '/guides/authoring-markdown/' },
+            { label: 'Presenting a Deck', link: '/guides/presenting/' },
           ],
         },
         {
           label: 'Reference',
           items: [
+            { label: 'CLI Reference', link: '/reference/cli/' },
             { label: 'Data Model Quick Reference', link: '/reference/data-model-quick-reference/' },
             { label: 'Domain Vocabulary', link: '/reference/domain-vocabulary/' },
+            { label: 'Conformance', link: '/reference/conformance/' },
           ],
         },
       ],

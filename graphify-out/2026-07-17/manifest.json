@@ -345,8 +345,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/data-model.md": {
-    "mtime": 1783911354.8839698,
-    "ast_hash": "fc69fdfb02f7d9bfa9b01f5a563edd0e",
+    "mtime": 1784340521.2350183,
+    "ast_hash": "02dec154d0416da73ab664cc9342bd3c",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/introduction.md": {
@@ -360,9 +360,9 @@
     "semantic_hash": "db29ec55c46e6bdaf1149c95f23b03b9"
   },
   "docs/src/content/docs/spec/serialization.md": {
-    "mtime": 1776614252.641366,
-    "ast_hash": "0d4c9b6bc80dc5218e9e082fed269b5e",
-    "semantic_hash": "0d4c9b6bc80dc5218e9e082fed269b5e"
+    "mtime": 1784340517.612483,
+    "ast_hash": "4a7ba1a93fb9c6764a4098ebf2958162",
+    "semantic_hash": ""
   },
   "docs/src/content/docs/spec/traversal.md": {
     "mtime": 1783911384.9432142,
@@ -1157,6 +1157,31 @@
   "scripts/verify.sh": {
     "mtime": 1784319803.8211143,
     "ast_hash": "e89161347085cf4083971e910a8399c9",
+    "semantic_hash": ""
+  },
+  ".claude/plans/2026-07-17-research-and-improvement-plan.md": {
+    "mtime": 1784322448.8669906,
+    "ast_hash": "c3076477ca1136ca9accfa5bb7fbb9b0",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/reference/cli.md": {
+    "mtime": 1784340404.0413811,
+    "ast_hash": "d4c29619077bfbe6fc11cafbfa233199",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/guides/presenting.md": {
+    "mtime": 1784340431.5485353,
+    "ast_hash": "e1a9668368bf0b300ab4823e82de27a0",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/guides/authoring-markdown.md": {
+    "mtime": 1784340459.2517295,
+    "ast_hash": "bea9d30236fd60c43a2be31ae0ac1a66",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/reference/conformance.md": {
+    "mtime": 1784340504.47773,
+    "ast_hash": "772025a67ee6597b9945ee96f19887c2",
     "semantic_hash": ""
   }
 }

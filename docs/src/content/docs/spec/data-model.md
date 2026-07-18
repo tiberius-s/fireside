@@ -100,7 +100,7 @@ for exactly how steps are numbered and consumed. Engines that do not
 implement reveal MUST ignore this field and render the block
 immediately; this is a safe, forward-compatible degrade to "everything
 visible," per the unknown-fields-are-ignored rule in
-[§6 Serialization](/spec/serialization/).
+[§5 Serialization](/spec/serialization/).
 
 ### ContainerBlock
 

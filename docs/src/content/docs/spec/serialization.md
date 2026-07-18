@@ -1,5 +1,5 @@
 ---
-title: '§6 Serialization'
+title: '§5 Serialization'
 description: 'JSON wire format, naming conventions, encoding, and schema relationship for Fireside documents.'
 ---
 

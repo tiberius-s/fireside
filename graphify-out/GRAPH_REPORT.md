@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-17)
 
 ## Corpus Check
-- 226 files · ~243,123 words
+- 230 files · ~246,212 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2443 nodes · 3479 edges · 221 communities (184 shown, 37 thin omitted)
+- 2473 nodes · 3505 edges · 225 communities (188 shown, 37 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 36 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `83a1b1d8`
+- Built from commit: `e59b2952`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -234,6 +234,10 @@
 - [[_COMMUNITY_Community 218|Community 218]]
 - [[_COMMUNITY_Community 219|Community 219]]
 - [[_COMMUNITY_Community 220|Community 220]]
+- [[_COMMUNITY_Community 221|Community 221]]
+- [[_COMMUNITY_Community 222|Community 222]]
+- [[_COMMUNITY_Community 223|Community 223]]
+- [[_COMMUNITY_Community 224|Community 224]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `app()` - 47 edges
@@ -285,7 +289,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (221 total, 37 thin omitted)
+## Communities (225 total, 37 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -1015,12 +1019,28 @@ Nodes (4): ok(), step(), warn(), verify.sh script
 Cohesion: 0.15
 Nodes (12): Appendix — key external references, Context, Continuous — Rust learning path (Stream F), Executive summary of findings, Fireside — Research Findings & Strategic Improvement Plan (2026-07), Ongoing — AI capabilities (Stream E), Stream ordering & dependencies, Verification (+4 more)
 
+### Community 221 - "Community 221"
+Cohesion: 0.29
+Nodes (6): Common conventions across verbs, `fireside demo`, `fireside import <input.md> [output]`, `fireside new [name]`, `fireside present <file>`, `fireside validate <file>`
+
+### Community 222 - "Community 222"
+Cohesion: 0.22
+Nodes (8): Branch points, Fullscreen and speaker notes, Incremental reveal, Moving through a deck, Other keys while presenting, Quick-editing a slide, Resuming after a crash or exit, The map
+
+### Community 223 - "Community 223"
+Cohesion: 0.25
+Nodes (7): A linear talk, Branch points, Re-running import, The shape, Validation is not optional, What each Markdown element becomes, What v1 import doesn't carry over
+
+### Community 224 - "Community 224"
+Cohesion: 0.33
+Nodes (5): Claiming conformance, Regenerating expectations, Rule catalog, Running the corpus, The corpus
+
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1219 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1214 more)
+- **1245 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1240 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **37 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1029,15 +1049,15 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Community 122`, `Presentation Session`?**
+- **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Community 122`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `EngineError` connect `Presentation Session` to `TUI App Core`?**
+  _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `TUI App Core`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
+  _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1221 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1247 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.08035714285714286 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
-- **Should `TUI App Core` be split into smaller, more focused modules?**
-  _Cohesion score 0.06720321931589537 - nodes in this community are weakly interconnected._
