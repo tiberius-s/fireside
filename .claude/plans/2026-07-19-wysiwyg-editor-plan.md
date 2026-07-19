@@ -1,4 +1,4 @@
-# Fireside — WYSIWYG Block Editor Plan (`fireside edit`, 2026-07-19, rev 2)
+# Fireside — WYSIWYG Block Editor Plan (`fireside edit`, 2026-07-19, rev 3)
 
 > User decisions 2026-07-19: build the Tier 2 editor from the audit
 > addendum (`.claude/plans/2026-07-19-fable-ux-audit.md`, A-3) — a
@@ -20,6 +20,15 @@
 > candidate: `013-authoring-editor`, full pipeline (`/speckit-specify` →
 > `/speckit-clarify` → `/speckit-plan` → `/speckit-tasks` →
 > `/speckit-implement`). This plan is the pre-spec design brief.
+>
+> **Rev 3 (same day, CTO pass):** resolved every point where an
+> implementer would otherwise have to invent an answer — outline
+> ordering with branches/unreachable slides, the block-form ↔
+> `ContentBlock` kind mapping, embedded-present mechanics, open behavior
+> for invalid decks, minimum terminal geometry, undo representation, the
+> id slug/rename algorithm, the draft-sidecar format, where hit-testing
+> gets its geometry, the vocabulary-gate implementation, and the E0
+> sequencing decision (audit render fixes first). No scope change.
 
 ## Progress Log
 
@@ -39,6 +48,17 @@ edit <name>` with no existing file offers to create one (reusing `new`'s
 templates). The presenter is untouched — quick-edit stays content-only
 there (ADR-005 continues to govern the presenter; ADR-014 scopes full
 editing to `fireside edit`).
+
+Opening rules (rev 3): a path that exists but fails to parse as a deck
+(malformed JSON or schema violations) is refused at the CLI with the
+same report `present` gives plus one line — `Fix the file first —
+"fireside validate <path>" shows the full report.` The editor only opens
+decks it can parse. A deck that parses but carries semantic (Layer-2)
+diagnostics opens normally with the diagnostics in the status banner —
+fixing those *is* the editor's job. Create-if-missing triggers only when
+the path does not exist; a `.md`/`.markdown` path gets the audit's P0-2
+import hint, never the create flow. Non-tty stdin/stdout is refused with
+the P0-3 message from day one.
 
 Two commitments define the product:
 
@@ -104,6 +124,17 @@ These are requirements, not aspirations — the acceptance bar tests them.
   (⑂ choice, ■ ending). Rows are clickable; drag a row to reorder a
   linear run (rewiring follows the drag — see E3). `＋ new slide` is a
   permanent, clickable last row.
+  **Ordering (rev 3, deterministic):** depth-first from the deck's start
+  node — follow `next` first, then choice options in declared order; a
+  slide appears exactly once, at its first visit (cycles terminate for
+  free). Slides unreachable from start (a legitimate mid-edit state) are
+  listed after a `not linked yet` divider row, in stable id order, so
+  nothing the user created can ever vanish from the outline. Numbering
+  is position in this order and recomputes after every structural op —
+  it is a display coordinate, never an identifier. If the map screen
+  already has an ordering function, extract and share it; either way the
+  ordering lives in `engine::authoring` with direct unit tests over
+  branch / cycle / unreachable fixtures.
 - **Canvas (right).** The presenter's rendering of the selected slide,
   overlaid with block affordances (below). Wheel/trackpad scrolls when
   the slide overflows; a scrollbar appears only when needed.
@@ -116,6 +147,10 @@ These are requirements, not aspirations — the acceptance bar tests them.
   current context, plus `?` for the full map. Rotates as context changes
   (selection, drag, form). This replaces the presenter-style dense key
   footer, which is exactly what overwhelms terminal newcomers.
+- **Minimum geometry (rev 3).** Below 80×24 the editor draws a single
+  centered guard — `Fireside edit needs at least an 80×24 window — make
+  this one bigger` — and waits for resize; the three panes never
+  collapse into overlap. TestBackend scenario at 44×14 pins it.
 
 ## The block model on the canvas
 
@@ -141,6 +176,14 @@ These are requirements, not aspirations — the acceptance bar tests them.
 - **Empty slide**: one big centered `＋ Add your first block` target.
 
 ### Block forms (never syntax)
+
+The forms map 1:1 onto `ContentBlock`'s **eight** kinds (rev 3 — pin
+this so nobody invents a ninth or merges two): `heading`, `text`,
+`code`, `list`, `image` ("picture"), `divider` ("line"), `ascii-art`
+("text art"), `container` ("columns / box / stack" is **one** kind — the
+layout picker sets `ContainerLayout::Columns` / `Center` / `Stack`, and
+the add palette shows eight cards). The quoted names are the only ones
+ever rendered (vocabulary rule below).
 
 Click `✎` (or Enter) and the block's editor opens *in place*, sized to the
 block, with `[ Done ]` / `[ Cancel ]` chips:
@@ -173,6 +216,23 @@ Slides, choices, answers, endings, "goes to", reveal steps. Ids are
 auto-managed (slugified titles, deduped, renames rewrite every reference
 atomically) — invisible, always.
 
+Slug algorithm (rev 3): lowercase the title; map every run of
+non-alphanumeric characters to a single `-`; trim leading/trailing `-`;
+an empty result falls back to `slide`; dedupe against all existing ids
+with `-2`, `-3`, … suffixes. Retitle is **one** `engine::authoring`
+transform that rewrites the id and every reference to it (`next` edges,
+choice targets, the start id) in the same op — with a proptest that no
+rename sequence can ever dangle a reference.
+
+Gate implementation (rev 3): one render-suite test walks every editor
+insta snapshot and fails on the denylist regex —
+`\b(node|nodes|graph|traversal|kind|id)\b`, the raw kind strings
+(`ascii-art`, `container`, `divider`), and any `"` -quoted JSON key.
+Editor snapshot fixtures keep those words out of their deck *content*
+(cheaper than teaching the gate to tell chrome from content); the
+fixture used for preview-fidelity tests is exempt since it renders
+presenter output only.
+
 ### Structure editing (plain words, pickers, drags)
 
 - **New slide**: toolbar chip or outline row → title prompt → auto-wired
@@ -202,6 +262,12 @@ Unchanged from rev 1, now with visible affordances:
 
 - **Undo/redo of everything** — ≥100 snapshots; toolbar `[ ↶ Undo ]` chip
   plus `u`/`U`; destructive actions confirm via undo-toast, not dialogs.
+  Representation (rev 3): full `Graph` clones, pushed by
+  `EditorApp::update` on each committed op, capped at 100, redo stack
+  cleared on any new op; each snapshot carries the selection so undo
+  restores view context. Op inversion is explicitly rejected — decks are
+  small (the audit's 500-node stress deck clones instantly) and
+  snapshots mean the proptests only prove the transforms, not inverses.
 - **Esc is layered and safe**: cancels drag → closes form (field only) →
   deselects → offers quit. Committed edits die only by explicit undo.
 - **Explicit save** (`[ Save ]` chip / Ctrl+S), honest `●` dirty dot, quit
@@ -209,6 +275,15 @@ Unchanged from rev 1, now with visible affordances:
 - **Crash-proof drafts**: autosave to an XDG-state sidecar (path-keyed per
   audit P1-1) every few seconds and on every structural op; restore
   prompt on next open. SIGKILL loses seconds at most.
+  Sidecar format (rev 3):
+  `$XDG_STATE_HOME/fireside/drafts/<fnv1a64 hex of canonical path>.json`
+  (same key scheme as the audit plan's W4-DS-2 session file — share the
+  hash helper) holding `{"schema": 1, "deck_path": …, "saved_at": <epoch>,
+  "deck": <full deck JSON>}`. On open, if a draft exists whose `deck`
+  differs from the file's content, prompt with both timestamps:
+  `[ Restore draft ] [ Open saved file ]`. The draft is deleted on
+  successful save and on clean quit without unsaved changes; atomic
+  temp + rename writes, like every other state file.
 - **Atomic writes** (temp + rename) and the quick-edit fingerprint
   conflict guard for the two-editors case.
 - **Save is never blocked by validity** — construction prevents most
@@ -220,6 +295,20 @@ Unchanged from rev 1, now with visible affordances:
 current slide; `q` returns to the editor exactly where you were. No save
 needed. This is the author's single-keystroke loop and the editor's
 biggest usability multiplier.
+
+Mechanics (rev 3): `fireside-tui` already owns its event loops —
+`present_authoring` initializes the terminal and runs `event_loop`
+internally. The editor entry point does the same, and `[ ▶ Present ]`
+neither spawns a process nor re-initializes the terminal: inside the
+editor loop, build `Session::new(working_graph.clone())`, `goto` the
+selected slide, wrap it in the presenter `App`, and run the existing
+presenter `event_loop` against the **already-initialized** terminal with
+a no-op reload source, `Unavailable` write-back sink, and a no-op
+position sink — embedded runs never touch resume state, never write
+session-state files, and never print the exit summary. On quit, control
+falls back to the editor loop, which repaints. The only enabling change
+is making `event_loop` callable from the editor module (visibility, not
+refactor); mouse capture is already on for the whole process.
 
 ## Acceptance bar (testable)
 
@@ -259,7 +348,7 @@ pattern this generalizes.
 | --- | --- | --- |
 | Graph transforms (slide add/delete/duplicate/retitle+rewrite, rewire, to/from choice, block insert/move/delete, reveal renumber) | `fireside-engine`, new `authoring` module | Pure `(Graph, Op) -> Result<Graph, AuthoringError>` (thiserror), unit + proptests. Engine owns graph semantics; core stays a passive model. |
 | Editor state machine | `fireside-tui`, new `editor` module | Own TEA app: `EditorApp::update` is the sole mutation point. State includes selection, drag (`Idle / Lifting { block } / Over { slot }`), open form, undo stack, draft-timer ticks as messages. Reuses `EditableField` (promoted out of `app.rs`). |
-| **Hit-testing** | `fireside-tui` | The presenter's pattern generalized: layout is pure and deterministic, so `update` recomputes the same layout the last frame drew and asks "what interactive region contains (x, y)?" — a `hit(app, area, x, y) -> Option<Target>` function over an enumeration of affordances (toolbar chip, outline row, block, insertion slot, form chip…). Pure, unit-testable, no render-to-update back-channel, TEA intact. Drag = press target + motion resolving to insertion slots + release commit. |
+| **Hit-testing** | `fireside-tui` | The presenter's pattern generalized: layout is pure and deterministic, so `update` recomputes the same layout the last frame drew and asks "what interactive region contains (x, y)?" — a `hit(app, area, x, y) -> Option<Target>` function over an enumeration of affordances (toolbar chip, outline row, block, insertion slot, form chip…). Pure, unit-testable, no render-to-update back-channel, TEA intact. Drag = press target + motion resolving to insertion slots + release commit. Geometry source (rev 3): `EditorApp` stores the terminal size — set at startup, updated by every resize event — and `update` computes layout from that stored size, never from the renderer. |
 | Editor rendering | `fireside-tui`, `render/editor/` | Canvas calls the *existing* content-rendering path via a small extracted `SlideView` input (E0 refactor), then overlays affordances. New theme tokens for affordance/selection/drop/ghost. Outline reuses map idioms. |
 | File I/O (load, save, draft, conflict fingerprint) | `fireside-cli` | Injected closures, the `present_authoring` sink pattern. TUI touches no files. |
 | `edit` subcommand + create-if-missing | `fireside-cli/src/edit.rs` | Template reuse from `new.rs`/`templates.rs`; non-tty guard from day one (audit P0-3). |
@@ -340,6 +429,10 @@ plan's `render/` fixes (P1-6/P2-1) — sequence one before the other.
   sequences (`ESC [<0;x;yM` / `m`), validated as a technique in E1 —
   culminating in the two scripted 10-minute tests; wired into
   `scripts/smoke.sh` (audit CH-2) and `verify.sh`.
+- Definition of done, per wave (rev 3): `scripts/verify.sh` passes (it
+  mirrors every CI job — never a hand-picked subset), the wave's tmux
+  smoke ran in a real terminal, `graphify update .` ran, and this file's
+  Progress Log line is ticked with the date.
 
 ## Risks & mitigations
 
@@ -394,6 +487,8 @@ plan's `render/` fixes (P1-6/P2-1) — sequence one before the other.
 Audit Wave 1 (P0s) and P1-1 (resume keying) first — small, and P1-1
 underpins this plan's draft keying and Wave 4's follower. E0/E1 can then
 run in parallel with audit Wave 2 and the dual-screen feature (012),
-which touch disjoint code — except the E0 `SlideView` refactor, which
-must be sequenced (before or after, not interleaved) with the audit's
-`render/` fixes (P1-6/P2-1).
+which touch disjoint code — except inside `fireside-tui/src/render/`:
+**decided (rev 3)** the audit's render fixes (P1-6, P2-1) land *before*
+the E0 `SlideView` refactor, which then carries them. The audit plan
+records the same decision; neither plan interleaves with the other in
+that directory.

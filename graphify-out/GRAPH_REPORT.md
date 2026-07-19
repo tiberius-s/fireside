@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-19)
 
 ## Corpus Check
-- 283 files · ~351,292 words
+- 283 files · ~353,294 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3028 nodes · 4148 edges · 276 communities (232 shown, 44 thin omitted)
+- 3029 nodes · 4149 edges · 276 communities (232 shown, 44 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d130c236`
+- Built from commit: `e6f54036`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1259,19 +1259,19 @@ Cohesion: 0.25
 Nodes (7): Install, Live-edit while presenting, Make your own, Requirements, See what a deck can do, Where to go next, Write in Markdown instead of JSON
 
 ### Community 274 - "Community 274"
-Cohesion: 0.13
-Nodes (14): Addendum (2026-07-19, user follow-up): speaker-notes privacy, dual-screen presenter view, WYSIWYG editing, Codebase health, CI, dependencies, Competitive context (brief), Constitution flags (summary), Docs, Executive summary, Fireside — Full-Project UX Audit (2026-07-19, Fable), Fresh ideas (not in either predecessor plan) (+6 more)
+Cohesion: 0.12
+Nodes (15): Addendum (2026-07-19, user follow-up): speaker-notes privacy, dual-screen presenter view, WYSIWYG editing, Codebase health, CI, dependencies, Competitive context (brief), Constitution flags (summary), Definition of done (applies to every item above), Docs, Executive summary, Fireside — Full-Project UX Audit (2026-07-19, Fable) (+7 more)
 
 ### Community 275 - "Community 275"
 Cohesion: 0.10
-Nodes (20): Acceptance bar (testable), Architecture, Block forms (never syntax), Constitution notes (explicit), Decisions needed at `/speckit-clarify`, Explicitly out of scope, Fireside — WYSIWYG Block Editor Plan (`fireside edit`, 2026-07-19, rev 2), Interaction design principles (the anti-overwhelm charter) (+12 more)
+Nodes (20): Acceptance bar (testable), Architecture, Block forms (never syntax), Constitution notes (explicit), Decisions needed at `/speckit-clarify`, Explicitly out of scope, Fireside — WYSIWYG Block Editor Plan (`fireside edit`, 2026-07-19, rev 3), Interaction design principles (the anti-overwhelm charter) (+12 more)
 
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1548 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1543 more)
+- **1549 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1544 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1283,7 +1283,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1550 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1551 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.0851063829787234 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**

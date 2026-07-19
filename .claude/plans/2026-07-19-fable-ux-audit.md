@@ -19,12 +19,43 @@ is said explicitly rather than silently re-litigated.
 Repro commands assume a release build
 (`cargo build --release -p fireside-cli`) and a scratch directory.
 
+**Rev 2 (2026-07-19, CTO pass):** tightened every item that left an
+implementation decision open, so an implementer needs no further judgment
+calls — P1-1 record format and migration rule, P1-3 tab-stop semantics,
+P1-4 table algorithm, P1-6 flash-overflow rule, P2-3 rate limit, the
+W4-DS session-state file (now a separate per-deck file, **not** a
+resume.json extension — see W4-DS-2 for why), the follower's data flow,
+cross-plan sequencing with the editor plan's E0 refactor, and a
+Definition of Done. No findings added, removed, or re-prioritized.
+
 ## Progress Log
 
 _Update this section whenever an item lands or starts. One line per item:
 status, date._
 
-- [ ] (audit findings: nothing started — as-audited, no fixes applied)
+- [ ] P0-1 quickstart install block
+- [ ] P0-2 `.md` hint on present/validate
+- [ ] P0-3 non-tty guard + `try_init`
+- [ ] P1-1 path-keyed resume records
+- [ ] P1-2 shorthand `--restart`
+- [ ] P1-3 tab expansion at render
+- [ ] P1-4 import GFM handling + stderr notes + docs table
+- [ ] P1-5 H1-only import detection
+- [ ] P1-6 footer flash wrap / segment drop
+- [ ] P1-7 friendly missing-file errors for `import` / `art image`
+- [ ] P1-8 reveal limitation documented (marker syntax = Fresh #2, needs scope decision)
+- [ ] P2-1 ascii-art frame label / alt caption
+- [ ] P2-2 help overlay bottom-row clipping
+- [ ] P2-3 unknown-key feedback flash
+- [ ] P2-4 demo quick-edit save affordance
+- [ ] P2-5 quick-edit Esc double-tap guard
+- [ ] P2-6 "Saved" flash survives self-reload
+- [ ] P2-7 bare-invocation help omissions
+- [ ] P2-8 presenting.md fallback row
+- [ ] P2-9 mouse wheel scroll
+- [ ] CH-1 dead workspace deps + image version
+- [ ] CH-2 `scripts/smoke.sh` + CI wiring
+- [ ] CH-3 error-path e2e tests (lands with Wave 1/2 fixes)
 - [ ] W4-DS dual-screen presenter view — **added to scope 2026-07-19 by user
       decision** (promoted from addendum A-2); see "Wave 4 — scoped feature"
       below. Spec-kit feature candidate `012-presenter-view`.
@@ -141,7 +172,17 @@ Fix: key records by canonicalized absolute path; keep the fingerprint
 recorded node id still exists in the (possibly edited) deck, resume there —
 `Session::goto` already guards unknown ids, so a deleted node degrades to
 start-from-the-top for free. Migrate/ignore old-format keys silently, prune
-entries whose path no longer exists. Contract doc
+entries whose path no longer exists.
+Concrete format (rev 2, no open decisions): the store stays one JSON
+object; the key becomes the canonicalized absolute path
+(`std::fs::canonicalize`, `to_string_lossy`); the value becomes
+`{"node_id": "...", "updated": <epoch secs>, "fingerprint": "<mtime>:<len>"}`
+where `fingerprint` is a staleness *annotation* (available for a future
+"deck changed since you left" toast), never compared during lookup.
+Migration is mechanical, no version field needed: legacy keys are bare
+`<mtime>:<len>` fingerprints and never begin with a path separator, so on
+every save drop any entry whose key is not an absolute path, plus any
+entry whose keyed path no longer exists on disk. Contract doc
 (`specs/007.../contracts/resume-state-format.md`) needs a matching update —
 it's a local cache, not wire format, so no protocol spec/ADR required.
 Test: unit tests on the new keying + a tmux smoke: present → quit → edit
@@ -170,9 +211,13 @@ Raw ESC (``) in strings is neutralized by ratatui (no terminal
 corruption — good), but renders as leftover `[31m` gunk. Tabs are the
 common case: any pasted Go, Makefile, or tab-indented snippet.
 Who: authors pasting real code; the audience sees flat code on stage.
-Fix: expand `\t` → spaces (4, or 8-column stops) during line preparation in
-`fireside-tui/src/render/` (code path in `blocks.rs`, text via
+Fix: expand `\t` to the **next 4-column tab stop** (column-aware — a tab
+after 3 chars inserts 1 space, after 4 chars inserts 4; a fixed
+4-space substitution would misalign mid-line tabs) during line preparation
+in `fireside-tui/src/render/` (code path in `blocks.rs`, text via
 `markdown.rs`) — a rendering fix, no protocol change, no new dependency.
+Column position counts display width of the preceding text
+(`unicode-width`, already permitted), not byte or char count.
 Optionally add a symmetric Layer-2 warning (`control-characters-in-text`,
 warning severity) — **that** is a validator-rule addition and per the spec
 008 workflow needs the rule implemented in both `validation.rs` and
@@ -205,6 +250,18 @@ Fix, in order of value:
    (no new block kind needed; render already centers code); task lists →
    list items with `☐`/`☑` prefixes; footnotes → drop with a stderr note;
    strikethrough → drop the markers.
+   Table→code algorithm (rev 2): collect the cells' plain text (inline
+   formatting stripped — a table cell is not a place for bold in v1, note
+   it on stderr if markers were dropped); per column, take the max cell
+   width; pad each cell right to that width; join cells with two spaces;
+   after the header row emit one rule line of `─` at the full joined
+   width; the pipe characters and the `---` alignment row from the source
+   do not survive. Emit as `code` with `language: None`, no line numbers.
+   Width = `chars().count()` — **not** `unicode-width`, which is on the
+   TUI allowlist but not the CLI's (Principle III); char count is exact
+   for the ASCII/Latin tables that dominate and degrades to mild
+   misalignment (never corruption) for wide glyphs. Do not add the
+   dependency for this.
 2. Emit a stderr note per dropped/transformed construct with line numbers,
    in the same voice as the nested-list rejection (which is excellent).
 3. Warn (don't silently drop) on content before the first `##`.
@@ -231,12 +288,16 @@ Observed twice at 80×24 (the documented comfortable minimum):
 - On a reveal slide the key footer ends `... ? help  ·  q` — "quit" clipped.
 Who: presenters mid-incident — the conflict message is exactly when they
 need the full sentence.
-Fix: flashes longer than the width wrap to a second footer row (or the
-footer temporarily drops the key hints while a flash shows — it already
-owns the row); for the reveal footer, drop lowest-priority segments
-(`e edit`, `m map`) before clipping glyphs. Cover with TestBackend
-scenarios at 80×24; W1-2 fixed this class for the help overlay but the
-footer/flash line was missed.
+Fix (decided, rev 2): while a flash is showing, the footer shows **only
+the flash** — key hints are suppressed for the flash's lifetime (the
+footer already owns the row, and a presenter mid-incident needs the
+sentence, not the hints). A flash still longer than one row wraps onto a
+second row borrowed from the bottom of the content area, word-wrapped,
+never truncated mid-word; the content area reflows for those frames.
+For the key-hint footer itself (no flash showing), drop lowest-priority
+segments whole (`e edit` first, then `m map`) before ever clipping
+glyphs. Cover with TestBackend scenarios at 80×24; W1-2 fixed this class
+for the help overlay but the footer/flash line was missed.
 
 **P1-7: `import` and `art image` still leak anyhow chains on missing files.**
 Observed: `fireside import nope.md` and `fireside art image nope.png` →
@@ -288,8 +349,9 @@ Observed: Esc, Tab, and random letters on a non-branch slide do nothing —
 no flash. The constitution promises "every blocked action gives feedback",
 and Esc is the panic key a lost presenter reaches for.
 Fix: catch-all arm in `on_flow_key`/`on_present_key` flashing
-`Press ? to see the keys` (rate-limited to not fire on every keystroke of
-mashing). Keep reveal-pending behavior (any key reveals) as is.
+`Press ? to see the keys` (rate-limited: once shown, don't re-trigger for
+2 s of further unknown keys — track the last such flash's instant in
+`App`). Keep reveal-pending behavior (any key reveals) as is.
 
 **P2-4: The demo advertises quick-edit it can't complete.**
 Observed: demo footer teaches `e edit`; editing works but Ctrl+S →
@@ -474,22 +536,51 @@ without the audience ever seeing speaker notes (A-1).
 
 Scoped work, in dependency order:
 
-1. **W4-DS-1 — land P1-1 first (path-keyed session state).** Hard
-   prerequisite: fingerprint keying would detach the follower on every
-   quick-edit save. Do the resume-keying fix as its own change, then build
-   on it.
-2. **W4-DS-2 — session-state contract (ADR).** Extend the per-deck record:
-   `node_id`, `reveal_step`, `elapsed_secs`, `heartbeat` (epoch seconds,
-   refreshed on every poll tick, not just on movement). One writer (the
-   presenting process), N readers. Atomic writes (temp + rename). Document
-   in `contracts/` for the spec; host-local, **not** protocol-versioned.
+1. **W4-DS-1 — land P1-1 first (path-keyed session state).** Rev 2 note:
+   with W4-DS-2's dedicated session file (keyed by canonical path from
+   day one) this is no longer the *hard* dependency it was when session
+   state was going to live in the resume record — but keep the order
+   anyway: P1-1 establishes the canonical-path keying convention and the
+   prune/migration behavior the session store copies, and it fixes a
+   shipping bug regardless. Do the resume-keying fix as its own change,
+   then build on it.
+2. **W4-DS-2 — session-state contract (ADR).** Decided (rev 2): live
+   session state gets its **own file per deck**, not a new field in
+   `resume.json`. Rationale for the ADR: the heartbeat rewrites its file
+   on every 250 ms poll tick, and `resume.json` is a shared
+   read-modify-write store across *all* decks — heartbeat traffic there
+   would race two concurrent presentations (last-writer-wins over the
+   whole map) and churn a file the rest of the code treats as a cold
+   cache. Location:
+   `$XDG_STATE_HOME/fireside/sessions/<fnv1a64 hex of canonical path>.json`
+   — FNV-1a 64-bit implemented in ~6 lines beside the store (std-only,
+   stable across processes; `DefaultHasher` is not guaranteed stable
+   across Rust versions and `watch::fingerprint` is an `(mtime, len)`
+   pair, not a hash — neither fits). Contents:
+   `{"schema": 1, "deck_path": "...", "node_id": "...", "reveal_step": n,
+   "reveal_total": n, "elapsed_secs": n, "heartbeat": <epoch secs>}` —
+   heartbeat refreshed on every poll tick, not just on movement. One
+   writer (the presenting process), N readers. Atomic writes (temp file
+   in the same directory + rename). Deleted on clean presenter exit; a
+   reader treats missing-file and stale-heartbeat (> 2 s old) identically
+   as "presenter not running". `resume.json` is untouched by this feature
+   beyond the P1-1 rekeying. Document in `contracts/` for the spec;
+   host-local, **not** protocol-versioned.
 3. **W4-DS-3 — presenter side.** Widen `PositionSink` (or add a sibling
    sink) so the CLI can persist reveal step and heartbeat; presenter still
    performs zero file I/O itself. `--fullscreen` launch flag: start with
    `view_override = Fullscreen` (one-liner; the `f` toggle already exists).
 4. **W4-DS-4 — `fireside notes <deck>` follower.** New TUI screen in
    `fireside-tui` (rendering only; polling closure injected from the CLI at
-   the watcher's 250 ms cadence, same pattern as `watch.rs`). Shows:
+   the watcher's 250 ms cadence, same pattern as `watch.rs`). Data flow
+   (rev 2): the follower loads the deck itself through the same `load()`
+   path, watches the deck file too (so a quick-edit save updates the
+   notes), and resolves the session file's `node_id` against its own
+   loaded graph — current node's `speaker-notes`, next title via the
+   node's `next` edge, or the choice options at a branch. It writes no
+   files, ever. A `node_id` it can't resolve (presenter and follower
+   mid-reload skew) renders as a benign "waiting for presenter…" state,
+   never an error. Same non-tty guard as P0-3. Shows:
    current slide title + its `speaker-notes`, next-slide title (or the
    branch options when the presenter is at a choice), reveal progress
    (`3/5 revealed`), elapsed timer, and a clear stale state
@@ -541,6 +632,8 @@ a follower window on the laptop. Design that fits Fireside as-is:
   Shows "presenter not running / disconnected" when the record goes stale.
 - Extend the resume/session record with reveal step, elapsed, and a
   heartbeat timestamp so the follower can show `3/5 revealed` and the timer.
+  _(Superseded in rev 2: the scoped W4-DS-2 puts session state in its own
+  per-deck file instead of the resume record — the Wave 4 section governs.)_
 - **Depends on P1-1** (path-keyed resume state): with fingerprint keying, a
   quick-edit save mid-talk would silently detach the follower.
 - Polish: a `--fullscreen` launch flag (start in the existing `f` view mode)
@@ -586,6 +679,18 @@ feature with the ADR-005-superseding ADR; treat the static web editor as a
 separate product-direction decision — it can be prototyped without touching
 the workspace.
 
+## Definition of done (applies to every item above)
+
+- `scripts/verify.sh` passes — it mirrors every CI job; do not substitute
+  a hand-picked subset of checks.
+- Any change touching a TUI-visible path gets a real tmux smoke run
+  before it is called done (TestBackend cannot catch reload/ordering/
+  timing bugs — project rule, learned the hard way).
+- New/changed behavior lands with tests at the constitution-VII layer
+  named in the item (unit / TestBackend scenario / cli_e2e / tmux smoke).
+- `graphify update .` after code changes.
+- Tick the item's Progress Log line in this file (status + date).
+
 ## Suggested order
 
 Wave 1 in one sitting (P0-1 docs line + P0-2 hint + P0-3 tty guard are each
@@ -599,3 +704,9 @@ through the Spec Kit pipeline as `012-presenter-view`; the WYSIWYG editor
 follows its own plan (`2026-07-19-wysiwyg-editor-plan.md`) as
 `013-authoring-editor`. Remaining fresh ideas go to the user for a scope
 decision before any speccing.
+
+Cross-plan sequencing (decided, rev 2): this plan's `render/` fixes
+(P1-6, P2-1) land **before** the editor plan's E0 `SlideView` refactor —
+they are small and snapshot-bound, and the refactor then carries them.
+The editor plan says the same; neither plan may interleave with the
+other inside `fireside-tui/src/render/`.
