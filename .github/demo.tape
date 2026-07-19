@@ -53,7 +53,7 @@ Sleep 800ms
 
 # Take the extras path via its shortcut key, and reveal its tips one at a
 # time (see reveal.tape for a focused look at incremental reveal).
-Type "e"
+Type "o"
 Sleep 1.5s
 Space
 Sleep 1.2s

@@ -447,6 +447,7 @@ fn help_overlay_opens_and_any_key_closes() {
     let s = screen(&app, 80, 24);
     assert!(s.contains(" Keys "));
     assert!(s.contains("map — see and jump anywhere"));
+    assert!(s.contains("select a map row or branch option"));
     press(&mut app, KeyCode::Char('x'));
     assert_eq!(*app.screen(), Screen::Present);
     assert_eq!(

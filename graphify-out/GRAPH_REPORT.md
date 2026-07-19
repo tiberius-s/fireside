@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-18)
 
 ## Corpus Check
-- 259 files · ~313,541 words
+- 259 files · ~313,705 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2714 nodes · 3774 edges · 249 communities (206 shown, 43 thin omitted)
+- 2720 nodes · 3784 edges · 249 communities (206 shown, 43 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `82a4da19`
+- Built from commit: `4e6aa643`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -324,8 +324,8 @@ Cohesion: 0.23
 Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_the_source_exactly(), rust_keywords_strings_and_comments_get_distinct_styles() (+4 more)
 
 ### Community 1 - "CLI Commands"
-Cohesion: 0.11
-Nodes (32): Command, Graph, Option, Path, PathBuf, Result, Graph, Option (+24 more)
+Cohesion: 0.10
+Nodes (35): Command, Graph, Option, Path, PathBuf, Result, String, Graph (+27 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -692,8 +692,8 @@ Cohesion: 0.20
 Nodes (9): 1. Confirm non-watch behavior is unchanged (FR-002), 2. Start watch mode and see the immediate first check (FR-003), 3. Introduce a semantic error and save (User Story 1, FR-004/FR-005), 4. Fix it and save again, 5. Introduce a JSON syntax error (User Story 2, FR-006), 6. Delete the file (edge case, FR-009), 7. Stop with Ctrl-C (FR-010), Automated coverage (+1 more)
 
 ### Community 106 - "Community 106"
-Cohesion: 0.14
-Nodes (25): Command, PathBuf, Drop, art_image_converts_a_readable_file(), art_image_reports_a_clear_error_for_a_missing_file(), art_text_partial_recognition_still_produces_output(), art_text_prints_a_multiline_banner(), art_text_with_no_recognized_characters_errors_clearly() (+17 more)
+Cohesion: 0.13
+Nodes (26): Command, PathBuf, Drop, art_image_converts_a_readable_file(), art_image_reports_a_clear_error_for_a_missing_file(), art_text_partial_recognition_still_produces_output(), art_text_prints_a_multiline_banner(), art_text_with_no_recognized_characters_errors_clearly() (+18 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.15
@@ -1080,8 +1080,8 @@ Cohesion: 0.10
 Nodes (63): App, KeyCode, String, KeyModifiers, app(), arrows_and_enter_choose_an_option(), ascii_art_block_renders_centered_and_sized_to_content(), ascii_art_code_block_centers_within_the_card_at_80x24() (+55 more)
 
 ### Community 229 - "Community 229"
-Cohesion: 0.15
-Nodes (19): Path, Result, String, Diagnostic, Error, CoreError, EngineError, TuiError (+11 more)
+Cohesion: 0.14
+Nodes (20): Path, Result, String, Diagnostic, Error, CoreError, EngineError, TuiError (+12 more)
 
 ### Community 230 - "Community 230"
 Cohesion: 0.20
@@ -1124,23 +1124,23 @@ Cohesion: 0.22
 Nodes (8): Prerequisites, Quickstart: validating the ASCII art content block, Regression check, Scenario 1 — banner generation (US1), Scenario 2 — image conversion (US2), Scenario 3 — hand-typed art and reveal composition (US3), Scenario 4 — validator catches oversized/empty art (US4), Scenario 5 — compatibility break is real and clear (spec Edge Cases, FR-011)
 
 ### Community 243 - "Community 243"
-Cohesion: 0.25
-Nodes (7): Appendix — links, Phase 1 — Mental models (~wk 1–3), Phase 2 — Std lib & idioms (~wk 4–6), Phase 3 — The hard parts (~wk 7–10), Phase 4 — Fireside as the lab (ongoing), Rust learning path — Node/TS → Rust, via Fireside, Verification
+Cohesion: 0.20
+Nodes (9): Deferred / watchlist, Fireside — UX Polish, ASCII Art Quality & Docs Restructure Plan (2026-07-18), Ground rules, Progress Log, Suggested order, Wave 1 — bug fixes (no pipeline, one small PR-sized batch), Wave 2 — Spec Kit feature 010: presenter polish (small, behavior-adding), Wave 3 — Spec Kit feature 011: `art image` output quality (+1 more)
 
 ### Community 244 - "Community 244"
 Cohesion: 0.15
 Nodes (12): Dependencies & Execution Order, Follow-up (2026-07-18, second pass), Implementation Strategy, Parallel Execution Examples, Phase 1: Setup, Phase 2: Foundational (blocking prerequisite for all user stories), Phase 3: User Story 1 - Author turns a title into a stylized banner (Priority: P1), Phase 4: User Story 2 - Author converts an existing image into ASCII art (Priority: P1) (+4 more)
 
 ### Community 245 - "Community 245"
-Cohesion: 0.12
-Nodes (30): BufRead, Option, Path, Result, String, String, Graph, Option (+22 more)
+Cohesion: 0.14
+Nodes (28): BufRead, Option, Path, Result, String, Graph, Option, Result (+20 more)
 
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1363 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1358 more)
+- **1364 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1359 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **43 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1151,13 +1151,13 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
   _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `Community 228`, `TUI App Core`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1365 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1366 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.10796221322537113 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09872241579558652 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**
   _Cohesion score 0.06720321931589537 - nodes in this community are weakly interconnected._
+- **Should `Editor Detail Pane` be split into smaller, more focused modules?**
+  _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._

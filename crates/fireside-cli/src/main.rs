@@ -181,11 +181,24 @@ fn main() -> Result<()> {
     }
 }
 
-/// Load and parse a deck with errors a person can act on: a broken file
-/// prints the offending line with a caret, not a serde one-liner.
+/// Load and parse a deck with errors a person can act on: a missing file
+/// gets one plain-language line with the fix, and a broken file prints the
+/// offending line with a caret — neither shows a raw anyhow/serde chain.
 fn load(path: &Path) -> Result<Graph> {
-    let text = std::fs::read_to_string(path)
-        .with_context(|| format!("could not read {}", path.display()))?;
+    let text = match std::fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+            eprintln!(
+                "No deck named {} — \"fireside new {}\" creates one.",
+                path.display(),
+                deck_stem(path)
+            );
+            std::process::exit(1);
+        }
+        Err(err) => {
+            return Err(err).with_context(|| format!("could not read {}", path.display()));
+        }
+    };
     match Graph::from_json(&text) {
         Ok(graph) => Ok(graph),
         Err(CoreError::Parse(err)) => {
@@ -193,6 +206,21 @@ fn load(path: &Path) -> Result<Graph> {
             std::process::exit(1);
         }
     }
+}
+
+/// The name `fireside new` would take for this path: `nope.fireside.json`
+/// becomes `nope`, matching what `new` itself writes back out
+/// (`{slug}.fireside.json`).
+fn deck_stem(path: &Path) -> String {
+    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("deck");
+    name.strip_suffix(".fireside.json")
+        .map(str::to_owned)
+        .unwrap_or_else(|| {
+            path.file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or(name)
+                .to_owned()
+        })
 }
 
 fn present(path: &Path, restart: bool) -> Result<()> {

@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-18)
 
 ## Corpus Check
-- 258 files · ~312,265 words
+- 259 files · ~313,675 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2706 nodes · 3767 edges · 248 communities (205 shown, 43 thin omitted)
+- 2719 nodes · 3782 edges · 249 communities (206 shown, 43 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `688751a8`
+- Built from commit: `4e6aa643`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -256,6 +256,7 @@
 - [[_COMMUNITY_Community 240|Community 240]]
 - [[_COMMUNITY_Community 241|Community 241]]
 - [[_COMMUNITY_Community 242|Community 242]]
+- [[_COMMUNITY_Community 243|Community 243]]
 - [[_COMMUNITY_Community 244|Community 244]]
 - [[_COMMUNITY_Community 245|Community 245]]
 - [[_COMMUNITY_Community 246|Community 246]]
@@ -316,7 +317,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (248 total, 43 thin omitted)
+## Communities (249 total, 43 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -324,7 +325,7 @@ Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_
 
 ### Community 1 - "CLI Commands"
 Cohesion: 0.10
-Nodes (34): Command, Graph, Option, Path, PathBuf, Result, String, Graph (+26 more)
+Nodes (35): Command, Graph, Option, Path, PathBuf, Result, String, Graph (+27 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -1079,8 +1080,8 @@ Cohesion: 0.10
 Nodes (63): App, KeyCode, String, KeyModifiers, app(), arrows_and_enter_choose_an_option(), ascii_art_block_renders_centered_and_sized_to_content(), ascii_art_code_block_centers_within_the_card_at_80x24() (+55 more)
 
 ### Community 229 - "Community 229"
-Cohesion: 0.15
-Nodes (19): Path, Result, String, Diagnostic, Error, CoreError, EngineError, TuiError (+11 more)
+Cohesion: 0.14
+Nodes (20): Path, Result, String, Diagnostic, Error, CoreError, EngineError, TuiError (+12 more)
 
 ### Community 230 - "Community 230"
 Cohesion: 0.20
@@ -1122,6 +1123,10 @@ Nodes (4): Contract: `fireside art` subcommand, `fireside art image <PATH> [--wi
 Cohesion: 0.22
 Nodes (8): Prerequisites, Quickstart: validating the ASCII art content block, Regression check, Scenario 1 — banner generation (US1), Scenario 2 — image conversion (US2), Scenario 3 — hand-typed art and reveal composition (US3), Scenario 4 — validator catches oversized/empty art (US4), Scenario 5 — compatibility break is real and clear (spec Edge Cases, FR-011)
 
+### Community 243 - "Community 243"
+Cohesion: 0.20
+Nodes (9): Deferred / watchlist, Fireside — UX Polish, ASCII Art Quality & Docs Restructure Plan (2026-07-18), Ground rules, Progress Log, Suggested order, Wave 1 — bug fixes (no pipeline, one small PR-sized batch), Wave 2 — Spec Kit feature 010: presenter polish (small, behavior-adding), Wave 3 — Spec Kit feature 011: `art image` output quality (+1 more)
+
 ### Community 244 - "Community 244"
 Cohesion: 0.15
 Nodes (12): Dependencies & Execution Order, Follow-up (2026-07-18, second pass), Implementation Strategy, Parallel Execution Examples, Phase 1: Setup, Phase 2: Foundational (blocking prerequisite for all user stories), Phase 3: User Story 1 - Author turns a title into a stylized banner (Priority: P1), Phase 4: User Story 2 - Author converts an existing image into ASCII art (Priority: P1) (+4 more)
@@ -1135,7 +1140,7 @@ Nodes (28): BufRead, Option, Path, Result, String, Graph, Option, Result (+20 mo
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1357 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1352 more)
+- **1364 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1359 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **43 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1145,14 +1150,14 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `Community 228`, `TUI App Core`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1359 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1366 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.1 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09872241579558652 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**
   _Cohesion score 0.06720321931589537 - nodes in this community are weakly interconnected._
+- **Should `Editor Detail Pane` be split into smaller, more focused modules?**
+  _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._

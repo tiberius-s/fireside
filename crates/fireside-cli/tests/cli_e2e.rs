@@ -30,17 +30,30 @@ fn validate_hello_exits_zero() {
         .arg(repo_root().join("docs/examples/hello.json"))
         .assert()
         .success()
-        .stdout(predicate::str::contains("0 error(s)"));
+        .stdout(predicate::str::contains("0 errors"));
 }
 
 #[test]
-fn validate_missing_file_fails_with_readable_error() {
+fn validate_missing_file_suggests_creating_it() {
     fireside()
         .arg("validate")
         .arg("nonexistent.json")
         .assert()
         .failure()
-        .stderr(predicate::str::contains("could not read"));
+        .stderr(predicate::str::contains(
+            "No deck named nonexistent.json — \"fireside new nonexistent\" creates one.",
+        ));
+}
+
+#[test]
+fn present_missing_file_suggests_creating_it() {
+    fireside()
+        .arg("nope.fireside.json")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "No deck named nope.fireside.json — \"fireside new nope\" creates one.",
+        ));
 }
 
 #[test]
@@ -100,7 +113,7 @@ fn new_scaffolds_a_deck_that_validates_clean() {
         .arg(&file)
         .assert()
         .success()
-        .stdout(predicate::str::contains("0 error(s)"));
+        .stdout(predicate::str::contains("0 errors"));
 }
 
 /// Kills and reaps the wrapped child even if an assertion panics, so a
@@ -220,7 +233,7 @@ fn new_with_banner_flag_embeds_ascii_art_and_validates() {
         .arg(&file)
         .assert()
         .success()
-        .stdout(predicate::str::contains("0 error(s)"));
+        .stdout(predicate::str::contains("0 errors"));
 }
 
 #[test]

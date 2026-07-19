@@ -30,8 +30,8 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1784402072.6723418,
-    "ast_hash": "daa98127f01b810cdb760574a1294be9",
+    "mtime": 1784423702.0062144,
+    "ast_hash": "a136d257cfe8f5bd0154568253c73644",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
@@ -420,8 +420,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/assets/demo.fireside.json": {
-    "mtime": 1784402263.8974833,
-    "ast_hash": "7c1d8d3fe35438966e17b7d7cc2c3a35",
+    "mtime": 1784423625.5925236,
+    "ast_hash": "2d2857b5846b004986e1c2efa3011cb9",
     "semantic_hash": ""
   },
   ".github/demo.gif": {
@@ -1200,8 +1200,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/overlays.rs": {
-    "mtime": 1784343663.1251972,
-    "ast_hash": "5de4c89dc0d985dc9de041a25d36d09c",
+    "mtime": 1784423616.0696738,
+    "ast_hash": "1f7aee362f053170588cee3742856e43",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/hits.rs": {
@@ -1210,8 +1210,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/tests.rs": {
-    "mtime": 1784397485.4895456,
-    "ast_hash": "b3ff7f290ff7258523ff10727770d934",
+    "mtime": 1784423621.2529252,
+    "ast_hash": "06ff726eff5250000837232ff5271dc3",
     "semantic_hash": ""
   },
   ".github/demo-watch-toggle.sh": {
@@ -1225,8 +1225,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/report.rs": {
-    "mtime": 1784344661.5146794,
-    "ast_hash": "0baa3e46b2215e6c4b79c535a7727b0b",
+    "mtime": 1784423666.845975,
+    "ast_hash": "52bf9e507c77e7ae01fe76b2cdf02259",
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/templates.rs": {
@@ -1387,6 +1387,16 @@
   ".github/art-text.gif": {
     "mtime": 1784399322.9782195,
     "ast_hash": "de61f05f13f5f82c8dced4831f87e804",
+    "semantic_hash": ""
+  },
+  "notes/rust-learning-path.md": {
+    "mtime": 1784419185.2523065,
+    "ast_hash": "11453d8a510548e18bead3b430d54218",
+    "semantic_hash": ""
+  },
+  ".claude/plans/2026-07-18-ux-polish-plan.md": {
+    "mtime": 1784420683.314691,
+    "ast_hash": "ed26e5c9f26307189bc03de63ab6b278",
     "semantic_hash": ""
   }
 }

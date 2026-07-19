@@ -114,7 +114,7 @@
           "options": [
             {
               "label": "One more slide",
-              "key": "e",
+              "key": "o",
               "description": "An ordered list, for completeness",
               "target": "extras"
             },

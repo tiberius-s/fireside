@@ -72,12 +72,24 @@ fn diagnostics_report(path: &Path, diags: &[Diagnostic]) -> String {
             format!("  {icon} {}", d.message)
         })
         .collect();
+    let notes = diags.len() - errors - warnings;
     lines.push(format!(
-        "\n{}: {errors} error(s), {warnings} warning(s), {} note(s)",
+        "\n{}: {}, {}, {}",
         path.display(),
-        diags.len() - errors - warnings
+        plural(errors, "error"),
+        plural(warnings, "warning"),
+        plural(notes, "note"),
     ));
     lines.join("\n")
+}
+
+/// `1 error`, `2 errors`, `0 errors` — never the placeholder `error(s)`.
+fn plural(count: usize, noun: &str) -> String {
+    if count == 1 {
+        format!("1 {noun}")
+    } else {
+        format!("{count} {noun}s")
+    }
 }
 
 pub(crate) fn validate_file(path: &Path, watch: bool) -> Result<()> {
@@ -166,9 +178,16 @@ mod tests {
             "expected the dangling-target diagnostic: {report}"
         );
         assert!(
-            report.contains("error(s)"),
+            report.contains("1 error,"),
             "expected the summary line: {report}"
         );
+    }
+
+    #[test]
+    fn diagnostics_report_pluralizes_the_summary_counts() {
+        assert_eq!(plural(0, "error"), "0 errors");
+        assert_eq!(plural(1, "error"), "1 error");
+        assert_eq!(plural(2, "error"), "2 errors");
     }
 
     #[test]

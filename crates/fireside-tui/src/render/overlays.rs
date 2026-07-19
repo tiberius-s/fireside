@@ -88,6 +88,10 @@ fn edit_line(text: &str, cursor_here: bool, col: usize, tokens: &Tokens) -> Line
     ])
 }
 
+/// Width of the left-hand key column in the help overlay, matching the
+/// `{key:<KEY_COL$}` padding used when the rows are laid out below.
+const KEY_COL: usize = 18;
+
 pub(super) fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
     const KEYS: &[(&str, &str)] = &[
         ("Space / → / Enter", "next slide"),
@@ -95,14 +99,21 @@ pub(super) fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
         ("↑ / ↓", "pick a choice · scroll"),
         ("1–9 or a letter", "take a choice directly"),
         ("m", "map — see and jump anywhere"),
-        ("click", "a map row or branch option to select it"),
+        ("click", "select a map row or branch option"),
         ("f", "fullscreen on/off"),
         ("s", "speaker notes"),
-        ("e", "quick-edit heading/text on this slide"),
+        ("e", "quick-edit this slide's text"),
         ("t", "elapsed timer"),
         ("q", "quit"),
     ];
-    let rect = overlay_rect(area, 50, KEYS.len() as u16 + 4);
+    // Wide enough for the longest row so nothing clips, capped by the
+    // terminal itself inside `overlay_rect`.
+    let content_width = KEYS
+        .iter()
+        .map(|(_, what)| 1 + KEY_COL + what.chars().count())
+        .max()
+        .unwrap_or(0) as u16;
+    let rect = overlay_rect(area, content_width + 2, KEYS.len() as u16 + 4);
     frame.render_widget(Clear, rect);
     let block = Block::bordered()
         .border_type(BorderType::Rounded)
@@ -119,7 +130,7 @@ pub(super) fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
         .map(|(key, what)| {
             Line::from(vec![
                 Span::styled(
-                    format!(" {key:<18}"),
+                    format!(" {key:<KEY_COL$}"),
                     tokens.text.add_modifier(Modifier::BOLD),
                 ),
                 Span::styled((*what).to_owned(), tokens.muted),
