@@ -14210,6 +14210,366 @@
       "norm_label": "suggested order"
     },
     {
+      "label": "2026-07-19-fable-ux-audit.md",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit",
+      "community": 274,
+      "norm_label": "2026-07-19-fable-ux-audit.md"
+    },
+    {
+      "label": "Fireside \u2014 Full-Project UX Audit (2026-07-19, Fable)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "community": 274,
+      "norm_label": "fireside \u2014 full-project ux audit (2026-07-19, fable)"
+    },
+    {
+      "label": "Progress Log",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_progress_log",
+      "community": 274,
+      "norm_label": "progress log"
+    },
+    {
+      "label": "Executive summary",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_executive_summary",
+      "community": 274,
+      "norm_label": "executive summary"
+    },
+    {
+      "label": "Wave 1 \u2014 P0: the first-five-minutes failures",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L70",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_wave_1_p0_the_first_five_minutes_failures",
+      "community": 274,
+      "norm_label": "wave 1 \u2014 p0: the first-five-minutes failures"
+    },
+    {
+      "label": "Wave 2 \u2014 P1: presenter-facing correctness",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L124",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_wave_2_p1_presenter_facing_correctness",
+      "community": 274,
+      "norm_label": "wave 2 \u2014 p1: presenter-facing correctness"
+    },
+    {
+      "label": "Wave 3 \u2014 P2: papercuts and polish",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L265",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_wave_3_p2_papercuts_and_polish",
+      "community": 274,
+      "norm_label": "wave 3 \u2014 p2: papercuts and polish"
+    },
+    {
+      "label": "Codebase health, CI, dependencies",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L336",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_codebase_health_ci_dependencies",
+      "community": 274,
+      "norm_label": "codebase health, ci, dependencies"
+    },
+    {
+      "label": "Docs",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L382",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_docs",
+      "community": 274,
+      "norm_label": "docs"
+    },
+    {
+      "label": "Competitive context (brief)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L394",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_competitive_context_brief",
+      "community": 274,
+      "norm_label": "competitive context (brief)"
+    },
+    {
+      "label": "Fresh ideas (not in either predecessor plan)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L414",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_fresh_ideas_not_in_either_predecessor_plan",
+      "community": 274,
+      "norm_label": "fresh ideas (not in either predecessor plan)"
+    },
+    {
+      "label": "Constitution flags (summary)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L449",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_constitution_flags_summary",
+      "community": 274,
+      "norm_label": "constitution flags (summary)"
+    },
+    {
+      "label": "Wave 4 \u2014 scoped feature: dual-screen presenter view (spec 012 candidate)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L465",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_wave_4_scoped_feature_dual_screen_presenter_view_spec_012_candidate",
+      "community": 274,
+      "norm_label": "wave 4 \u2014 scoped feature: dual-screen presenter view (spec 012 candidate)"
+    },
+    {
+      "label": "Addendum (2026-07-19, user follow-up): speaker-notes privacy, dual-screen presenter view, WYSIWYG editing",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L519",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_addendum_2026_07_19_user_follow_up_speaker_notes_privacy_dual_screen_presenter_view_wysiwyg_editing",
+      "community": 274,
+      "norm_label": "addendum (2026-07-19, user follow-up): speaker-notes privacy, dual-screen presenter view, wysiwyg editing"
+    },
+    {
+      "label": "Suggested order",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L589",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_fable_ux_audit_suggested_order",
+      "community": 274,
+      "norm_label": "suggested order"
+    },
+    {
+      "label": "2026-07-19-wysiwyg-editor-plan.md",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan",
+      "community": 275,
+      "norm_label": "2026-07-19-wysiwyg-editor-plan.md"
+    },
+    {
+      "label": "Fireside \u2014 WYSIWYG Block Editor Plan (`fireside edit`, 2026-07-19, rev 2)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "community": 275,
+      "norm_label": "fireside \u2014 wysiwyg block editor plan (`fireside edit`, 2026-07-19, rev 2)"
+    },
+    {
+      "label": "Progress Log",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_progress_log",
+      "community": 275,
+      "norm_label": "progress log"
+    },
+    {
+      "label": "Product definition",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_product_definition",
+      "community": 275,
+      "norm_label": "product definition"
+    },
+    {
+      "label": "Interaction design principles (the anti-overwhelm charter)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L54",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_interaction_design_principles_the_anti_overwhelm_charter",
+      "community": 275,
+      "norm_label": "interaction design principles (the anti-overwhelm charter)"
+    },
+    {
+      "label": "The screen",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_the_screen",
+      "community": 275,
+      "norm_label": "the screen"
+    },
+    {
+      "label": "The block model on the canvas",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L120",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_the_block_model_on_the_canvas",
+      "community": 275,
+      "norm_label": "the block model on the canvas"
+    },
+    {
+      "label": "Block forms (never syntax)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L143",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_block_forms_never_syntax",
+      "community": 275,
+      "norm_label": "block forms (never syntax)"
+    },
+    {
+      "label": "Vocabulary rule",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L168",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_vocabulary_rule",
+      "community": 275,
+      "norm_label": "vocabulary rule"
+    },
+    {
+      "label": "Structure editing (plain words, pickers, drags)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L176",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_structure_editing_plain_words_pickers_drags",
+      "community": 275,
+      "norm_label": "structure editing (plain words, pickers, drags)"
+    },
+    {
+      "label": "Never lose work",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L199",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_never_lose_work",
+      "community": 275,
+      "norm_label": "never lose work"
+    },
+    {
+      "label": "Try it without leaving",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L217",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_try_it_without_leaving",
+      "community": 275,
+      "norm_label": "try it without leaving"
+    },
+    {
+      "label": "Acceptance bar (testable)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L224",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_acceptance_bar_testable",
+      "community": 275,
+      "norm_label": "acceptance bar (testable)"
+    },
+    {
+      "label": "Architecture",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L250",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_architecture",
+      "community": 275,
+      "norm_label": "architecture"
+    },
+    {
+      "label": "Decisions needed at `/speckit-clarify`",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L269",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_decisions_needed_at_speckit_clarify",
+      "community": 275,
+      "norm_label": "decisions needed at `/speckit-clarify`"
+    },
+    {
+      "label": "Waves",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L283",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_waves",
+      "community": 275,
+      "norm_label": "waves"
+    },
+    {
+      "label": "Test discipline map (constitution VII)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L329",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_test_discipline_map_constitution_vii",
+      "community": 275,
+      "norm_label": "test discipline map (constitution vii)"
+    },
+    {
+      "label": "Risks & mitigations",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L344",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_risks_mitigations",
+      "community": 275,
+      "norm_label": "risks & mitigations"
+    },
+    {
+      "label": "Constitution notes (explicit)",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L364",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_constitution_notes_explicit",
+      "community": 275,
+      "norm_label": "constitution notes (explicit)"
+    },
+    {
+      "label": "Explicitly out of scope",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L381",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_explicitly_out_of_scope",
+      "community": 275,
+      "norm_label": "explicitly out of scope"
+    },
+    {
+      "label": "Suggested order relative to other plans",
+      "file_type": "document",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L392",
+      "_origin": "ast",
+      "id": "plans_2026_07_19_wysiwyg_editor_plan_suggested_order_relative_to_other_plans",
+      "community": 275,
+      "norm_label": "suggested order relative to other plans"
+    },
+    {
       "label": "SKILL.md",
       "file_type": "document",
       "source_file": ".claude/skills/graphify/SKILL.md",
@@ -58408,6 +58768,356 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit",
+      "target": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L458",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_addendum_2026_07_19_user_follow_up_speaker_notes_privacy_dual_screen_presenter_view_wysiwyg_editing"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L329",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_codebase_health_ci_dependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L387",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_competitive_context_brief"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L442",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_constitution_flags_summary"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L375",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_docs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_executive_summary"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L407",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_fresh_ideas_not_in_either_predecessor_plan"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L22",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_progress_log"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L458",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_suggested_order"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L63",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_wave_1_p0_the_first_five_minutes_failures"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L117",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_wave_2_p1_presenter_facing_correctness"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L258",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_wave_3_p2_papercuts_and_polish"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-fable-ux-audit.md",
+      "source_location": "L465",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_fable_ux_audit_fireside_full_project_ux_audit_2026_07_19_fable",
+      "target": "plans_2026_07_19_fable_ux_audit_wave_4_scoped_feature_dual_screen_presenter_view_spec_012_candidate"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L224",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_acceptance_bar_testable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L250",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_architecture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L364",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_constitution_notes_explicit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L381",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_explicitly_out_of_scope",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L54",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_interaction_design_principles_the_anti_overwhelm_charter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L199",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_never_lose_work",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_product_definition",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_progress_log",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L344",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_risks_mitigations",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L392",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_suggested_order_relative_to_other_plans",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L329",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_test_discipline_map_constitution_vii",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L120",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_the_block_model_on_the_canvas",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_the_screen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L217",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_try_it_without_leaving",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L283",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_fireside_wysiwyg_block_editor_plan_fireside_edit_2026_07_19_rev_2",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_waves",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L42",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_product_definition",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_the_screen"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L143",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_the_block_model_on_the_canvas",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_block_forms_never_syntax",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L176",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_the_block_model_on_the_canvas",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_structure_editing_plain_words_pickers_drags",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L168",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_the_block_model_on_the_canvas",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_vocabulary_rule",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/plans/2026-07-19-wysiwyg-editor-plan.md",
+      "source_location": "L269",
+      "weight": 1.0,
+      "source": "plans_2026_07_19_wysiwyg_editor_plan_architecture",
+      "target": "plans_2026_07_19_wysiwyg_editor_plan_decisions_needed_at_speckit_clarify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": ".claude/skills/graphify/SKILL.md",
       "source_location": "L6",
       "weight": 1.0,
@@ -73319,5 +74029,5 @@
       "source_file": "docs/src/content/docs/spec/data-model.md"
     }
   ],
-  "built_at_commit": "37cbf907d6d5e5075ecd63399faf1a87c1a39bfc"
+  "built_at_commit": "d130c236580107bf19d79d8932e38e2827ecd91b"
 }

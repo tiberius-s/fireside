@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-19)
 
 ## Corpus Check
-- 281 files · ~342,624 words
+- 283 files · ~351,292 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2992 nodes · 4113 edges · 274 communities (230 shown, 44 thin omitted)
+- 3028 nodes · 4148 edges · 276 communities (232 shown, 44 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `37cbf907`
+- Built from commit: `d130c236`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -287,6 +287,8 @@
 - [[_COMMUNITY_Community 271|Community 271]]
 - [[_COMMUNITY_Community 272|Community 272]]
 - [[_COMMUNITY_Community 273|Community 273]]
+- [[_COMMUNITY_Community 274|Community 274]]
+- [[_COMMUNITY_Community 275|Community 275]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `app()` - 48 edges
@@ -342,7 +344,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (274 total, 44 thin omitted)
+## Communities (276 total, 44 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -1256,12 +1258,20 @@ Nodes (5): Branch and Rejoin, Graph Patterns, Hub and Spoke, Linear Sequence, Op
 Cohesion: 0.25
 Nodes (7): Install, Live-edit while presenting, Make your own, Requirements, See what a deck can do, Where to go next, Write in Markdown instead of JSON
 
+### Community 274 - "Community 274"
+Cohesion: 0.13
+Nodes (14): Addendum (2026-07-19, user follow-up): speaker-notes privacy, dual-screen presenter view, WYSIWYG editing, Codebase health, CI, dependencies, Competitive context (brief), Constitution flags (summary), Docs, Executive summary, Fireside — Full-Project UX Audit (2026-07-19, Fable), Fresh ideas (not in either predecessor plan) (+6 more)
+
+### Community 275 - "Community 275"
+Cohesion: 0.10
+Nodes (20): Acceptance bar (testable), Architecture, Block forms (never syntax), Constitution notes (explicit), Decisions needed at `/speckit-clarify`, Explicitly out of scope, Fireside — WYSIWYG Block Editor Plan (`fireside edit`, 2026-07-19, rev 2), Interaction design principles (the anti-overwhelm charter) (+12 more)
+
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1520 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1515 more)
+- **1548 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1543 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1273,7 +1283,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1522 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1550 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.0851063829787234 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**

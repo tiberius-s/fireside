@@ -1518,5 +1518,15 @@
     "mtime": 1784471622.8751705,
     "ast_hash": "d7dd71e7d90c1fb8301377575fd01ca7",
     "semantic_hash": ""
+  },
+  ".claude/plans/2026-07-19-fable-ux-audit.md": {
+    "mtime": 1784478248.7889237,
+    "ast_hash": "e2e922836c3bc264f46fc8b62367fa08",
+    "semantic_hash": ""
+  },
+  ".claude/plans/2026-07-19-wysiwyg-editor-plan.md": {
+    "mtime": 1784479732.0907326,
+    "ast_hash": "1b33d4fbaedd3834d67c3629a4d9267b",
+    "semantic_hash": ""
   }
 }

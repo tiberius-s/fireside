@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784472376.2821355,
-    "ast_hash": "a6ad8fc21ebd4aa70d110ef48d772bd2",
+    "mtime": 1784472388.3836844,
+    "ast_hash": "6571f24630cfc827a96d0c0d23fae968",
     "semantic_hash": ""
   },
   "crates/fireside-cli/README.md": {
@@ -1517,6 +1517,16 @@
   "docs/src/content/docs/guides/quickstart.md": {
     "mtime": 1784471622.8751705,
     "ast_hash": "d7dd71e7d90c1fb8301377575fd01ca7",
+    "semantic_hash": ""
+  },
+  ".claude/plans/2026-07-19-fable-ux-audit.md": {
+    "mtime": 1784478248.7889237,
+    "ast_hash": "e2e922836c3bc264f46fc8b62367fa08",
+    "semantic_hash": ""
+  },
+  ".claude/plans/2026-07-19-wysiwyg-editor-plan.md": {
+    "mtime": 1784478377.1943321,
+    "ast_hash": "f382cd0ec73fe2c05614be771f88dbf5",
     "semantic_hash": ""
   }
 }
