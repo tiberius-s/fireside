@@ -1388,5 +1388,10 @@
     "mtime": 1784399322.9782195,
     "ast_hash": "de61f05f13f5f82c8dced4831f87e804",
     "semantic_hash": ""
+  },
+  "notes/rust-learning-path.md": {
+    "mtime": 1784419185.2523065,
+    "ast_hash": "11453d8a510548e18bead3b430d54218",
+    "semantic_hash": ""
   }
 }

@@ -2428,7 +2428,7 @@
       "source_location": "L291",
       "_origin": "ast",
       "id": "src_main_slugify",
-      "community": 1,
+      "community": 245,
       "norm_label": "slugify()"
     },
     {
@@ -2438,7 +2438,7 @@
       "source_location": "L291",
       "_origin": "ast",
       "id": "crates_fireside_cli_src_main_rs_string",
-      "community": 1,
+      "community": 245,
       "norm_label": "string"
     },
     {
@@ -19278,6 +19278,86 @@
       "id": "spec_validation_failure_handling",
       "community": 98,
       "norm_label": "failure handling"
+    },
+    {
+      "label": "rust-learning-path.md",
+      "file_type": "document",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "notes_rust_learning_path",
+      "community": 243,
+      "norm_label": "rust-learning-path.md"
+    },
+    {
+      "label": "Rust learning path \u2014 Node/TS \u2192 Rust, via Fireside",
+      "file_type": "document",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "notes_rust_learning_path_rust_learning_path_node_ts_rust_via_fireside",
+      "community": 243,
+      "norm_label": "rust learning path \u2014 node/ts \u2192 rust, via fireside"
+    },
+    {
+      "label": "Phase 1 \u2014 Mental models (~wk 1\u20133)",
+      "file_type": "document",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "notes_rust_learning_path_phase_1_mental_models_wk_1_3",
+      "community": 243,
+      "norm_label": "phase 1 \u2014 mental models (~wk 1\u20133)"
+    },
+    {
+      "label": "Phase 2 \u2014 Std lib & idioms (~wk 4\u20136)",
+      "file_type": "document",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "notes_rust_learning_path_phase_2_std_lib_idioms_wk_4_6",
+      "community": 243,
+      "norm_label": "phase 2 \u2014 std lib & idioms (~wk 4\u20136)"
+    },
+    {
+      "label": "Phase 3 \u2014 The hard parts (~wk 7\u201310)",
+      "file_type": "document",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L94",
+      "_origin": "ast",
+      "id": "notes_rust_learning_path_phase_3_the_hard_parts_wk_7_10",
+      "community": 243,
+      "norm_label": "phase 3 \u2014 the hard parts (~wk 7\u201310)"
+    },
+    {
+      "label": "Phase 4 \u2014 Fireside as the lab (ongoing)",
+      "file_type": "document",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "notes_rust_learning_path_phase_4_fireside_as_the_lab_ongoing",
+      "community": 243,
+      "norm_label": "phase 4 \u2014 fireside as the lab (ongoing)"
+    },
+    {
+      "label": "Verification",
+      "file_type": "document",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L150",
+      "_origin": "ast",
+      "id": "notes_rust_learning_path_verification",
+      "community": 243,
+      "norm_label": "verification"
+    },
+    {
+      "label": "Appendix \u2014 links",
+      "file_type": "document",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L156",
+      "_origin": "ast",
+      "id": "notes_rust_learning_path_appendix_links",
+      "community": 243,
+      "norm_label": "appendix \u2014 links"
     },
     {
       "label": "requirements.md",
@@ -59588,6 +59668,76 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "notes_rust_learning_path",
+      "target": "notes_rust_learning_path_rust_learning_path_node_ts_rust_via_fireside",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L156",
+      "weight": 1.0,
+      "source": "notes_rust_learning_path_rust_learning_path_node_ts_rust_via_fireside",
+      "target": "notes_rust_learning_path_appendix_links",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "notes_rust_learning_path_rust_learning_path_node_ts_rust_via_fireside",
+      "target": "notes_rust_learning_path_phase_1_mental_models_wk_1_3",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "notes_rust_learning_path_rust_learning_path_node_ts_rust_via_fireside",
+      "target": "notes_rust_learning_path_phase_2_std_lib_idioms_wk_4_6",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L94",
+      "weight": 1.0,
+      "source": "notes_rust_learning_path_rust_learning_path_node_ts_rust_via_fireside",
+      "target": "notes_rust_learning_path_phase_3_the_hard_parts_wk_7_10",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "source": "notes_rust_learning_path_rust_learning_path_node_ts_rust_via_fireside",
+      "target": "notes_rust_learning_path_phase_4_fireside_as_the_lab_ongoing",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "notes/rust-learning-path.md",
+      "source_location": "L150",
+      "weight": 1.0,
+      "source": "notes_rust_learning_path_rust_learning_path_node_ts_rust_via_fireside",
+      "target": "notes_rust_learning_path_verification",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "specs/001-validate-watch/checklists/requirements.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -66909,5 +67059,5 @@
       "source_file": "docs/src/content/docs/spec/data-model.md"
     }
   ],
-  "built_at_commit": "688751a83360179c757f774deb2bfae25f7a1938"
+  "built_at_commit": "82a4da19e5ab915947734536456ed6d1e07e3f06"
 }
