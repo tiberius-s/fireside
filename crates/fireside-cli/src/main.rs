@@ -8,6 +8,7 @@
 
 use std::cell::RefCell;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -158,7 +159,10 @@ fn main() -> Result<()> {
                 author,
                 banner,
             }),
-        ) => new::new_deck(name, template, author, banner),
+        ) => match new::new_deck(name, template, author, banner)? {
+            Some(path) => present(&path, false),
+            None => Ok(()),
+        },
         (None, Some(Command::Demo)) => demo(),
         (None, Some(Command::Import { input, output })) => import_file(&input, output.as_deref()),
         (None, Some(Command::Art { mode })) => match mode {
@@ -223,6 +227,18 @@ fn deck_stem(path: &Path) -> String {
         })
 }
 
+/// Formats a graceful-quit rehearsal summary: `"Presented {seen}/{total}
+/// slides in {mm}:{ss}."`, seconds zero-padded, no hours component.
+#[must_use]
+fn format_present_summary(seen: usize, total: usize, elapsed: Duration) -> String {
+    let secs = elapsed.as_secs();
+    format!(
+        "Presented {seen}/{total} slides in {}:{:02}.",
+        secs / 60,
+        secs % 60
+    )
+}
+
 fn present(path: &Path, restart: bool) -> Result<()> {
     let graph = load(path)?;
     let diags = validate(&graph);
@@ -265,12 +281,22 @@ fn present(path: &Path, restart: bool) -> Result<()> {
             }
         },
     );
-    result.context("the presenter hit a terminal error")
+    let summary = result.context("the presenter hit a terminal error")?;
+    println!(
+        "{}",
+        format_present_summary(summary.seen, summary.total, summary.elapsed)
+    );
+    Ok(())
 }
 
 fn demo() -> Result<()> {
     let graph = Graph::from_json(DEMO_DECK).context("the built-in demo deck is broken")?;
-    fireside_tui::present(graph).context("the presenter hit a terminal error")
+    let summary = fireside_tui::present(graph).context("the presenter hit a terminal error")?;
+    println!(
+        "{}",
+        format_present_summary(summary.seen, summary.total, summary.elapsed)
+    );
+    Ok(())
 }
 
 /// What v1 Markdown import never carries over, restated after every
@@ -331,6 +357,26 @@ pub(crate) fn slugify(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn format_present_summary_pads_seconds() {
+        assert_eq!(
+            format_present_summary(5, 7, Duration::from_secs(12 * 60 + 30)),
+            "Presented 5/7 slides in 12:30."
+        );
+        assert_eq!(
+            format_present_summary(2, 7, Duration::from_secs(12 * 60 + 5)),
+            "Presented 2/7 slides in 12:05."
+        );
+    }
+
+    #[test]
+    fn format_present_summary_handles_first_slide_only() {
+        assert_eq!(
+            format_present_summary(1, 7, Duration::from_secs(0)),
+            "Presented 1/7 slides in 0:00."
+        );
+    }
 
     #[test]
     fn demo_deck_parses_and_validates_clean() {

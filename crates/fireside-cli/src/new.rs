@@ -17,7 +17,8 @@ pub(crate) fn new_deck(
     template: Option<Template>,
     author: Option<String>,
     banner: bool,
-) -> Result<()> {
+) -> Result<Option<PathBuf>> {
+    let interactive = name.is_none();
     let (name, template, author, banner) = match name {
         Some(name) => (
             name,
@@ -52,7 +53,21 @@ pub(crate) fn new_deck(
     }
     println!("\nPresent it:   fireside {}", path.display());
     println!("Check it:     fireside validate {}", path.display());
-    Ok(())
+
+    // Only the interactive wizard offers to launch straight into a
+    // rehearsal (FR-010) — `fireside new <name>` stays script-friendly with
+    // no extra prompt.
+    if !interactive {
+        return Ok(None);
+    }
+    let stdin = io::stdin();
+    let mut stdin = stdin.lock();
+    let present_now = match prompt_line(&mut stdin, "\nPresent it now? [Y/n]: ")? {
+        None => false,
+        Some(s) if s.is_empty() => true,
+        Some(s) => matches!(s.to_lowercase().as_str(), "y" | "yes"),
+    };
+    Ok(present_now.then_some(path))
 }
 
 /// Generates a FIGlet banner from `title` and prepends it as an

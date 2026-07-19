@@ -67,6 +67,11 @@ nodes or declares contradictory traversal rules.
 - An `ascii-art` block's widest line exceeding a practical presentation
   width (`ascii-art-too-wide`; the reference implementation uses 76
   columns) or with no art content at all (`ascii-art-empty`).
+- A branch option `key` colliding with a presenter's reserved global
+  single-key commands (`reserved-branch-key`; the reference implementation
+  reserves `e f g h j k m n p q s t` for quit, help, map, quick-edit,
+  notes, timer, and flow navigation) — the option can never be selected by
+  keyboard, since the global action always wins.
 
 ## ContentBlock Validation Rules
 

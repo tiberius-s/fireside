@@ -37,3 +37,8 @@ grants, not extensions:
 - **Images** render as a placeholder with the `alt` text (or `src`) and
   caption; terminal graphics protocols are a possible future extension that
   would be registered here.
+- **Reserved presenter keys** — the reference presenter reserves twelve
+  single-character keys (`e f g h j k m n p q s t`) globally for quit,
+  help, map, quick-edit, notes, timer, and flow navigation; a branch option
+  `key` colliding with one of them can never be selected, and gets a
+  `reserved-branch-key` validation warning (spec 010).

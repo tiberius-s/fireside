@@ -806,7 +806,7 @@ impl App {
         }
     }
 
-    fn set_flash(&mut self, text: &str, kind: FlashKind) {
+    pub(crate) fn set_flash(&mut self, text: &str, kind: FlashKind) {
         self.flash = Some(Flash {
             text: text.to_owned(),
             kind,

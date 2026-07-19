@@ -10,6 +10,18 @@ use std::fmt;
 
 use fireside_core::{ContentBlock, Graph, Node, TraversalSpec};
 
+/// The presenter's global single-key commands (`fireside-tui`'s
+/// `App::on_present_key`: quit, help, map, quick-edit, notes, timer, next/
+/// prev, and their aliases) — a branch option keyed with one of these can
+/// never fire, because the global action always wins. This is the single
+/// Rust-side source of truth for the `reserved-branch-key` validation rule
+/// and for `fireside-tui`'s own regression test tying its key dispatch to
+/// this list; `protocol/validate.mjs` keeps a hand-mirrored copy, checked
+/// against this list's behavior via the shared fixture corpus (see
+/// `protocol/fixtures/valid/reserved-branch-key.json`).
+pub const RESERVED_PRESENTER_KEYS: [char; 12] =
+    ['e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'q', 's', 't'];
+
 /// How serious a diagnostic is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Severity {
@@ -96,6 +108,7 @@ pub fn validate(graph: &Graph) -> Vec<Diagnostic> {
     check_valid_targets(graph, &ids, &mut diags);
     check_next_branch_point_conflict(graph, &mut diags);
     check_branch_options(graph, &mut diags);
+    check_reserved_branch_keys(graph, &mut diags);
     check_container_nesting_depth(graph, &mut diags);
     check_empty_traversal(graph, &mut diags);
     check_reveal_masked_by_container(graph, &mut diags);
@@ -214,6 +227,38 @@ fn check_branch_options(graph: &Graph, diags: &mut Vec<Diagnostic>) {
                 ));
             } else {
                 seen.insert(key, &opt.label);
+            }
+        }
+    }
+}
+
+/// WARNING: a branch option's `key` collides with one of the presenter's
+/// reserved global single-key commands — the option can never be selected
+/// by keyboard, because the global action always wins (see
+/// `RESERVED_PRESENTER_KEYS`).
+fn check_reserved_branch_keys(graph: &Graph, diags: &mut Vec<Diagnostic>) {
+    for node in &graph.nodes {
+        let Some(bp) = node.branch_point() else {
+            continue;
+        };
+        for opt in &bp.options {
+            let Some(key) = opt.key.as_deref() else {
+                continue;
+            };
+            let mut chars = key.chars();
+            let (Some(c), None) = (chars.next(), chars.next()) else {
+                continue;
+            };
+            if RESERVED_PRESENTER_KEYS.contains(&c) {
+                diags.push(Diagnostic::new(
+                    Severity::Warning,
+                    "reserved-branch-key",
+                    format!(
+                        "\"{}\" assigns key \"{key}\" to \"{}\", but \"{key}\" is a reserved presenter key — this option can never be selected",
+                        node.id, opt.label
+                    ),
+                    Some(&node.id),
+                ));
             }
         }
     }
@@ -763,6 +808,74 @@ mod tests {
             ]}"#,
         );
         assert!(rules(&diags).contains(&"unique-branch-keys"));
+    }
+
+    #[test]
+    fn reserved_branch_key_warns_on_collision() {
+        let diags = diags_for(
+            r#"{"nodes":[
+                {"id":"a","traversal":{"branch-point":{"options":[
+                    {"label":"Edit this","key":"e","target":"b"}
+                ]}},"content":[]},
+                {"id":"b","content":[]}
+            ]}"#,
+        );
+        let hits: Vec<_> = diags
+            .iter()
+            .filter(|d| d.rule == "reserved-branch-key")
+            .collect();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].severity, Severity::Warning);
+        assert_eq!(hits[0].node.as_deref(), Some("a"));
+        assert!(hits[0].message.contains('e'));
+        assert!(hits[0].message.contains("Edit this"));
+        assert!(!has_errors(&diags));
+    }
+
+    #[test]
+    fn reserved_branch_key_silent_for_unreserved_keys() {
+        let diags = diags_for(
+            r#"{"nodes":[
+                {"id":"a","traversal":{"branch-point":{"options":[
+                    {"label":"one","key":"1","target":"b"},
+                    {"label":"yes","key":"y","target":"b"},
+                    {"label":"ex","key":"x","target":"b"}
+                ]}},"content":[]},
+                {"id":"b","content":[]}
+            ]}"#,
+        );
+        assert!(!rules(&diags).contains(&"reserved-branch-key"));
+    }
+
+    #[test]
+    fn reserved_branch_key_fires_once_per_colliding_option() {
+        let diags = diags_for(
+            r#"{"nodes":[
+                {"id":"a","traversal":{"branch-point":{"options":[
+                    {"label":"one","key":"e","target":"b"},
+                    {"label":"two","key":"q","target":"b"}
+                ]}},"content":[]},
+                {"id":"b","content":[]}
+            ]}"#,
+        );
+        let hits: Vec<_> = diags
+            .iter()
+            .filter(|d| d.rule == "reserved-branch-key")
+            .collect();
+        assert_eq!(hits.len(), 2);
+    }
+
+    #[test]
+    fn reserved_branch_key_ignores_keyless_options() {
+        let diags = diags_for(
+            r#"{"nodes":[
+                {"id":"a","traversal":{"branch-point":{"options":[
+                    {"label":"one","target":"b"}
+                ]}},"content":[]},
+                {"id":"b","content":[]}
+            ]}"#,
+        );
+        assert!(!rules(&diags).contains(&"reserved-branch-key"));
     }
 
     #[test]

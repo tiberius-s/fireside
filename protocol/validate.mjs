@@ -204,6 +204,50 @@ function checkUniqueBranchKeys(graph) {
 }
 
 /**
+ * The presenter's global single-key commands (`fireside-tui`'s
+ * `App::on_present_key`) — a branch option keyed with one of these can
+ * never fire, because the global action always wins. Hand-mirrored from
+ * `fireside-engine`'s `RESERVED_PRESENTER_KEYS` (no cross-language import
+ * mechanism exists); the two are kept in lockstep by the shared fixture
+ * corpus (`fixtures/valid/reserved-branch-key.json`).
+ */
+const RESERVED_PRESENTER_KEYS = new Set(["e", "f", "g", "h", "j", "k", "m", "n", "p", "q", "s", "t"]);
+
+/**
+ * WARNING: A branch option's `key` collides with one of the presenter's
+ * reserved global single-key commands.
+ *
+ * Spec: Engine extension (reserved presenter keys, spec 010)
+ */
+function checkReservedBranchKeys(graph) {
+  const diagnostics = [];
+
+  for (const node of graph.nodes) {
+    const t = node.traversal;
+    if (!t || typeof t === "string") continue;
+
+    const bp = t["branch-point"];
+    if (!bp?.options) continue;
+
+    for (const opt of bp.options) {
+      if (opt.key == null) continue;
+      if (RESERVED_PRESENTER_KEYS.has(opt.key)) {
+        diagnostics.push(
+          diagnostic(
+            "warning",
+            "reserved-branch-key",
+            `Node "${node.id}" assigns key "${opt.key}" to "${opt.label}", but "${opt.key}" is a reserved presenter key — this option can never be selected`,
+            { nodeId: node.id, key: opt.key },
+          ),
+        );
+      }
+    }
+  }
+
+  return diagnostics;
+}
+
+/**
  * WARNING: A `traversal` object present but setting neither `next` nor
  * `branch-point` behaves like an absent `traversal` (terminal), but is
  * more likely an authoring mistake than a deliberately omitted field.
@@ -636,6 +680,7 @@ export function validate(graph) {
     ...checkValidTargets(graph, nodeIds),
     ...checkNextBranchPointConflict(graph),
     ...checkUniqueBranchKeys(graph),
+    ...checkReservedBranchKeys(graph),
     ...checkContainerNestingDepth(graph),
     ...checkEmptyTraversal(graph),
     ...checkRevealMaskedByContainer(graph),
@@ -678,6 +723,7 @@ Rules (warnings):
   ascii-art-too-wide         An ascii-art block's widest line exceeds 76 columns
   ascii-art-empty            An ascii-art block has no art content
   malformed-link-url        A [label](url) link's destination doesn't look like a URL
+  reserved-branch-key       A branch option key collides with a reserved presenter key
 
 Rules (info):
   dead-end-branch            Branch targets with no traversal are terminal nodes

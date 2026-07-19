@@ -16,4 +16,4 @@ pub mod validation;
 
 pub use error::EngineError;
 pub use session::{Outcome, Session};
-pub use validation::{Diagnostic, Severity, has_errors, validate};
+pub use validation::{Diagnostic, RESERVED_PRESENTER_KEYS, Severity, has_errors, validate};

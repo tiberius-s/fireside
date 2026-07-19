@@ -1,8 +1,8 @@
 use super::*;
-use crate::app::Msg;
+use crate::app::{FlashKind, Msg};
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use fireside_core::{ContentBlock, Graph};
-use fireside_engine::Session;
+use fireside_engine::{Outcome, RESERVED_PRESENTER_KEYS, Session};
 use ratatui::Terminal;
 use ratatui::backend::TestBackend;
 use ratatui::style::Modifier;
@@ -78,6 +78,34 @@ fn branch_point_renders_as_a_menu_with_selection() {
     assert!(s.contains("1.  Code demo "));
     assert!(s.contains("[a]"), "author hotkey visible");
     assert!(s.contains("Enter go"), "footer switches to branch keys");
+}
+
+#[test]
+fn reserved_presenter_keys_are_all_consumed_globally() {
+    // Regression guard for the class of bug in
+    // `assets/demo.fireside.json`'s original `[e]` branch key (Wave 1,
+    // W1-1): every key in `fireside_engine::RESERVED_PRESENTER_KEYS` MUST
+    // be consumed by its own global arm in `on_present_key` before the
+    // catch-all branch-option dispatch ever sees it — never letting a
+    // colliding branch option actually fire.
+    for &c in &RESERVED_PRESENTER_KEYS {
+        let json = format!(
+            r#"{{"nodes":[
+                {{"id":"a","traversal":{{"branch-point":{{"options":[
+                    {{"label":"x","key":"{c}","target":"b"}}
+                ]}}}},"content":[]}},
+                {{"id":"b","content":[]}}
+            ]}}"#
+        );
+        let graph = Graph::from_json(&json).expect("fixture parses");
+        let mut app = App::new(Session::new(graph).expect("non-empty"));
+        press(&mut app, KeyCode::Char(c));
+        assert_ne!(
+            app.session().current().id,
+            "b",
+            "reserved key {c:?} let a colliding branch option fire"
+        );
+    }
 }
 
 #[test]
@@ -165,6 +193,58 @@ fn timer_survives_fullscreen_and_flash() {
     press(&mut app, KeyCode::Char('f'));
     let s = screen(&app, 80, 24);
     assert!(s.contains("0:00"), "timer visible in fullscreen");
+}
+
+/// Mirrors `present_authoring`'s resume-detection construction exactly
+/// (`lib.rs`): `goto` the requested node, and flash only if it actually
+/// moved (`Outcome::Moved`) — a stale/unknown resume target is a guarded
+/// no-op with no flash.
+fn app_maybe_resumed(target: Option<&str>) -> App {
+    const DECK: &str = r#"{"nodes":[
+        {"id":"a","content":[{"kind":"text","body":"first"}],"traversal":"b"},
+        {"id":"b","content":[{"kind":"text","body":"second"}]}
+    ]}"#;
+    let graph = Graph::from_json(DECK).expect("fixture parses");
+    let mut session = Session::new(graph).expect("non-empty");
+    let resumed = target.is_some_and(|id| matches!(session.goto(id), Outcome::Moved));
+    let mut app = App::new(session);
+    if resumed {
+        app.set_flash(
+            "Resumed where you left off — --restart starts over",
+            FlashKind::Info,
+        );
+    }
+    app
+}
+
+#[test]
+fn resume_flash_shows_on_first_frame() {
+    let app = app_maybe_resumed(Some("b"));
+    let s = screen(&app, 80, 24);
+    assert!(
+        s.contains("Resumed where you left off — --restart starts over"),
+        "resume flash visible on first frame: {s}"
+    );
+}
+
+#[test]
+fn no_resume_flash_on_fresh_session() {
+    let app = app_maybe_resumed(None);
+    let s = screen(&app, 80, 24);
+    assert!(
+        !s.contains("Resumed where you left off"),
+        "no resume flash without a resume target: {s}"
+    );
+}
+
+#[test]
+fn no_resume_flash_for_a_stale_resume_target() {
+    let app = app_maybe_resumed(Some("no-such-node"));
+    let s = screen(&app, 80, 24);
+    assert!(
+        !s.contains("Resumed where you left off"),
+        "no resume flash when the saved node no longer exists: {s}"
+    );
 }
 
 #[test]

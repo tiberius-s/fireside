@@ -192,6 +192,20 @@ fn new_accepts_a_template_and_author_flag_non_interactively() {
 }
 
 #[test]
+fn new_non_interactive_never_prompts_to_present() {
+    let temp = tempfile::tempdir().expect("temp dir");
+
+    fireside()
+        .current_dir(temp.path())
+        .arg("new")
+        .arg("Solo Deck")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Created solo-deck.fireside.json"))
+        .stdout(predicate::str::contains("Present it now").not());
+}
+
+#[test]
 fn new_without_a_name_prompts_interactively() {
     let temp = tempfile::tempdir().expect("temp dir");
 
@@ -337,6 +351,29 @@ fn art_text_prints_a_multiline_banner() {
         .assert()
         .success()
         .stdout(predicate::function(|s: &str| s.lines().count() > 1));
+}
+
+#[test]
+fn art_text_warns_on_stderr_when_too_wide() {
+    fireside()
+        .arg("art")
+        .arg("text")
+        .arg("A Title So Long It Cannot Possibly Fit The Card")
+        .assert()
+        .success()
+        .stdout(predicate::function(|s: &str| s.lines().count() > 1))
+        .stderr(predicate::str::is_empty().not());
+}
+
+#[test]
+fn art_text_silent_on_stderr_when_it_fits() {
+    fireside()
+        .arg("art")
+        .arg("text")
+        .arg("Hi")
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty());
 }
 
 #[test]

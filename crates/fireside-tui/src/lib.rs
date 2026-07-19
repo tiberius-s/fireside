@@ -18,7 +18,7 @@ use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
 use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
 use fireside_core::Graph;
-use fireside_engine::Session;
+use fireside_engine::{Outcome, Session};
 
 pub use app::{App, Msg};
 pub use error::TuiError;
@@ -39,6 +39,21 @@ pub type WriteBackSink<'a> = &'a mut dyn FnMut(&Graph) -> Result<(), WriteBackEr
 /// presenter itself never touches the filesystem; a caller that wants to
 /// persist "where the presenter is" (e.g. resume-on-relaunch) owns all I/O.
 pub type PositionSink<'a> = &'a mut dyn FnMut(&str);
+
+/// What a presentation session accomplished, returned on a graceful stop
+/// (the `q` key or in-TUI Ctrl+C — both exit the event loop identically;
+/// see `specs/010-presenter-polish/research.md` §3) so a caller can report
+/// a rehearsal summary. `fireside-tui` never prints this itself — the
+/// caller owns all terminal output outside the TUI's own frames.
+#[derive(Debug, Clone, Copy)]
+pub struct PresentSummary {
+    /// Distinct slides visited this session.
+    pub seen: usize,
+    /// Total slides in the deck.
+    pub total: usize,
+    /// Wall-clock time since the presentation started.
+    pub elapsed: Duration,
+}
 
 /// Why a quick-edit save could not be applied.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -73,7 +88,7 @@ impl fmt::Display for WriteBackError {
 ///
 /// Returns [`TuiError::Engine`] for an unpresentable graph and
 /// [`TuiError::Io`] for terminal failures.
-pub fn present(graph: Graph) -> Result<(), TuiError> {
+pub fn present(graph: Graph) -> Result<PresentSummary, TuiError> {
     present_watching(graph, &mut || None)
 }
 
@@ -85,7 +100,10 @@ pub fn present(graph: Graph) -> Result<(), TuiError> {
 ///
 /// Returns [`TuiError::Engine`] for an unpresentable graph and
 /// [`TuiError::Io`] for terminal failures.
-pub fn present_watching(graph: Graph, source: ReloadSource<'_>) -> Result<(), TuiError> {
+pub fn present_watching(
+    graph: Graph,
+    source: ReloadSource<'_>,
+) -> Result<PresentSummary, TuiError> {
     present_authoring(
         graph,
         source,
@@ -117,12 +135,17 @@ pub fn present_authoring(
     sink: WriteBackSink<'_>,
     initial_node: Option<&str>,
     on_position_changed: PositionSink<'_>,
-) -> Result<(), TuiError> {
+) -> Result<PresentSummary, TuiError> {
+    let total = graph.nodes.len();
     let mut session = Session::new(graph)?;
-    if let Some(id) = initial_node {
-        let _ = session.goto(id);
-    }
+    let resumed = initial_node.is_some_and(|id| matches!(session.goto(id), Outcome::Moved));
     let mut app = App::new(session);
+    if resumed {
+        app.set_flash(
+            "Resumed where you left off — --restart starts over",
+            app::FlashKind::Info,
+        );
+    }
     let mut terminal = ratatui::init();
     // Mouse is additive on top of the keyboard contract (constitution
     // Principle II) — enabled/disabled around the same window raw mode is,
@@ -132,7 +155,11 @@ pub fn present_authoring(
     let result = event_loop(&mut terminal, &mut app, source, sink, on_position_changed);
     let _ = execute!(io::stdout(), DisableMouseCapture);
     ratatui::restore();
-    result
+    result.map(|()| PresentSummary {
+        seen: app.session().visited().len(),
+        total,
+        elapsed: app.elapsed(),
+    })
 }
 
 fn event_loop(

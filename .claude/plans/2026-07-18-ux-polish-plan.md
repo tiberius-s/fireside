@@ -16,7 +16,7 @@ status, date._
 - [x] W1-2 help overlay wrapping — 2026-07-18, overlay now sizes to content instead of a fixed 50 cols; two longest labels shortened; snapshot updated
 - [x] W1-3 diagnostics pluralization — 2026-07-18, `report.rs` emits "1 error"/"2 errors"/"0 errors" via new `plural()` helper
 - [x] W1-4 friendly file-not-found for present — 2026-07-18, `load()` in main.rs now prints `No deck named X — "fireside new <stem>" creates one.` (also benefits `validate`)
-- [ ] W2 (spec 010) presenter-polish feature — not started
+- [x] W2 (spec 010) presenter-polish feature — 2026-07-18, all 5 stories shipped (specs/010-presenter-polish/): reserved-branch-key validator warning (Rust+Node, fixture-parity proven), exit summary, resume toast, wizard present-now prompt, `art text` width guard. `scripts/verify.sh` green.
 - [ ] W3 (spec 011) art image quality — not started
 - [ ] W4 docs restructure — not started
 

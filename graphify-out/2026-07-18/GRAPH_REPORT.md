@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-18)
 
 ## Corpus Check
-- 259 files · ~313,675 words
+- 271 files · ~330,117 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2719 nodes · 3782 edges · 249 communities (206 shown, 43 thin omitted)
+- 2854 nodes · 3937 edges · 261 communities (217 shown, 44 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4e6aa643`
+- Built from commit: `6ee40d91`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -262,18 +262,30 @@
 - [[_COMMUNITY_Community 246|Community 246]]
 - [[_COMMUNITY_Community 247|Community 247]]
 - [[_COMMUNITY_Community 248|Community 248]]
+- [[_COMMUNITY_Community 249|Community 249]]
+- [[_COMMUNITY_Community 250|Community 250]]
+- [[_COMMUNITY_Community 251|Community 251]]
+- [[_COMMUNITY_Community 252|Community 252]]
+- [[_COMMUNITY_Community 253|Community 253]]
+- [[_COMMUNITY_Community 254|Community 254]]
+- [[_COMMUNITY_Community 255|Community 255]]
+- [[_COMMUNITY_Community 256|Community 256]]
+- [[_COMMUNITY_Community 257|Community 257]]
+- [[_COMMUNITY_Community 258|Community 258]]
+- [[_COMMUNITY_Community 259|Community 259]]
+- [[_COMMUNITY_Community 260|Community 260]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `app()` - 47 edges
-2. `press()` - 44 edges
-3. `App` - 39 edges
-4. `screen()` - 38 edges
+1. `app()` - 48 edges
+2. `press()` - 45 edges
+3. `screen()` - 41 edges
+4. `App` - 39 edges
 5. `render_block()` - 33 edges
-6. `Diagnostic` - 29 edges
-7. `render()` - 26 edges
-8. `Session` - 24 edges
-9. `Vec` - 24 edges
-10. `flat()` - 24 edges
+6. `Diagnostic` - 30 edges
+7. `diags_for()` - 27 edges
+8. `render()` - 26 edges
+9. `fireside()` - 25 edges
+10. `Vec` - 25 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
@@ -292,6 +304,7 @@
 - 1-file cycle: `crates/fireside-cli/src/import.rs -> crates/fireside-cli/src/import.rs`
 - 1-file cycle: `crates/fireside-tui/src/lib.rs -> crates/fireside-tui/src/lib.rs`
 - 1-file cycle: `crates/fireside-tui/src/render/mod.rs -> crates/fireside-tui/src/render/mod.rs`
+- 1-file cycle: `crates/fireside-tui/src/render/tests.rs -> crates/fireside-tui/src/render/tests.rs`
 - 1-file cycle: `crates/fireside-tui/src/app.rs -> crates/fireside-tui/src/app.rs`
 - 1-file cycle: `crates/fireside-cli/src/main.rs -> crates/fireside-cli/src/main.rs`
 - 1-file cycle: `crates/fireside-cli/src/watch.rs -> crates/fireside-cli/src/watch.rs`
@@ -307,7 +320,6 @@
 - 1-file cycle: `crates/fireside-tui/src/render/content.rs -> crates/fireside-tui/src/render/content.rs`
 - 1-file cycle: `crates/fireside-tui/src/render/footer.rs -> crates/fireside-tui/src/render/footer.rs`
 - 1-file cycle: `crates/fireside-tui/src/render/header.rs -> crates/fireside-tui/src/render/header.rs`
-- 1-file cycle: `crates/fireside-tui/src/render/hits.rs -> crates/fireside-tui/src/render/hits.rs`
 
 ## Hyperedges (group relationships)
 - **Graphify Two-Track Extraction Pipeline** — graphify_skill_ast_extraction, graphify_skill_semantic_extraction, graphify_skill_extraction_cache, references_extraction_spec_subagent_prompt [EXTRACTED 1.00]
@@ -317,15 +329,15 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (249 total, 43 thin omitted)
+## Communities (261 total, 44 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
 Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_the_source_exactly(), rust_keywords_strings_and_comments_get_distinct_styles() (+4 more)
 
 ### Community 1 - "CLI Commands"
-Cohesion: 0.10
-Nodes (35): Command, Graph, Option, Path, PathBuf, Result, String, Graph (+27 more)
+Cohesion: 0.09
+Nodes (37): Command, Duration, Graph, Option, Path, PathBuf, Result, String (+29 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -337,7 +349,7 @@ Nodes (27): Graphify Slash Command Trigger, AST Structural Extraction, Community
 
 ### Community 4 - "TUI App Core"
 Cohesion: 0.07
-Nodes (29): ContentBlock, Graph, KeyCode, Node, Option, Result, Self, String (+21 more)
+Nodes (29): ContentBlock, Duration, Graph, KeyCode, Node, Option, Result, Self (+21 more)
 
 ### Community 5 - "Editor Detail Pane"
 Cohesion: 0.12
@@ -357,7 +369,7 @@ Nodes (40): App, Frame, Graph, HashSet, Line, Node, Option, Rect (+32 more)
 
 ### Community 9 - "Editor Interaction Tests"
 Cohesion: 0.08
-Nodes (72): Copy, BranchOption, ContentBlock, Display, Formatter, Graph, HashSet, Node (+64 more)
+Nodes (77): Copy, BranchOption, ContentBlock, Display, Formatter, Graph, HashSet, Node (+69 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.22
@@ -464,8 +476,8 @@ Cohesion: 0.14
 Nodes (13): compilerOptions, declaration, esModuleInterop, module, moduleResolution, outDir, rootDir, skipLibCheck (+5 more)
 
 ### Community 37 - "Protocol JS Validator"
-Cohesion: 0.16
-Nodes (24): fixturePaths(), fixturesDir, here, main(), checkAsciiArtEmpty(), checkAsciiArtTooWide(), checkContainerNestingDepth(), checkDeadEndBranches() (+16 more)
+Cohesion: 0.15
+Nodes (26): fixturePaths(), fixturesDir, here, main(), checkAsciiArtEmpty(), checkAsciiArtTooWide(), checkContainerNestingDepth(), checkDeadEndBranches() (+18 more)
 
 ### Community 38 - "Project Cheat Sheets"
 Cohesion: 0.15
@@ -692,8 +704,8 @@ Cohesion: 0.20
 Nodes (9): 1. Confirm non-watch behavior is unchanged (FR-002), 2. Start watch mode and see the immediate first check (FR-003), 3. Introduce a semantic error and save (User Story 1, FR-004/FR-005), 4. Fix it and save again, 5. Introduce a JSON syntax error (User Story 2, FR-006), 6. Delete the file (edge case, FR-009), 7. Stop with Ctrl-C (FR-010), Automated coverage (+1 more)
 
 ### Community 106 - "Community 106"
-Cohesion: 0.14
-Nodes (25): Command, PathBuf, Drop, art_image_converts_a_readable_file(), art_image_reports_a_clear_error_for_a_missing_file(), art_text_partial_recognition_still_produces_output(), art_text_prints_a_multiline_banner(), art_text_with_no_recognized_characters_errors_clearly() (+17 more)
+Cohesion: 0.12
+Nodes (29): Command, PathBuf, Drop, art_image_converts_a_readable_file(), art_image_reports_a_clear_error_for_a_missing_file(), art_text_partial_recognition_still_produces_output(), art_text_prints_a_multiline_banner(), art_text_silent_on_stderr_when_it_fits() (+21 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.15
@@ -756,8 +768,8 @@ Cohesion: 0.12
 Nodes (16): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Description`, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation Strategy, Incremental Delivery, MVP First (User Story 1 only) (+8 more)
 
 ### Community 122 - "Community 122"
-Cohesion: 0.23
-Nodes (16): App, Display, Formatter, Graph, Option, Result, DefaultTerminal, PositionSink (+8 more)
+Cohesion: 0.21
+Nodes (18): App, Display, Duration, Formatter, Graph, Option, Result, DefaultTerminal (+10 more)
 
 ### Community 123 - "Community 123"
 Cohesion: 0.22
@@ -876,8 +888,8 @@ Cohesion: 0.20
 Nodes (9): Dependencies & Execution Order, Implementation Strategy, Parallel Execution Examples, Phase 1: Setup (protocol version bump), Phase 2: User Story 1 - Third-party implementer reads an unambiguous spec (Priority: P1), Phase 3: User Story 2 - Presenter gets a diagnostic for empty traversal (Priority: P1), Phase 4: User Story 3 - Fixture corpus proves Rust/Node parity (Priority: P2), Phase 5: Polish & Cross-Cutting (+1 more)
 
 ### Community 159 - "Community 159"
-Cohesion: 0.10
-Nodes (20): invalid/dangling-target.json, invalid/duplicate-branch-keys.json, invalid/duplicate-node-ids.json, invalid/nesting-depth-exceeds-limit.json, invalid/next-branch-point-conflict.json, valid/ascii-art-clean.json, valid/ascii-art-empty.json, valid/ascii-art-too-wide.json (+12 more)
+Cohesion: 0.09
+Nodes (21): invalid/dangling-target.json, invalid/duplicate-branch-keys.json, invalid/duplicate-node-ids.json, invalid/nesting-depth-exceeds-limit.json, invalid/next-branch-point-conflict.json, valid/ascii-art-clean.json, valid/ascii-art-empty.json, valid/ascii-art-too-wide.json (+13 more)
 
 ### Community 160 - "Community 160"
 Cohesion: 0.43
@@ -1076,8 +1088,8 @@ Cohesion: 0.67
 Nodes (6): App, Frame, Rect, Tokens, draw_footer(), draw_timer()
 
 ### Community 228 - "Community 228"
-Cohesion: 0.10
-Nodes (63): App, KeyCode, String, KeyModifiers, app(), arrows_and_enter_choose_an_option(), ascii_art_block_renders_centered_and_sized_to_content(), ascii_art_code_block_centers_within_the_card_at_80x24() (+55 more)
+Cohesion: 0.09
+Nodes (69): App, KeyCode, Option, String, KeyModifiers, app(), app_maybe_resumed(), arrows_and_enter_choose_an_option() (+61 more)
 
 ### Community 229 - "Community 229"
 Cohesion: 0.14
@@ -1133,16 +1145,60 @@ Nodes (12): Dependencies & Execution Order, Follow-up (2026-07-18, second pass),
 
 ### Community 245 - "Community 245"
 Cohesion: 0.14
-Nodes (28): BufRead, Option, Path, Result, String, Graph, Option, Result (+20 more)
+Nodes (29): BufRead, Option, Path, Result, String, Graph, Option, PathBuf (+21 more)
+
+### Community 249 - "Community 249"
+Cohesion: 0.13
+Nodes (14): Assumptions, Edge Cases, Feature Specification: Presenter Polish, Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+6 more)
+
+### Community 250 - "Community 250"
+Cohesion: 0.33
+Nodes (5): Specification Quality Checklist: Presenter Polish, Content Quality, Feature Readiness, Notes, Requirement Completeness
+
+### Community 251 - "Community 251"
+Cohesion: 0.22
+Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: Presenter Polish, Project Structure, Source Code (repository root), Summary, Technical Context
+
+### Community 252 - "Community 252"
+Cohesion: 0.20
+Nodes (9): 1. Where the reserved presenter key list lives, 2. How the CLI learns what to report after the TUI closes, 3. What counts as a "graceful" quit, 4. How the resume flash gets set, 5. Width measurement for `art text`'s stderr note, 6. Wizard momentum: who launches the presenter, 7. Documenting the reserved-key rule, 8. Rust/Node validator parity (discovered during implementation) (+1 more)
+
+### Community 253 - "Community 253"
+Cohesion: 0.25
+Nodes (7): `art text` width note (no new type), Data Model: Presenter Polish, `new_deck` return value (changed), `PresentSummary` (new), `reserved-branch-key` diagnostic (new validation rule), `RESERVED_PRESENTER_KEYS` (new), Resume flash (state transition, no new type)
+
+### Community 254 - "Community 254"
+Cohesion: 0.22
+Nodes (8): Contract: `reserved-branch-key` validation rule, Cross-crate contract, Diagnostic shape, Non-triggers, Relationship to presenting, Rust/Node parity contract, Severity, Trigger
+
+### Community 255 - "Community 255"
+Cohesion: 0.40
+Nodes (4): CLI output contract, Contract: presenter session summary and resume flash, `fireside-tui` public API change, Resume flash contract
+
+### Community 256 - "Community 256"
+Cohesion: 0.40
+Nodes (4): Behavior, Contract: `art text` width guard, Exit code, Non-goals
+
+### Community 257 - "Community 257"
+Cohesion: 0.29
+Nodes (6): Contract: interactive `fireside new` present-now prompt, Failure handling, Launch mechanism, `new_deck` signature change, Prompt, Scope
+
+### Community 258 - "Community 258"
+Cohesion: 0.25
+Nodes (7): 1. Reserved-key validator warning (US1), 2. Exit summary (US2), 3. Resume toast (US3), 4. Wizard momentum (US4), 5. `art text` width guard (US5), Full verification, Quickstart: validating Presenter Polish
+
+### Community 259 - "Community 259"
+Cohesion: 0.08
+Nodes (25): Dependencies & Execution Order, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation for User Story 4, Implementation for User Story 5, Implementation Strategy, Incremental Delivery (+17 more)
 
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1364 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1359 more)
+- **1443 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1438 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **43 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -1150,14 +1206,14 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+- **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `Community 228`, `TUI App Core`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+- **Why does `slugify()` connect `CLI Commands` to `Community 137`, `Community 245`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1366 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1445 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.09872241579558652 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08792270531400966 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
-- **Should `TUI App Core` be split into smaller, more focused modules?**
-  _Cohesion score 0.06720321931589537 - nodes in this community are weakly interconnected._
-- **Should `Editor Detail Pane` be split into smaller, more focused modules?**
-  _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._

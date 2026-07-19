@@ -12,6 +12,7 @@
   "valid/ascii-art-clean.json": [],
   "valid/malformed-link-url.json": ["malformed-link-url"],
   "valid/well-formed-link-url.json": [],
+  "valid/reserved-branch-key.json": ["reserved-branch-key"],
   "valid/nesting-depth-at-limit.json": [],
   "valid/large-deck-1000-nodes.json": [],
   "invalid/duplicate-node-ids.json": ["unique-node-ids"],

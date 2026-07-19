@@ -30,13 +30,13 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1784423702.0062144,
-    "ast_hash": "a136d257cfe8f5bd0154568253c73644",
+    "mtime": 1784425797.3363364,
+    "ast_hash": "3c19136e2503483b941bd03b0300ffe3",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1784402400.0804846,
-    "ast_hash": "965028aba2e58b1eb456bcd0033a2baf",
+    "mtime": 1784425921.8234377,
+    "ast_hash": "c041ba83c6809df46ed1a63a5605b55f",
     "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-engine/src/lib.rs": {
-    "mtime": 1781217683.7484918,
-    "ast_hash": "925d5bd50e2c28df9e515058699555ad",
+    "mtime": 1784425339.68173,
+    "ast_hash": "5c58e48d4d96c61c5d66b33d5a90468e",
     "semantic_hash": ""
   },
   "crates/fireside-engine/src/session.rs": {
@@ -70,13 +70,13 @@
     "semantic_hash": ""
   },
   "crates/fireside-engine/src/validation.rs": {
-    "mtime": 1784397485.4595902,
-    "ast_hash": "49c4bcc21f2c086f551ee6aba093102d",
+    "mtime": 1784425267.7656484,
+    "ast_hash": "af4aca68c23d88d37e9323715b18aeec",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/app.rs": {
-    "mtime": 1784300622.6488001,
-    "ast_hash": "6e04ab4e7ae1a885a478432f032b676e",
+    "mtime": 1784425573.907885,
+    "ast_hash": "ae4e55f81531946d8afdaf78221cfc6d",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/error.rs": {
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
-    "mtime": 1784300622.6490002,
-    "ast_hash": "1be077003324f2479b0245a7feb2af6b",
+    "mtime": 1784425601.2867506,
+    "ast_hash": "c3e1c5ca4025c59cd0bb1425c3557732",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
@@ -165,8 +165,8 @@
     "semantic_hash": "3f3ab63581c42b39a067bb7cbee2849f"
   },
   "protocol/validate.mjs": {
-    "mtime": 1784397372.0256534,
-    "ast_hash": "627835064012af0efed1e758bfddfcca",
+    "mtime": 1784425301.526287,
+    "ast_hash": "7a3261aea57a772cea24dbb2de01cc8f",
     "semantic_hash": ""
   },
   ".claude/CLAUDE.md": {
@@ -370,8 +370,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/validation.md": {
-    "mtime": 1784398977.433033,
-    "ast_hash": "e9d758c8a1a4c4062765bc1aa2687f04",
+    "mtime": 1784425412.3192823,
+    "ast_hash": "7241c4299bcf9b9cecf760092846f16d",
     "semantic_hash": ""
   },
   "protocol/tspconfig.yaml": {
@@ -385,8 +385,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-extensions.md": {
-    "mtime": 1784300622.6507711,
-    "ast_hash": "d0eb4c0c961b9b4ceb2f89f576894745",
+    "mtime": 1784425419.284008,
+    "ast_hash": "ba407c07cfeff019277953983ee38034",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/markdown.rs": {
@@ -425,8 +425,8 @@
     "semantic_hash": ""
   },
   ".github/demo.gif": {
-    "mtime": 1784402605.2942908,
-    "ast_hash": "04c01cf602385206a3b748f38336f0ed",
+    "mtime": 1784423924.1744287,
+    "ast_hash": "0ceb4bec4d1666e105ac4ec9c80d0741",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/map.rs": {
@@ -675,8 +675,8 @@
     "semantic_hash": ""
   },
   ".specify/feature.json": {
-    "mtime": 1784396195.8713565,
-    "ast_hash": "39c475cc01794ac7b1d5a39afba084a4",
+    "mtime": 1784424338.0846682,
+    "ast_hash": "61fc517186a690c5abdbf644a59ea8a0",
     "semantic_hash": ""
   },
   "specs/001-validate-watch/plan.md": {
@@ -860,8 +860,8 @@
     "semantic_hash": ""
   },
   "protocol/fixtures.expected.json": {
-    "mtime": 1784397395.6382763,
-    "ast_hash": "5bf2c69bb041e1a908fb4da4b7ede5cb",
+    "mtime": 1784425280.7170217,
+    "ast_hash": "b2f69f54528f145049a1b0084b81f8eb",
     "semantic_hash": ""
   },
   "protocol/fixtures/invalid/dangling-target.json": {
@@ -1210,8 +1210,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/tests.rs": {
-    "mtime": 1784423621.2529252,
-    "ast_hash": "06ff726eff5250000837232ff5271dc3",
+    "mtime": 1784425646.511819,
+    "ast_hash": "d9b825e250c067de339d06e875c82cea",
     "semantic_hash": ""
   },
   ".github/demo-watch-toggle.sh": {
@@ -1220,8 +1220,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/new.rs": {
-    "mtime": 1784402443.013225,
-    "ast_hash": "5458bb3e71b6810e56ab054c32de4502",
+    "mtime": 1784425789.3067718,
+    "ast_hash": "d18aeea18aec6dfc56a652196150198d",
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/report.rs": {
@@ -1350,8 +1350,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/art.rs": {
-    "mtime": 1784402052.0693645,
-    "ast_hash": "3fb2072d6af4549d18992a99770e5b78",
+    "mtime": 1784425897.0320337,
+    "ast_hash": "d19ee96c1f705174aa0352c66f71791d",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/fixtures/tiny.png": {
@@ -1395,8 +1395,68 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-18-ux-polish-plan.md": {
-    "mtime": 1784420683.314691,
-    "ast_hash": "ed26e5c9f26307189bc03de63ab6b278",
+    "mtime": 1784425016.2977355,
+    "ast_hash": "9694bd6bdf5428d53dd67c81e953cb46",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/spec.md": {
+    "mtime": 1784424485.2323818,
+    "ast_hash": "88837b9c5916bdf2740be70f06a33cc0",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/checklists/requirements.md": {
+    "mtime": 1784424493.2133236,
+    "ast_hash": "b258af8f6d1529228b295ac24850f0a2",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/plan.md": {
+    "mtime": 1784425139.8040497,
+    "ast_hash": "0f13afe21aee597275a282389c0025a0",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/research.md": {
+    "mtime": 1784425122.5018322,
+    "ast_hash": "0425e50055f3e7ab605724a6743f4977",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/data-model.md": {
+    "mtime": 1784424741.0704086,
+    "ast_hash": "0bcaf54d839a81fbb2413da4f37b199f",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/contracts/validation-reserved-branch-key.md": {
+    "mtime": 1784425131.7491791,
+    "ast_hash": "ba1899f401c9b1456e7a938c24be9b2f",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/contracts/present-summary-and-resume-flash.md": {
+    "mtime": 1784424773.400118,
+    "ast_hash": "0e11f88b2f10f73f34ec8dc548253596",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/contracts/art-text-width-guard.md": {
+    "mtime": 1784424785.204586,
+    "ast_hash": "52df40620bc5764a7ec5bb2b932b11a6",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/contracts/new-wizard-present-now.md": {
+    "mtime": 1784424796.9304144,
+    "ast_hash": "d691d049a99a0d8052be488ca303c0a2",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/quickstart.md": {
+    "mtime": 1784424813.3129818,
+    "ast_hash": "8f0f3855c2935ee90483cc4ddc22bd7f",
+    "semantic_hash": ""
+  },
+  "specs/010-presenter-polish/tasks.md": {
+    "mtime": 1784425883.839042,
+    "ast_hash": "eaacb5f4daf78bccaf6b474310227833",
+    "semantic_hash": ""
+  },
+  "protocol/fixtures/valid/reserved-branch-key.json": {
+    "mtime": 1784425322.2502804,
+    "ast_hash": "bc3b6f544dc83642f391639234625dbd",
     "semantic_hash": ""
   }
 }

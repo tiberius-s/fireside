@@ -1,0 +1,11 @@
+{
+  "nodes": [
+    {
+      "id": "a",
+      "traversal": { "branch-point": { "options": [{ "label": "Edit this", "key": "e", "target": "b" }] } },
+      "content": []
+    },
+    { "id": "b", "traversal": "c", "content": [] },
+    { "id": "c", "content": [] }
+  ]
+}

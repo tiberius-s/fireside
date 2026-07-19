@@ -28,9 +28,19 @@ pub(crate) fn render_text_banner(phrase: &str) -> Result<String> {
 }
 
 /// Prints [`render_text_banner`]'s output to stdout — the standalone
-/// `fireside art text` verb.
+/// `fireside art text` verb. When the banner's widest line exceeds
+/// [`DEFAULT_ART_WIDTH`] (the same threshold `ascii-art-too-wide`
+/// validates against), a note naming the measured width goes to stderr —
+/// stdout still gets the full, unmodified banner either way.
 pub(crate) fn art_text(phrase: &str) -> Result<()> {
-    println!("{}", render_text_banner(phrase)?);
+    let art = render_text_banner(phrase)?;
+    println!("{art}");
+    let widest = art.lines().map(str::len).max().unwrap_or(0);
+    if widest > DEFAULT_ART_WIDTH as usize {
+        eprintln!(
+            "Note: this banner is {widest} columns wide — decks are validated against a {DEFAULT_ART_WIDTH}-column limit (ascii-art-too-wide)."
+        );
+    }
     Ok(())
 }
 
