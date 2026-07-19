@@ -237,10 +237,26 @@ fn load(path: &Path) -> Result<Graph> {
     match Graph::from_json(&text) {
         Ok(graph) => Ok(graph),
         Err(CoreError::Parse(err)) => {
-            eprintln!("{}", report::parse_report(path, &text, &err));
+            if is_markdown_path(path) {
+                eprintln!(
+                    "This is a Markdown file — run \"fireside import {}\" first, then \"fireside {}\"",
+                    path.display(),
+                    path.with_extension("fireside.json").display()
+                );
+            } else {
+                eprintln!("{}", report::parse_report(path, &text, &err));
+            }
             std::process::exit(1);
         }
     }
+}
+
+/// True for `.md`/`.markdown` paths — used to swap the raw JSON-parse
+/// report for a friendlier "run import first" hint (P0-2).
+fn is_markdown_path(path: &Path) -> bool {
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("md") || ext.eq_ignore_ascii_case("markdown"))
 }
 
 /// The name `fireside new` would take for this path: `nope.fireside.json`
@@ -312,7 +328,7 @@ fn present(path: &Path, restart: bool) -> Result<()> {
             }
         },
     );
-    let summary = result.context("the presenter hit a terminal error")?;
+    let summary = exit_on_not_a_tty(result)?;
     println!(
         "{}",
         format_present_summary(summary.seen, summary.total, summary.elapsed)
@@ -320,9 +336,25 @@ fn present(path: &Path, restart: bool) -> Result<()> {
     Ok(())
 }
 
+/// Unwraps a presenter result, printing [`fireside_tui::TuiError::NotATty`]
+/// as its own plain line (P0-3) instead of letting it flow through anyhow's
+/// context-chain formatting, and otherwise attaching the same generic
+/// context every other terminal failure gets.
+fn exit_on_not_a_tty(
+    result: Result<fireside_tui::PresentSummary, fireside_tui::TuiError>,
+) -> Result<fireside_tui::PresentSummary> {
+    match result {
+        Err(fireside_tui::TuiError::NotATty) => {
+            eprintln!("{}", fireside_tui::TuiError::NotATty);
+            std::process::exit(1);
+        }
+        other => other.context("the presenter hit a terminal error"),
+    }
+}
+
 fn demo() -> Result<()> {
     let graph = Graph::from_json(DEMO_DECK).context("the built-in demo deck is broken")?;
-    let summary = fireside_tui::present(graph).context("the presenter hit a terminal error")?;
+    let summary = exit_on_not_a_tty(fireside_tui::present(graph))?;
     println!(
         "{}",
         format_present_summary(summary.seen, summary.total, summary.elapsed)

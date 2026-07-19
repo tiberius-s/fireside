@@ -17,6 +17,7 @@ use std::time::Duration;
 use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
 use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
+use crossterm::tty::IsTty;
 use fireside_core::Graph;
 use fireside_engine::{Outcome, Session};
 
@@ -136,6 +137,9 @@ pub fn present_authoring(
     initial_node: Option<&str>,
     on_position_changed: PositionSink<'_>,
 ) -> Result<PresentSummary, TuiError> {
+    if !io::stdout().is_tty() || !io::stdin().is_tty() {
+        return Err(TuiError::NotATty);
+    }
     let total = graph.nodes.len();
     let mut session = Session::new(graph)?;
     let resumed = initial_node.is_some_and(|id| matches!(session.goto(id), Outcome::Moved));
@@ -146,7 +150,7 @@ pub fn present_authoring(
             app::FlashKind::Info,
         );
     }
-    let mut terminal = ratatui::init();
+    let mut terminal = ratatui::try_init()?;
     // Mouse is additive on top of the keyboard contract (constitution
     // Principle II) — enabled/disabled around the same window raw mode is,
     // so a panic or early return still leaves the terminal in mouse-off,

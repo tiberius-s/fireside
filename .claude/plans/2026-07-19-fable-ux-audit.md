@@ -33,9 +33,13 @@ Definition of Done. No findings added, removed, or re-prioritized.
 _Update this section whenever an item lands or starts. One line per item:
 status, date._
 
-- [ ] P0-1 quickstart install block
-- [ ] P0-2 `.md` hint on present/validate
-- [ ] P0-3 non-tty guard + `try_init`
+- [x] P0-1 quickstart install block — 2026-07-19
+- [x] P0-2 `.md` hint on present/validate — 2026-07-19 (`load()` is shared by
+      `present` and one-shot `validate`, so both get the hint; `validate
+      --watch`'s separate `watch_report` path still shows the raw parse
+      report — out of scope for the P0 fix, watch mode isn't a first-five-
+      minutes path)
+- [x] P0-3 non-tty guard + `try_init` — 2026-07-19
 - [ ] P1-1 path-keyed resume records
 - [ ] P1-2 shorthand `--restart`
 - [ ] P1-3 tab expansion at render

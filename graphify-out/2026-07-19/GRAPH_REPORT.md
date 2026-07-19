@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-19)
 
 ## Corpus Check
-- 283 files · ~353,201 words
+- 283 files · ~353,586 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3029 nodes · 4149 edges · 276 communities (232 shown, 44 thin omitted)
+- 3036 nodes · 4164 edges · 276 communities (232 shown, 44 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e6f54036`
+- Built from commit: `25654d56`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -295,7 +295,7 @@
 2. `press()` - 45 edges
 3. `screen()` - 41 edges
 4. `App` - 39 edges
-5. `fireside()` - 33 edges
+5. `fireside()` - 36 edges
 6. `render_block()` - 33 edges
 7. `Diagnostic` - 30 edges
 8. `diags_for()` - 27 edges
@@ -351,8 +351,8 @@ Cohesion: 0.23
 Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_the_source_exactly(), rust_keywords_strings_and_comments_get_distinct_styles() (+4 more)
 
 ### Community 1 - "CLI Commands"
-Cohesion: 0.09
-Nodes (38): Command, Duration, Graph, Option, Path, PathBuf, Result, String (+30 more)
+Cohesion: 0.08
+Nodes (42): Command, Duration, Graph, Option, Path, PathBuf, Result, String (+34 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -719,8 +719,8 @@ Cohesion: 0.20
 Nodes (9): 1. Confirm non-watch behavior is unchanged (FR-002), 2. Start watch mode and see the immediate first check (FR-003), 3. Introduce a semantic error and save (User Story 1, FR-004/FR-005), 4. Fix it and save again, 5. Introduce a JSON syntax error (User Story 2, FR-006), 6. Delete the file (edge case, FR-009), 7. Stop with Ctrl-C (FR-010), Automated coverage (+1 more)
 
 ### Community 106 - "Community 106"
-Cohesion: 0.10
-Nodes (38): Command, PathBuf, Drop, art_image_charset_flag_changes_output_characters(), art_image_converts_a_readable_file(), art_image_default_charset_matches_unflagged_output(), art_image_invert_flag_flips_shading(), art_image_no_normalize_reproduces_prior_behavior() (+30 more)
+Cohesion: 0.09
+Nodes (41): Command, PathBuf, Drop, art_image_charset_flag_changes_output_characters(), art_image_converts_a_readable_file(), art_image_default_charset_matches_unflagged_output(), art_image_invert_flag_flips_shading(), art_image_no_normalize_reproduces_prior_behavior() (+33 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.15
@@ -784,7 +784,7 @@ Nodes (16): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Descripti
 
 ### Community 122 - "Community 122"
 Cohesion: 0.21
-Nodes (18): App, Display, Duration, Formatter, Graph, Option, Result, DefaultTerminal (+10 more)
+Nodes (18): App, Display, Duration, Formatter, Graph, Option, Result, TuiError (+10 more)
 
 ### Community 123 - "Community 123"
 Cohesion: 0.22
@@ -1271,7 +1271,7 @@ Nodes (20): Acceptance bar (testable), Architecture, Block forms (never syntax),
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1549 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1544 more)
+- **1551 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1546 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1281,11 +1281,11 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1551 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1553 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.0851063829787234 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0792156862745098 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**

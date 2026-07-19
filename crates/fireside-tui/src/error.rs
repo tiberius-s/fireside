@@ -12,4 +12,12 @@ pub enum TuiError {
     /// Terminal I/O failed.
     #[error("terminal error: {0}")]
     Io(#[from] std::io::Error),
+
+    /// stdin/stdout is not an interactive terminal (piped, redirected, or
+    /// otherwise non-tty) — presenting needs a real terminal to read keys
+    /// and draw frames.
+    #[error(
+        "fireside needs an interactive terminal to present — run it directly in your terminal, not through a pipe."
+    )]
+    NotATty,
 }

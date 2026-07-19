@@ -19,6 +19,8 @@ with Unicode box-drawing support, and is most comfortable at ~80 columns by
 ## Install
 
 ```bash
+git clone https://github.com/tiberius-s/fireside.git
+cd fireside
 cargo install --path crates/fireside-cli
 ```
 

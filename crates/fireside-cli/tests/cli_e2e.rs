@@ -57,6 +57,46 @@ fn present_missing_file_suggests_creating_it() {
 }
 
 #[test]
+fn validate_markdown_file_suggests_import_first() {
+    let temp = tempfile::tempdir().expect("temp dir");
+    let deck = temp.path().join("talk.md");
+    std::fs::write(&deck, "# My Conference Talk\n").expect("write fixture");
+
+    fireside()
+        .arg("validate")
+        .arg(&deck)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("This is a Markdown file"));
+}
+
+#[test]
+fn present_markdown_file_suggests_import_first() {
+    let temp = tempfile::tempdir().expect("temp dir");
+    let deck = temp.path().join("talk.md");
+    std::fs::write(&deck, "# My Conference Talk\n").expect("write fixture");
+
+    fireside().arg(&deck).assert().failure().stderr(
+        predicate::str::contains("This is a Markdown file")
+            .and(predicate::str::contains("fireside import"))
+            .and(predicate::str::contains("talk.fireside.json")),
+    );
+}
+
+#[test]
+fn present_without_a_tty_gives_a_plain_message() {
+    fireside()
+        .arg("demo")
+        .write_stdin("")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "fireside needs an interactive terminal to present",
+        ))
+        .stderr(predicate::str::contains("panicked").not());
+}
+
+#[test]
 fn validate_reports_dangling_targets_in_plain_language() {
     let temp = tempfile::tempdir().expect("temp dir");
     let deck = temp.path().join("broken.json");
