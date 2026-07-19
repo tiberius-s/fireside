@@ -129,7 +129,32 @@ enum ArtMode {
         /// standard presentation card.
         #[arg(long)]
         width: Option<u32>,
+
+        /// Character set used to shade the output.
+        #[arg(long, value_enum, default_value_t = ArtCharset::Default)]
+        charset: ArtCharset,
+
+        /// Swap light/dark shading — useful for light-on-dark subjects.
+        #[arg(long)]
+        invert: bool,
+
+        /// Skip the automatic contrast stretch and use the image's raw
+        /// brightness range unchanged (spec 011's pre-existing behavior).
+        #[arg(long)]
+        no_normalize: bool,
     },
+}
+
+/// The character sets `fireside art image` can shade with — three of
+/// `rascii_art`'s built-in options (`chinese`/`emoji`/`russian` also exist
+/// upstream but aren't surfaced here). `Default` matches the tool's
+/// unflagged output exactly.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
+enum ArtCharset {
+    Default,
+    Block,
+    Slight,
 }
 
 /// The shape of deck `fireside new` scaffolds. Each demonstrates one
@@ -167,7 +192,13 @@ fn main() -> Result<()> {
         (None, Some(Command::Import { input, output })) => import_file(&input, output.as_deref()),
         (None, Some(Command::Art { mode })) => match mode {
             ArtMode::Text { phrase } => art::art_text(&phrase),
-            ArtMode::Image { path, width } => art::art_image(&path, width),
+            ArtMode::Image {
+                path,
+                width,
+                charset,
+                invert,
+                no_normalize,
+            } => art::art_image(&path, width, charset, invert, no_normalize),
         },
         (None, None) => {
             // No arguments: teach, don't error.

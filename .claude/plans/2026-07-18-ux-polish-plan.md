@@ -17,7 +17,15 @@ status, date._
 - [x] W1-3 diagnostics pluralization — 2026-07-18, `report.rs` emits "1 error"/"2 errors"/"0 errors" via new `plural()` helper
 - [x] W1-4 friendly file-not-found for present — 2026-07-18, `load()` in main.rs now prints `No deck named X — "fireside new <stem>" creates one.` (also benefits `validate`)
 - [x] W2 (spec 010) presenter-polish feature — 2026-07-18, all 5 stories shipped (specs/010-presenter-polish/): reserved-branch-key validator warning (Rust+Node, fixture-parity proven), exit summary, resume toast, wizard present-now prompt, `art text` width guard. `scripts/verify.sh` green.
-- [ ] W3 (spec 011) art image quality — not started
+- [x] W3 (spec 011) art image quality — 2026-07-18, `fireside art image` now
+      applies a 2nd/98th-percentile contrast stretch by default (ADR-013,
+      constitution → 1.3.0 for the new direct `image` dependency), plus
+      `--charset <default|block|slight>`, `--invert`, and `--no-normalize`
+      flags, and a stderr warning on unusually low-contrast sources.
+      `.github/demo-art.png` replaced with a high-contrast CC0 sunset/tree
+      silhouette (was a muddy night photo at ~30% of the brightness range;
+      new image at ~66%), `art-image.gif` re-recorded. `scripts/verify.sh`
+      green.
 - [ ] W4 docs restructure — not started
 
 ## Ground rules
@@ -148,6 +156,20 @@ undermined by the front door.
 5. **Appendix lettering**: appendices run B, C, D with no A. Either restore
    A or reletter to A, B, C (update sidebar labels + inbound links).
 6. Sweep cross-links after the moves (`npm run build` catches broken ones).
+7. **Document `image` vs. `ascii-art` blocks (new, surfaced 2026-07-19
+   during spec 011 follow-up).** Neither `getting-started.md` nor
+   `authoring-markdown.md` currently explains that a plain `image` block
+   (`{"kind": "image", "src": ...}`) renders in the terminal as only a
+   labeled placeholder frame — no real pixels, a deliberate decision
+   (ADR-008: real image rendering is NO-GO) — while `ascii-art` (generated
+   via `fireside art text`/`art image`, spec 009/011) is the only way to
+   get a photo or banner *visually* into a presented deck.
+   `authoring-markdown.md`'s existing "ASCII art" section is three
+   sentences with no worked example. Expand it with a full loop (source
+   image → `fireside art image` → pasted fence → rendered slide) and add a
+   short callout to `getting-started.md` (or its retitled replacement, item
+   4 above) clarifying the placeholder-only behavior of plain `image`
+   blocks, so a new user doesn't write one expecting to see their photo.
 
 Verify: `docs` CI job / `npm run build` clean; read-through of the new
 front-door path start to finish.

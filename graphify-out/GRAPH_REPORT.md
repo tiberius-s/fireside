@@ -1,16 +1,16 @@
-# Graph Report - fireside  (2026-07-18)
+# Graph Report - fireside  (2026-07-19)
 
 ## Corpus Check
-- 271 files · ~330,120 words
+- 280 files · ~341,554 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2854 nodes · 3937 edges · 261 communities (217 shown, 44 thin omitted)
+- 2981 nodes · 4102 edges · 273 communities (229 shown, 44 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6ee40d91`
+- Built from commit: `d13626c9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -274,17 +274,29 @@
 - [[_COMMUNITY_Community 258|Community 258]]
 - [[_COMMUNITY_Community 259|Community 259]]
 - [[_COMMUNITY_Community 260|Community 260]]
+- [[_COMMUNITY_Community 261|Community 261]]
+- [[_COMMUNITY_Community 262|Community 262]]
+- [[_COMMUNITY_Community 263|Community 263]]
+- [[_COMMUNITY_Community 264|Community 264]]
+- [[_COMMUNITY_Community 265|Community 265]]
+- [[_COMMUNITY_Community 266|Community 266]]
+- [[_COMMUNITY_Community 267|Community 267]]
+- [[_COMMUNITY_Community 268|Community 268]]
+- [[_COMMUNITY_Community 269|Community 269]]
+- [[_COMMUNITY_Community 270|Community 270]]
+- [[_COMMUNITY_Community 271|Community 271]]
+- [[_COMMUNITY_Community 272|Community 272]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `app()` - 48 edges
 2. `press()` - 45 edges
 3. `screen()` - 41 edges
 4. `App` - 39 edges
-5. `render_block()` - 33 edges
-6. `Diagnostic` - 30 edges
-7. `diags_for()` - 27 edges
-8. `render()` - 26 edges
-9. `fireside()` - 25 edges
+5. `fireside()` - 33 edges
+6. `render_block()` - 33 edges
+7. `Diagnostic` - 30 edges
+8. `diags_for()` - 27 edges
+9. `render()` - 26 edges
 10. `Vec` - 25 edges
 
 ## Surprising Connections (you probably didn't know these)
@@ -329,7 +341,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (261 total, 44 thin omitted)
+## Communities (273 total, 44 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -337,7 +349,7 @@ Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_
 
 ### Community 1 - "CLI Commands"
 Cohesion: 0.09
-Nodes (37): Command, Duration, Graph, Option, Path, PathBuf, Result, String (+29 more)
+Nodes (38): Command, Duration, Graph, Option, Path, PathBuf, Result, String (+30 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -512,8 +524,8 @@ Cohesion: 0.18
 Nodes (10): Completion Report, Done When, Key rules, Mandatory Post-Execution Hooks, Outline, Phase 0: Outline & Research, Phase 1: Design & Contracts, Phases (+2 more)
 
 ### Community 46 - "Editor Command Tests"
-Cohesion: 0.05
-Nodes (37): CLI Event Loop, Command / CommandHistory (undo-redo), Action enum (~35 variants), App struct (TUI state), AppMode (Presenting/Editing/GotoNode/Quitting), TEA (The Elm Architecture) Discipline, Appendix B — Engine Guidelines, Container Rendering Guidance (+29 more)
+Cohesion: 0.12
+Nodes (16): CLI Event Loop, Command / CommandHistory (undo-redo), Action enum (~35 variants), App struct (TUI state), AppMode (Presenting/Editing/GotoNode/Quitting), TEA (The Elm Architecture) Discipline, Appendix B — Engine Guidelines, Container Rendering Guidance (+8 more)
 
 ### Community 47 - "Layout Rendering"
 Cohesion: 0.15
@@ -704,8 +716,8 @@ Cohesion: 0.20
 Nodes (9): 1. Confirm non-watch behavior is unchanged (FR-002), 2. Start watch mode and see the immediate first check (FR-003), 3. Introduce a semantic error and save (User Story 1, FR-004/FR-005), 4. Fix it and save again, 5. Introduce a JSON syntax error (User Story 2, FR-006), 6. Delete the file (edge case, FR-009), 7. Stop with Ctrl-C (FR-010), Automated coverage (+1 more)
 
 ### Community 106 - "Community 106"
-Cohesion: 0.12
-Nodes (29): Command, PathBuf, Drop, art_image_converts_a_readable_file(), art_image_reports_a_clear_error_for_a_missing_file(), art_text_partial_recognition_still_produces_output(), art_text_prints_a_multiline_banner(), art_text_silent_on_stderr_when_it_fits() (+21 more)
+Cohesion: 0.10
+Nodes (38): Command, PathBuf, Drop, art_image_charset_flag_changes_output_characters(), art_image_converts_a_readable_file(), art_image_default_charset_matches_unflagged_output(), art_image_invert_flag_flips_shading(), art_image_no_normalize_reproduces_prior_behavior() (+30 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.15
@@ -1061,7 +1073,7 @@ Nodes (13): Appendix — key external references, Context, Continuous — Rust l
 
 ### Community 221 - "Community 221"
 Cohesion: 0.22
-Nodes (8): Common conventions across verbs, `fireside art image <path> [--width N]`, `fireside art text <phrase>`, `fireside demo`, `fireside import <input.md> [output]`, `fireside new [name]`, `fireside present <file>`, `fireside validate <file>`
+Nodes (8): Common conventions across verbs, `fireside art image <path> [--width N] [--charset <name>] [--invert] [--no-normalize]`, `fireside art text <phrase>`, `fireside demo`, `fireside import <input.md> [output]`, `fireside new [name]`, `fireside present <file>`, `fireside validate <file>`
 
 ### Community 222 - "Community 222"
 Cohesion: 0.22
@@ -1144,8 +1156,8 @@ Cohesion: 0.15
 Nodes (12): Dependencies & Execution Order, Follow-up (2026-07-18, second pass), Implementation Strategy, Parallel Execution Examples, Phase 1: Setup, Phase 2: Foundational (blocking prerequisite for all user stories), Phase 3: User Story 1 - Author turns a title into a stylized banner (Priority: P1), Phase 4: User Story 2 - Author converts an existing image into ASCII art (Priority: P1) (+4 more)
 
 ### Community 245 - "Community 245"
-Cohesion: 0.14
-Nodes (29): BufRead, Option, Path, Result, String, Graph, Option, PathBuf (+21 more)
+Cohesion: 0.20
+Nodes (21): BufRead, Graph, Option, PathBuf, Result, String, Value, add_title_banner() (+13 more)
 
 ### Community 249 - "Community 249"
 Cohesion: 0.13
@@ -1191,12 +1203,60 @@ Nodes (7): 1. Reserved-key validator warning (US1), 2. Exit summary (US2), 3. Re
 Cohesion: 0.08
 Nodes (25): Dependencies & Execution Order, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation for User Story 4, Implementation for User Story 5, Implementation Strategy, Incremental Delivery (+17 more)
 
+### Community 261 - "Community 261"
+Cohesion: 0.14
+Nodes (13): Assumptions, Edge Cases, Feature Specification: ASCII Art Image Quality, Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+5 more)
+
+### Community 262 - "Community 262"
+Cohesion: 0.33
+Nodes (5): Specification Quality Checklist: ASCII Art Image Quality, Content Quality, Feature Readiness, Notes, Requirement Completeness
+
+### Community 263 - "Community 263"
+Cohesion: 0.22
+Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: ASCII Art Image Quality, Project Structure, Source Code (repository root), Summary, Technical Context
+
+### Community 264 - "Community 264"
+Cohesion: 0.20
+Nodes (9): 1. Can the contrast stretch be done without a direct `image` dependency?, 2. Percentile/stretch algorithm, 3. Where the percentile/stretch/warning logic lives, 4. Charset and invert flags, 5. Low-range warning threshold, 6. `--no-normalize` interaction with charset/invert, 7. Demo image replacement and doc updates, 8. Constitution amendment (+1 more)
+
+### Community 265 - "Community 265"
+Cohesion: 0.20
+Nodes (9): `art_image` (changed signature), `ArtCharset` (new), Data Model: ASCII Art Image Quality, `ImageConversionOptions` (new, conceptual — CLI-facing), Low-range warning (no new type), Percentile bounds (new, internal), `render_image_ascii` (changed signature), Stretched image (new, internal, transient) (+1 more)
+
+### Community 266 - "Community 266"
+Cohesion: 0.29
+Nodes (6): Automatic contrast stretch (default-on behavior), Command shape, Contract: `fireside art image` flags and behavior, Exit codes, Low-range warning, Non-goals
+
+### Community 267 - "Community 267"
+Cohesion: 0.25
+Nodes (7): 1. Default output is recognizable on a low-contrast photo (US1), 2. No visible regression on an already-high-contrast photo (US1), 3. Charset and invert flags (US2), 4. Low-range warning (US3), 5. Documentation example (US4), Full verification, Quickstart: validating ASCII Art Image Quality
+
+### Community 268 - "Community 268"
+Cohesion: 0.08
+Nodes (23): Dependencies & Execution Order, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation for User Story 4, Implementation Strategy, Incremental Delivery, MVP First (User Story 1 Only) (+15 more)
+
+### Community 269 - "Community 269"
+Cohesion: 0.22
+Nodes (8): ADR-013: `image` crate as a direct `fireside-cli` dependency, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+
+### Community 270 - "Community 270"
+Cohesion: 0.17
+Nodes (25): ArtCharset, Option, Path, Result, String, DynamicImage, Rgba, RgbaImage (+17 more)
+
+### Community 271 - "Community 271"
+Cohesion: 0.12
+Nodes (16): Algorithm, Algorithm, Algorithm, Algorithm, Branch-point precedence, Branch return wiring, Conformance Checklist, Engine State (+8 more)
+
+### Community 272 - "Community 272"
+Cohesion: 0.40
+Nodes (5): Branch and Rejoin, Graph Patterns, Hub and Spoke, Linear Sequence, Open World
+
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1443 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1438 more)
+- **1512 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1507 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1206,14 +1266,14 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **Why does `Event` connect `Community 137` to `Render Module`, `Community 122`, `Community 228`, `TUI App Core`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **Why does `slugify()` connect `CLI Commands` to `Community 137`, `Community 245`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+  _High betweenness centrality (0.022) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1445 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1514 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.08792270531400966 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0851063829787234 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
+- **Should `TUI App Core` be split into smaller, more focused modules?**
+  _Cohesion score 0.06720321931589537 - nodes in this community are weakly interconnected._
+- **Should `Editor Detail Pane` be split into smaller, more focused modules?**
+  _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._

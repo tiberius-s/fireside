@@ -672,6 +672,7 @@ dependencies = [
  "fireside-core",
  "fireside-engine",
  "fireside-tui",
+ "image",
  "predicates",
  "pulldown-cmark",
  "rascii_art",

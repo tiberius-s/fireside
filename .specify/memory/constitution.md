@@ -1,5 +1,21 @@
 <!--
 Sync Impact Report
+- Version change: 1.2.1 → 1.3.0
+- Modified principles: III. Crate Boundary Discipline — `fireside-cli`'s
+  permitted dependency list gains `image`, per ADR-013 (percentile-based
+  contrast stretch for `fireside art image`, spec 011). `rascii_art`'s
+  public API has no preprocessing hook, so the stretch requires decoding
+  and mutating image data directly rather than only through `rascii_art`'s
+  path-based entry points. No principle removed or redefined; this
+  materially expands existing guidance, hence MINOR — same class of change
+  as the ADR-006/ADR-011 amendments.
+- Added sections: none
+- Removed sections: none
+- Templates requiring updates: none (boundary table is referenced, not
+  duplicated, elsewhere)
+- Follow-up TODOs: none
+
+Sync Impact Report (previous)
 - Version change: 1.1.0 → 1.2.0
 - Modified principles: III. Crate Boundary Discipline — `fireside-cli`'s
   permitted dependency list gains `figlet-rs` and `rascii_art`, per
@@ -84,7 +100,7 @@ Each crate has a dependency allowlist. Anything not listed is forbidden.
 | `fireside-core`   | `serde`, `serde_json`, `thiserror`                             | Any I/O, UI, validation, or rendering code        |
 | `fireside-engine` | `fireside-core`, `thiserror`                                   | File I/O, ratatui, crossterm, clap, anyhow        |
 | `fireside-tui`    | `fireside-core`, `fireside-engine`, `ratatui`, `crossterm`, `unicode-width`, `syntect`, `two-face`, `thiserror` | Direct file I/O, business logic duplication |
-| `fireside-cli`    | All workspace crates, `clap`, `anyhow`, `serde_json`, `pulldown-cmark`, `figlet-rs`, `rascii_art` | State management, rendering outside `fireside-tui` |
+| `fireside-cli`    | All workspace crates, `clap`, `anyhow`, `serde_json`, `pulldown-cmark`, `figlet-rs`, `rascii_art`, `image` | State management, rendering outside `fireside-tui` |
 
 Any proposal that would violate this table MUST be flagged with an explicit
 warning and an alternative that respects the boundaries.
@@ -181,4 +197,4 @@ disagree, the constitution wins.
 - **Compliance review**: every `/speckit-plan` run re-checks this file via
   its Constitution Check gate; reviewers verify compliance on every PR.
 
-**Version**: 1.2.1 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-18
+**Version**: 1.3.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-18

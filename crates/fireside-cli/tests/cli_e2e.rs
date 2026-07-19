@@ -419,3 +419,158 @@ fn art_image_reports_a_clear_error_for_a_missing_file() {
         .failure()
         .stderr(predicate::str::contains("could not read"));
 }
+
+fn fixture(name: &str) -> std::path::PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures")
+        .join(name)
+}
+
+/// Number of distinct characters appearing in `s` — a proxy for how much
+/// of the charset's tonal range an ASCII-art conversion actually used.
+fn distinct_chars(s: &str) -> usize {
+    s.chars().collect::<std::collections::HashSet<_>>().len()
+}
+
+#[test]
+fn art_image_stretches_low_contrast_image_by_default() {
+    let stretched = fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("low-contrast.png"))
+        .output()
+        .expect("fireside runs");
+    let unstretched = fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("low-contrast.png"))
+        .arg("--no-normalize")
+        .output()
+        .expect("fireside runs");
+
+    assert!(stretched.status.success());
+    assert!(unstretched.status.success());
+    let stretched_out = String::from_utf8(stretched.stdout).unwrap();
+    let unstretched_out = String::from_utf8(unstretched.stdout).unwrap();
+    assert!(
+        distinct_chars(&stretched_out) > distinct_chars(&unstretched_out),
+        "expected the default (stretched) conversion to use a wider variety of \
+         characters than --no-normalize"
+    );
+}
+
+#[test]
+fn art_image_no_normalize_reproduces_prior_behavior() {
+    fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("tiny.png"))
+        .arg("--no-normalize")
+        .assert()
+        .success()
+        .stdout(predicate::function(|s: &str| s.lines().count() > 1));
+}
+
+#[test]
+fn art_image_charset_flag_changes_output_characters() {
+    let block = fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("tiny.png"))
+        .arg("--charset")
+        .arg("block")
+        .output()
+        .expect("fireside runs");
+    let default = fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("tiny.png"))
+        .output()
+        .expect("fireside runs");
+
+    assert!(block.status.success());
+    let block_out = String::from_utf8(block.stdout).unwrap();
+    let default_out = String::from_utf8(default.stdout).unwrap();
+    assert_ne!(block_out, default_out);
+    let block_chars: std::collections::HashSet<char> =
+        block_out.chars().filter(|c| !c.is_whitespace()).collect();
+    assert!(
+        block_chars.is_subset(&" ░▒▓█".chars().collect()),
+        "expected --charset block output to use only block-shading characters, got {block_chars:?}"
+    );
+}
+
+#[test]
+fn art_image_invert_flag_flips_shading() {
+    let inverted = fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("tiny.png"))
+        .arg("--invert")
+        .output()
+        .expect("fireside runs");
+    let normal = fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("tiny.png"))
+        .output()
+        .expect("fireside runs");
+
+    assert!(inverted.status.success());
+    assert_ne!(inverted.stdout, normal.stdout);
+}
+
+#[test]
+fn art_image_default_charset_matches_unflagged_output() {
+    let explicit = fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("tiny.png"))
+        .arg("--charset")
+        .arg("default")
+        .output()
+        .expect("fireside runs");
+    let unflagged = fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("tiny.png"))
+        .output()
+        .expect("fireside runs");
+
+    assert_eq!(explicit.stdout, unflagged.stdout);
+}
+
+#[test]
+fn art_image_warns_on_stderr_for_low_contrast_source() {
+    fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("flat.png"))
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("brightness range"))
+        .stdout(predicate::function(|s: &str| s.lines().count() > 1));
+}
+
+#[test]
+fn art_image_silent_on_stderr_for_normal_contrast_source() {
+    fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("tiny.png"))
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn art_image_warning_fires_even_with_no_normalize() {
+    fireside()
+        .arg("art")
+        .arg("image")
+        .arg(fixture("flat.png"))
+        .arg("--no-normalize")
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("brightness range"));
+}

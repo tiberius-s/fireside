@@ -1380,8 +1380,8 @@
     "semantic_hash": ""
   },
   ".github/art-image.gif": {
-    "mtime": 1784402620.2489202,
-    "ast_hash": "c6b802c5ecaee116201b7a01c292b07b",
+    "mtime": 1784430582.4876325,
+    "ast_hash": "6597829e929aca78dd46d054778527f9",
     "semantic_hash": ""
   },
   ".github/art-text.gif": {
@@ -1395,8 +1395,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-18-ux-polish-plan.md": {
-    "mtime": 1784426095.084837,
-    "ast_hash": "03d4310c79e9330b7f8c15577a56c23d",
+    "mtime": 1784430650.354967,
+    "ast_hash": "51ce584d468a2820d240c047b76f4705",
     "semantic_hash": ""
   },
   "specs/010-presenter-polish/spec.md": {
@@ -1495,8 +1495,8 @@
     "semantic_hash": ""
   },
   "specs/011-art-image-quality/tasks.md": {
-    "mtime": 1784430214.4038537,
-    "ast_hash": "b53f4381b96b312a23994f316d828e9b",
+    "mtime": 1784430636.1612155,
+    "ast_hash": "8acc48f6b38274a126c4202b767639f3",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-013-image-crate-direct-dependency.md": {

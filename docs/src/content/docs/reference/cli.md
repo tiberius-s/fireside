@@ -135,22 +135,34 @@ recognized.
 
 ![Generating a stylized text banner with fireside art text](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/art-text.gif)
 
-## `fireside art image <path> [--width N]`
+## `fireside art image <path> [--width N] [--charset <name>] [--invert] [--no-normalize]`
 
 Converts the image at `path` to ASCII shading and prints it to stdout — same
 authoring-time convenience as `art text`, and just as file-free: nothing is
 written to disk.
 
-| Argument/Flag | Effect                                                               |
-| -------------- | --------------------------------------------------------------------- |
-| `path`         | Path to a local image file.                                          |
-| `--width`      | Output width in columns. Defaults to 76 — the same width the `ascii-art-too-wide` validator warns past, so default output already fits the presentation card. |
+By default, the image's brightness is automatically contrast-stretched (a
+2nd/98th-percentile levels stretch) before shading, so an ordinary photo
+that only uses a narrow slice of the brightness range still converts to a
+legible result instead of collapsing into a handful of the darkest
+characters. When the source image's brightness range is unusually narrow —
+even after accounting for the stretch — a note is printed to stderr
+suggesting `--invert` or a higher-contrast source image; stdout still gets
+the full converted output either way.
+
+| Argument/Flag     | Effect                                                               |
+| ------------------ | --------------------------------------------------------------------- |
+| `path`             | Path to a local image file.                                          |
+| `--width`          | Output width in columns. Defaults to 76 — the same width the `ascii-art-too-wide` validator warns past, so default output already fits the presentation card. |
+| `--charset <name>` | Character set used to shade the output: `default`, `block`, or `slight`. Defaults to `default`. |
+| `--invert`         | Swaps light/dark shading — useful for light-on-dark subjects.        |
+| `--no-normalize`   | Skips the automatic contrast stretch and uses the image's raw brightness range unchanged. |
 
 **Exit codes:** `0` on success; `1` if `path` doesn't exist or isn't a
 readable image — reported with a clear message, never a panic.
 
-The source photo below ("People sitting around a camp fire" by Hynek Janáč,
-[CC0 1.0](https://commons.wikimedia.org/wiki/File:People_sitting_around_a_camp_fire.jpg),
+The source photo below ("Tree silhouette sunset" by Jagyasini Malakar,
+[CC0](https://commons.wikimedia.org/wiki/File:Tree_silhouette_sunset._(Unsplash).jpg),
 Wikimedia Commons) is what the recording converts — shown here so you can
 compare input and output directly, not just take the GIF's word for it:
 
