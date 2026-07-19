@@ -1,5 +1,5 @@
 ---
-title: 'Appendix D — Engine Extensions (Non-Normative)'
+title: 'Appendix C — Engine Extensions (Non-Normative)'
 description: 'Features of the Rust reference engine beyond the Fireside protocol: currently none.'
 ---
 

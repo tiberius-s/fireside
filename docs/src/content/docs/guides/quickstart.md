@@ -1,0 +1,74 @@
+---
+title: 'Quickstart'
+description: 'Install Fireside, run the demo, and present your first deck in a few minutes.'
+---
+
+This page is the fastest path from nothing installed to a deck on screen. It
+assumes no protocol knowledge — if you want to understand *why* Fireside is
+shaped the way it is, [Mental models](/spec/mental-models/) is the next stop
+after this.
+
+## Requirements
+
+The presenter renders with 24-bit RGB colors and has no 256-color fallback,
+so you'll need a truecolor terminal (most modern terminal emulators; set
+`COLORTERM=truecolor` if colors look off). It also expects a monospace font
+with Unicode box-drawing support, and is most comfortable at ~80 columns by
+24 rows or larger — narrower windows still work, but content wraps tighter.
+
+## Install
+
+```bash
+cargo install --path crates/fireside-cli
+```
+
+Requires Rust 1.88+ (MSRV).
+
+## See what a deck can do
+
+```bash
+fireside demo
+```
+
+Press `Space` to move forward, `↑`/`↓` at a branch point to choose, and `?`
+any time — the presenter teaches its own keys. `q` quits.
+
+## Make your own
+
+```bash
+fireside new my-first-deck
+fireside my-first-deck.fireside.json
+```
+
+`new` scaffolds a small starter deck; the second command presents it.
+
+## Live-edit while presenting
+
+Decks live-reload while you present: edit the JSON in another window, save,
+and the slide on screen updates in place. You can also press `e` during a
+presentation to quick-edit the current slide's heading and text without
+leaving the terminal — see [Presenting a deck](/guides/presenting/#quick-editing-a-slide).
+
+## Write in Markdown instead of JSON
+
+Most talks start as an outline, not hand-written JSON:
+
+```bash
+fireside import talk.md
+fireside talk.fireside.json
+```
+
+`import` compiles a Markdown file into a deck — each `##` heading becomes a
+node, and a small fence syntax declares branch points. See
+[Authoring a Deck in Markdown](/guides/authoring-markdown/) for the full
+syntax.
+
+## Where to go next
+
+| If you want to...                                        | Go to                                            |
+| ---------------------------------------------------------- | --------------------------------------------------- |
+| Learn every key the presenter responds to                  | [Presenting a deck](/guides/presenting/)             |
+| Write a talk in Markdown instead of JSON                    | [Authoring a Deck in Markdown](/guides/authoring-markdown/) |
+| Hand-write a deck's JSON and see how branching works        | [Your First Fireside Graph](/guides/getting-started/) |
+| Look up a `fireside` flag or exit code                      | [CLI Reference](/reference/cli/)                     |
+| Understand the graph model conceptually                     | [Mental models](/spec/mental-models/)                |

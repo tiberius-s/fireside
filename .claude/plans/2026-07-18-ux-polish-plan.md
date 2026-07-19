@@ -26,7 +26,21 @@ status, date._
       silhouette (was a muddy night photo at ~30% of the brightness range;
       new image at ~66%), `art-image.gif` re-recorded. `scripts/verify.sh`
       green.
-- [ ] W4 docs restructure — not started
+- [x] W4 docs restructure — 2026-07-19, new `guides/quickstart.md` front door;
+      sidebar reordered Guides → Reference → Specification (Quickstart
+      first); landing page (`index.md`) rewritten presenter-first with
+      spec reading order moved under "For Implementers"; `getting-started.md`
+      reframed as the hand-written-JSON deep dive with a real "Run it"
+      (`validate` + present) and a placeholder-`image`-vs-`ascii-art`
+      callout; appendices relettered B/C/D → A/B/C (no A existed before;
+      filenames unchanged, only titles/sidebar labels and the one live
+      cross-reference in `fireside-tui/src/lib.rs` and
+      `appendix-content-blocks.md` — historical spec/ADR mentions of
+      B/C/D left as-is, they're frozen point-in-time record); expanded
+      `authoring-markdown.md`'s ASCII art section with a full source-image
+      → `art image` → fence → present loop. `npm run build` + a
+      link/anchor sweep of the generated HTML: 0 broken internal links.
+      `cargo fmt`/`clippy` clean (one comment-only Rust change).
 
 ## Ground rules
 

@@ -1,5 +1,5 @@
 ---
-title: 'Appendix B — Engine Guidelines'
+title: 'Appendix A — Engine Guidelines'
 description: 'Non-normative implementation guidance for traversal, state, and rendering boundaries.'
 ---
 

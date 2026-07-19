@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-19)
 
 ## Corpus Check
-- 280 files · ~341,554 words
+- 281 files · ~342,624 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2981 nodes · 4102 edges · 273 communities (229 shown, 44 thin omitted)
+- 2992 nodes · 4113 edges · 274 communities (230 shown, 44 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d13626c9`
+- Built from commit: `37cbf907`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -286,6 +286,7 @@
 - [[_COMMUNITY_Community 270|Community 270]]
 - [[_COMMUNITY_Community 271|Community 271]]
 - [[_COMMUNITY_Community 272|Community 272]]
+- [[_COMMUNITY_Community 273|Community 273]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `app()` - 48 edges
@@ -341,7 +342,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (273 total, 44 thin omitted)
+## Communities (274 total, 44 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -588,8 +589,8 @@ Cohesion: 0.33
 Nodes (5): hooks, PostToolUse, PreToolUse, permissions, allow
 
 ### Community 63 - "Community 63"
-Cohesion: 0.22
-Nodes (8): Development, Fireside, Install, License, Repository structure, The CLI, Try it, What is Fireside?
+Cohesion: 0.20
+Nodes (9): Development, Fireside, Install, License, Repository structure, See it in action, The CLI, Try it (+1 more)
 
 ### Community 64 - "Community 64"
 Cohesion: 0.25
@@ -696,8 +697,8 @@ Cohesion: 0.25
 Nodes (7): graphify reference: extra exports and benchmark, Step 6b - Wiki (only if --wiki flag), Step 7 - Neo4j export (only if --neo4j or --neo4j-push flag), Step 7b - SVG export (only if --svg flag), Step 7c - GraphML export (only if --graphml flag), Step 7d - MCP server (only if --mcp flag), Step 8 - Token reduction benchmark (only if total_words > 5000)
 
 ### Community 101 - "Community 101"
-Cohesion: 0.25
-Nodes (7): Read the shape, Requirements, Run it, Start with the graph, What to try next, What you will make, Why this structure works
+Cohesion: 0.22
+Nodes (8): A note on images, Read the shape, Requirements, Run it, Start with the graph, What to try next, What you will make, Why this structure works
 
 ### Community 102 - "Community 102"
 Cohesion: 0.29
@@ -833,7 +834,7 @@ Nodes (16): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Descripti
 
 ### Community 135 - "Community 135"
 Cohesion: 0.40
-Nodes (4): Specification Map, Start Here, What Fireside Does Not Define, What Fireside Gives You
+Nodes (5): For Implementers, Specification Map, Start Here, What Fireside Does Not Define, What Fireside Gives You
 
 ### Community 136 - "Community 136"
 Cohesion: 0.40
@@ -1251,12 +1252,16 @@ Nodes (16): Algorithm, Algorithm, Algorithm, Algorithm, Branch-point precedence,
 Cohesion: 0.40
 Nodes (5): Branch and Rejoin, Graph Patterns, Hub and Spoke, Linear Sequence, Open World
 
+### Community 273 - "Community 273"
+Cohesion: 0.25
+Nodes (7): Install, Live-edit while presenting, Make your own, Requirements, See what a deck can do, Where to go next, Write in Markdown instead of JSON
+
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1512 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1507 more)
+- **1520 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1515 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1266,9 +1271,9 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1514 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1522 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.0851063829787234 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**

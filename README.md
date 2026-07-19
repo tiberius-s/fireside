@@ -1,6 +1,7 @@
 # Fireside
 
 [![CI](https://github.com/tiberius-s/fireside/actions/workflows/rust.yml/badge.svg)](https://github.com/tiberius-s/fireside/actions/workflows/rust.yml)
+[![Docs](https://github.com/tiberius-s/fireside/actions/workflows/docs.yml/badge.svg)](https://tiberius-s.github.io/fireside/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A portable format for branching presentations — and a terminal presenter
@@ -11,6 +12,8 @@ anyone can drive.
 ## Install
 
 ```bash
+git clone https://github.com/tiberius-s/fireside.git
+cd fireside
 cargo install --path crates/fireside-cli
 ```
 
@@ -21,19 +24,36 @@ size of ~80 columns by 24 rows or larger.
 ## Try it
 
 ```bash
-cargo run -q -- demo
+fireside demo
 ```
 
 Press `Space` to move forward. Press `?` any time — the presenter teaches its
-own keys. Then make your own:
+own keys. Then make your own, either by hand or from a Markdown outline:
 
 ```bash
-cargo run -q -- new my-first-deck
-cargo run -q -- my-first-deck.fireside.json
+fireside new my-first-deck
+fireside my-first-deck.fireside.json
+
+# or write talk.md as plain Markdown and compile it:
+fireside import talk.md
+fireside talk.fireside.json
 ```
 
-Decks live-reload while you present: edit the JSON, save, and the slide on
-screen updates in place.
+Decks live-reload while you present: edit the JSON (or press `e` to
+quick-edit a slide's heading/text in place), save, and the slide on screen
+updates immediately.
+
+For the full walkthrough — including live-edit and ASCII art — see the
+[Quickstart guide](https://tiberius-s.github.io/fireside/guides/quickstart/).
+
+## See it in action
+
+| | |
+| --- | --- |
+| **Markdown → deck** — `fireside import` | **Quick-edit** — fix a typo without leaving the terminal |
+| ![Compiling a Markdown talk with fireside import, then presenting it](.github/import.gif) | ![Quick-editing a slide's heading and saving in place](.github/quick-edit.gif) |
+| **Photo → ASCII** — `fireside art image` | **Incremental reveal** — stage content one piece at a time |
+| ![Converting a local image into ASCII shading with fireside art image](.github/art-image.gif) | ![Revealing a slide's content one piece at a time](.github/reveal.gif) |
 
 ## What is Fireside?
 
@@ -71,13 +91,14 @@ fireside validate <file>   check a deck for problems, in plain language
 fireside new <name>        create a starter deck
 fireside import <file.md>  compile a Markdown talk into a deck
 fireside art text <phrase> generate a text banner to paste in
+fireside art image <path>  convert a local image to ASCII shading
 ```
 
 `present` takes `--restart` (skip the saved resume position); `validate`
 takes `--watch` (re-check on every save); `new` takes `--template` (`linear`,
 `branching`, `workshop`), `--author`, and `--banner` (an ASCII title banner
-generated from the deck title); `art image <path>` (a sibling of `art text`)
-takes `--width`. Full flag and exit-code reference:
+generated from the deck title); `art image` takes `--width`, `--charset`,
+`--invert`, and `--no-normalize`. Full flag and exit-code reference:
 [CLI Reference](https://tiberius-s.github.io/fireside/reference/cli/).
 
 ## Repository structure

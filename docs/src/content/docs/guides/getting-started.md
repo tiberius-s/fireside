@@ -3,7 +3,10 @@ title: 'Your First Fireside Graph'
 description: 'Build a small branching Fireside graph with core blocks and a container.'
 ---
 
-This guide builds a small graph you can read and present immediately.
+Most decks are created with `fireside new` or compiled from Markdown with
+`fireside import` — see the [Quickstart](/guides/quickstart/) if that's what
+you're after. This guide is the deep dive for the other path: hand-writing a
+deck's JSON directly, to see the protocol's graph model up close.
 
 The point of the example is not to show every feature in the protocol. It is to
 show the smallest graph that still demonstrates entry, branching, rejoin, and a
@@ -123,7 +126,27 @@ reader in extra branches.
 
 ## Run it
 
-Use the reference engine or validator once you are ready to test the file.
+```sh
+fireside validate my-graph.fireside.json
+fireside my-graph.fireside.json
+```
+
+`validate` checks the file for schema and semantic problems before you
+present it; the second command presents it. Both live-reload-aware — if you
+keep editing the JSON while `fireside my-graph.fireside.json` is running, the
+slide on screen updates in place on save.
+
+## A note on images
+
+A plain `image` block (`{ "kind": "image", "src": "..." }`) is a deliberate
+placeholder in the reference presenter — it renders a labeled frame sized to
+its `alt` text, not the actual pixels. Real image rendering is out of scope
+for 0.1.0 (see [Appendix C, Engine Extensions](/spec/appendix-engine-extensions/)).
+If you want a photo or a title banner to actually show up on screen, convert
+it to text art first with `fireside art image`/`fireside art text` and use an
+`ascii-art` block instead — see
+[Authoring a Deck in Markdown](/guides/authoring-markdown/#ascii-art) for a
+worked example.
 
 ## What to try next
 

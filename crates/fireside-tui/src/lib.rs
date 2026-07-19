@@ -201,7 +201,7 @@ fn event_loop(
         // it is just an escape-sequence pair a terminal either honors or
         // silently ignores (DEC private mode 2026), so no capability query
         // is needed — the same "invisible if unsupported" reasoning already
-        // used for the `fade` transition's fallback (Appendix D).
+        // used for the `fade` transition's fallback (Appendix C).
         let _ = execute!(io::stdout(), BeginSynchronizedUpdate);
         terminal.draw(|frame| render::draw(frame, app))?;
         let _ = execute!(io::stdout(), EndSynchronizedUpdate);

@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
-    "mtime": 1784425990.1863854,
-    "ast_hash": "0a0867b08d2dec930edf9cc6b4659c5d",
+    "mtime": 1784471675.2762148,
+    "ast_hash": "ccb6eda5d68ae95f4969561a9c1cd176",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
@@ -105,8 +105,8 @@
     "semantic_hash": ""
   },
   "docs/astro.config.mjs": {
-    "mtime": 1784393920.7449882,
-    "ast_hash": "349668f8598a253ff56e25fb4597e5b6",
+    "mtime": 1784471647.5321429,
+    "ast_hash": "83cdba892abda5bbb74eb4218334a99b",
     "semantic_hash": ""
   },
   "docs/examples/hello.json": {
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784402380.6252565,
-    "ast_hash": "4d64eb775bcc25f49e7aaad2affe77a0",
+    "mtime": 1784472376.2821355,
+    "ast_hash": "a6ad8fc21ebd4aa70d110ef48d772bd2",
     "semantic_hash": ""
   },
   "crates/fireside-cli/README.md": {
@@ -315,13 +315,13 @@
     "semantic_hash": "fef3d7e4d03c17334e1cf431aa383367"
   },
   "docs/src/content/docs/guides/getting-started.md": {
-    "mtime": 1784393979.6643136,
-    "ast_hash": "e243fe0ea0c748318ed941c55e774e5c",
+    "mtime": 1784471741.250398,
+    "ast_hash": "f363e3e61ca5221f73864dcb7d26b079",
     "semantic_hash": ""
   },
   "docs/src/content/docs/index.md": {
-    "mtime": 1784340546.81322,
-    "ast_hash": "c3b6e878d6d101999fea923ba2b61cb7",
+    "mtime": 1784471720.1150947,
+    "ast_hash": "58aed38655ac2ec30ebddf3da65bf2c1",
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/data-model-quick-reference.md": {
@@ -335,13 +335,13 @@
     "semantic_hash": "4a36166c1136e2710f6b17eac60610f7"
   },
   "docs/src/content/docs/spec/appendix-content-blocks.md": {
-    "mtime": 1784398959.8149235,
-    "ast_hash": "dc05de72a5c8ba5c71767339cd98da99",
+    "mtime": 1784471660.7749372,
+    "ast_hash": "519bcc03e49bddbd0dd20482ab7d64a2",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-guidelines.md": {
-    "mtime": 1784303257.852191,
-    "ast_hash": "ae22085e7f506ca7df64eb93dbcbb58d",
+    "mtime": 1784471651.4460537,
+    "ast_hash": "07cfde6d09c9c93f335b31a453d79e12",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/data-model.md": {
@@ -385,8 +385,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-extensions.md": {
-    "mtime": 1784425419.284008,
-    "ast_hash": "ba407c07cfeff019277953983ee38034",
+    "mtime": 1784471670.5815547,
+    "ast_hash": "0fd752f9cf4f276a43c7ce17c54a1d85",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/markdown.rs": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/authoring-markdown.md": {
-    "mtime": 1784402365.1540656,
-    "ast_hash": "a333f461217aad8927b38792d75cfc0b",
+    "mtime": 1784471758.4276183,
+    "ast_hash": "abeb03c966de60042b6c2f4ef958fbd2",
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/conformance.md": {
@@ -1395,8 +1395,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-18-ux-polish-plan.md": {
-    "mtime": 1784430650.354967,
-    "ast_hash": "51ce584d468a2820d240c047b76f4705",
+    "mtime": 1784471863.7273605,
+    "ast_hash": "017b3505f233f0dd4c2f38df29cac744",
     "semantic_hash": ""
   },
   "specs/010-presenter-polish/spec.md": {
@@ -1495,8 +1495,8 @@
     "semantic_hash": ""
   },
   "specs/011-art-image-quality/tasks.md": {
-    "mtime": 1784430636.1612155,
-    "ast_hash": "8acc48f6b38274a126c4202b767639f3",
+    "mtime": 1784431726.5504858,
+    "ast_hash": "3820e41e8c19875a84dab794d266736a",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-013-image-crate-direct-dependency.md": {
@@ -1512,6 +1512,11 @@
   "crates/fireside-cli/tests/fixtures/low-contrast.png": {
     "mtime": 1784430115.4944737,
     "ast_hash": "5af2606c34aaf84bfdbabf00e918cb18",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/guides/quickstart.md": {
+    "mtime": 1784471622.8751705,
+    "ast_hash": "d7dd71e7d90c1fb8301377575fd01ca7",
     "semantic_hash": ""
   }
 }

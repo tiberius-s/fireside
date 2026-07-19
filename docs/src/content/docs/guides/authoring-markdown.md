@@ -118,7 +118,16 @@ section is also rejected — the fence must be the section's last element.
 
 A fence tagged ` ```ascii-art ` imports as a real `ascii-art` block, not a
 `code` block — the natural way to get generated art into a Markdown-authored
-deck without hand-editing the compiled JSON:
+deck without hand-editing the compiled JSON. This matters because a plain
+` ```` ` fenced image reference doesn't render as a photo: a Markdown `image`
+element compiles to an `image` block, and the reference presenter renders
+that as a labeled placeholder frame, not real pixels (real image rendering is
+out of scope for 0.1.0 — see
+[Appendix C, Engine Extensions](/spec/appendix-engine-extensions/)). An
+`ascii-art` block is the only way to get a photo or a title banner to
+actually show up on screen.
+
+A text banner, end to end:
 
 ```markdown
 ## Welcome
@@ -132,11 +141,36 @@ deck without hand-editing the compiled JSON:
 ​```
 ```
 
-Generate the fence contents with `fireside art text "<phrase>"` or
-`fireside art image <path>` and paste the output straight in — see
+Generate the fence contents with `fireside art text "<phrase>"` and paste the
+output straight in — see
 [CLI Reference](/reference/cli/#fireside-art-text-phrase). Alternatively,
 `fireside new --banner` skips Markdown entirely and generates a title
 banner directly into a scaffolded deck.
+
+A photo, end to end: convert a source image to ASCII shading, paste the
+output into an ` ```ascii-art ` fence the same way, then import and present:
+
+```sh
+fireside art image sunset.png > /tmp/sunset.txt
+```
+
+```markdown
+## The View From Here
+
+​```ascii-art
+<paste the contents of /tmp/sunset.txt here>
+​```
+```
+
+```sh
+fireside import talk.md
+fireside talk.fireside.json
+```
+
+The slide renders the converted photo as text art, centered in the content
+area — see [`fireside art image`](/reference/cli/#fireside-art-image-path---width-n---charset-name---invert---no-normalize)
+for the input/output comparison, contrast-stretch behavior, and flags like
+`--charset` and `--invert`.
 
 ## What v1 import doesn't carry over
 
