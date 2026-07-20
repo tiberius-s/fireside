@@ -104,6 +104,35 @@ without discarding it.
 
 Fullscreen (`f`) drops the map rail and widens the content area — useful for
 a code sample or an ASCII diagram that needs the whole terminal. Speaker
-notes (`s`) show the current node's `speaker-notes` field, meant for you,
-not the audience; toggling with no notes present flashes a message rather
-than showing an empty panel.
+notes (`s`) show the current node's `speaker-notes` field in a panel at the
+bottom of the same window you're presenting from — meant for you, not the
+audience, but only actually private while you're rehearsing solo or the
+terminal isn't visible to anyone else; toggling with no notes present
+flashes a message rather than showing an empty panel. If your terminal is
+projected or mirrored, use [Presenting with two screens](#presenting-with-two-screens)
+instead — that keeps notes off the shared display entirely.
+
+## Presenting with two screens
+
+For a talk with a projector or a second display, `s`'s single-window notes
+panel isn't private — anything on the presenter's own screen is on the
+shared one too. The two-screen setup is two separate terminal windows on
+your laptop instead:
+
+1. Drag the terminal running `fireside <file>` to the external display and
+   make it fullscreen (OS-level, or start with `fireside <file> --fullscreen`
+   to skip the manual `f` press).
+2. On your laptop's own screen, open a second terminal and run
+   `fireside notes <file>` on the same deck.
+
+The second window shows the current slide's title and speaker notes, the
+next slide's title (or the branch options, if you're at a choice), reveal
+progress, and an elapsed timer — read-only, and never rendered on the
+projected window. It updates within about half a second of anything you do
+in the presenter, and switches to
+`Presenter not running — start "fireside <deck>" in another window` within
+about two seconds of the presenter stopping, for any reason — so you're
+never looking at stale information without knowing it. Live edits (quick-edit
+saves, or any external change to the deck file) show up in the notes window
+the same way they show up on stage. Press `q` in the notes window to close
+it; it has no other keys.

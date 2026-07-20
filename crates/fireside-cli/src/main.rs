@@ -1,10 +1,10 @@
 //! Fireside — present branching decks in the terminal.
 //!
-//! Four verbs, nothing else: `fireside <file>` presents, `validate`
-//! checks, `new` scaffolds, `demo` shows off. Validation always runs
-//! before presenting, so a broken deck fails loudly at the prompt instead
-//! of during the show. While presenting, the deck file is watched and
-//! live-reloaded on save.
+//! Five verbs: `fireside <file>` presents, `validate` checks, `new`
+//! scaffolds, `demo` shows off, `notes` follows a presenter from a second
+//! screen (spec 012). Validation always runs before presenting, so a
+//! broken deck fails loudly at the prompt instead of during the show.
+//! While presenting, the deck file is watched and live-reloaded on save.
 
 use std::cell::RefCell;
 use std::path::{Path, PathBuf};
@@ -20,6 +20,7 @@ mod import;
 mod new;
 mod report;
 mod resume;
+mod session;
 mod templates;
 mod watch;
 
@@ -47,6 +48,11 @@ struct Cli {
     #[arg(long)]
     restart: bool,
 
+    /// Start already in fullscreen view (equivalent to pressing `f` once
+    /// the presentation opens) — for dragging straight to a projector.
+    #[arg(long)]
+    fullscreen: bool,
+
     #[command(subcommand)]
     command: Option<Command>,
 }
@@ -62,6 +68,20 @@ enum Command {
         /// this deck.
         #[arg(long)]
         restart: bool,
+
+        /// Start already in fullscreen view (equivalent to pressing `f`
+        /// once the presentation opens) — for dragging straight to a
+        /// projector.
+        #[arg(long)]
+        fullscreen: bool,
+    },
+
+    /// Follow a presenter from a second screen: shows the current slide's
+    /// speaker notes, what's next, reveal progress, and elapsed time —
+    /// never visible to the audience-facing window (spec 012).
+    Notes {
+        /// Path to the same deck file the presenter is showing.
+        file: PathBuf,
     },
 
     /// Check a deck and report anything wrong, in plain language.
@@ -178,8 +198,16 @@ enum Template {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match (cli.file, cli.command) {
-        (Some(file), _) => present(&file, cli.restart),
-        (None, Some(Command::Present { file, restart })) => present(&file, restart),
+        (Some(file), _) => present(&file, cli.restart, cli.fullscreen),
+        (
+            None,
+            Some(Command::Present {
+                file,
+                restart,
+                fullscreen,
+            }),
+        ) => present(&file, restart, fullscreen),
+        (None, Some(Command::Notes { file })) => notes(&file),
         (None, Some(Command::Validate { file, watch })) => report::validate_file(&file, watch),
         (
             None,
@@ -190,7 +218,7 @@ fn main() -> Result<()> {
                 banner,
             }),
         ) => match new::new_deck(name, template, author, banner)? {
-            Some(path) => present(&path, false),
+            Some(path) => present(&path, false, false),
             None => Ok(()),
         },
         (None, Some(Command::Demo)) => demo(),
@@ -211,6 +239,8 @@ fn main() -> Result<()> {
             println!("  fireside demo              see what a deck can do");
             println!("  fireside <file>            present a deck");
             println!("  fireside <file> --restart  present from the start, ignoring resume");
+            println!("  fireside <file> --fullscreen  present, starting in fullscreen view");
+            println!("  fireside notes <file>      follow a presenter from a second screen");
             println!("  fireside validate <file>   check a deck for problems");
             println!("  fireside new               create a deck (asks a few questions)");
             println!("  fireside new <name>        create a starter deck instantly");
@@ -302,7 +332,7 @@ fn format_present_summary(seen: usize, total: usize, elapsed: Duration) -> Strin
     )
 }
 
-fn present(path: &Path, restart: bool) -> Result<()> {
+fn present(path: &Path, restart: bool, fullscreen: bool) -> Result<()> {
     let graph = load(path)?;
     let diags = validate(&graph);
     let errors: Vec<_> = diags
@@ -329,6 +359,12 @@ fn present(path: &Path, restart: bool) -> Result<()> {
     let initial_node = store.resolve_initial_node(key.as_deref(), restart);
     let graph_for_resume = graph.clone();
 
+    // Live session state (spec 012): a separate, per-deck heartbeat file —
+    // not the resume store above — read by any `fireside notes` follower.
+    // See ADR-015 for why this is not a `resume.json` extension.
+    let session_path = key.as_deref().and_then(session::session_path_for);
+    let deck_path_display = path.display().to_string();
+
     let result = fireside_tui::present_authoring(
         graph,
         &mut || watcher.borrow_mut().poll(),
@@ -345,7 +381,17 @@ fn present(path: &Path, restart: bool) -> Result<()> {
                 store.set(key.clone(), node_id);
             }
         },
+        &mut |tick| {
+            let Some(session_path) = &session_path else {
+                return;
+            };
+            session::write(session_path, &deck_path_display, &tick);
+        },
+        fullscreen,
     );
+    if let Some(session_path) = &session_path {
+        session::delete(session_path);
+    }
     let summary = exit_on_not_a_tty(result)?;
     println!(
         "{}",
@@ -354,13 +400,31 @@ fn present(path: &Path, restart: bool) -> Result<()> {
     Ok(())
 }
 
+/// `fireside notes <deck>`: a read-only follower on a second screen (spec
+/// 012) — loads and watches the same deck the presenter is showing, polls
+/// its live session-state file, and never writes anything.
+fn notes(path: &Path) -> Result<()> {
+    let graph = load(path)?;
+    let watcher = RefCell::new(watch::Watcher::new(path));
+    let key = resume::resume_key(path);
+    let session_path = key.as_deref().and_then(session::session_path_for);
+
+    let result = fireside_tui::follow(graph, &mut || watcher.borrow_mut().poll(), &mut || {
+        session_path
+            .as_deref()
+            .map_or(fireside_tui::SessionStatus::NotRunning, session::read)
+    });
+    exit_on_not_a_tty(result)?;
+    Ok(())
+}
+
 /// Unwraps a presenter result, printing [`fireside_tui::TuiError::NotATty`]
 /// as its own plain line (P0-3) instead of letting it flow through anyhow's
 /// context-chain formatting, and otherwise attaching the same generic
-/// context every other terminal failure gets.
-fn exit_on_not_a_tty(
-    result: Result<fireside_tui::PresentSummary, fireside_tui::TuiError>,
-) -> Result<fireside_tui::PresentSummary> {
+/// context every other terminal failure gets. Generic over the success
+/// type so both `present`/`demo` (`PresentSummary`) and `notes` (`()`)
+/// share it.
+fn exit_on_not_a_tty<T>(result: Result<T, fireside_tui::TuiError>) -> Result<T> {
     match result {
         Err(fireside_tui::TuiError::NotATty) => {
             eprintln!("{}", fireside_tui::TuiError::NotATty);

@@ -7,6 +7,7 @@
 
 pub mod app;
 pub mod error;
+mod follower;
 pub mod render;
 pub mod theme;
 
@@ -40,6 +41,66 @@ pub type WriteBackSink<'a> = &'a mut dyn FnMut(&Graph) -> Result<(), WriteBackEr
 /// presenter itself never touches the filesystem; a caller that wants to
 /// persist "where the presenter is" (e.g. resume-on-relaunch) owns all I/O.
 pub type PositionSink<'a> = &'a mut dyn FnMut(&str);
+
+/// What the presenter hands to [`SessionTickSink`] every event-loop tick
+/// (not only on navigation change — a caller persisting a live heartbeat,
+/// e.g. for `fireside notes`, needs it to advance even while the presenter
+/// sits still on one slide). The presenter itself never touches the
+/// filesystem; the caller owns all I/O.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SessionTick {
+    /// The current node id.
+    pub node_id: String,
+    /// How many reveal steps have been shown on the current node (`0` when
+    /// it has none).
+    pub reveal_step: usize,
+    /// How many reveal steps the current node has in total (`0` when it
+    /// has none).
+    pub reveal_total: usize,
+    /// Wall-clock time since the presentation started.
+    pub elapsed: Duration,
+}
+
+/// A per-tick session heartbeat sink: called once every event-loop
+/// iteration with the presenter's current position, for a caller that
+/// wants to persist a live "presenter is here, right now" record for a
+/// follower process to read (e.g. `fireside notes`).
+pub type SessionTickSink<'a> = &'a mut dyn FnMut(SessionTick);
+
+/// A follower's last-polled read of a presenter's live session state: a
+/// snapshot of where it is, or a plain "not running" outcome. `fireside-tui`
+/// never parses a session file or touches a clock itself — the caller owns
+/// all I/O and all time-based staleness decisions, handing back one of
+/// these on every poll.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SessionStatus {
+    /// A presenter is running, as of its last live heartbeat.
+    Running(SessionSnapshot),
+    /// No live presenter: never started, exited cleanly, or crashed — all
+    /// three are indistinguishable to a follower, by design (spec 012
+    /// FR-004).
+    NotRunning,
+}
+
+/// A presenter's last-reported position, as read by a follower.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SessionSnapshot {
+    /// The presenter's current node id.
+    pub node_id: String,
+    /// How many reveal steps have been shown on the current node.
+    pub reveal_step: usize,
+    /// How many reveal steps the current node has in total (`0` when it
+    /// has none).
+    pub reveal_total: usize,
+    /// Wall-clock time since the presentation started, as last reported by
+    /// the presenter.
+    pub elapsed: Duration,
+}
+
+/// A session-state poll source: called once per follower event-loop tick,
+/// returning the presenter's latest known status. The follower itself
+/// never touches the filesystem or a clock; the caller owns all I/O.
+pub type SessionSource<'a> = &'a mut dyn FnMut() -> SessionStatus;
 
 /// What a presentation session accomplished, returned on a graceful stop
 /// (the `q` key or in-TUI Ctrl+C — both exit the event loop identically;
@@ -111,6 +172,8 @@ pub fn present_watching(
         &mut |_| Err(WriteBackError::Unavailable),
         None,
         &mut |_| {},
+        &mut |_| {},
+        false,
         false,
     )
 }
@@ -126,19 +189,37 @@ pub fn present_watching(
 /// is called with the current node id once at startup and again every time
 /// it changes, for a caller that wants to persist "where the presenter is"
 /// (e.g. resume-on-relaunch) — `fireside-tui` performs no file I/O itself.
+/// `tick_sink` is called once every event-loop tick, unconditionally
+/// (unlike `on_position_changed`, which only fires on change), with the
+/// current position and reveal progress — for a caller maintaining a live
+/// heartbeat (e.g. `fireside notes`'s session-state file). `fullscreen`
+/// starts the presentation with the existing `f`-key view toggle already
+/// set, equivalent to pressing it once before the first frame.
 ///
 /// # Errors
 ///
 /// Returns [`TuiError::Engine`] for an unpresentable graph and
 /// [`TuiError::Io`] for terminal failures.
+#[allow(clippy::too_many_arguments)]
 pub fn present_authoring(
     graph: Graph,
     source: ReloadSource<'_>,
     sink: WriteBackSink<'_>,
     initial_node: Option<&str>,
     on_position_changed: PositionSink<'_>,
+    tick_sink: SessionTickSink<'_>,
+    fullscreen: bool,
 ) -> Result<PresentSummary, TuiError> {
-    present_impl(graph, source, sink, initial_node, on_position_changed, true)
+    present_impl(
+        graph,
+        source,
+        sink,
+        initial_node,
+        on_position_changed,
+        tick_sink,
+        true,
+        fullscreen,
+    )
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -148,7 +229,9 @@ fn present_impl(
     sink: WriteBackSink<'_>,
     initial_node: Option<&str>,
     on_position_changed: PositionSink<'_>,
+    tick_sink: SessionTickSink<'_>,
     sink_available: bool,
+    fullscreen: bool,
 ) -> Result<PresentSummary, TuiError> {
     if !io::stdout().is_tty() || !io::stdin().is_tty() {
         return Err(TuiError::NotATty);
@@ -159,6 +242,9 @@ fn present_impl(
     let mut app = App::new(session);
     if !sink_available {
         app = app.without_sink();
+    }
+    if fullscreen {
+        app = app.with_fullscreen();
     }
     if resumed {
         app.set_flash(
@@ -172,7 +258,14 @@ fn present_impl(
     // so a panic or early return still leaves the terminal in mouse-off,
     // cooked-mode state via `ratatui::restore()`.
     let _ = execute!(io::stdout(), EnableMouseCapture);
-    let result = event_loop(&mut terminal, &mut app, source, sink, on_position_changed);
+    let result = event_loop(
+        &mut terminal,
+        &mut app,
+        source,
+        sink,
+        on_position_changed,
+        tick_sink,
+    );
     let _ = execute!(io::stdout(), DisableMouseCapture);
     ratatui::restore();
     result.map(|()| PresentSummary {
@@ -182,12 +275,14 @@ fn present_impl(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn event_loop(
     terminal: &mut ratatui::DefaultTerminal,
     app: &mut App,
     source: ReloadSource<'_>,
     sink: WriteBackSink<'_>,
     on_position_changed: PositionSink<'_>,
+    tick_sink: SessionTickSink<'_>,
 ) -> Result<(), TuiError> {
     let mut last_id = app.session().current().id.clone();
     on_position_changed(&last_id);
@@ -239,6 +334,63 @@ fn event_loop(
         if *current_id != last_id {
             last_id = current_id.clone();
             on_position_changed(&last_id);
+        }
+        // Unlike `on_position_changed`, this fires every tick regardless of
+        // whether the position changed: a caller maintaining a live
+        // heartbeat (spec 012) needs it to advance even while the
+        // presenter sits still on one slide, or a dead-but-motionless
+        // presenter would look alive to a follower.
+        let (reveal_step, reveal_total) = app.session().reveal_progress().unwrap_or((0, 0));
+        tick_sink(SessionTick {
+            node_id: last_id.clone(),
+            reveal_step,
+            reveal_total,
+            elapsed: app.elapsed(),
+        });
+    }
+    Ok(())
+}
+
+/// Follows a presenter from a second screen (spec 012): loads its own copy
+/// of `graph`, watches the same deck file for live edits via `deck_source`
+/// (same shape as `present`'s own live reload), and polls `session_source`
+/// for the presenter's live position at the same cadence. Read-only
+/// throughout — `fireside-tui` performs no file I/O; the caller owns both
+/// sources.
+///
+/// # Errors
+///
+/// Returns [`TuiError::NotATty`] outside an interactive terminal and
+/// [`TuiError::Io`] for terminal failures.
+pub fn follow(
+    graph: Graph,
+    deck_source: ReloadSource<'_>,
+    session_source: SessionSource<'_>,
+) -> Result<(), TuiError> {
+    if !io::stdout().is_tty() || !io::stdin().is_tty() {
+        return Err(TuiError::NotATty);
+    }
+    let mut follower = follower::Follower::new(graph);
+    let mut terminal = ratatui::try_init()?;
+    let result = follower_event_loop(&mut terminal, &mut follower, deck_source, session_source);
+    ratatui::restore();
+    result
+}
+
+fn follower_event_loop(
+    terminal: &mut ratatui::DefaultTerminal,
+    follower: &mut follower::Follower,
+    deck_source: ReloadSource<'_>,
+    session_source: SessionSource<'_>,
+) -> Result<(), TuiError> {
+    while !follower.should_quit() {
+        if let Some(result) = deck_source() {
+            follower.update(follower::FollowerMsg::Reload(result));
+        }
+        follower.update(follower::FollowerMsg::SessionUpdate(session_source()));
+        terminal.draw(|frame| render::draw_notes(frame, follower))?;
+        if event::poll(Duration::from_millis(250))? {
+            follower.update(follower::FollowerMsg::Terminal(event::read()?));
         }
     }
     Ok(())

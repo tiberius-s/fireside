@@ -35,6 +35,17 @@ fn bare_invocation_mentions_art_image_and_restart() {
 }
 
 #[test]
+fn bare_invocation_mentions_notes_and_fullscreen() {
+    // Spec 012: the fourth verb and its launch flag must be discoverable
+    // from the same no-args teaching text every other verb is.
+    fireside()
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("fireside notes"))
+        .stdout(predicate::str::contains("--fullscreen"));
+}
+
+#[test]
 fn validate_hello_exits_zero() {
     fireside()
         .arg("validate")
@@ -129,6 +140,37 @@ fn present_subcommand_accepts_restart_flag() {
 fn present_without_a_tty_gives_a_plain_message() {
     fireside()
         .arg("demo")
+        .write_stdin("")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "fireside needs an interactive terminal to present",
+        ))
+        .stderr(predicate::str::contains("panicked").not());
+}
+
+#[test]
+fn notes_missing_file_suggests_creating_it() {
+    // Spec 012, P1-7 consistency: `notes` shares `load()` with `present`,
+    // so a missing deck gets the same friendly one-liner, not an anyhow
+    // chain.
+    fireside()
+        .arg("notes")
+        .arg("nope.fireside.json")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "No deck named nope.fireside.json — \"fireside new nope\" creates one.",
+        ));
+}
+
+#[test]
+fn notes_without_a_tty_gives_a_plain_message() {
+    // Spec 012 FR-010: `notes` shares the same non-tty guard `present`/
+    // `demo` already have (P0-3), not a raw panic/backtrace.
+    fireside()
+        .arg("notes")
+        .arg(repo_root().join("docs/examples/hello.json"))
         .write_stdin("")
         .assert()
         .failure()

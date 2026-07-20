@@ -36,7 +36,7 @@ status, date._
 - [x] P0-1 quickstart install block — 2026-07-19
 - [x] P0-2 `.md` hint on present/validate — 2026-07-19 (`load()` is shared by
       `present` and one-shot `validate`, so both get the hint; `validate
-      --watch`'s separate `watch_report` path still shows the raw parse
+    --watch`'s separate `watch_report` path still shows the raw parse
       report — out of scope for the P0 fix, watch mode isn't a first-five-
       minutes path)
 - [x] P0-3 non-tty guard + `try_init` — 2026-07-19
@@ -47,8 +47,7 @@ status, date._
       confirmed: present → advance → quit → edit file → relaunch → still on
       the same slide)
 - [x] P1-2 shorthand `--restart` — 2026-07-19 (added `restart: bool` to the
-      top-level `Cli` struct so `fireside <file> --restart` parses; cli_e2e
-      + tmux smoke confirm both forms accept the flag)
+      top-level `Cli` struct so `fireside <file> --restart` parses; cli_e2e + tmux smoke confirm both forms accept the flag)
 - [x] P1-3 tab expansion at render — 2026-07-19 (`render::expand_tabs`
       shared by `blocks::code()` and `markdown::wrap_styled`, so both code
       blocks and text bodies expand `\t` to the next 4-column stop by
@@ -68,8 +67,7 @@ status, date._
       auto-promotes to H1-as-slides; a single `#` with no `##` gets a
       specific "found 1 heading, slides start at ##" error instead of the
       generic message; verified live via the CLI)
-- [x] P1-6 footer flash wrap / segment drop — 2026-07-19 (`footer::footer_rows`
-      + `grow_footer_for_flash` in `render/mod.rs` borrow rows from the
+- [x] P1-6 footer flash wrap / segment drop — 2026-07-19 (`footer::footer_rows` + `grow_footer_for_flash` in `render/mod.rs` borrow rows from the
       bottom of the content area so a long flash word-wraps instead of
       truncating; `drop_to_fit` drops `e edit` then `m map` whole before any
       glyph clips; snapshot updates accepted; tmux smoke at 80×24 confirmed
@@ -90,7 +88,7 @@ status, date._
       `image()`'s caption treatment; spec doc
       `appendix-content-blocks.md` updated to match)
 - [x] P2-2 help overlay bottom-row clipping — 2026-07-19 (`q quit  ·  any key
-      closes` pinned as a fixed footer row via a `Layout::vertical` split in
+    closes` pinned as a fixed footer row via a `Layout::vertical` split in
       `draw_help`; when the key list doesn't fit, rows drop from the middle
       first, keeping the first/last taught keys and the footer visible down
       to 44×14; regression test added at that size)
@@ -103,7 +101,7 @@ status, date._
       instead of failing silently after typing)
 - [x] P2-5 quick-edit Esc double-tap guard — 2026-07-19 (`EditableField`
       tracks its `initial` value; a dirty modal's first Esc flashes `Unsaved
-      changes — Esc again to discard, Ctrl+S to save`, second Esc within the
+    changes — Esc again to discard, Ctrl+S to save`, second Esc within the
       flash window discards; untouched modals still close on one Esc)
 - [x] P2-6 "Saved" flash survives self-reload — 2026-07-19
       (`App::awaiting_self_reload`, set on a successful save and consumed by
@@ -134,9 +132,26 @@ status, date._
       `present_without_a_tty_gives_a_plain_message`,
       `shorthand_present_accepts_restart_flag` in `cli_e2e.rs`); confirmed
       2026-07-19, no further work needed
-- [ ] W4-DS dual-screen presenter view — **added to scope 2026-07-19 by user
-      decision** (promoted from addendum A-2); see "Wave 4 — scoped feature"
-      below. Spec-kit feature candidate `012-presenter-view`.
+- [x] W4-DS dual-screen presenter view — 2026-07-20 (added to scope
+      2026-07-19 by user decision, promoted from addendum A-2; see "Wave 4
+      — scoped feature" below). Spec-kit feature candidate
+      `012-presenter-view`, full pipeline run
+      (spec → plan → tasks → implement). ADR-014 (scope extension) and
+      ADR-015 (session-state file contract) recorded. Delivered: a new
+      per-deck session-state file at
+      `$XDG_STATE_HOME/fireside/sessions/<fnv1a64>.json` written by the
+      presenter every tick (`fireside-cli::session`, `SessionTick`/
+      `SessionTickSink` in `fireside-tui`); a new `fireside notes <deck>`
+      read-only follower (`fireside-tui::follower::Follower` +
+      `render/notes.rs`, zero file I/O, same closure-injection pattern as
+      `ReloadSource`/`WriteBackSink`); a `--fullscreen` launch flag
+      (`App::with_fullscreen`). All three user stories (live tracking,
+      not-running detection within ~2s, live-edit resilience) verified via
+      unit tests, TestBackend scenarios, `cli_e2e.rs`, and a two-pane tmux
+      smoke extension to `scripts/smoke.sh` (kill/restart/clean-quit).
+      `scripts/verify.sh` passes in full. Docs updated: presenting.md's
+      "Presenting with two screens" section, cli.md's `notes` entry,
+      quickstart.md pointer.
 - [ ] WYSIWYG authoring editor — planned separately in
       `.claude/plans/2026-07-19-wysiwyg-editor-plan.md` (user decision
       2026-07-19, Tier 2 selected). Spec-kit feature candidate
@@ -180,7 +195,7 @@ dead workspace dependencies, no automated tmux smoke).
 
 **P0-1: Docs quickstart install cannot succeed as written.**
 Observed: `docs/src/content/docs/guides/quickstart.md` "Install" section is
-exactly ` cargo install --path crates/fireside-cli ` — no `git clone`, no
+exactly `cargo install --path crates/fireside-cli` — no `git clone`, no
 `cd`. A new visitor landing on the docs site (the W4 "front door") runs it in
 an arbitrary directory and gets a cargo path error. The README has the full
 three-line sequence; the quickstart never got it.
@@ -238,33 +253,34 @@ Observed: present `my-great-talk.fireside.json`, advance to slide 2, quit
 toast, no explanation. Cause: `resume::fingerprint_key` is the file's
 (mtime, length) (`crates/fireside-cli/src/resume.rs:115`), captured once at
 launch (`main.rs:293`). Consequences beyond the headline:
+
 - Fixing a typo the night before the talk loses your place — the exact
   moment resume exists for.
 - A quick-edit save mid-presentation re-keys the file, so subsequent
-  position writes go under a stale key and the *next* launch can't resume.
+  position writes go under a stale key and the _next_ launch can't resume.
 - Orphaned entries accumulate in `resume.json` forever (clear only happens
   on reaching a terminal node under the same key).
-Who: presenters, at the highest-stakes moment.
-Fix: key records by canonicalized absolute path; keep the fingerprint
-*inside* the record as a staleness annotation, not the key. On load: if the
-recorded node id still exists in the (possibly edited) deck, resume there —
-`Session::goto` already guards unknown ids, so a deleted node degrades to
-start-from-the-top for free. Migrate/ignore old-format keys silently, prune
-entries whose path no longer exists.
-Concrete format (rev 2, no open decisions): the store stays one JSON
-object; the key becomes the canonicalized absolute path
-(`std::fs::canonicalize`, `to_string_lossy`); the value becomes
-`{"node_id": "...", "updated": <epoch secs>, "fingerprint": "<mtime>:<len>"}`
-where `fingerprint` is a staleness *annotation* (available for a future
-"deck changed since you left" toast), never compared during lookup.
-Migration is mechanical, no version field needed: legacy keys are bare
-`<mtime>:<len>` fingerprints and never begin with a path separator, so on
-every save drop any entry whose key is not an absolute path, plus any
-entry whose keyed path no longer exists on disk. Contract doc
-(`specs/007.../contracts/resume-state-format.md`) needs a matching update —
-it's a local cache, not wire format, so no protocol spec/ADR required.
-Test: unit tests on the new keying + a tmux smoke: present → quit → edit
-file → relaunch → still on the same slide.
+  Who: presenters, at the highest-stakes moment.
+  Fix: key records by canonicalized absolute path; keep the fingerprint
+  _inside_ the record as a staleness annotation, not the key. On load: if the
+  recorded node id still exists in the (possibly edited) deck, resume there —
+  `Session::goto` already guards unknown ids, so a deleted node degrades to
+  start-from-the-top for free. Migrate/ignore old-format keys silently, prune
+  entries whose path no longer exists.
+  Concrete format (rev 2, no open decisions): the store stays one JSON
+  object; the key becomes the canonicalized absolute path
+  (`std::fs::canonicalize`, `to_string_lossy`); the value becomes
+  `{"node_id": "...", "updated": <epoch secs>, "fingerprint": "<mtime>:<len>"}`
+  where `fingerprint` is a staleness _annotation_ (available for a future
+  "deck changed since you left" toast), never compared during lookup.
+  Migration is mechanical, no version field needed: legacy keys are bare
+  `<mtime>:<len>` fingerprints and never begin with a path separator, so on
+  every save drop any entry whose key is not an absolute path, plus any
+  entry whose keyed path no longer exists on disk. Contract doc
+  (`specs/007.../contracts/resume-state-format.md`) needs a matching update —
+  it's a local cache, not wire format, so no protocol spec/ADR required.
+  Test: unit tests on the new keying + a tmux smoke: present → quit → edit
+  file → relaunch → still on the same slide.
 
 **P1-2: The resume toast teaches a flag the taught command rejects.**
 Observed: toast says `Resumed where you left off — --restart starts over`,
@@ -307,6 +323,7 @@ survives; fixture-parity if the validator rule is added.
 
 **P1-4: `fireside import` silently mangles common Markdown.**
 Observed on a stress file (all verified, `import` exits 0 with no mention):
+
 - **Tables** become a `text` block containing raw `| pipe | rows |`, which
   then renders literally on the slide (checked live).
 - **Footnotes**: `Thanks![^1]` keeps the marker as literal text and the
@@ -317,13 +334,14 @@ Observed on a stress file (all verified, `import` exits 0 with no mention):
   no strike support either).
 - **Blockquotes** silently flatten to plain text (acceptable, but
   undocumented — the guide's conversion table has no row for any of these).
-Root cause: pulldown-cmark is instantiated without extension `Options`
-(no `ENABLE_TABLES`/`ENABLE_FOOTNOTES`/`ENABLE_TASKLISTS`/
-`ENABLE_STRIKETHROUGH` in `import.rs`), so GitHub-flavored constructs
-degrade to their CommonMark fallback text instead of being recognized.
-Who: authors — they discover each of these on screen, possibly on stage.
-Fix, in order of value:
-1. Enable the GFM extension options so these constructs are *recognized*,
+  Root cause: pulldown-cmark is instantiated without extension `Options`
+  (no `ENABLE_TABLES`/`ENABLE_FOOTNOTES`/`ENABLE_TASKLISTS`/
+  `ENABLE_STRIKETHROUGH` in `import.rs`), so GitHub-flavored constructs
+  degrade to their CommonMark fallback text instead of being recognized.
+  Who: authors — they discover each of these on screen, possibly on stage.
+  Fix, in order of value:
+
+1. Enable the GFM extension options so these constructs are _recognized_,
    then handle each deliberately: tables → monospace-aligned `code` block
    (no new block kind needed; render already centers code); task lists →
    list items with `☐`/`☑` prefixes; footnotes → drop with a stderr note;
@@ -344,10 +362,10 @@ Fix, in order of value:
    in the same voice as the nested-list rejection (which is excellent).
 3. Warn (don't silently drop) on content before the first `##`.
 4. Document every conversion + non-conversion in the guide's table.
-No new dependency, no protocol change. A real `table` *block kind* would be
-a protocol addition (TypeSpec + ADR + version bump + both validators) —
-**requires spec/ADR first per constitution Principle I**; the code-block
-fallback makes it unnecessary for v1.
+   No new dependency, no protocol change. A real `table` _block kind_ would be
+   a protocol addition (TypeSpec + ADR + version bump + both validators) —
+   **requires spec/ADR first per constitution Principle I**; the code-block
+   fallback makes it unnecessary for v1.
 
 **P1-5: A `#`-per-slide Markdown file is told "no ## headings found".**
 Observed: a file with multiple `# Slide` headings (the presenterm/patat
@@ -361,21 +379,22 @@ Fix (better): when a document has 2+ H1s and no H2s, treat H1s as slides
 
 **P1-6: Footer flash messages truncate at the recommended 80-column size.**
 Observed twice at 80×24 (the documented comfortable minimum):
+
 - Save-conflict flash renders `...Ctrl+S again to overwrite, Esc to disc` —
-  the instruction for the *abandon* choice is cut mid-word.
+  the instruction for the _abandon_ choice is cut mid-word.
 - On a reveal slide the key footer ends `... ? help  ·  q` — "quit" clipped.
-Who: presenters mid-incident — the conflict message is exactly when they
-need the full sentence.
-Fix (decided, rev 2): while a flash is showing, the footer shows **only
-the flash** — key hints are suppressed for the flash's lifetime (the
-footer already owns the row, and a presenter mid-incident needs the
-sentence, not the hints). A flash still longer than one row wraps onto a
-second row borrowed from the bottom of the content area, word-wrapped,
-never truncated mid-word; the content area reflows for those frames.
-For the key-hint footer itself (no flash showing), drop lowest-priority
-segments whole (`e edit` first, then `m map`) before ever clipping
-glyphs. Cover with TestBackend scenarios at 80×24; W1-2 fixed this class
-for the help overlay but the footer/flash line was missed.
+  Who: presenters mid-incident — the conflict message is exactly when they
+  need the full sentence.
+  Fix (decided, rev 2): while a flash is showing, the footer shows **only
+  the flash** — key hints are suppressed for the flash's lifetime (the
+  footer already owns the row, and a presenter mid-incident needs the
+  sentence, not the hints). A flash still longer than one row wraps onto a
+  second row borrowed from the bottom of the content area, word-wrapped,
+  never truncated mid-word; the content area reflows for those frames.
+  For the key-hint footer itself (no flash showing), drop lowest-priority
+  segments whole (`e edit` first, then `m map`) before ever clipping
+  glyphs. Cover with TestBackend scenarios at 80×24; W1-2 fixed this class
+  for the help overlay but the footer/flash line was missed.
 
 **P1-7: `import` and `art image` still leak anyhow chains on missing files.**
 Observed: `fireside import nope.md` and `fireside art image nope.png` →
@@ -411,12 +430,12 @@ inside a frame captioned with the block-kind name
 protocol and discarded by the renderer (`_alt`).
 Who: the audience — implementation jargon on the title slide of every
 banner deck.
-Fix: render ascii-art unframed/unlabeled (it's *art*, not a code listing —
+Fix: render ascii-art unframed/unlabeled (it's _art_, not a code listing —
 the centering already distinguishes it), or caption with `alt` when
 present. Snapshot updates; tmux smoke of the demo title slide.
 
 **P2-2: Small terminals lose the `q quit` row of the help overlay.**
-Observed at 44×14: the overlay clips its *bottom rows* — `q quit` and
+Observed at 44×14: the overlay clips its _bottom rows_ — `q quit` and
 `press any key to close` are the two things cut. W1-2 fixed 80×24/100×30;
 below-minimum sizes degrade in the worst order.
 Fix: when height-constrained, drop middle rows before last rows, or pin
@@ -462,7 +481,7 @@ Observed: the no-args help lists `art text` but not `art image`; `demo`,
 **P2-8: `presenting.md` documents an impossible branch fallback.**
 Observed: the branch-keys table says Space/→ "advance without choosing, if
 the branch has a fallback" — but `next-branch-point-conflict` makes
-next+branch-point an *error*, so no such deck validates; at a branch, Space
+next+branch-point an _error_, so no such deck validates; at a branch, Space
 always flashes `This slide asks for a choice`. Remove/reword the row.
 
 **P2-9: Mouse wheel does nothing.**
@@ -482,7 +501,7 @@ against every `crates/*/Cargo.toml`); none is on any Principle III
 allowlist. They cost nothing at compile time but misrepresent the
 dependency surface (`font-kit`/`plist` look alarming in an audit — this
 audit included). Separately, workspace `image = "0.25"` conflicts with
-what actually builds: `fireside-cli` declares `image = "0.24"` *directly*
+what actually builds: `fireside-cli` declares `image = "0.24"` _directly_
 (not `workspace = true`), resolving 0.24.9 to match `rascii_art`.
 Fix: delete the five dead entries; either fix the workspace entry to
 `"0.24"` and have the cli consume `{ workspace = true }`, or delete the
@@ -493,7 +512,7 @@ workspace entry — one source of truth either way. Pure manifest hygiene;
 discipline is manual memory.**
 Observed: `tmux` appears nowhere in `scripts/` or CI; every smoke run so
 far has been ad-hoc (and per project memory, smoke tests are what catch
-the timing/ordering bugs TestBackend can't). TUI-visible paths with *no*
+the timing/ordering bugs TestBackend can't). TUI-visible paths with _no_
 scripted real-terminal coverage: live-reload swap, reload-refusal flash,
 quick-edit save/conflict/retry, resume toast, SIGKILL recovery, exit
 summary.
@@ -538,7 +557,7 @@ Surveyed from knowledge of presenterm, patat, lookatme, slides
 acting on specifics:
 
 - **Everyone presents `.md` directly**; Fireside's compile step is unique
-  friction (P0-2, Fresh #1). Its unique *strengths* — branching, two-layer
+  friction (P0-2, Fresh #1). Its unique _strengths_ — branching, two-layer
   validation, quick-edit, resume, the map — none of the others have.
 - **Pause/fragment markers are table stakes** (presenterm `<!-- pause -->`,
   patat fragments); Fireside has the runtime feature but no authoring path
@@ -555,7 +574,7 @@ acting on specifics:
 
 1. **`fireside talk.md` presents directly** — import in memory, watch the
    `.md`, recompile+swap on save (the reload guard already refuses broken
-   compiles gracefully). This makes Fireside's live-reload loop *better*
+   compiles gracefully). This makes Fireside's live-reload loop _better_
    than presenterm's for Markdown authors and erases the biggest
    competitive friction. **Scope addition under ADR-004 — needs the user to
    ask for it; flag, don't build.** Quick-edit would stay disabled for
@@ -571,9 +590,9 @@ acting on specifics:
    them (discovered while confirming line numbers are opt-in).
 5. **First-run environment check** — on TUI start, if `COLORTERM` isn't
    `truecolor`/`24bit`, flash once: `Colors may look off — set
-   COLORTERM=truecolor`. Cheaper than a `fireside doctor` subcommand and
+COLORTERM=truecolor`. Cheaper than a `fireside doctor` subcommand and
    catches the README's requirement at the moment it matters. (Verified the
-   presenter still *renders* fine under tmux's 256-color downgrade, so a
+   presenter still _renders_ fine under tmux's 256-color downgrade, so a
    flash, not a refusal.)
 6. **Rehearsal stats in the exit summary** — per-slide dwell times are
    implicitly known (position-change timestamps); `--rehearse` could print
@@ -595,7 +614,7 @@ acting on specifics:
   symmetrically in `validation.rs` + `protocol/validate.mjs` + fixtures +
   spec docs (Principle I / spec 008 workflow).
 - **A real `table` block kind**: protocol change — TypeSpec + ADR + version
-  bump + both validators. Recommended *avoided* via the code-block fallback
+  bump + both validators. Recommended _avoided_ via the code-block fallback
   in P1-4.
 - Everything else in this plan uses already-permitted dependencies and
   existing crate boundaries; no allowlist amendments needed (tty check is
@@ -616,7 +635,7 @@ Scoped work, in dependency order:
 
 1. **W4-DS-1 — land P1-1 first (path-keyed session state).** Rev 2 note:
    with W4-DS-2's dedicated session file (keyed by canonical path from
-   day one) this is no longer the *hard* dependency it was when session
+   day one) this is no longer the _hard_ dependency it was when session
    state was going to live in the resume record — but keep the order
    anyway: P1-1 establishes the canonical-path keying convention and the
    prune/migration behavior the session store copies, and it fixes a
@@ -626,7 +645,7 @@ Scoped work, in dependency order:
    session state gets its **own file per deck**, not a new field in
    `resume.json`. Rationale for the ADR: the heartbeat rewrites its file
    on every 250 ms poll tick, and `resume.json` is a shared
-   read-modify-write store across *all* decks — heartbeat traffic there
+   read-modify-write store across _all_ decks — heartbeat traffic there
    would race two concurrent presentations (last-writer-wins over the
    whole map) and churn a file the rest of the code treats as a cold
    cache. Location:
@@ -636,7 +655,7 @@ Scoped work, in dependency order:
    across Rust versions and `watch::fingerprint` is an `(mtime, len)`
    pair, not a hash — neither fits). Contents:
    `{"schema": 1, "deck_path": "...", "node_id": "...", "reveal_step": n,
-   "reveal_total": n, "elapsed_secs": n, "heartbeat": <epoch secs>}` —
+"reveal_total": n, "elapsed_secs": n, "heartbeat": <epoch secs>}` —
    heartbeat refreshed on every poll tick, not just on movement. One
    writer (the presenting process), N readers. Atomic writes (temp file
    in the same directory + rename). Deleted on clean presenter exit; a
@@ -688,7 +707,7 @@ ADR); session-state contract ADR; no allowlist changes.
 ## Addendum (2026-07-19, user follow-up): speaker-notes privacy, dual-screen presenter view, WYSIWYG editing
 
 **A-1: Speaker notes are visible to everyone in the room.**
-Observed: `s` opens a ≤6-row panel at the bottom of the *same* terminal
+Observed: `s` opens a ≤6-row panel at the bottom of the _same_ terminal
 frame (`render/content.rs:246–277`). There is exactly one window; if the
 terminal is on (or mirrored to) the projector, the audience reads the
 notes. `presenting.md` calls notes "meant for you" but no mechanism makes
@@ -701,7 +720,8 @@ A terminal window cannot span displays, so the proven TUI pattern
 (presenterm's speaker-notes mode) is **two processes**: the deck presented
 in a terminal window dragged to the projector display and OS-fullscreened;
 a follower window on the laptop. Design that fits Fireside as-is:
-- Presenter side needs *zero* new plumbing: `PositionSink` already fires on
+
+- Presenter side needs _zero_ new plumbing: `PositionSink` already fires on
   every node change, and the CLI already persists the current node id to
   `$XDG_STATE_HOME/fireside/resume.json` immediately on every move.
 - New `fireside notes <deck>` follower: polls the session-state file at the
@@ -716,46 +736,47 @@ a follower window on the laptop. Design that fits Fireside as-is:
   quick-edit save mid-talk would silently detach the follower.
 - Polish: a `--fullscreen` launch flag (start in the existing `f` view mode)
   for the projector window.
-Boundaries hold: follower rendering in `fireside-tui`, all file I/O in
-`fireside-cli` via the existing closure-injection pattern; no new
-dependencies; session state stays host-local (like resume), so **no
-protocol change** — but the session-state file becomes a two-reader
-contract and should get an ADR. Constitution: scope addition under ADR-004;
-the user has now explicitly asked, which satisfies that gate — run it
-through the Spec Kit pipeline.
+  Boundaries hold: follower rendering in `fireside-tui`, all file I/O in
+  `fireside-cli` via the existing closure-injection pattern; no new
+  dependencies; session state stays host-local (like resume), so **no
+  protocol change** — but the session-state file becomes a two-reader
+  contract and should get an ADR. Constitution: scope addition under ADR-004;
+  the user has now explicitly asked, which satisfies that gate — run it
+  through the Spec Kit pipeline.
 
 **A-3: Richer live editing / WYSIWYG for authors who can't edit JSON —
 three tiers, rising cost.**
-Quick-edit is content-only *by recorded decision* (ADR-005: no structural
+Quick-edit is content-only _by recorded decision_ (ADR-005: no structural
 edits); anything below supersedes it and needs a new ADR, not silent creep.
+
 - **Tier 1 (M): form-based structure editing in the TUI.** Grow quick-edit
-  + the map screen: add-slide-after-this (title prompt, auto-wired `next`),
-  delete slide (with re-wiring), add/remove/reorder blocks via a
-  kind-picker with sensible defaults, edit branch options (label/key/
-  target) as a form. Everything flows through the existing TEA update +
-  write-back sink, and the reload guard already validates every save — the
-  safety story is built. Risk is presenter-surface creep (Principle II:
-  simplicity beats surface area); mitigate by hanging structural ops off
-  the map screen or a separate `fireside edit <deck>` entry point rather
-  than adding keys to Present.
+  - the map screen: add-slide-after-this (title prompt, auto-wired `next`),
+    delete slide (with re-wiring), add/remove/reorder blocks via a
+    kind-picker with sensible defaults, edit branch options (label/key/
+    target) as a form. Everything flows through the existing TEA update +
+    write-back sink, and the reload guard already validates every save — the
+    safety story is built. Risk is presenter-surface creep (Principle II:
+    simplicity beats surface area); mitigate by hanging structural ops off
+    the map screen or a separate `fireside edit <deck>` entry point rather
+    than adding keys to Present.
 - **Tier 2 (L): a dedicated `fireside edit` authoring TUI** — outline pane,
   live slide preview, block palette, edge wiring. Keeps the presenter lean;
   weeks of work; still a TUI, so it only partially serves the
   "never touched a terminal" audience.
 - **Tier 3 (the real WYSIWYG answer): a web editor — and there's a cheap
   on-ramp.** A local `--web` server would need an HTTP dependency
-  (**requires constitution amendment**). But a *static* editor page on the
+  (**requires constitution amendment**). But a _static_ editor page on the
   existing Astro docs site — open/save `.fireside.json` via the browser's
   File System Access API, drag-drop nodes, form-based blocks — needs **zero
   Rust changes and zero new Rust dependencies**, ships on the existing
   Pages pipeline, and can reuse `protocol/validate.mjs` verbatim in the
   browser since the semantic validator is already plain JS. The
   protocol-first design makes this unusually cheap for what it is.
-Recommendation: the Markdown-path fixes (P1-4/5/8, Fresh #1–4) already
-serve most "I don't want JSON" authors; do Tier 1 next as a spec-kit
-feature with the ADR-005-superseding ADR; treat the static web editor as a
-separate product-direction decision — it can be prototyped without touching
-the workspace.
+  Recommendation: the Markdown-path fixes (P1-4/5/8, Fresh #1–4) already
+  serve most "I don't want JSON" authors; do Tier 1 next as a spec-kit
+  feature with the ADR-005-superseding ADR; treat the static web editor as a
+  separate product-direction decision — it can be prototyped without touching
+  the workspace.
 
 ## Definition of done (applies to every item above)
 

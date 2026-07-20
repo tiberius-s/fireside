@@ -70,6 +70,7 @@ syntax.
 | If you want to...                                        | Go to                                            |
 | ---------------------------------------------------------- | --------------------------------------------------- |
 | Learn every key the presenter responds to                  | [Presenting a deck](/guides/presenting/)             |
+| Present on a projector with notes on your own laptop screen | [Presenting with two screens](/guides/presenting/#presenting-with-two-screens) |
 | Write a talk in Markdown instead of JSON                    | [Authoring a Deck in Markdown](/guides/authoring-markdown/) |
 | Hand-write a deck's JSON and see how branching works        | [Your First Fireside Graph](/guides/getting-started/) |
 | Look up a `fireside` flag or exit code                      | [CLI Reference](/reference/cli/)                     |

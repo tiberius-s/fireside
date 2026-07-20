@@ -3,12 +3,15 @@ title: 'CLI Reference'
 description: 'Every fireside subcommand, its flags, and its exit codes.'
 ---
 
-The `fireside` binary has six verbs. Running `fireside` with no arguments
+The `fireside` binary has seven verbs. Running `fireside` with no arguments
 prints this same summary:
 
 ```text
 fireside demo              see what a deck can do
 fireside <file>            present a deck
+fireside <file> --restart  present from the start, ignoring resume
+fireside <file> --fullscreen  present, starting in fullscreen view
+fireside notes <file>      follow a presenter from a second screen
 fireside validate <file>   check a deck for problems
 fireside new               create a deck (asks a few questions)
 fireside new <name>        create a starter deck instantly
@@ -31,9 +34,10 @@ swaps in seamlessly and keeps the current slide; a save that doesn't parse or
 fails validation keeps the last-good deck on screen and explains what's wrong
 in the footer.
 
-| Flag        | Effect                                                          |
-| ----------- | ---------------------------------------------------------------- |
-| `--restart` | Ignore any saved resume position for this deck and start at the entry node. |
+| Flag           | Effect                                                          |
+| -------------- | ---------------------------------------------------------------- |
+| `--restart`    | Ignore any saved resume position for this deck and start at the entry node. |
+| `--fullscreen` | Start already in fullscreen view (equivalent to pressing `f` once the presentation opens) — for dragging straight to a projector, see [Presenting with two screens](/guides/presenting/#presenting-with-two-screens). |
 
 Without `--restart`, `present` resumes from the last node reached in a
 previous session for this exact deck content (see
@@ -42,6 +46,33 @@ Reaching a terminal node clears the saved position.
 
 **Exit codes:** `0` on a clean exit from the TUI; `1` if the deck fails to
 parse, fails validation, or the presenter hits a terminal error.
+
+## `fireside notes <file>`
+
+Follows a presenter from a second screen: read-only, and never rendered on
+the audience-facing window. Point it at the same deck file `fireside <file>`
+is presenting, in a second terminal on your own screen — see
+[Presenting with two screens](/guides/presenting/#presenting-with-two-screens)
+for the full workflow. Shows the current slide's title and speaker notes,
+the next slide's title (or the branch options at a choice), reveal
+progress, and an elapsed timer, updating within about half a second of any
+change in the presenter.
+
+If no presenter is running for this deck — never started, exited, or
+crashed, all shown identically — `notes` shows a plain
+`Presenter not running — start "fireside <deck>" in another window` message
+instead, within about two seconds of that becoming true. `notes` writes
+nothing: not to the deck file, not to any resume or session state. `q` is
+its only key.
+
+Unlike `present`, `notes` does not run validation before opening — it only
+ever reads and displays, so there's nothing for a broken deck to put at
+risk. An unresolvable session position (a mismatch between what the
+presenter reports and what this follower has loaded) renders as a benign
+"waiting for presenter…" state rather than an error.
+
+**Exit codes:** `0` on a clean exit (`q`); `1` if the deck fails to parse,
+or the follower hits a terminal error.
 
 ## `fireside validate <file>`
 

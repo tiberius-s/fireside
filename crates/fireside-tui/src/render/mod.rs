@@ -13,8 +13,11 @@ mod header;
 mod hits;
 mod map;
 pub mod markdown;
+mod notes;
 mod overlays;
 pub mod syntax;
+
+pub(crate) use notes::draw as draw_notes;
 
 /// Expands tab characters to the next 4-column tab stop (P1-3): ratatui
 /// drops raw `\t` from spans, so an unexpanded tab in a code block or text

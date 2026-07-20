@@ -7,7 +7,11 @@
 #
 # Covers, per CH-2's four scenarios: a demo walk, quick-edit save (P2-6:
 # the "Saved" flash must survive the deck's own self-triggered reload), an
-# externally-broken save refusing to reload, and resume-on-relaunch.
+# externally-broken save refusing to reload, and resume-on-relaunch. Spec
+# 012 (W4-DS-5) adds a fifth, two-pane scenario: a presenter and a
+# `fireside notes` follower tracking each other live, and the follower
+# going stale on both a kill and a clean quit — the cross-process timing
+# TestBackend cannot observe.
 #
 # Usage: scripts/smoke.sh
 
@@ -78,6 +82,46 @@ assert_contains() {
   fi
 }
 
+# ─── Two-pane helpers (spec 012: presenter + `fireside notes` follower) ──
+# `$SESSION` gets a second pane via split-window; pane ids (`%N`) are
+# stable handles independent of tmux's on-screen pane numbering.
+start_dual() {
+  tmux kill-session -t "$SESSION" >/dev/null 2>&1 || true
+  tmux new-session -d -s "$SESSION" -x 200 -y 30 "stty -ixon 2>/dev/null; exec $1"
+  tmux split-window -h -t "$SESSION" "stty -ixon 2>/dev/null; exec $2"
+  sleep 0.5
+  PRESENTER_PANE="$(tmux list-panes -t "$SESSION" -F '#{pane_id}' | sed -n '1p')"
+  FOLLOWER_PANE="$(tmux list-panes -t "$SESSION" -F '#{pane_id}' | sed -n '2p')"
+}
+
+pane_of() {
+  tmux capture-pane -t "$1" -p
+}
+
+wait_for_pane() {
+  local pane_id="$1" needle="$2" tries=25
+  for _ in $(seq 1 "$tries"); do
+    if pane_of "$pane_id" | grep -qF "$needle"; then
+      return 0
+    fi
+    sleep 0.2
+  done
+  return 1
+}
+
+assert_pane_contains() {
+  local label="$1" pane_id="$2" needle="$3"
+  if wait_for_pane "$pane_id" "$needle"; then
+    printf '  \033[1;32m\xe2\x9c\x93\033[0m %s\n' "$label"
+    pass=$((pass + 1))
+  else
+    printf '  \033[1;31m\xe2\x9c\x97\033[0m %s \xe2\x80\x94 expected to see: %s\n' "$label" "$needle"
+    echo "    --- pane contents ---"
+    pane_of "$pane_id" | sed 's/^/    | /'
+    fail=$((fail + 1))
+  fi
+}
+
 # ─── Scenario 1: demo walk ──────────────────────────────────────────────
 echo
 echo "=== demo walk ==="
@@ -136,6 +180,47 @@ assert_contains "relaunch resumes where it left off" "Resumed where you left off
 assert_contains "still on the branch point" "Decks can branch"
 keys "q"
 sleep 0.3
+
+# ─── Scenario 5: dual-screen presenter view (spec 012) ──────────────────
+echo
+echo "=== dual-screen: presenter + fireside notes follower (spec 012) ==="
+(cd "$WORKDIR" && "$BIN" new "Dual Screen Talk" >/dev/null)
+DUALDECK="$WORKDIR/dual-screen-talk.fireside.json"
+start_dual "$BIN $DUALDECK" "$BIN notes $DUALDECK"
+assert_pane_contains "presenter shows the deck" "$PRESENTER_PANE" "Dual Screen Talk"
+assert_pane_contains "follower tracks the title slide's notes" "$FOLLOWER_PANE" \
+  "This is your title slide"
+
+tmux send-keys -t "$PRESENTER_PANE" " "
+assert_pane_contains "follower follows the presenter to the branch point" \
+  "$FOLLOWER_PANE" "Pick a path"
+assert_pane_contains "follower shows the branch options, not a single next title" \
+  "$FOLLOWER_PANE" "Show me content blocks"
+
+PRESENTER_PID="$(tmux list-panes -a -F '#{pane_id} #{pane_pid}' | awk -v p="$PRESENTER_PANE" '$1==p{print $2}')"
+kill -9 "$PRESENTER_PID"
+assert_pane_contains "follower goes stale within ~2s of a kill -9" \
+  "$FOLLOWER_PANE" "Presenter not running"
+
+tmux split-window -h -t "$SESSION" "stty -ixon 2>/dev/null; exec $BIN $DUALDECK"
+sleep 0.5
+PRESENTER_PANE="$(tmux list-panes -t "$SESSION" -F '#{pane_id}' | sed -n '2p')"
+assert_pane_contains "follower reconnects to a relaunched presenter" \
+  "$FOLLOWER_PANE" "Pick a path"
+
+tmux send-keys -t "$PRESENTER_PANE" "q"
+assert_pane_contains "follower goes stale on a clean quit too" \
+  "$FOLLOWER_PANE" "Presenter not running"
+
+tmux send-keys -t "$FOLLOWER_PANE" "q"
+sleep 0.3
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m follower q quits and the terminal is restored\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m follower q did not end the session\n'
+  fail=$((fail + 1))
+fi
 
 echo
 echo "----------------------------------------"

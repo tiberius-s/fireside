@@ -351,6 +351,16 @@ impl App {
         self
     }
 
+    /// Marks the presentation as starting in fullscreen view (the
+    /// `--fullscreen` launch flag): sets the initial view override to
+    /// [`ViewMode::Fullscreen`], equivalent to pressing `f` once before the
+    /// first frame draws.
+    #[must_use]
+    pub(crate) fn with_fullscreen(mut self) -> Self {
+        self.view_override = Some(ViewMode::Fullscreen);
+        self
+    }
+
     /// Whether a quick-edit save has anywhere to go. `false` for the demo
     /// deck and any other sink-less presentation.
     #[must_use]

@@ -1520,8 +1520,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-19-fable-ux-audit.md": {
-    "mtime": 1784559309.8973885,
-    "ast_hash": "a213a0e9eaa194f9d2df471ba0c9ab8e",
+    "mtime": 1784557495.83782,
+    "ast_hash": "4ea7d8f2b8eea0ca9a4b226a887ca376",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-19-wysiwyg-editor-plan.md": {
@@ -1570,8 +1570,8 @@
     "semantic_hash": ""
   },
   "specs/012-presenter-view/tasks.md": {
-    "mtime": 1784559321.4703612,
-    "ast_hash": "bc66d45b17411a2e0a2f6694496da952",
+    "mtime": 1784559284.620835,
+    "ast_hash": "130dbb598982f6b940023838f564a0c0",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-014-dual-screen-presenter-view-scope.md": {
