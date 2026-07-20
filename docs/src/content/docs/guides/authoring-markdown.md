@@ -73,7 +73,7 @@ fireside validate talk.fireside.json
 fireside talk.fireside.json
 ```
 
-![Compiling a Markdown talk with fireside import, then presenting it](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/import.gif)
+![Compiling a Markdown talk with fireside import, then presenting it](../../../assets/import.gif)
 
 ## What each Markdown element becomes
 

@@ -7,7 +7,7 @@
 A portable format for branching presentations — and a terminal presenter
 anyone can drive.
 
-![fireside demo — a branching deck presented in the terminal](.github/demo.gif)
+![fireside demo — a branching deck presented in the terminal](docs/src/assets/demo.gif)
 
 ## Install
 
@@ -51,9 +51,9 @@ For the full walkthrough — including live-edit and ASCII art — see the
 | | |
 | --- | --- |
 | **Markdown → deck** — `fireside import` | **Quick-edit** — fix a typo without leaving the terminal |
-| ![Compiling a Markdown talk with fireside import, then presenting it](.github/import.gif) | ![Quick-editing a slide's heading and saving in place](.github/quick-edit.gif) |
+| ![Compiling a Markdown talk with fireside import, then presenting it](docs/src/assets/import.gif) | ![Quick-editing a slide's heading and saving in place](docs/src/assets/quick-edit.gif) |
 | **Photo → ASCII** — `fireside art image` | **Incremental reveal** — stage content one piece at a time |
-| ![Converting a local image into ASCII shading with fireside art image](.github/art-image.gif) | ![Revealing a slide's content one piece at a time](.github/reveal.gif) |
+| ![Converting a local image into ASCII shading with fireside art image](docs/src/assets/art-image.gif) | ![Revealing a slide's content one piece at a time](docs/src/assets/reveal.gif) |
 
 ## What is Fireside?
 

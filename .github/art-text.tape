@@ -4,7 +4,7 @@
 # Regenerate with:  cargo build --release && vhs .github/art-text.tape
 # (brew install vhs)
 
-Output .github/art-text.gif
+Output docs/src/assets/art-text.gif
 
 Set FontSize 15
 Set Width 900

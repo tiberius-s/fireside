@@ -4,7 +4,7 @@
 # Regenerate with:  cargo build --release && vhs .github/validate-watch.tape
 # (brew install vhs)
 
-Output .github/validate-watch.gif
+Output docs/src/assets/validate-watch.gif
 
 Set FontSize 15
 Set Width 900

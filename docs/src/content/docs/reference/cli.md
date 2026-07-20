@@ -88,7 +88,7 @@ one-line summary.
 This is the authoring loop: an editor on one side, `fireside validate --watch`
 on the other, errors appearing as you save.
 
-![fireside validate --watch catching a broken branch target, then a fix](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/validate-watch.gif)
+![fireside validate --watch catching a broken branch target, then a fix](../../../assets/validate-watch.gif)
 
 **Exit codes:** `0` if the deck has no error-severity diagnostics (warnings
 and info are fine); `1` otherwise. `--watch` never exits on its own — only on
@@ -164,7 +164,7 @@ with *no* recognized character fails.
 **Exit codes:** `0` on success; `1` if no character in `phrase` is
 recognized.
 
-![Generating a stylized text banner with fireside art text](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/art-text.gif)
+![Generating a stylized text banner with fireside art text](../../../assets/art-text.gif)
 
 ## `fireside art image <path> [--width N] [--charset <name>] [--invert] [--no-normalize]`
 
@@ -197,9 +197,9 @@ The source photo below ("Tree silhouette sunset" by Jagyasini Malakar,
 Wikimedia Commons) is what the recording converts — shown here so you can
 compare input and output directly, not just take the GIF's word for it:
 
-![The source photo used in the recording below](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/demo-art.png)
+![The source photo used in the recording below](../../../assets/demo-art.png)
 
-![Converting a local image into ASCII shading with fireside art image](https://raw.githubusercontent.com/tiberius-s/fireside/main/.github/art-image.gif)
+![Converting a local image into ASCII shading with fireside art image](../../../assets/art-image.gif)
 
 ## `fireside demo`
 

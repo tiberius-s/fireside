@@ -3,7 +3,7 @@
 # Regenerate with:  cargo build --release && vhs .github/demo.tape
 # (brew install vhs)
 
-Output .github/demo.gif
+Output docs/src/assets/demo.gif
 
 Set FontSize 15
 Set Width 1000

@@ -4,7 +4,7 @@
 # Regenerate with:  cargo build --release && vhs .github/art-image.tape
 # (brew install vhs)
 
-Output .github/art-image.gif
+Output docs/src/assets/art-image.gif
 
 Set FontSize 15
 Set Width 900
@@ -17,7 +17,7 @@ Type "PS1='$ '; clear; alias fireside=./target/release/fireside"
 Enter
 Show
 
-Type "fireside art image .github/demo-art.png --width 50"
+Type "fireside art image docs/src/assets/demo-art.png --width 50"
 Sleep 800ms
 Enter
 Sleep 3s

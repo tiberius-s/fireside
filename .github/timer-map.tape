@@ -3,7 +3,7 @@
 # Regenerate with:  cargo build --release && vhs .github/timer-map.tape
 # (brew install vhs)
 
-Output .github/timer-map.gif
+Output docs/src/assets/timer-map.gif
 
 Set FontSize 15
 Set Width 900

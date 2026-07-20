@@ -3,7 +3,7 @@
 # Regenerate with:  cargo build --release && vhs .github/reveal.tape
 # (brew install vhs)
 
-Output .github/reveal.gif
+Output docs/src/assets/reveal.gif
 
 Set FontSize 15
 Set Width 900

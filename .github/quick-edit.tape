@@ -4,7 +4,7 @@
 # Regenerate with:  cargo build --release && vhs .github/quick-edit.tape
 # (brew install vhs)
 
-Output .github/quick-edit.gif
+Output docs/src/assets/quick-edit.gif
 
 Set FontSize 15
 Set Width 900

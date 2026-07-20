@@ -30,7 +30,7 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1784559175.138126,
+    "mtime": 1784562533.617154,
     "ast_hash": "cb03b0a1b53bc1792b67a8ff913b39f8",
     "semantic_hash": ""
   },
@@ -85,7 +85,7 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
-    "mtime": 1784558413.61027,
+    "mtime": 1784562533.617104,
     "ast_hash": "7b8975e4b9244d7b0aa3223ecb450ff4",
     "semantic_hash": ""
   },
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784472388.3836844,
-    "ast_hash": "6571f24630cfc827a96d0c0d23fae968",
+    "mtime": 1784562547.8432531,
+    "ast_hash": "18f5d67dae0c5fea1354af8d04acd8d1",
     "semantic_hash": ""
   },
   "crates/fireside-cli/README.md": {
@@ -422,11 +422,6 @@
   "crates/fireside-cli/assets/demo.fireside.json": {
     "mtime": 1784423625.5925236,
     "ast_hash": "2d2857b5846b004986e1c2efa3011cb9",
-    "semantic_hash": ""
-  },
-  ".github/demo.gif": {
-    "mtime": 1784423924.1744287,
-    "ast_hash": "0ceb4bec4d1666e105ac4ec9c80d0741",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/map.rs": {
@@ -1165,18 +1160,18 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/cli.md": {
-    "mtime": 1784559126.8156216,
-    "ast_hash": "15ae436c8e9234e0c98334c0f47c6426",
+    "mtime": 1784562565.288421,
+    "ast_hash": "1b967a0edb6d30db5a2dd63919a48311",
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/presenting.md": {
-    "mtime": 1784559067.0863037,
-    "ast_hash": "356073d10813d130725d298e703a76b4",
+    "mtime": 1784562565.2799773,
+    "ast_hash": "55212390e59c726e5da00e34340e6129",
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/authoring-markdown.md": {
-    "mtime": 1784505360.7469444,
-    "ast_hash": "615f5b181892068a9c02090baae110ff",
+    "mtime": 1784562565.2843587,
+    "ast_hash": "9fac2aceea614756c657018f3b500ce3",
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/conformance.md": {
@@ -1294,31 +1289,6 @@
     "ast_hash": "12d46ffedb22251c634409c447263818",
     "semantic_hash": ""
   },
-  ".github/import.gif": {
-    "mtime": 1784394422.360954,
-    "ast_hash": "258bc72be7845e5e03c65d28cbb4cf11",
-    "semantic_hash": ""
-  },
-  ".github/quick-edit.gif": {
-    "mtime": 1784394392.5094407,
-    "ast_hash": "ae5fdc0ee6bf9307335cb83828a2ff0e",
-    "semantic_hash": ""
-  },
-  ".github/reveal.gif": {
-    "mtime": 1784394365.3709614,
-    "ast_hash": "077ce0da4616c74dba5143bafad06226",
-    "semantic_hash": ""
-  },
-  ".github/timer-map.gif": {
-    "mtime": 1784394482.3236783,
-    "ast_hash": "4d6865da09606a445d4bd4e3f41fcb63",
-    "semantic_hash": ""
-  },
-  ".github/validate-watch.gif": {
-    "mtime": 1784394459.8807707,
-    "ast_hash": "00b9bf69550318b65192e77a2a505d63",
-    "semantic_hash": ""
-  },
   "specs/009-ascii-art/data-model.md": {
     "mtime": 1784397300.558944,
     "ast_hash": "7ca506d8690da53b34b432dacbc484af",
@@ -1372,21 +1342,6 @@
   "protocol/fixtures/valid/ascii-art-too-wide.json": {
     "mtime": 1784397379.1259112,
     "ast_hash": "300bcf58183013a9a2ffebea6c96c922",
-    "semantic_hash": ""
-  },
-  ".github/demo-art.png": {
-    "mtime": 1784430497.0349987,
-    "ast_hash": "0901f4775dbb4451e7cdbe0b51805b03",
-    "semantic_hash": ""
-  },
-  ".github/art-image.gif": {
-    "mtime": 1784430582.4876325,
-    "ast_hash": "6597829e929aca78dd46d054778527f9",
-    "semantic_hash": ""
-  },
-  ".github/art-text.gif": {
-    "mtime": 1784399322.9782195,
-    "ast_hash": "de61f05f13f5f82c8dced4831f87e804",
     "semantic_hash": ""
   },
   "notes/rust-learning-path.md": {
@@ -1597,6 +1552,51 @@
   "crates/fireside-tui/src/render/notes.rs": {
     "mtime": 1784559175.1953511,
     "ast_hash": "731b8d141834046fa2fc8b9648cf6e57",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/art-image.gif": {
+    "mtime": 1784430582.4876325,
+    "ast_hash": "6597829e929aca78dd46d054778527f9",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/art-text.gif": {
+    "mtime": 1784399322.9782195,
+    "ast_hash": "de61f05f13f5f82c8dced4831f87e804",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/demo-art.png": {
+    "mtime": 1784430497.0349987,
+    "ast_hash": "0901f4775dbb4451e7cdbe0b51805b03",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/demo.gif": {
+    "mtime": 1784423924.1744287,
+    "ast_hash": "0ceb4bec4d1666e105ac4ec9c80d0741",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/import.gif": {
+    "mtime": 1784394422.360954,
+    "ast_hash": "258bc72be7845e5e03c65d28cbb4cf11",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/quick-edit.gif": {
+    "mtime": 1784394392.5094407,
+    "ast_hash": "ae5fdc0ee6bf9307335cb83828a2ff0e",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/reveal.gif": {
+    "mtime": 1784394365.3709614,
+    "ast_hash": "077ce0da4616c74dba5143bafad06226",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/timer-map.gif": {
+    "mtime": 1784394482.3236783,
+    "ast_hash": "4d6865da09606a445d4bd4e3f41fcb63",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/validate-watch.gif": {
+    "mtime": 1784394459.8807707,
+    "ast_hash": "00b9bf69550318b65192e77a2a505d63",
     "semantic_hash": ""
   }
 }
