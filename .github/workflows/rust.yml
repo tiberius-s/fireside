@@ -146,7 +146,7 @@ jobs:
         run: cargo llvm-cov report --lcov --output-path lcov.info
 
       - name: Upload lcov report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lcov.info
           path: lcov.info
