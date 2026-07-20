@@ -1,5 +1,6 @@
 ---
 source: crates/fireside-tui/src/render/tests.rs
+assertion_line: 260
 expression: "screen(&app, 60, 18)"
 ---
  Hello, Fireside                        choose  ·  3/6 seen 
@@ -19,4 +20,4 @@ expression: "screen(&app, 60, 18)"
 │                                                          │
 ╰──────────────────────────────────────────────────────────╯
                                                             
- ↑↓ choose  ·  Enter go  ·  ← back  ·  m map  ·  e edit  ·
+ ↑↓ choose  ·  Enter go  ·  ← back  ·  ? help  ·  q quit

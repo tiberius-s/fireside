@@ -1,5 +1,6 @@
 ---
 source: crates/fireside-tui/src/render/tests.rs
+assertion_line: 846
 expression: "screen(&app, 80, 24)"
 ---
  Fireside                                                        a  ·  1/1 seen 
@@ -25,4 +26,4 @@ expression: "screen(&app, 80, 24)"
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
                                                                                 
- 0/1 revealed  ·  Space reveal  ·  ← back  ·  m map  ·  e edit  ·  ? help  ·  q
+ 0/1 revealed  ·  Space reveal  ·  ← back  ·  m map  ·  ? help  ·  q quit

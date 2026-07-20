@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-19)
 
 ## Corpus Check
-- 283 files · ~353,586 words
+- 283 files · ~358,569 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3036 nodes · 4164 edges · 276 communities (232 shown, 44 thin omitted)
+- 3086 nodes · 4306 edges · 276 communities (232 shown, 44 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `25654d56`
+- Built from commit: `582a3f44`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -294,13 +294,13 @@
 1. `app()` - 48 edges
 2. `press()` - 45 edges
 3. `screen()` - 41 edges
-4. `App` - 39 edges
-5. `fireside()` - 36 edges
-6. `render_block()` - 33 edges
-7. `Diagnostic` - 30 edges
-8. `diags_for()` - 27 edges
-9. `render()` - 26 edges
-10. `Vec` - 25 edges
+4. `fireside()` - 39 edges
+5. `App` - 39 edges
+6. `import()` - 33 edges
+7. `render_block()` - 33 edges
+8. `Diagnostic` - 30 edges
+9. `diags_for()` - 27 edges
+10. `render()` - 27 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
@@ -352,7 +352,7 @@ Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_
 
 ### Community 1 - "CLI Commands"
 Cohesion: 0.08
-Nodes (42): Command, Duration, Graph, Option, Path, PathBuf, Result, String (+34 more)
+Nodes (43): Command, Duration, Graph, Option, Path, PathBuf, Result, String (+35 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -375,8 +375,8 @@ Cohesion: 0.11
 Nodes (18): 1. Current-State Analysis, 2. Prioritized Improvements, 3. Phase 1 Roadmap (2–3 weeks), 4. Open Questions / Prototyping Needed, 5. Documentation Audit & Plan, Competitive survey (what presenters expect elsewhere), Executive Summary, Fireside Strategic Improvement Plan — 2026-07-12 (+10 more)
 
 ### Community 7 - "Editor Navigation"
-Cohesion: 0.14
-Nodes (52): ContainerLayout, ContentBlock, Line, Option, Span, String, Tokens, Vec (+44 more)
+Cohesion: 0.13
+Nodes (53): ContainerLayout, ContentBlock, Line, Option, Span, String, Tokens, Vec (+45 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.16
@@ -655,8 +655,8 @@ Cohesion: 0.07
 Nodes (48): CoreError, BranchOption, BranchPoint, ContentBlock, Node, NodeDefaults, NodeId, Option (+40 more)
 
 ### Community 88 - "Render Module"
-Cohesion: 0.18
-Nodes (20): Buffer, App, Frame, Option, Rect, ViewMode, Frame, Line (+12 more)
+Cohesion: 0.13
+Nodes (23): Buffer, App, Frame, Option, Rect, String, ViewMode, Frame (+15 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.15
@@ -720,7 +720,7 @@ Nodes (9): 1. Confirm non-watch behavior is unchanged (FR-002), 2. Start watch m
 
 ### Community 106 - "Community 106"
 Cohesion: 0.09
-Nodes (41): Command, PathBuf, Drop, art_image_charset_flag_changes_output_characters(), art_image_converts_a_readable_file(), art_image_default_charset_matches_unflagged_output(), art_image_invert_flag_flips_shading(), art_image_no_normalize_reproduces_prior_behavior() (+33 more)
+Nodes (44): Command, PathBuf, Drop, art_image_charset_flag_changes_output_characters(), art_image_converts_a_readable_file(), art_image_default_charset_matches_unflagged_output(), art_image_invert_flag_flips_shading(), art_image_no_normalize_reproduces_prior_behavior() (+36 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.15
@@ -843,8 +843,8 @@ Cohesion: 0.40
 Nodes (4): Canonical Terms, Conversational Layer, Traversal Verbs, Ubiquitous Language Notes
 
 ### Community 137 - "Community 137"
-Cohesion: 0.12
-Nodes (46): BranchPoint, ContentBlock, Display, Formatter, Graph, Option, Result, String (+38 more)
+Cohesion: 0.09
+Nodes (66): BranchPoint, ContentBlock, Display, Formatter, Graph, Option, Result, String (+58 more)
 
 ### Community 138 - "Community 138"
 Cohesion: 0.50
@@ -1004,7 +1004,7 @@ Nodes (4): Link (inline content), No change to existing entities, Phase 1 Data M
 
 ### Community 198 - "Community 198"
 Cohesion: 0.50
-Nodes (3): Contract: CLI surface changes, `fireside present <file> [--restart]`, In-TUI surface
+Nodes (3): Contract: CLI surface changes, `fireside present <file> [--restart]` / `fireside <file> [--restart]`, In-TUI surface
 
 ### Community 200 - "Community 200"
 Cohesion: 0.40
@@ -1015,8 +1015,8 @@ Cohesion: 0.29
 Nodes (6): 1. Mouse — map and branch menu, 2. Resume, 3. Synchronized output, 4. OSC 8 hyperlinks, Quickstart: validating Modern TUI Leverage, Real-terminal (tmux) smoke — required per Constitution Principle VII
 
 ### Community 202 - "Community 202"
-Cohesion: 0.16
-Nodes (17): Option, Path, PathBuf, Self, String, Value, Map, clear_removes_the_record() (+9 more)
+Cohesion: 0.17
+Nodes (22): Option, Path, PathBuf, Self, String, Value, Map, clear_removes_the_record() (+14 more)
 
 ### Community 203 - "Community 203"
 Cohesion: 0.40
@@ -1099,8 +1099,8 @@ Cohesion: 0.21
 Nodes (22): App, Frame, Line, Option, Rect, Tokens, Vec, App (+14 more)
 
 ### Community 227 - "Community 227"
-Cohesion: 0.67
-Nodes (6): App, Frame, Rect, Tokens, draw_footer(), draw_timer()
+Cohesion: 0.20
+Nodes (16): App, Frame, Option, Rect, String, Tokens, Vec, draw_footer() (+8 more)
 
 ### Community 228 - "Community 228"
 Cohesion: 0.09
@@ -1271,7 +1271,7 @@ Nodes (20): Acceptance bar (testable), Architecture, Block forms (never syntax),
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1551 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1546 more)
+- **1554 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1549 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1281,14 +1281,14 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+- **Why does `fingerprint()` connect `CLI Commands` to `Community 202`?**
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1553 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1556 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.0792156862745098 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0784313725490196 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**
   _Cohesion score 0.06720321931589537 - nodes in this community are weakly interconnected._
-- **Should `Editor Detail Pane` be split into smaller, more focused modules?**
-  _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._

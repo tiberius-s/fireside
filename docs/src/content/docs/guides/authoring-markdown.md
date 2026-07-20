@@ -53,7 +53,16 @@ Questions?
 
 Optional YAML-ish frontmatter (`title`, `author`, `date`, `description`,
 `fireside-version`) sets deck metadata. Without frontmatter, a leading `#`
-(H1) heading before the first `##` is used as the deck title instead.
+(H1) heading before the first `##` is used as the deck title instead. Any
+other content between that title and the first `##` isn't included in the
+deck — `import` prints a warning rather than silently dropping it.
+
+**Migrating a `#`-per-slide file** (the presenterm/patat convention): if
+your document has two or more `#` headings and no `##` at all, `import`
+treats each `#` as a slide instead of erroring — no frontmatter or `##`
+required. A single `#` with no `##` anywhere is still an error (it reads as
+an intended title, not a slide), with a message telling you which of the
+two you meant.
 
 Nodes wire together in document order automatically: `welcome` → `the-code`
 → `thanks`, with `thanks` terminal since nothing follows it. Run it:
@@ -73,13 +82,23 @@ fireside talk.fireside.json
 | `##` heading                       | Starts a new node; its text is the node's `title` |
 | paragraph text                     | `text` block, inline `**bold**`/`_italic_`/`` `code` `` preserved |
 | `- item` / `1. item`               | `list` block (`ordered: true` for numbered lists) |
+| `- [ ] item` / `- [x] item`        | `list` item prefixed `☐`/`☑` — the checkbox state is baked into the text, not a separate field |
 | fenced code block                  | `code` block, language tag preserved (` ```ascii-art ` fences become an `ascii-art` block instead — see below) |
 | a paragraph containing only one image | `image` block (`alt`/title captured) |
 | `---` horizontal rule              | `divider` block                        |
+| table (`| a | b |`)                | `code` block: a monospace, column-aligned grid with a rule under the header — there's no `table` block kind in the protocol. Cell formatting (`**bold**`, etc.) is stripped to plain text; `import` notes this on stderr |
+| `> quote`                          | flattens to a plain `text` block — the quote styling itself isn't preserved |
+| `~~strikethrough~~`                | the `~~` markers are dropped, text kept (the renderer has no strike-through support); noted on stderr |
+| footnote reference (`[^1]`) and definition (`[^1]: ...`) | both dropped entirely — footnotes aren't supported yet; each drop is noted on stderr with a line number |
 
 **Nested lists are rejected, not flattened.** `import` fails with the line
 number of the nested item rather than silently losing structure — flatten
 the list, or hand-edit the generated JSON afterward.
+
+**Every table/footnote/strikethrough conversion prints a note.** None of
+these fail the import — they're accepted with a plain-language stderr note
+naming the line and what changed, the same voice as the nested-list
+rejection, so nothing is silently lossy.
 
 ## Branch points
 
@@ -176,10 +195,13 @@ for the input/output comparison, contrast-stretch behavior, and flags like
 
 Import is deliberately a compiler for the common case, not a full protocol
 surface. It doesn't produce columns/multi-column containers, per-slide
-`view-mode` or `transition` overrides, or speaker notes — `fireside import`
-prints a reminder of this after every successful run. Add any of those by
-hand-editing the generated JSON, or with quick-edit (`e` while presenting)
-for headings and text.
+`view-mode` or `transition` overrides, speaker notes, or **incremental
+reveal** — `fireside import` prints a reminder of this after every
+successful run. There's no Markdown marker syntax for reveal today, so a
+deck that needs it has to be hand-edited (add `"reveal": N` to the blocks
+that should appear progressively — see
+[the `reveal` field](/spec/data-model/#the-reveal-field-all-kinds)), or with
+quick-edit (`e` while presenting) for headings and text.
 
 ## Validation is not optional
 

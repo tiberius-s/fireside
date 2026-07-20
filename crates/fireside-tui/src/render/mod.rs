@@ -16,6 +16,56 @@ pub mod markdown;
 mod overlays;
 pub mod syntax;
 
+/// Expands tab characters to the next 4-column tab stop (P1-3): ratatui
+/// drops raw `\t` from spans, so an unexpanded tab in a code block or text
+/// body renders with indentation silently deleted. Column position tracks
+/// display width (`unicode_width`), not byte/char count, so a tab after a
+/// wide glyph still lands on the right stop. Tab stops reset at the start
+/// of each line — they don't carry across a `\n`.
+pub(crate) fn expand_tabs(text: &str) -> String {
+    const TAB_STOP: usize = 4;
+    text.split('\n')
+        .map(|line| {
+            let mut out = String::with_capacity(line.len());
+            let mut col = 0usize;
+            for ch in line.chars() {
+                if ch == '\t' {
+                    let spaces = TAB_STOP - (col % TAB_STOP);
+                    out.push_str(&" ".repeat(spaces));
+                    col += spaces;
+                } else {
+                    out.push(ch);
+                    col += unicode_width::UnicodeWidthChar::width(ch).unwrap_or(0);
+                }
+            }
+            out
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+#[cfg(test)]
+mod expand_tabs_tests {
+    use super::expand_tabs;
+
+    #[test]
+    fn tab_advances_to_the_next_four_column_stop() {
+        assert_eq!(expand_tabs("a\tb"), "a   b");
+        assert_eq!(expand_tabs("abc\td"), "abc d");
+        assert_eq!(expand_tabs("abcd\te"), "abcd    e");
+    }
+
+    #[test]
+    fn each_line_resets_its_own_tab_stops() {
+        assert_eq!(expand_tabs("ab\tc\nabc\td"), "ab  c\nabc d");
+    }
+
+    #[test]
+    fn no_tabs_is_unchanged() {
+        assert_eq!(expand_tabs("plain text"), "plain text");
+    }
+}
+
 use fireside_core::ViewMode;
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -48,7 +98,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
         return;
     }
 
-    let (header, mut content_area, footer) = areas(app.view_mode(), area);
+    let (header, content_area, footer) = areas(app.view_mode(), area);
+    let (mut content_area, footer) = grow_footer_for_flash(app, content_area, footer);
 
     if let Some(header) = header {
         header::draw_header(frame, header, app, &tokens);
@@ -129,7 +180,8 @@ fn apply_hyperlinks(buffer: &mut ratatui::buffer::Buffer) {
 /// `App::update` so scrolling clamps to real geometry.
 #[must_use]
 pub fn max_scroll(app: &App, width: u16, height: u16) -> u16 {
-    let (_, mut body, _) = areas(app.view_mode(), Rect::new(0, 0, width, height));
+    let (_, body, footer) = areas(app.view_mode(), Rect::new(0, 0, width, height));
+    let (mut body, _) = grow_footer_for_flash(app, body, footer);
     if let Some(notes) = content::notes_panel(app, body) {
         body.height = body.height.saturating_sub(notes.height);
     }
@@ -138,6 +190,22 @@ pub fn max_scroll(app: &App, width: u16, height: u16) -> u16 {
         .lines
         .len() as u16;
     total.saturating_sub(surf.height)
+}
+
+/// Shrinks `content_area` and grows `footer` by however many extra rows
+/// (P1-6) a currently-showing flash needs to word-wrap without truncation
+/// — borrowed from the bottom of the content area, never from the header.
+/// A no-op (returns the inputs unchanged) when there's no flash or it fits
+/// on one row.
+fn grow_footer_for_flash(app: &App, mut content_area: Rect, mut footer: Rect) -> (Rect, Rect) {
+    let needed = footer::footer_rows(app, footer.width);
+    let extra = needed
+        .saturating_sub(footer.height)
+        .min(content_area.height);
+    content_area.height -= extra;
+    footer.y -= extra;
+    footer.height += extra;
+    (content_area, footer)
 }
 
 /// Split the frame into header / body / footer for the view mode.

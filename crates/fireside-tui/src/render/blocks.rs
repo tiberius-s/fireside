@@ -180,6 +180,10 @@ fn code(
     width: u16,
     tokens: &Tokens,
 ) -> Vec<Line<'static>> {
+    // P1-3: expand tabs before anything measures or highlights the source,
+    // so a gofmt'd/tab-indented block keeps its indentation on screen.
+    let source = super::expand_tabs(source);
+    let source = source.as_str();
     let full_width = width as usize;
     let label = language.unwrap_or("code");
     let label_prefix = format!("─ {label} ");
@@ -678,6 +682,30 @@ mod tests {
         assert!(lines[1].contains("1 │ fn main() {}"));
         assert!(lines[2].contains("2 │ let x = 1;"));
         assert_eq!(lines.len(), 4);
+    }
+
+    /// P1-3: a gofmt'd (tab-indented) code block must keep its indentation
+    /// on screen instead of ratatui silently dropping the raw `\t`.
+    #[test]
+    fn code_expands_tabs_instead_of_dropping_indentation() {
+        let block = ContentBlock::Code {
+            reveal: None,
+            language: Some("go".into()),
+            source: "func main() {\n\tfmt.Println(\"hi\")\n}".into(),
+            highlight_lines: None,
+            show_line_numbers: None,
+        };
+        let lines = flat(&render(&block, 40, &Tokens::default()));
+        assert!(
+            lines[2].contains("    fmt.Println"),
+            "tab expanded to spaces, indentation preserved: {:?}",
+            lines[2]
+        );
+        assert!(
+            !lines[2].contains('\t'),
+            "no raw tab should reach the rendered line: {:?}",
+            lines[2]
+        );
     }
 
     #[test]

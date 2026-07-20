@@ -80,6 +80,9 @@ pub fn wrap_styled(text: &str, width: u16, base: Style, tokens: &Tokens) -> Vec<
     if width == 0 {
         return Vec::new();
     }
+    // P1-3: expand tabs before wrapping, so a tab-indented text body (e.g.
+    // pasted from an editor) doesn't render with the indentation deleted.
+    let text = super::expand_tabs(text);
     let mut lines = Vec::new();
     for paragraph in text.split('\n') {
         let fragments = parse_inline(paragraph, base, tokens);
@@ -329,6 +332,13 @@ mod tests {
     #[test]
     fn newlines_break_lines() {
         assert_eq!(render("one\ntwo", 40), ["one", "two"]);
+    }
+
+    /// P1-3: a tab in prose text must expand to spaces, not vanish —
+    /// "Tab\there" rendering as "Tabhere" was the reported bug.
+    #[test]
+    fn tabs_expand_instead_of_vanishing() {
+        assert_eq!(render("Tab\there", 40), ["Tab here"]);
     }
 
     #[test]

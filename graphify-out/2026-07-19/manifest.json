@@ -30,13 +30,13 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1784502203.1482031,
-    "ast_hash": "f51eeef33c902237aa2cf0a64e2b7f27",
+    "mtime": 1784505025.162137,
+    "ast_hash": "c0aa87a3a3a024e121983f295630f89c",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1784502257.2563694,
-    "ast_hash": "f8b8476b5d7ce67ecdeda6f31331cafa",
+    "mtime": 1784504444.6497903,
+    "ast_hash": "44264af06f3c41086c992ff0319ef62c",
     "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/error.rs": {
-    "mtime": 1784502161.934523,
-    "ast_hash": "869eacfeea33ce242b64550b9e6c6604",
+    "mtime": 1784502280.9669745,
+    "ast_hash": "1431c7a2c611d80814e277b9d00eb967",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
@@ -90,13 +90,13 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
-    "mtime": 1784396959.523107,
-    "ast_hash": "c6b8c2e6a39aaefd6f5f65101e153392",
+    "mtime": 1784503867.6592164,
+    "ast_hash": "812b86507d718bafdf1f3c0271f9cfd5",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/mod.rs": {
-    "mtime": 1784343852.554727,
-    "ast_hash": "72cd6276264976f8d11d80c550255ac4",
+    "mtime": 1784505146.0186844,
+    "ast_hash": "f07a3715cd03942fb0aeb228fbd756d9",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/theme.rs": {
@@ -390,8 +390,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/markdown.rs": {
-    "mtime": 1784300622.6497302,
-    "ast_hash": "868a4e3860af2a0778eee977346fb23f",
+    "mtime": 1784503910.3445,
+    "ast_hash": "b5402c58635eb8d02df33d23d9d6eed2",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/syntax.rs": {
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/import.rs": {
-    "mtime": 1784402192.6164796,
-    "ast_hash": "9e7a82fcc20ab0a35ed9399c1d8f45b2",
+    "mtime": 1784505226.4302392,
+    "ast_hash": "5c66d6640f0989d46ca7abf546a41e0d",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-007-spec-patch-0-1-1.md": {
@@ -1050,13 +1050,13 @@
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/contracts/cli-flags.md": {
-    "mtime": 1784300622.6612072,
-    "ast_hash": "921350151f564d94a3d375ae0175ff46",
+    "mtime": 1784503562.7048311,
+    "ast_hash": "07f404108b8a38dd3eedcff7392a3298",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/contracts/resume-state-format.md": {
-    "mtime": 1784300622.6615,
-    "ast_hash": "20184eda2d78f31854055842c5dfba75",
+    "mtime": 1784503555.0281153,
+    "ast_hash": "ab8225798fe46a91b3929e312de78739",
     "semantic_hash": ""
   },
   "specs/007-modern-tui-leverage/contracts/link-syntax.md": {
@@ -1075,8 +1075,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/resume.rs": {
-    "mtime": 1784300622.6483917,
-    "ast_hash": "631397f15497b60535a92bf6d0ee08a4",
+    "mtime": 1784503536.0893514,
+    "ast_hash": "7d17eca6be2283236346dfaa5bf331fd",
     "semantic_hash": ""
   },
   "protocol/fixtures/valid/malformed-link-url.json": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/authoring-markdown.md": {
-    "mtime": 1784471758.4276183,
-    "ast_hash": "abeb03c966de60042b6c2f4ef958fbd2",
+    "mtime": 1784505360.7469444,
+    "ast_hash": "615f5b181892068a9c02090baae110ff",
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/conformance.md": {
@@ -1195,8 +1195,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/footer.rs": {
-    "mtime": 1784343646.2352767,
-    "ast_hash": "361e358974aab6a66ba586ec726f81e5",
+    "mtime": 1784504111.8830478,
+    "ast_hash": "7eeda6e9cc2f9dc037f6c788d56f2600",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/overlays.rs": {
@@ -1350,8 +1350,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/art.rs": {
-    "mtime": 1784430184.3603487,
-    "ast_hash": "ae027fcd259f5b65271dc9a942b8b0b8",
+    "mtime": 1784504424.576325,
+    "ast_hash": "871c60a881752b7f730ba2d22ff10e07",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/fixtures/tiny.png": {
@@ -1520,8 +1520,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-19-fable-ux-audit.md": {
-    "mtime": 1784493111.5714447,
-    "ast_hash": "c745e91fd1da2e6de7c4a438d6118e7b",
+    "mtime": 1784505417.6755388,
+    "ast_hash": "416467827f95400964558615436de9e7",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-19-wysiwyg-editor-plan.md": {

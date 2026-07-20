@@ -4,11 +4,16 @@
 shorthand, which delegates to it) gains one new flag. No existing flag's
 meaning changes.
 
-## `fireside present <file> [--restart]`
+## `fireside present <file> [--restart]` / `fireside <file> [--restart]`
 
 | Flag        | Type | Default | Behavior                                                                 |
 | ----------- | ---- | ------- | ------------------------------------------------------------------------- |
 | `--restart` | bool | `false` | Skip the resume lookup for this run only; always start at the deck's normal entry node. Does not delete any existing resume record — the next run without `--restart` still resumes normally. |
+
+`--restart` is declared on both the `present` subcommand and the top-level
+`Cli` struct (P1-2), so it works on the bare shorthand too — the resume
+toast teaches `--restart` without qualifying which form, so both must
+accept it identically.
 
 No other subcommand (`validate`, `new`, `demo`, `import`) is affected.
 

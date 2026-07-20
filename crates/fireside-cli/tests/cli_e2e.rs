@@ -84,6 +84,37 @@ fn present_markdown_file_suggests_import_first() {
 }
 
 #[test]
+fn shorthand_present_accepts_restart_flag() {
+    // P1-2: `--restart` must parse on the bare shorthand, not just
+    // `present <file> --restart` — the resume toast teaches it unqualified.
+    // A missing file still fails, but on the friendly "No deck named"
+    // message, not a clap "unexpected argument" parse error.
+    fireside()
+        .arg("nope.fireside.json")
+        .arg("--restart")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "No deck named nope.fireside.json — \"fireside new nope\" creates one.",
+        ))
+        .stderr(predicate::str::contains("unexpected argument").not());
+}
+
+#[test]
+fn present_subcommand_accepts_restart_flag() {
+    fireside()
+        .arg("present")
+        .arg("nope.fireside.json")
+        .arg("--restart")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "No deck named nope.fireside.json — \"fireside new nope\" creates one.",
+        ))
+        .stderr(predicate::str::contains("unexpected argument").not());
+}
+
+#[test]
 fn present_without_a_tty_gives_a_plain_message() {
     fireside()
         .arg("demo")
@@ -360,6 +391,19 @@ fn import_refuses_to_overwrite_an_existing_output() {
 }
 
 #[test]
+fn import_reports_a_clear_error_for_a_missing_file() {
+    fireside()
+        .arg("import")
+        .arg("nonexistent.md")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "No file named nonexistent.md — check the path.",
+        ))
+        .stderr(predicate::str::contains("Caused by").not());
+}
+
+#[test]
 fn import_ascii_art_fence_becomes_a_real_block() {
     let temp = tempfile::tempdir().expect("temp dir");
     let input = temp.path().join("talk.md");
@@ -457,7 +501,10 @@ fn art_image_reports_a_clear_error_for_a_missing_file() {
         .arg("nonexistent.png")
         .assert()
         .failure()
-        .stderr(predicate::str::contains("could not read"));
+        .stderr(predicate::str::contains(
+            "No file named nonexistent.png — check the path.",
+        ))
+        .stderr(predicate::str::contains("Caused by").not());
 }
 
 fn fixture(name: &str) -> std::path::PathBuf {

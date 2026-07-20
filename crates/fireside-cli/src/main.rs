@@ -42,6 +42,11 @@ struct Cli {
     /// Path to a deck (.fireside.json) — shorthand for `fireside present <file>`.
     file: Option<PathBuf>,
 
+    /// Start from the beginning, ignoring any saved resume position for
+    /// this deck.
+    #[arg(long)]
+    restart: bool,
+
     #[command(subcommand)]
     command: Option<Command>,
 }
@@ -173,7 +178,7 @@ enum Template {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match (cli.file, cli.command) {
-        (Some(file), _) => present(&file, false),
+        (Some(file), _) => present(&file, cli.restart),
         (None, Some(Command::Present { file, restart })) => present(&file, restart),
         (None, Some(Command::Validate { file, watch })) => report::validate_file(&file, watch),
         (
@@ -251,6 +256,15 @@ fn load(path: &Path) -> Result<Graph> {
     }
 }
 
+/// One plain line, no anyhow chain, for a missing input file outside the
+/// deck-loading path (P1-7): `import`'s Markdown source and `art image`'s
+/// picture aren't decks, so `load()`'s "fireside new" suggestion doesn't
+/// apply — just point at the path.
+pub(crate) fn missing_file_error(path: &Path) -> ! {
+    eprintln!("No file named {} — check the path.", path.display());
+    std::process::exit(1);
+}
+
 /// True for `.md`/`.markdown` paths — used to swap the raw JSON-parse
 /// report for a friendlier "run import first" hint (P0-2).
 fn is_markdown_path(path: &Path) -> bool {
@@ -303,10 +317,12 @@ fn present(path: &Path, restart: bool) -> Result<()> {
     }
     let watcher = RefCell::new(watch::Watcher::new(path));
 
-    // Resume-from-fingerprint (spec 007): a resume position is host-local
+    // Resume-from-path (spec 007, P1-1): a resume position is host-local
     // cache, not part of the deck itself — `--restart` skips the lookup for
-    // this run only, without touching the stored record.
-    let key = resume::fingerprint_key(path);
+    // this run only, without touching the stored record. Keying by the
+    // deck's canonicalized absolute path (rather than a content fingerprint)
+    // means editing the file no longer orphans the saved position.
+    let key = resume::resume_key(path);
     let mut store = resume::ResumeStore::load();
     let initial_node = store.resolve_initial_node(key.as_deref(), restart);
     let graph_for_resume = graph.clone();
@@ -365,7 +381,7 @@ fn demo() -> Result<()> {
 /// What v1 Markdown import never carries over, restated after every
 /// successful import so a presenter learns the boundary from the tool
 /// itself rather than by omission (FR-023, ADR-006).
-const IMPORT_LIMITATIONS_NOTE: &str = "Note: this v1 import doesn't carry over columns/containers, speaker notes, or per-slide view-mode/transition — hand-edit the JSON (or use quick-edit for headings/text) to add those.";
+const IMPORT_LIMITATIONS_NOTE: &str = "Note: this v1 import doesn't carry over columns/containers, speaker notes, incremental reveal, or per-slide view-mode/transition — hand-edit the JSON (or use quick-edit for headings/text) to add those.";
 
 fn import_file(input: &Path, output: Option<&Path>) -> Result<()> {
     let default_output;
@@ -380,15 +396,23 @@ fn import_file(input: &Path, output: Option<&Path>) -> Result<()> {
         bail!("{} already exists — pick another name", output.display());
     }
 
-    let source = std::fs::read_to_string(input)
-        .with_context(|| format!("could not read {}", input.display()))?;
-    let graph = match import::import(&source) {
-        Ok(graph) => graph,
+    let source = match std::fs::read_to_string(input) {
+        Ok(text) => text,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => missing_file_error(input),
+        Err(err) => {
+            return Err(err).with_context(|| format!("could not read {}", input.display()));
+        }
+    };
+    let import::ImportOutput { graph, notes } = match import::import(&source) {
+        Ok(output) => output,
         Err(err) => {
             eprintln!("{err}");
             std::process::exit(1);
         }
     };
+    for note in &notes {
+        eprintln!("{note}");
+    }
 
     let json = graph
         .to_json_pretty()

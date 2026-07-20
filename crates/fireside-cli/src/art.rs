@@ -164,8 +164,16 @@ pub(crate) fn render_image_ascii(
     invert: bool,
     no_normalize: bool,
 ) -> Result<String> {
-    let image = image::open(path)
-        .with_context(|| format!("could not read {} as an image", path.display()))?;
+    let image = match image::open(path) {
+        Ok(image) => image,
+        Err(image::ImageError::IoError(err)) if err.kind() == std::io::ErrorKind::NotFound => {
+            crate::missing_file_error(path)
+        }
+        Err(err) => {
+            return Err(err)
+                .with_context(|| format!("could not read {} as an image", path.display()));
+        }
+    };
 
     let (lo, hi) = percentile_bounds(&image, 0.02, 0.98);
     if is_low_range(lo, hi) {

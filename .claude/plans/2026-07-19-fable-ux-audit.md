@@ -40,14 +40,50 @@ status, date._
       report — out of scope for the P0 fix, watch mode isn't a first-five-
       minutes path)
 - [x] P0-3 non-tty guard + `try_init` — 2026-07-19
-- [ ] P1-1 path-keyed resume records
-- [ ] P1-2 shorthand `--restart`
-- [ ] P1-3 tab expansion at render
-- [ ] P1-4 import GFM handling + stderr notes + docs table
-- [ ] P1-5 H1-only import detection
-- [ ] P1-6 footer flash wrap / segment drop
-- [ ] P1-7 friendly missing-file errors for `import` / `art image`
-- [ ] P1-8 reveal limitation documented (marker syntax = Fresh #2, needs scope decision)
+- [x] P1-1 path-keyed resume records — 2026-07-19 (`resume::resume_key`
+      canonicalizes the deck path as the map key; fingerprint moved inside
+      the record as a staleness annotation; legacy fingerprint-keyed
+      entries and entries for deleted paths are pruned on save; tmux smoke
+      confirmed: present → advance → quit → edit file → relaunch → still on
+      the same slide)
+- [x] P1-2 shorthand `--restart` — 2026-07-19 (added `restart: bool` to the
+      top-level `Cli` struct so `fireside <file> --restart` parses; cli_e2e
+      + tmux smoke confirm both forms accept the flag)
+- [x] P1-3 tab expansion at render — 2026-07-19 (`render::expand_tabs`
+      shared by `blocks::code()` and `markdown::wrap_styled`, so both code
+      blocks and text bodies expand `\t` to the next 4-column stop by
+      display width instead of ratatui dropping it; tmux smoke confirmed
+      nested gofmt'd Go indentation renders correctly)
+- [x] P1-4 import GFM handling + stderr notes + docs table — 2026-07-19
+      (GFM options enabled — tables/footnotes/tasklists/strikethrough;
+      tables → aligned monospace `code` block; footnote refs/definitions
+      dropped; strikethrough markers stripped, nested markdown preserved;
+      task-list items get ☑/☐ prefixes; content-before-first-heading now
+      warns instead of silently vanishing; `import()` returns
+      `ImportOutput { graph, notes }`, notes printed to stderr by
+      `main.rs`; authoring-markdown.md conversion table + "doesn't carry
+      over" section updated; verified live via a GFM stress deck presented
+      in tmux)
+- [x] P1-5 H1-only import detection — 2026-07-19 (2+ `#` with no `##`
+      auto-promotes to H1-as-slides; a single `#` with no `##` gets a
+      specific "found 1 heading, slides start at ##" error instead of the
+      generic message; verified live via the CLI)
+- [x] P1-6 footer flash wrap / segment drop — 2026-07-19 (`footer::footer_rows`
+      + `grow_footer_for_flash` in `render/mod.rs` borrow rows from the
+      bottom of the content area so a long flash word-wraps instead of
+      truncating; `drop_to_fit` drops `e edit` then `m map` whole before any
+      glyph clips; snapshot updates accepted; tmux smoke at 80×24 confirmed
+      both the save-conflict flash wrap and full `q quit` on a branch slide)
+- [x] P1-7 friendly missing-file errors for `import` / `art image` — 2026-07-19
+      (shared `missing_file_error` in `main.rs`, matched on `NotFound`
+      before falling back to the anyhow chain for genuine I/O errors;
+      cli_e2e updated/added for both verbs)
+- [x] P1-8 reveal limitation documented (marker syntax = Fresh #2, needs scope decision) — 2026-07-19
+      (docs-only minimum fix: reveal added to `IMPORT_LIMITATIONS_NOTE` in
+      `main.rs` and to authoring-markdown.md's "doesn't carry over"
+      section, linked to the `reveal` field docs. The real fix — a
+      `<!-- reveal -->` import marker — stays Fresh idea #2, unbuilt,
+      pending a user scope decision per the plan)
 - [ ] P2-1 ascii-art frame label / alt caption
 - [ ] P2-2 help overlay bottom-row clipping
 - [ ] P2-3 unknown-key feedback flash
