@@ -78,7 +78,7 @@ use crate::app::{App, Screen};
 use crate::theme::Tokens;
 
 use content::indicator;
-pub use hits::{branch_option_hit, map_row_hit};
+pub use hits::{branch_option_hit, edit_field_hit, map_row_hit};
 
 /// The widest comfortable reading measure for slide content, in columns.
 const MEASURE: u16 = 76;

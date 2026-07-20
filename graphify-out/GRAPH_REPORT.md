@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-20)
 
 ## Corpus Check
-- 297 files · ~378,794 words
+- 297 files · ~381,075 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3309 nodes · 4704 edges · 287 communities (242 shown, 45 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 52 edges (avg confidence: 0.83)
+- 3327 nodes · 4759 edges · 285 communities (240 shown, 45 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 55 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `410881cf`
+- Built from commit: `d75a6e03`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -219,7 +219,6 @@
 - [[_COMMUNITY_Community 203|Community 203]]
 - [[_COMMUNITY_Community 204|Community 204]]
 - [[_COMMUNITY_Community 205|Community 205]]
-- [[_COMMUNITY_Community 206|Community 206]]
 - [[_COMMUNITY_Community 207|Community 207]]
 - [[_COMMUNITY_Community 208|Community 208]]
 - [[_COMMUNITY_Community 209|Community 209]]
@@ -239,7 +238,6 @@
 - [[_COMMUNITY_Community 223|Community 223]]
 - [[_COMMUNITY_Community 224|Community 224]]
 - [[_COMMUNITY_Community 225|Community 225]]
-- [[_COMMUNITY_Community 226|Community 226]]
 - [[_COMMUNITY_Community 227|Community 227]]
 - [[_COMMUNITY_Community 228|Community 228]]
 - [[_COMMUNITY_Community 229|Community 229]]
@@ -302,16 +300,16 @@
 - [[_COMMUNITY_Community 287|Community 287]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `app()` - 56 edges
-2. `press()` - 52 edges
-3. `screen()` - 46 edges
+1. `app()` - 58 edges
+2. `press()` - 54 edges
+3. `screen()` - 48 edges
 4. `App` - 45 edges
 5. `fireside()` - 43 edges
 6. `import()` - 33 edges
 7. `render_block()` - 33 edges
 8. `Diagnostic` - 30 edges
-9. `render()` - 29 edges
-10. `diags_for()` - 27 edges
+9. `render()` - 30 edges
+10. `flat()` - 28 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
@@ -355,7 +353,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (287 total, 45 thin omitted)
+## Communities (285 total, 45 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -370,8 +368,8 @@ Cohesion: 0.22
 Nodes (8): ADR-001: Remove `traversal.after`, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
 
 ### Community 3 - "Agent & Skill Governance"
-Cohesion: 0.10
-Nodes (27): Graphify Slash Command Trigger, AST Structural Extraction, Community Detection and Labeling, Token Cost Tracking, Semantic Extraction Cache, Fast Path Query on Existing Graph, Graphify Skill Pipeline, Semantic Extraction via Parallel Subagents (+19 more)
+Cohesion: 0.11
+Nodes (23): Graphify Slash Command Trigger, AST Structural Extraction, Community Detection and Labeling, Token Cost Tracking, Semantic Extraction Cache, Graphify Skill Pipeline, Semantic Extraction via Parallel Subagents, Folder Watcher Auto-Rebuild (+15 more)
 
 ### Community 4 - "TUI App Core"
 Cohesion: 0.06
@@ -386,8 +384,8 @@ Cohesion: 0.11
 Nodes (18): 1. Current-State Analysis, 2. Prioritized Improvements, 3. Phase 1 Roadmap (2–3 weeks), 4. Open Questions / Prototyping Needed, 5. Documentation Audit & Plan, Competitive survey (what presenters expect elsewhere), Executive Summary, Fireside Strategic Improvement Plan — 2026-07-12 (+10 more)
 
 ### Community 7 - "Editor Navigation"
-Cohesion: 0.13
-Nodes (55): ContainerLayout, ContentBlock, Line, Option, Span, String, Tokens, Vec (+47 more)
+Cohesion: 0.12
+Nodes (58): ContainerLayout, ContentBlock, Line, Option, Span, String, Tokens, Vec (+50 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.16
@@ -594,8 +592,8 @@ Cohesion: 0.15
 Nodes (12): Assumptions, Edge Cases, Feature Specification: Quick-Edit Modal for Text and Heading Blocks, Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+4 more)
 
 ### Community 60 - "Command History Tests"
-Cohesion: 0.20
-Nodes (10): Step 0 - GitHub repos and multi-path merge (only if a URL or several paths), Step 1 - Ensure graphify is installed, Step 2.5 - Video and audio (only if video files detected), Step 2 - Detect files, Step 4 - Build graph, cluster, analyze, generate outputs, Step 5 - Label communities, Step 6 - Generate Obsidian vault (opt-in) + HTML, Step 9 - Save manifest, update cost tracker, clean up, and report (+2 more)
+Cohesion: 0.14
+Nodes (14): Part A - Structural extraction for code files, Part B - Semantic extraction (parallel subagents), Part C - Merge AST + semantic into final extraction, Step 0 - GitHub repos and multi-path merge (only if a URL or several paths), Step 1 - Ensure graphify is installed, Step 2.5 - Video and audio (only if video files detected), Step 2 - Detect files, Step 3 - Extract entities and relationships (+6 more)
 
 ### Community 61 - "Claude Hooks Settings"
 Cohesion: 0.33
@@ -666,8 +664,8 @@ Cohesion: 0.07
 Nodes (48): CoreError, BranchOption, BranchPoint, ContentBlock, Node, NodeDefaults, NodeId, Option (+40 more)
 
 ### Community 88 - "Render Module"
-Cohesion: 0.13
-Nodes (23): Buffer, App, Frame, Option, Rect, String, ViewMode, Frame (+15 more)
+Cohesion: 0.07
+Nodes (58): Buffer, App, Frame, Line, Option, Rect, Tokens, Vec (+50 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.15
@@ -734,8 +732,8 @@ Cohesion: 0.08
 Nodes (48): Command, PathBuf, Drop, art_image_charset_flag_changes_output_characters(), art_image_converts_a_readable_file(), art_image_default_charset_matches_unflagged_output(), art_image_invert_flag_flips_shading(), art_image_no_normalize_reproduces_prior_behavior() (+40 more)
 
 ### Community 107 - "Community 107"
-Cohesion: 0.15
-Nodes (12): ADR Format (Nygard-style), ADR Skill, Consequences section, Context section, Decision section, Example ADR, Numbering and Filing, Nygard ADR Format (+4 more)
+Cohesion: 0.12
+Nodes (16): ADR Format (Nygard-style), ADR Skill, Consequences section, Context section, Decision section, Example ADR, Numbering and Filing, Nygard ADR Format (+8 more)
 
 ### Community 108 - "Community 108"
 Cohesion: 0.22
@@ -755,7 +753,7 @@ Nodes (5): Specification Quality Checklist: Quick-Edit Modal for Text and Headin
 
 ### Community 112 - "Community 112"
 Cohesion: 0.50
-Nodes (4): Part A - Structural extraction for code files, Part B - Semantic extraction (parallel subagents), Part C - Merge AST + semantic into final extraction, Step 3 - Extract entities and relationships
+Nodes (4): Fast Path Query on Existing Graph, Cross-Repo Graph Merge, GitHub Repo Clone Flow, Native CLAUDE.md Integration
 
 ### Community 113 - "Community 113"
 Cohesion: 0.22
@@ -1033,10 +1031,6 @@ Nodes (22): Option, Path, PathBuf, Self, String, Value, Map, clear_removes_the_r
 Cohesion: 0.40
 Nodes (5): Research Workflow, Step 1 — Identify the Question Type, Step 2 — Look Up Crate Docs via Context7, Step 3 — Read Relevant Fireside Source, Step 4 — Validate Against Constraints
 
-### Community 206 - "Community 206"
-Cohesion: 0.50
-Nodes (4): MSRV 1.88 Constraint, Security Audit Workflow, MSRV CI Job, Rust CI Workflow
-
 ### Community 207 - "Community 207"
 Cohesion: 0.33
 Nodes (5): Specification Quality Checklist: Protocol & Workflow Hardening, Content Quality, Feature Readiness, Notes, Requirement Completeness
@@ -1105,17 +1099,13 @@ Nodes (5): Claiming conformance, Regenerating expectations, Rule catalog, Runnin
 Cohesion: 0.46
 Nodes (7): App, Frame, Line, Rect, Tokens, draw_header(), header_rail()
 
-### Community 226 - "Community 226"
-Cohesion: 0.21
-Nodes (22): App, Frame, Line, Option, Rect, Tokens, Vec, App (+14 more)
-
 ### Community 227 - "Community 227"
 Cohesion: 0.20
 Nodes (16): App, Frame, Option, Rect, String, Tokens, Vec, draw_footer() (+8 more)
 
 ### Community 228 - "Community 228"
 Cohesion: 0.08
-Nodes (77): App, KeyCode, Option, String, KeyModifiers, app(), app_maybe_resumed(), arrows_and_enter_choose_an_option() (+69 more)
+Nodes (79): App, KeyCode, Option, String, KeyModifiers, app(), app_maybe_resumed(), arrows_and_enter_choose_an_option() (+71 more)
 
 ### Community 229 - "Community 229"
 Cohesion: 0.14
@@ -1332,14 +1322,14 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `Community 228`, `TUI App Core`, `Render Module`, `Community 122`, `Community 287`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
   _1636 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.07982583454281568 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
-  _Cohesion score 0.09686609686609686 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11462450592885376 - nodes in this community are weakly interconnected._
 - **Should `TUI App Core` be split into smaller, more focused modules?**
-  _Cohesion score 0.061938061938061936 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06260406260406261 - nodes in this community are weakly interconnected._

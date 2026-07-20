@@ -590,14 +590,30 @@ impl App {
     /// A mouse click. Only a left-button press is a "click" — release/drag
     /// events never reach here. Hit-testing recomputes the exact same pure
     /// layout `render::draw` used for the last frame
-    /// (`render::map_row_hit`/`branch_option_hit`), so a click can never
-    /// land somewhere the screen doesn't actually show a target: clicking
-    /// blank space, body text, or (since the branch menu itself is not
-    /// drawn while reveal is pending) a branch option that hasn't appeared
-    /// yet, is always a safe no-op.
+    /// (`render::map_row_hit`/`branch_option_hit`/`edit_field_hit`), so a
+    /// click can never land somewhere the screen doesn't actually show a
+    /// target: clicking blank space, body text, or (since the branch menu
+    /// itself is not drawn while reveal is pending) a branch option that
+    /// hasn't appeared yet, is always a safe no-op.
     fn on_click(&mut self, col: u16, row: u16) {
         let (w, h) = self.viewport;
         let frame_area = Rect::new(0, 0, w, h);
+        // Read-only first: the hit test only needs the fields already
+        // borrowed out of `self.screen`, so it can run before anything
+        // needs `&mut self.screen` to apply the result.
+        let edit_hit = if let Screen::Edit { fields, .. } = &self.screen {
+            render::edit_field_hit(frame_area, fields, self.sink_available(), col, row)
+        } else {
+            None
+        };
+        if let Some((field, buffer_row, buffer_col)) = edit_hit {
+            if let Screen::Edit { fields, focused } = &mut self.screen {
+                *focused = field;
+                let clamped = buffer_col.min(fields[field].char_len(buffer_row));
+                fields[field].cursor = (buffer_row, clamped);
+            }
+            return;
+        }
         match &self.screen {
             Screen::Map { selected } => {
                 let selected = *selected;

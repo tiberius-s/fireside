@@ -1,5 +1,5 @@
 use super::*;
-use crate::app::{FlashKind, Msg};
+use crate::app::{EditableKind, FlashKind, Msg};
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use fireside_core::{ContentBlock, Graph};
 use fireside_engine::{Outcome, RESERVED_PRESENTER_KEYS, Session};
@@ -1093,6 +1093,68 @@ fn quick_edit_open_edit_save_updates_the_heading_and_leaves_other_blocks_alone()
     // Non-editable siblings on the same node are untouched too.
     assert!(matches!(node.content[1], ContentBlock::List { .. }));
     assert!(matches!(node.content[2], ContentBlock::Divider { .. }));
+}
+
+#[test]
+fn quick_edit_wraps_long_text_instead_of_cropping_it() {
+    // A narrow modal (spec 013 fix): the "features" node's trailing text
+    // block is wider than a 40-column terminal leaves room for, so it must
+    // wrap onto more than one screen line — every word surviving whole —
+    // instead of clipping at the box edge.
+    let mut app = app();
+    press(&mut app, KeyCode::Char(' ')); // -> features
+    press(&mut app, KeyCode::Char('e'));
+    let (w, h) = (40, 30);
+    let s = screen(&app, w, h);
+    let body = "Every edge is explicit. No implicit sequential fallback.";
+    for word in body.split(' ') {
+        assert!(
+            s.contains(word),
+            "{word:?} must survive whole, not cropped: {s}"
+        );
+    }
+    assert!(
+        !s.lines().any(|l| l.contains(body)),
+        "the full sentence shouldn't fit on one line at this width: {s}"
+    );
+}
+
+#[test]
+fn clicking_wrapped_edit_text_positions_the_cursor_there() {
+    // Mouse support in the quick-edit modal (spec 013): a click lands on
+    // the exact buffer position it appears over, even on a word-wrapped
+    // continuation line whose screen row doesn't correspond 1:1 to a
+    // buffer row.
+    let mut app = app();
+    press(&mut app, KeyCode::Char(' ')); // -> features
+    press(&mut app, KeyCode::Char('e'));
+    let (w, h) = (40, 30);
+    let buf = buffer(&app, w, h);
+    // "sequential" only appears on the wrapped continuation line of the
+    // trailing text field, never on its first line.
+    let (x, y) = locate(&buf, w, h, "sequential");
+    click_at(&mut app, w, h, x, y);
+
+    let Screen::Edit { fields, focused } = app.screen() else {
+        panic!("still editing: {:?}", app.screen());
+    };
+    assert_eq!(
+        fields[*focused].kind,
+        EditableKind::Text,
+        "click focused the text field the word is in, not the heading"
+    );
+    let before_click = fields[*focused].buffer.clone();
+
+    press(&mut app, KeyCode::Char('X'));
+    let Screen::Edit { fields, focused } = app.screen() else {
+        panic!("still editing");
+    };
+    let after = fields[*focused].buffer.join("\n");
+    assert!(
+        after.contains("Xsequential"),
+        "typed char landed exactly where the click placed the cursor: \
+         before={before_click:?} after={after:?}"
+    );
 }
 
 #[test]

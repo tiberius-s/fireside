@@ -4,11 +4,12 @@
 
 use ratatui::layout::Rect;
 
-use crate::app::App;
+use crate::app::{App, EditableField};
 use crate::theme::Tokens;
 
 use super::content::{NodeLines, content_inner, node_lines, notes_panel};
-use super::{areas, map, surface};
+use super::overlays::{EditRow, edit_layout, edit_text_width};
+use super::{MEASURE, areas, map, overlay_rect, surface};
 
 /// Whether `(col, row)` falls inside `rect` — small helper since the
 /// `ratatui::layout::Rect` version pinned here has no `contains` for a bare
@@ -55,4 +56,45 @@ pub fn map_row_hit(
     row: u16,
 ) -> Option<usize> {
     map::hit_test(app, frame_area, selected, col, row)
+}
+
+/// Which quick-edit field/buffer-row/column (if any) sits at `(col, row)`
+/// of the just-drawn frame — recomputes the exact same pure layout
+/// `overlays::draw_edit` uses (`overlays::edit_layout`), so a click can
+/// never disagree with what's on screen. `None` when the click missed
+/// every text row (chrome, blank space, or outside the modal).
+#[must_use]
+pub fn edit_field_hit(
+    frame_area: Rect,
+    fields: &[EditableField],
+    sink_available: bool,
+    col: u16,
+    row: u16,
+) -> Option<(usize, usize, usize)> {
+    let text_width = edit_text_width(frame_area.width);
+    let rows = edit_layout(fields, sink_available, text_width);
+    let rect = overlay_rect(frame_area, MEASURE, rows.len() as u16 + 4);
+    let inner = Rect {
+        x: rect.x + 1,
+        y: rect.y + 1,
+        width: rect.width.saturating_sub(2),
+        height: rect.height.saturating_sub(2),
+    };
+    if !rect_contains(inner, col, row) {
+        return None;
+    }
+    let idx = (row - inner.y) as usize;
+    match rows.get(idx)? {
+        EditRow::Text {
+            field,
+            buffer_row,
+            seg_start,
+            content,
+        } => {
+            let local = (col.saturating_sub(inner.x) as usize).saturating_sub(2);
+            let local = local.min(content.chars().count());
+            Some((*field, *buffer_row, seg_start + local))
+        }
+        _ => None,
+    }
 }

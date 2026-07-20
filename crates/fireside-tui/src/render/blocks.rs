@@ -9,7 +9,7 @@
 use fireside_core::{ContainerLayout, ContentBlock};
 use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
-use unicode_width::UnicodeWidthStr;
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 use super::{markdown, syntax};
 use crate::theme::Tokens;
@@ -526,6 +526,59 @@ fn columns(
     lines
 }
 
+/// The visible column span (start, end) of a line's non-space content, or
+/// `None` for a blank line.
+fn content_span(line: &Line<'static>) -> Option<(usize, usize)> {
+    let mut col = 0usize;
+    let mut start = None;
+    let mut end = 0usize;
+    for span in &line.spans {
+        for ch in span.content.chars() {
+            let w = ch.width().unwrap_or(0);
+            if ch != ' ' {
+                start.get_or_insert(col);
+                end = col + w;
+            }
+            col += w;
+        }
+    }
+    start.map(|s| (s, end))
+}
+
+/// Drops `n` columns of (assumed blank) leading content from a line's
+/// spans — undoes the pad a self-centering child (ascii-art, code) already
+/// applied while rendering itself at the container's narrower inner width,
+/// so `center` can re-pad it against its own, wider axis instead of
+/// compounding the two into a block shifted off true center.
+fn strip_leading(line: Line<'static>, n: usize) -> Line<'static> {
+    let mut remaining = n;
+    let mut spans = Vec::with_capacity(line.spans.len());
+    for span in line.spans {
+        if remaining == 0 {
+            spans.push(span);
+            continue;
+        }
+        let content = span.content.into_owned();
+        let w = UnicodeWidthStr::width(content.as_str());
+        if w <= remaining {
+            remaining -= w;
+            continue;
+        }
+        let mut col = 0usize;
+        let mut byte = content.len();
+        for (i, ch) in content.char_indices() {
+            if col >= remaining {
+                byte = i;
+                break;
+            }
+            col += ch.width().unwrap_or(0);
+        }
+        spans.push(Span::styled(content[byte..].to_owned(), span.style));
+        remaining = 0;
+    }
+    Line::from(spans)
+}
+
 /// Center children on the container's axis. Prose (headings, text) centers
 /// line by line, the way a title slide reads; everything else (code, lists,
 /// images) moves as one unit so its internal alignment holds.
@@ -549,8 +602,27 @@ fn center(
             child,
             ContentBlock::Heading { .. } | ContentBlock::Text { .. }
         );
-        let unit_width = flow.iter().map(Line::width).max().unwrap_or(0);
+        // Non-prose children render themselves already centered inside
+        // `inner_width` (a uniform blank run on every line). Measuring the
+        // block's *tight* bounding box — instead of trusting the raw
+        // `Line::width()`, which still carries that self-applied pad —
+        // and stripping it before re-padding against the full `width`
+        // keeps this from double-counting that pad and shifting the
+        // block off axis (see the title-slide ascii-art regression).
+        let (leading, unit_width) = if prose {
+            (0, 0)
+        } else {
+            let spans: Vec<(usize, usize)> = flow.iter().filter_map(content_span).collect();
+            let left = spans.iter().map(|&(s, _)| s).min().unwrap_or(0);
+            let right = spans.iter().map(|&(_, e)| e).max().unwrap_or(0);
+            (left, right.saturating_sub(left))
+        };
         for line in flow {
+            let line = if !prose && leading > 0 {
+                strip_leading(line, leading)
+            } else {
+                line
+            };
             let w = if prose { line.width() } else { unit_width };
             let pad = usize::from(width).saturating_sub(w) / 2;
             let mut spans = vec![Span::raw(" ".repeat(pad))];
@@ -861,6 +933,58 @@ mod tests {
         assert_eq!(
             lead_short, lead_long,
             "code lines share one left edge: {lines:?}"
+        );
+    }
+
+    /// Regression for the title-slide bug: `code()`'s ascii-art path
+    /// already centers itself within the narrower `inner_width` a `center`
+    /// container renders it at (a uniform left pad, no matching right
+    /// pad). Naively re-centering that already-padded result against the
+    /// container's full width double-counts the child's own pad and
+    /// shifts the whole block right of true center — exactly what shipped
+    /// on the demo deck's welcome slide.
+    #[test]
+    fn centered_ascii_art_lands_on_true_center_not_shifted_by_its_own_inner_pad() {
+        // Content wide enough that the label prefix never dominates
+        // `centered_box_width`'s `.max(label_width)`, so the box width is
+        // simply `prefix(2) + content_max(20)` — 22 — independent of the
+        // formula under test.
+        let source = format!("{}\n{}", "x".repeat(20), "y".repeat(10));
+        let block = ContentBlock::Container {
+            reveal: None,
+            layout: Some(ContainerLayout::Center),
+            children: vec![ContentBlock::Code {
+                reveal: None,
+                language: None,
+                source,
+                highlight_lines: None,
+                show_line_numbers: None,
+            }],
+        };
+        let width: usize = 60;
+        let box_width = 22;
+        // True center for a `box_width`-wide block in a `width`-wide
+        // container — computed independently of `center()`'s own math.
+        let expected_left = (width - box_width) / 2;
+
+        let lines = flat(&render(&block, width as u16, &Tokens::default()));
+        // The bottom rule is pure pad + dashes, so its leading-space count
+        // is exactly the block's centering pad with no ambiguity from a
+        // content row's own gutter indent — every line must share that
+        // same prefix (block moves as one unit), and that prefix must be
+        // true center, not shifted right by the child's own inner-width
+        // self-centering pad (the bug: the demo deck's title-slide ascii
+        // art landed ~5 columns right of center).
+        let bottom = lines.last().expect("bottom rule present");
+        let pad = bottom.len() - bottom.trim_start_matches(' ').len();
+        let pad_str = " ".repeat(pad);
+        assert!(
+            lines.iter().all(|l| l.starts_with(&pad_str)),
+            "block must move as one unit, every line sharing pad {pad}: {lines:?}"
+        );
+        assert_eq!(
+            pad, expected_left,
+            "expected the block on the true center axis: {lines:?}"
         );
     }
 
