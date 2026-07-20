@@ -23,6 +23,12 @@ const FLASH_DURATION: Duration = Duration::from_millis(3000);
 /// How long a slide's fade-in lasts: one dim beat, then full brightness.
 const FADE_DURATION: Duration = Duration::from_millis(90);
 
+/// P2-3: once the unknown-key flash has shown, further unrecognized keys
+/// within this window are silently ignored rather than re-triggering it —
+/// a presenter mashing keys while lost gets the message once, not a flash
+/// that never lets them read anything else.
+const UNKNOWN_KEY_FLASH_COOLDOWN: Duration = Duration::from_secs(2);
+
 /// A message into the state machine: terminal input, or a fresh read of
 /// the deck source while presenting (live reload).
 #[derive(Debug)]
@@ -85,6 +91,9 @@ pub struct EditableField {
     pub kind: EditableKind,
     /// Multi-line buffer, initialized from the block's current content.
     pub buffer: Vec<String>,
+    /// `buffer`'s value when the modal opened, kept to detect unsaved
+    /// changes (P2-5) without re-reading the node.
+    initial: Vec<String>,
     /// (row, column) into `buffer`, in characters (not bytes).
     pub cursor: (usize, usize),
 }
@@ -188,6 +197,11 @@ impl EditableField {
     fn text(&self) -> String {
         self.buffer.join("\n")
     }
+
+    /// Whether the presenter has typed anything since the modal opened.
+    fn dirty(&self) -> bool {
+        self.buffer != self.initial
+    }
 }
 
 /// Every heading/text block on `node`, in document order, including those
@@ -209,6 +223,7 @@ fn collect_editable(blocks: &[ContentBlock], path: &mut Vec<usize>, out: &mut Ve
                 },
                 kind: EditableKind::Heading(*level),
                 buffer: to_buffer(text),
+                initial: to_buffer(text),
                 cursor: (0, 0),
             }),
             ContentBlock::Text { body, .. } => out.push(EditableField {
@@ -217,6 +232,7 @@ fn collect_editable(blocks: &[ContentBlock], path: &mut Vec<usize>, out: &mut Ve
                 },
                 kind: EditableKind::Text,
                 buffer: to_buffer(body),
+                initial: to_buffer(body),
                 cursor: (0, 0),
             }),
             ContentBlock::Container { children, .. } => collect_editable(children, path, out),
@@ -286,6 +302,18 @@ pub struct App {
     viewport: (u16, u16),
     quit: bool,
     pending_save: Option<Graph>,
+    unknown_key_flash_at: Option<Instant>,
+    sink_available: bool,
+    /// Set the instant an Esc is pressed in the quick-edit modal with
+    /// unsaved changes; a second Esc within `FLASH_DURATION` discards
+    /// (P2-5). `None` means no discard is pending.
+    edit_discard_confirm_at: Option<Instant>,
+    /// Set on a successful quick-edit save; consumed by the very next
+    /// `on_reload` (P2-6) — writing the deck back out deliberately leaves
+    /// the caller's watcher fingerprint stale so it re-reads its own
+    /// write, which would otherwise replace the "Saved" flash with
+    /// "Reloaded" before the presenter ever saw it.
+    awaiting_self_reload: bool,
 }
 
 impl App {
@@ -306,7 +334,28 @@ impl App {
             viewport: (80, 24),
             quit: false,
             pending_save: None,
+            unknown_key_flash_at: None,
+            sink_available: true,
+            edit_discard_confirm_at: None,
+            awaiting_self_reload: false,
         }
+    }
+
+    /// Marks the presentation as having no write-back sink (e.g. the
+    /// built-in demo deck, per P2-4): quick-edit still opens so a presenter
+    /// can preview edits, but the modal says up front that Ctrl+S can't
+    /// save, instead of the presenter finding out only after typing.
+    #[must_use]
+    pub(crate) fn without_sink(mut self) -> Self {
+        self.sink_available = false;
+        self
+    }
+
+    /// Whether a quick-edit save has anywhere to go. `false` for the demo
+    /// deck and any other sink-less presentation.
+    #[must_use]
+    pub fn sink_available(&self) -> bool {
+        self.sink_available
     }
 
     /// The live session.
@@ -418,6 +467,7 @@ impl App {
             Ok(()) => {
                 self.screen = Screen::Present;
                 self.set_flash("Saved", FlashKind::Info);
+                self.awaiting_self_reload = true;
             }
             Err(message) => self.set_flash(&message, FlashKind::Error),
         }
@@ -427,6 +477,9 @@ impl App {
     /// that broke the deck never replaces the working one — the presenter
     /// keeps the old slides and a footer message says what happened.
     fn on_reload(&mut self, result: Result<Graph, String>) {
+        // Consumed regardless of outcome: it only ever predicts the very
+        // next reload, successful or not.
+        let is_self_reload = std::mem::take(&mut self.awaiting_self_reload);
         let graph = match result {
             Ok(graph) => graph,
             Err(message) => {
@@ -462,7 +515,11 @@ impl App {
         self.scroll = 0;
         self.branch_selected = 0;
         self.fade_started = None;
-        if survived {
+        if survived && is_self_reload {
+            // P2-6: the presenter's lasting impression of a save should be
+            // "Saved", not the watcher noticing its own write.
+            self.set_flash("Saved", FlashKind::Info);
+        } else if survived {
             self.set_flash("Reloaded", FlashKind::Info);
         } else {
             self.set_flash(
@@ -488,21 +545,47 @@ impl App {
         }
     }
 
-    /// A mouse click, additive on top of every existing keyboard control
+    /// A mouse event, additive on top of every existing keyboard control
     /// (constitution Principle II: the footer stays the primary, taught
-    /// contract). Only a left-button press is a "click" — other buttons and
-    /// release/drag events are ignored. Hit-testing recomputes the exact
-    /// same pure layout `render::draw` used for the last frame
+    /// contract). A left-button press is a click; `ScrollUp`/`ScrollDown`
+    /// (P2-9) are the wheel — the long-slide `▼ more (↓)` hint and the map
+    /// both invite it, and click support already trains a presenter to
+    /// expect the mouse to work. Every other button/kind is ignored.
+    fn on_mouse(&mut self, event: MouseEvent) {
+        match event.kind {
+            MouseEventKind::Down(MouseButton::Left) => {
+                self.on_click(event.column, event.row);
+            }
+            // Reuses the exact key-handling path the equivalent arrow key
+            // already goes through, so wheel behavior — content scroll on
+            // Present, selection movement on the map, a no-op everywhere
+            // else — never drifts from what ↑/↓ already do.
+            MouseEventKind::ScrollUp => self.on_wheel_key(KeyCode::Up),
+            MouseEventKind::ScrollDown => self.on_wheel_key(KeyCode::Down),
+            _ => {}
+        }
+    }
+
+    fn on_wheel_key(&mut self, code: KeyCode) {
+        match &self.screen {
+            Screen::Present => self.on_present_key(code),
+            Screen::Map { selected } => {
+                let selected = *selected;
+                self.on_map_key(code, selected);
+            }
+            _ => {}
+        }
+    }
+
+    /// A mouse click. Only a left-button press is a "click" — release/drag
+    /// events never reach here. Hit-testing recomputes the exact same pure
+    /// layout `render::draw` used for the last frame
     /// (`render::map_row_hit`/`branch_option_hit`), so a click can never
     /// land somewhere the screen doesn't actually show a target: clicking
     /// blank space, body text, or (since the branch menu itself is not
     /// drawn while reveal is pending) a branch option that hasn't appeared
     /// yet, is always a safe no-op.
-    fn on_mouse(&mut self, event: MouseEvent) {
-        if event.kind != MouseEventKind::Down(MouseButton::Left) {
-            return;
-        }
-        let (col, row) = (event.column, event.row);
+    fn on_click(&mut self, col: u16, row: u16) {
         let (w, h) = self.viewport;
         let frame_area = Rect::new(0, 0, w, h);
         match &self.screen {
@@ -632,13 +715,44 @@ impl App {
             self.set_flash("This slide has no editable text", FlashKind::Info);
             return;
         }
+        self.edit_discard_confirm_at = None;
         self.screen = Screen::Edit { fields, focused: 0 };
+    }
+
+    /// Esc in the quick-edit modal (P2-5). A modal with no unsaved changes
+    /// closes immediately, as before. Otherwise the first Esc only warns —
+    /// the conflict path (FR-013) already preserves a presenter's edit on
+    /// error, so a reflexive Esc shouldn't be the one path that discards a
+    /// paragraph with no confirmation. A second Esc within the flash's
+    /// lifetime confirms the discard.
+    fn on_edit_esc(&mut self) {
+        let Screen::Edit { fields, .. } = &self.screen else {
+            return;
+        };
+        if !fields.iter().any(EditableField::dirty) {
+            self.screen = Screen::Present;
+            return;
+        }
+        let now = Instant::now();
+        let confirming = self
+            .edit_discard_confirm_at
+            .is_some_and(|at| now.duration_since(at) < FLASH_DURATION);
+        if confirming {
+            self.edit_discard_confirm_at = None;
+            self.screen = Screen::Present;
+        } else {
+            self.edit_discard_confirm_at = Some(now);
+            self.set_flash(
+                "Unsaved changes — Esc again to discard, Ctrl+S to save",
+                FlashKind::Info,
+            );
+        }
     }
 
     /// Keys while the quick-edit modal is open.
     fn on_edit_key(&mut self, key: KeyEvent) {
         if key.code == KeyCode::Esc {
-            self.screen = Screen::Present;
+            self.on_edit_esc();
             return;
         }
         if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('s') {
@@ -748,7 +862,20 @@ impl App {
             }
             KeyCode::Up => self.scroll = self.scroll.saturating_sub(1),
             KeyCode::Down => self.scroll = (self.scroll + 1).min(self.max_scroll()),
-            _ => {}
+            // P2-3: an unrecognized key (Esc most of all — the panic key a
+            // lost presenter reaches for) used to be silent. Every blocked
+            // action gets feedback per the constitution; rate-limited so
+            // mashing an unknown key doesn't just keep re-triggering it.
+            _ => {
+                let now = Instant::now();
+                let on_cooldown = self
+                    .unknown_key_flash_at
+                    .is_some_and(|at| now.duration_since(at) < UNKNOWN_KEY_FLASH_COOLDOWN);
+                if !on_cooldown {
+                    self.unknown_key_flash_at = Some(now);
+                    self.set_flash("Press ? to see the keys", FlashKind::Info);
+                }
+            }
         }
     }
 

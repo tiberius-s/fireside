@@ -24,6 +24,17 @@ fn bare_invocation_teaches_the_three_verbs() {
 }
 
 #[test]
+fn bare_invocation_mentions_art_image_and_restart() {
+    // P2-7: art text was taught but art image wasn't, and --restart is
+    // documented nowhere in the no-args teaching text.
+    fireside()
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("art image"))
+        .stdout(predicate::str::contains("--restart"));
+}
+
+#[test]
 fn validate_hello_exits_zero() {
     fireside()
         .arg("validate")

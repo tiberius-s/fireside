@@ -48,9 +48,11 @@ of the layout-oriented guidance in this appendix.
 
 For `ascii-art` (added in `0.1.3`), `art` is pre-rendered, plain-text
 content — engines render it as-is, centered and sized to its own widest
-line, the same treatment the reference renderer already gives a
-language-less `code` block. No engine generates or transforms the art at
-render time; text-to-banner and image-to-ASCII conversion are authoring-time
+line, with no frame or label (it's art, not a code listing — the reference
+renderer used to box it like a language-less `code` block, but dropped that
+in favor of showing the art on its own, with `alt` — when present — as a
+caption beneath it). No engine generates or transforms the art at render
+time; text-to-banner and image-to-ASCII conversion are authoring-time
 concerns (see the reference implementation's `fireside art text`/`fireside
 art image` commands). Unlike every other core block, `ascii-art` is not
 safely ignorable by an engine older than `0.1.3` — see

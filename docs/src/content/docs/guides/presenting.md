@@ -40,7 +40,7 @@ At a branch point the footer reads `↑↓ choose · Enter go`:
 | `1`–`9`                | Choose an option directly by its number      |
 | a letter matching an option's declared key | Choose that option directly |
 | click an option (mouse) | Choose it                                  |
-| `Space`/`→`/`n`/`PageDown` | Advance without choosing, if the branch has a fallback |
+| `Space`/`→`/`n`/`PageDown` | Flashes "This slide asks for a choice" — a branch point never has a fallback, so one of the choices above must be made |
 | `←`/`Backspace`/`p`/`PageUp` | Back to the previous slide             |
 
 ## The map

@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+# CH-2: automated real-terminal smoke test, driving the release binary
+# through a detached tmux session — the exact loop the 2026-07-19 UX audit
+# ran by hand. Project rule (see memory): TestBackend snapshot tests can't
+# catch reload/ordering/timing bugs the way a real terminal can, so this is
+# the check that would have caught them.
+#
+# Covers, per CH-2's four scenarios: a demo walk, quick-edit save (P2-6:
+# the "Saved" flash must survive the deck's own self-triggered reload), an
+# externally-broken save refusing to reload, and resume-on-relaunch.
+#
+# Usage: scripts/smoke.sh
+
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+if ! command -v tmux >/dev/null 2>&1; then
+  echo "error: tmux is not installed (apt-get install tmux / brew install tmux)" >&2
+  exit 1
+fi
+
+echo "==> cargo build --release -p fireside-cli"
+cargo build --release -p fireside-cli
+BIN="$(pwd)/target/release/fireside"
+
+WORKDIR="$(mktemp -d)"
+export XDG_STATE_HOME="$WORKDIR/state"
+mkdir -p "$XDG_STATE_HOME"
+SESSION="fireside-smoke-$$"
+
+pass=0
+fail=0
+
+cleanup() {
+  tmux kill-session -t "$SESSION" >/dev/null 2>&1 || true
+  rm -rf "$WORKDIR"
+}
+trap cleanup EXIT
+
+# Ctrl+S is XOFF under a terminal's default flow-control settings, which
+# would freeze the pane instead of reaching the app — disable it before
+# fireside grabs raw mode.
+start() {
+  tmux kill-session -t "$SESSION" >/dev/null 2>&1 || true
+  tmux new-session -d -s "$SESSION" -x 100 -y 30 "stty -ixon 2>/dev/null; exec $1"
+  sleep 0.5
+}
+
+keys() {
+  tmux send-keys -t "$SESSION" "$@"
+}
+
+pane() {
+  tmux capture-pane -t "$SESSION" -p
+}
+
+wait_for() {
+  local needle="$1" tries=25
+  for _ in $(seq 1 "$tries"); do
+    if pane | grep -qF "$needle"; then
+      return 0
+    fi
+    sleep 0.2
+  done
+  return 1
+}
+
+assert_contains() {
+  local label="$1" needle="$2"
+  if wait_for "$needle"; then
+    printf '  \033[1;32m\xe2\x9c\x93\033[0m %s\n' "$label"
+    pass=$((pass + 1))
+  else
+    printf '  \033[1;31m\xe2\x9c\x97\033[0m %s \xe2\x80\x94 expected to see: %s\n' "$label" "$needle"
+    echo "    --- pane contents ---"
+    pane | sed 's/^/    | /'
+    fail=$((fail + 1))
+  fi
+}
+
+# ─── Scenario 1: demo walk ──────────────────────────────────────────────
+echo
+echo "=== demo walk ==="
+start "$BIN demo"
+assert_contains "demo shows the title slide" "Branching presentations, in your terminal."
+keys " "
+assert_contains "space advances to the next slide" "Everything is a block"
+keys "q"
+sleep 0.4
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m q quits and the terminal is restored\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m q did not end the session\n'
+  fail=$((fail + 1))
+fi
+
+# ─── Scenario 2: quick-edit save, and P2-6's Saved flash ───────────────
+echo
+echo "=== quick-edit save (P2-6: Saved survives the self-reload) ==="
+(cd "$WORKDIR" && "$BIN" new "Smoke Talk" >/dev/null)
+DECK="$WORKDIR/smoke-talk.fireside.json"
+start "$BIN $DECK"
+assert_contains "deck presents" "Smoke Talk"
+keys "e"
+assert_contains "quick-edit modal opens" "Quick edit"
+keys "X"
+keys "C-s"
+assert_contains "save confirms" "Saved"
+sleep 0.6
+assert_contains "Saved is still shown after the deck's own reload" "Saved"
+
+# ─── Scenario 3: broken save refuses to reload ──────────────────────────
+echo
+echo "=== broken external save is refused, not swallowed ==="
+assert_contains "edited title is on screen" "XSmoke Talk"
+printf 'not valid json' >"$DECK"
+assert_contains "the reload guard refuses the broken file" "Reload failed"
+assert_contains "the old, working slide is still on screen" "XSmoke Talk"
+keys "q"
+sleep 0.3
+
+# ─── Scenario 4: resume-on-relaunch (P1-1) ──────────────────────────────
+echo
+echo "=== resume: quit mid-deck, relaunch, land on the same slide ==="
+(cd "$WORKDIR" && "$BIN" new "Resume Talk" >/dev/null)
+RDECK="$WORKDIR/resume-talk.fireside.json"
+start "$BIN $RDECK"
+assert_contains "deck presents" "Resume Talk"
+keys " "
+assert_contains "advanced to the branch point" "Decks can branch"
+keys "q"
+sleep 0.4
+start "$BIN $RDECK"
+assert_contains "relaunch resumes where it left off" "Resumed where you left off"
+assert_contains "still on the branch point" "Decks can branch"
+keys "q"
+sleep 0.3
+
+echo
+echo "----------------------------------------"
+if [[ "$fail" -eq 0 ]]; then
+  printf '\033[1;32mAll %d smoke checks passed.\033[0m\n' "$pass"
+  exit 0
+else
+  printf '\033[1;31m%d passed, %d failed.\033[0m\n' "$pass" "$fail"
+  exit 1
+fi

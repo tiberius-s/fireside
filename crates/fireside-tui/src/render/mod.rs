@@ -118,7 +118,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
         Screen::Help => overlays::draw_help(frame, area, &tokens),
         Screen::Map { selected } => map::draw(frame, area, app, *selected, &tokens),
         Screen::Edit { fields, focused } => {
-            overlays::draw_edit(frame, area, fields, *focused, &tokens);
+            overlays::draw_edit(frame, area, fields, *focused, app.sink_available(), &tokens);
         }
     }
 

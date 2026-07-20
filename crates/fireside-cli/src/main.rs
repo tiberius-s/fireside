@@ -210,11 +210,13 @@ fn main() -> Result<()> {
             println!("fireside — present branching decks in the terminal\n");
             println!("  fireside demo              see what a deck can do");
             println!("  fireside <file>            present a deck");
+            println!("  fireside <file> --restart  present from the start, ignoring resume");
             println!("  fireside validate <file>   check a deck for problems");
             println!("  fireside new               create a deck (asks a few questions)");
             println!("  fireside new <name>        create a starter deck instantly");
             println!("  fireside import <file.md>  compile a Markdown talk into a deck");
             println!("  fireside art text <phrase> generate a text banner to paste in");
+            println!("  fireside art image <file>  convert a picture to ASCII art");
             println!("\nTry: fireside demo");
             Ok(())
         }

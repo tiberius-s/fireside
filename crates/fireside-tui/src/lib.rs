@@ -105,12 +105,13 @@ pub fn present_watching(
     graph: Graph,
     source: ReloadSource<'_>,
 ) -> Result<PresentSummary, TuiError> {
-    present_authoring(
+    present_impl(
         graph,
         source,
         &mut |_| Err(WriteBackError::Unavailable),
         None,
         &mut |_| {},
+        false,
     )
 }
 
@@ -137,6 +138,18 @@ pub fn present_authoring(
     initial_node: Option<&str>,
     on_position_changed: PositionSink<'_>,
 ) -> Result<PresentSummary, TuiError> {
+    present_impl(graph, source, sink, initial_node, on_position_changed, true)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn present_impl(
+    graph: Graph,
+    source: ReloadSource<'_>,
+    sink: WriteBackSink<'_>,
+    initial_node: Option<&str>,
+    on_position_changed: PositionSink<'_>,
+    sink_available: bool,
+) -> Result<PresentSummary, TuiError> {
     if !io::stdout().is_tty() || !io::stdin().is_tty() {
         return Err(TuiError::NotATty);
     }
@@ -144,6 +157,9 @@ pub fn present_authoring(
     let mut session = Session::new(graph)?;
     let resumed = initial_node.is_some_and(|id| matches!(session.goto(id), Outcome::Moved));
     let mut app = App::new(session);
+    if !sink_available {
+        app = app.without_sink();
+    }
     if resumed {
         app.set_flash(
             "Resumed where you left off — --restart starts over",

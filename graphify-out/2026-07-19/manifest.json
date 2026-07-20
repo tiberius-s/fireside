@@ -30,13 +30,13 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1784505025.162137,
-    "ast_hash": "c0aa87a3a3a024e121983f295630f89c",
+    "mtime": 1784507774.719814,
+    "ast_hash": "931e187d443843f81c119d7f3896b7ca",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1784504444.6497903,
-    "ast_hash": "44264af06f3c41086c992ff0319ef62c",
+    "mtime": 1784507785.0812705,
+    "ast_hash": "c4432ea09aef58a89ea41c1014aafe84",
     "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/app.rs": {
-    "mtime": 1784425573.907885,
-    "ast_hash": "ae4e55f81531946d8afdaf78221cfc6d",
+    "mtime": 1784507849.456355,
+    "ast_hash": "3f3ac4f66be873bf92bfb48b1304d11f",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/error.rs": {
@@ -85,18 +85,18 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/lib.rs": {
-    "mtime": 1784502179.8197017,
-    "ast_hash": "b4a72f0e9b4a88e62eca77b6b75fb5c5",
+    "mtime": 1784507502.0163598,
+    "ast_hash": "b9aa31d35fb18278a2e8c768f3150678",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
-    "mtime": 1784503867.6592164,
-    "ast_hash": "812b86507d718bafdf1f3c0271f9cfd5",
+    "mtime": 1784507176.9589534,
+    "ast_hash": "206f52990e68a72f8e3939ac9ecc4138",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/mod.rs": {
-    "mtime": 1784505146.0186844,
-    "ast_hash": "f07a3715cd03942fb0aeb228fbd756d9",
+    "mtime": 1784507508.2232122,
+    "ast_hash": "d546bfd579480be7ed09771c7043e1fc",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/theme.rs": {
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   ".github/workflows/rust.yml": {
-    "mtime": 1784390796.9665775,
-    "ast_hash": "3b783741ceb820ab983591823192c40e",
+    "mtime": 1784508200.846969,
+    "ast_hash": "3b7351f1db28961b306741529b2d4007",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
@@ -335,8 +335,8 @@
     "semantic_hash": "4a36166c1136e2710f6b17eac60610f7"
   },
   "docs/src/content/docs/spec/appendix-content-blocks.md": {
-    "mtime": 1784471660.7749372,
-    "ast_hash": "519bcc03e49bddbd0dd20482ab7d64a2",
+    "mtime": 1784508432.4298499,
+    "ast_hash": "7deb8332e0785be1f69f036c81d6d92f",
     "semantic_hash": ""
   },
   "docs/src/content/docs/spec/appendix-engine-guidelines.md": {
@@ -1155,8 +1155,8 @@
     "semantic_hash": ""
   },
   "scripts/verify.sh": {
-    "mtime": 1784319803.8211143,
-    "ast_hash": "e89161347085cf4083971e910a8399c9",
+    "mtime": 1784508194.5473933,
+    "ast_hash": "0b64c530f0ecc57edf988eef4b024287",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-17-research-and-improvement-plan.md": {
@@ -1170,8 +1170,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/presenting.md": {
-    "mtime": 1784394630.8325737,
-    "ast_hash": "99e8086bf01b496869259cd211293a66",
+    "mtime": 1784507799.2969527,
+    "ast_hash": "6a2ca69e4934f6a72802f9e01fa08413",
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/authoring-markdown.md": {
@@ -1200,8 +1200,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/overlays.rs": {
-    "mtime": 1784423616.0696738,
-    "ast_hash": "1f7aee362f053170588cee3742856e43",
+    "mtime": 1784507522.0622149,
+    "ast_hash": "3fbbb8b06f59e6a9bd6399457f6325f9",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/hits.rs": {
@@ -1210,8 +1210,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/tests.rs": {
-    "mtime": 1784425646.511819,
-    "ast_hash": "d9b825e250c067de339d06e875c82cea",
+    "mtime": 1784508244.3714218,
+    "ast_hash": "720c1ba7e330ba60adbf009530400856",
     "semantic_hash": ""
   },
   ".github/demo-watch-toggle.sh": {
@@ -1520,13 +1520,18 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-19-fable-ux-audit.md": {
-    "mtime": 1784505417.6755388,
-    "ast_hash": "416467827f95400964558615436de9e7",
+    "mtime": 1784505428.8970776,
+    "ast_hash": "34989f9e1d5d97fe33c367abca07a8fb",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-19-wysiwyg-editor-plan.md": {
     "mtime": 1784493244.6719706,
     "ast_hash": "33e4a5430b13e6223309207a0e5bd688",
+    "semantic_hash": ""
+  },
+  "scripts/smoke.sh": {
+    "mtime": 1784508161.0996826,
+    "ast_hash": "a22c803f25de9099cb983f2d60d92835",
     "semantic_hash": ""
   }
 }

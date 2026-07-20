@@ -84,18 +84,56 @@ status, date._
       section, linked to the `reveal` field docs. The real fix — a
       `<!-- reveal -->` import marker — stays Fresh idea #2, unbuilt,
       pending a user scope decision per the plan)
-- [ ] P2-1 ascii-art frame label / alt caption
-- [ ] P2-2 help overlay bottom-row clipping
-- [ ] P2-3 unknown-key feedback flash
-- [ ] P2-4 demo quick-edit save affordance
-- [ ] P2-5 quick-edit Esc double-tap guard
-- [ ] P2-6 "Saved" flash survives self-reload
-- [ ] P2-7 bare-invocation help omissions
-- [ ] P2-8 presenting.md fallback row
-- [ ] P2-9 mouse wheel scroll
-- [ ] CH-1 dead workspace deps + image version
-- [ ] CH-2 `scripts/smoke.sh` + CI wiring
-- [ ] CH-3 error-path e2e tests (lands with Wave 1/2 fixes)
+- [x] P2-1 ascii-art frame label / alt caption — 2026-07-19 (`ascii_art()` in
+      `blocks.rs` drops the `─ ascii-art ─` frame/label entirely; `alt`, when
+      present, renders as a muted caption beneath the art, mirroring
+      `image()`'s caption treatment; spec doc
+      `appendix-content-blocks.md` updated to match)
+- [x] P2-2 help overlay bottom-row clipping — 2026-07-19 (`q quit  ·  any key
+      closes` pinned as a fixed footer row via a `Layout::vertical` split in
+      `draw_help`; when the key list doesn't fit, rows drop from the middle
+      first, keeping the first/last taught keys and the footer visible down
+      to 44×14; regression test added at that size)
+- [x] P2-3 unknown-key feedback flash — 2026-07-19 (`on_flow_key`'s catch-all
+      flashes `Press ? to see the keys`, rate-limited to once per 2s via
+      `unknown_key_flash_at`)
+- [x] P2-4 demo quick-edit save affordance — 2026-07-19 (`App::without_sink`/
+      `sink_available()`; sink-less presentations still open quick-edit but
+      show a `Demo deck — edits preview but can't be saved` banner up front
+      instead of failing silently after typing)
+- [x] P2-5 quick-edit Esc double-tap guard — 2026-07-19 (`EditableField`
+      tracks its `initial` value; a dirty modal's first Esc flashes `Unsaved
+      changes — Esc again to discard, Ctrl+S to save`, second Esc within the
+      flash window discards; untouched modals still close on one Esc)
+- [x] P2-6 "Saved" flash survives self-reload — 2026-07-19
+      (`App::awaiting_self_reload`, set on a successful save and consumed by
+      the very next `on_reload`, keeps the flash at "Saved" instead of
+      letting the deck's own self-triggered reload overwrite it with
+      "Reloaded"; tmux smoke confirmed live)
+- [x] P2-7 bare-invocation help omissions — 2026-07-19 (`art image` and
+      `present --restart` added to the no-args teaching text)
+- [x] P2-8 presenting.md fallback row — 2026-07-19 (branch-key table row
+      reworded: Space/→ at a branch always flashes the choice prompt, since
+      `next-branch-point-conflict` makes a fallback impossible)
+- [x] P2-9 mouse wheel scroll — 2026-07-19 (`ScrollUp`/`ScrollDown` route
+      through the same key-handling path the equivalent arrow key already
+      uses — content scroll on Present, selection movement on the map — so
+      wheel behavior can't drift from ↑/↓)
+- [x] CH-1 dead workspace deps + image version — 2026-07-19 (`tracing`,
+      `tracing-subscriber`, `textwrap`, `plist`, `font-kit` removed from
+      `[workspace.dependencies]`; workspace `image` set to `"0.24"` and
+      `fireside-cli` now consumes it via `workspace = true` — one source of
+      truth, `cargo tree` resolution unchanged at 0.24.9)
+- [x] CH-2 `scripts/smoke.sh` + CI wiring — 2026-07-19 (new tmux smoke script
+      covering demo walk, quick-edit save + the P2-6 self-reload check,
+      broken external save, and resume-on-relaunch; wired into
+      `scripts/verify.sh` and a new `Smoke (tmux)` job in `rust.yml`; run
+      locally, all 14 checks pass)
+- [x] CH-3 error-path e2e tests (lands with Wave 1/2 fixes) — already landed
+      with P0-2/P0-3/P1-2 (`present_markdown_file_suggests_import_first`,
+      `present_without_a_tty_gives_a_plain_message`,
+      `shorthand_present_accepts_restart_flag` in `cli_e2e.rs`); confirmed
+      2026-07-19, no further work needed
 - [ ] W4-DS dual-screen presenter view — **added to scope 2026-07-19 by user
       decision** (promoted from addendum A-2); see "Wave 4 — scoped feature"
       below. Spec-kit feature candidate `012-presenter-view`.

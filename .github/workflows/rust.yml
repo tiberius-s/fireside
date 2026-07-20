@@ -74,6 +74,27 @@ jobs:
       - name: Tests (nextest)
         run: cargo nextest run --workspace
 
+  smoke:
+    name: Smoke (tmux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: smoke
+
+      - name: Install tmux
+        run: sudo apt-get update && sudo apt-get install -y tmux
+
+      - name: Run tmux smoke walkthrough
+        run: scripts/smoke.sh
+
   msrv:
     name: MSRV (1.88)
     runs-on: ubuntu-latest

@@ -264,29 +264,27 @@ fn code(
 }
 
 /// Pre-rendered ASCII/text art (spec 009): centered and sized to its own
-/// widest line, the same box treatment `code()` gives a language-less
-/// code block, but with no syntax highlighting, line numbers, or
-/// highlighted-line concept — this kind has none of those fields. `alt`
-/// is accessibility metadata, not on-screen text (see
-/// `contracts/ascii-art-block.md`), so it is not rendered.
-fn ascii_art(art: &str, _alt: Option<&str>, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+/// widest line, with no syntax highlighting, line numbers, or
+/// highlighted-line concept — this kind has none of those fields.
+/// P2-1: rendered unframed and unlabeled — it's art, not a code listing,
+/// and centering already sets it apart from body text — so the audience
+/// never sees the implementation-jargon `─ ascii-art ─` label. `alt` is
+/// accessibility metadata (`contracts/ascii-art-block.md`); when present
+/// it is shown as a muted caption beneath the art, the same treatment
+/// `image()` gives its `caption` field, rather than being discarded.
+fn ascii_art(art: &str, alt: Option<&str>, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     let full_width = width as usize;
-    let prefix = 2;
-    let mut top = "─ ascii-art ─".to_owned();
-    let box_width = centered_box_width(top.width(), art.lines(), prefix, full_width);
+    let box_width = art
+        .lines()
+        .map(UnicodeWidthStr::width)
+        .max()
+        .unwrap_or(0)
+        .min(full_width);
 
-    let fill = box_width.saturating_sub(top.width());
-    top.push_str(&"─".repeat(fill));
-
-    let mut lines = vec![Line::styled(top, tokens.border)];
-    let avail = box_width.saturating_sub(prefix);
-    for raw in art.lines() {
-        lines.push(Line::from(vec![
-            Span::styled("  ".to_owned(), tokens.muted),
-            Span::styled(clip(raw, avail), tokens.code),
-        ]));
-    }
-    lines.push(Line::styled("─".repeat(box_width), tokens.border));
+    let mut lines: Vec<Line<'static>> = art
+        .lines()
+        .map(|raw| Line::from(Span::styled(clip(raw, box_width), tokens.code)))
+        .collect();
 
     let pad = full_width.saturating_sub(box_width) / 2;
     if pad > 0 {
@@ -294,6 +292,15 @@ fn ascii_art(art: &str, _alt: Option<&str>, width: u16, tokens: &Tokens) -> Vec<
             let mut spans = vec![Span::raw(" ".repeat(pad))];
             spans.extend(std::mem::take(&mut line.spans));
             line.spans = spans;
+        }
+    }
+
+    if let Some(alt) = alt {
+        for row in markdown::wrap_styled(alt, width, tokens.muted, tokens) {
+            let cap_pad = full_width.saturating_sub(row.width()) / 2;
+            let mut spans = vec![Span::raw(" ".repeat(cap_pad))];
+            spans.extend(row.spans);
+            lines.push(Line::from(spans));
         }
     }
     lines
@@ -1033,6 +1040,40 @@ mod tests {
         );
         let last = lines.last().expect("bottom rule present");
         assert!(!last.is_empty(), "bottom rule is not empty: {lines:?}");
+    }
+
+    #[test]
+    fn ascii_art_block_renders_unframed_with_alt_as_caption() {
+        let block = ContentBlock::AsciiArt {
+            reveal: None,
+            art: " /\\_/\\ \n( o.o )\n > ^ < ".into(),
+            alt: Some("A sleepy cat".into()),
+        };
+        let lines = flat(&render(&block, 40, &Tokens::default()));
+        assert!(
+            !lines.iter().any(|l| l.contains("ascii-art")),
+            "no implementation-jargon label: {lines:?}"
+        );
+        assert!(
+            !lines.iter().any(|l| l.contains('─')),
+            "no frame rules: {lines:?}"
+        );
+        assert!(lines.iter().any(|l| l.contains("o.o")), "{lines:?}");
+        assert!(
+            lines.last().unwrap().contains("A sleepy cat"),
+            "alt shown as a caption beneath the art: {lines:?}"
+        );
+    }
+
+    #[test]
+    fn ascii_art_block_without_alt_has_no_caption() {
+        let block = ContentBlock::AsciiArt {
+            reveal: None,
+            art: " /\\_/\\ \n( o.o )\n > ^ < ".into(),
+            alt: None,
+        };
+        let lines = flat(&render(&block, 40, &Tokens::default()));
+        assert_eq!(lines.len(), 3, "art lines only, no caption row: {lines:?}");
     }
 
     #[test]

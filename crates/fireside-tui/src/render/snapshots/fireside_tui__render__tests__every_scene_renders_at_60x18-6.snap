@@ -1,12 +1,12 @@
 ---
 source: crates/fireside-tui/src/render/tests.rs
-assertion_line: 267
 expression: "screen(&app, 60, 18)"
 ---
  Hello, Fireside                   layout-demo  ·  4/6 seen 
-──●╭ Keys ──────────────────────────────────────────────╮───
-   │ Space / → / Enter next slide                       │   
-╭──│ ← / Backspace     previous slide                   │──╮
+──●───●───●───◉───○─■───────────────────────────────────────
+   ╭ Keys ──────────────────────────────────────────────╮   
+╭──│ Space / → / Enter next slide                       │──╮
+│  │ ← / Backspace     previous slide                   │  │
 │  │ ↑ / ↓             pick a choice · scroll           │  │
 │  │ 1–9 or a letter   take a choice directly           │  │
 │  │ m                 map — see and jump anywhere      │  │
@@ -15,9 +15,8 @@ expression: "screen(&app, 60, 18)"
 │  │ s                 speaker notes                    │  │
 │  │ e                 quick-edit this slide's text     │  │
 │  │ t                 elapsed timer                    │  │
-│  │ q                 quit                             │  │
 │  │                                                    │  │
-│  │ press any key to close                             │  │
+│  │ q quit  ·  any key closes                          │  │
 ╰──╰────────────────────────────────────────────────────╯──╯
                                                             
  Space next  ·  ← back  ·  m map  ·  ? help  ·  q quit

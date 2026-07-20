@@ -3,7 +3,8 @@
 # in one shot, so a local pass here means CI passes too.
 #
 # Mirrors, job for job:
-#   Rust (rust.yml)      — fmt, clippy, rustdoc, tests, MSRV 1.88 check
+#   Rust (rust.yml)      — fmt, clippy, rustdoc, tests, tmux smoke, MSRV
+#     1.88 check
 #   Protocol (models.yml)  — TypeSpec rebuild must produce zero diff
 #     (this workflow's `name:` is "Protocol"; its filename is misleading —
 #     check GitHub's Actions tab by name, not by guessing from filenames)
@@ -50,6 +51,22 @@ else
   cargo test --workspace
 fi
 ok "tests pass"
+
+# ─── Rust: tmux smoke (CH-2) ───────────────────────────────────────────────
+# TestBackend tests can't catch reload/ordering/timing bugs a real terminal
+# hits (project rule, learned the hard way) — this drives the release
+# binary through demo/live-edit/broken-save/resume in a real tmux pane.
+if [[ "$SKIP_SLOW" == false ]]; then
+  step "scripts/smoke.sh (real-terminal tmux walkthrough)"
+  if command -v tmux >/dev/null 2>&1; then
+    scripts/smoke.sh
+    ok "smoke checks pass"
+  else
+    warn "tmux not installed locally (CI runs this) — install with: brew install tmux / apt-get install tmux"
+  fi
+else
+  warn "skipping tmux smoke (--skip-slow)"
+fi
 
 # ─── Rust: MSRV job ────────────────────────────────────────────────────────
 if [[ "$SKIP_SLOW" == false ]]; then

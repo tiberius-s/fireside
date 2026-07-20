@@ -120,6 +120,31 @@ fn space_at_branch_flashes_guidance_instead_of_moving() {
 }
 
 #[test]
+fn unknown_key_on_present_flashes_a_hint() {
+    // P2-3: Esc (the panic key a lost presenter reaches for) used to be
+    // silent on an ordinary slide. Every blocked action gives feedback.
+    let mut app = app();
+    press(&mut app, KeyCode::Esc);
+    let s = screen(&app, 80, 24);
+    assert!(s.contains("Press ? to see the keys"), "got: {s}");
+}
+
+#[test]
+fn unknown_key_flash_does_not_fire_a_second_time_immediately() {
+    // Rate-limited: a second unknown key right after the first must not
+    // re-trigger — mashing an unrecognized key shouldn't just keep
+    // refreshing the same flash forever.
+    let mut app = app();
+    press(&mut app, KeyCode::Esc);
+    assert!(app.flash().is_some());
+    press(&mut app, KeyCode::Tab);
+    // Still showing the same hint, not a fresh unrelated one — this also
+    // guards against a panic from the cooldown bookkeeping.
+    let s = screen(&app, 80, 24);
+    assert!(s.contains("Press ? to see the keys"), "got: {s}");
+}
+
+#[test]
 fn arrows_and_enter_choose_an_option() {
     let mut app = app();
     press(&mut app, KeyCode::Char(' '));
@@ -285,6 +310,40 @@ fn reload_swaps_the_deck_and_stays_on_the_current_slide() {
 }
 
 #[test]
+fn saved_flash_survives_the_self_triggered_reload() {
+    // P2-6: the watcher's write-back deliberately leaves its fingerprint
+    // stale so it re-reads its own write on the very next poll — that
+    // reload used to stomp the "Saved" flash with "Reloaded" within a
+    // quarter second. The very next Reload after a successful save must
+    // keep saying "Saved".
+    let mut app = app();
+    press(&mut app, KeyCode::Char(' ')); // -> features
+    press(&mut app, KeyCode::Char('e'));
+    press(&mut app, KeyCode::Char('X'));
+    press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+    app.take_pending_save().expect("save produced a graph");
+    app.update(Msg::SaveResult(Ok(())));
+    assert!(screen(&app, 80, 24).contains("Saved"), "save confirmed");
+
+    let edited = HELLO.replace("Core Features", "XCore Features");
+    let graph = Graph::from_json(&edited).expect("saved deck parses");
+    app.update(Msg::Reload(Ok(graph)));
+    let s = screen(&app, 80, 24);
+    assert!(
+        s.contains("Saved"),
+        "self-reload keeps the Saved flash: {s}"
+    );
+    assert!(!s.contains("Reloaded"), "not overwritten by Reloaded: {s}");
+
+    // A later, genuinely external reload goes back to saying "Reloaded".
+    let edited_again = HELLO.replace("Core Features", "Yet More Features");
+    let graph_again = Graph::from_json(&edited_again).expect("parses");
+    app.update(Msg::Reload(Ok(graph_again)));
+    let s = screen(&app, 80, 24);
+    assert!(s.contains("Reloaded"), "external reload says Reloaded: {s}");
+}
+
+#[test]
 fn reload_with_a_broken_save_keeps_the_working_deck() {
     let mut app = app();
     press(&mut app, KeyCode::Char(' '));
@@ -417,6 +476,66 @@ fn click_at(app: &mut App, w: u16, h: u16, col: u16, row: u16) {
     })));
 }
 
+/// Send a mouse wheel event, sized against `(w, h)` the same way
+/// `click_at` is.
+fn scroll_at(app: &mut App, w: u16, h: u16, down: bool) {
+    app.update(Msg::Terminal(Event::Resize(w, h)));
+    let kind = if down {
+        crossterm::event::MouseEventKind::ScrollDown
+    } else {
+        crossterm::event::MouseEventKind::ScrollUp
+    };
+    app.update(Msg::Terminal(Event::Mouse(crossterm::event::MouseEvent {
+        kind,
+        column: 0,
+        row: 0,
+        modifiers: KeyModifiers::NONE,
+    })));
+}
+
+#[test]
+fn mouse_wheel_scrolls_present_content_like_arrow_keys() {
+    // P2-9: the wheel is additive over the keyboard, same posture as
+    // click support — scrolling down/up on a long slide moves `scroll`
+    // exactly as ↓/↑ already do. A small viewport on the code-demo node
+    // guarantees there's something to scroll, matching
+    // `resize_event_updates_scroll_geometry`'s setup.
+    let mut app = app();
+    press(&mut app, KeyCode::Char(' '));
+    press(&mut app, KeyCode::Char(' '));
+    press(&mut app, KeyCode::Char('a')); // code-demo
+    let (w, h) = (60, 6);
+    assert!(
+        max_scroll(&app, w, h) > 0,
+        "fixture needs a viewport this small to have anything to scroll"
+    );
+
+    scroll_at(&mut app, w, h, true);
+    assert_eq!(app.scroll(), 1, "wheel-down scrolls exactly like ↓");
+
+    scroll_at(&mut app, w, h, false);
+    assert_eq!(app.scroll(), 0, "wheel-up scrolls back up like ↑");
+}
+
+#[test]
+fn mouse_wheel_moves_the_map_selection() {
+    let mut app = app();
+    press(&mut app, KeyCode::Char('m'));
+    assert_eq!(*app.screen(), Screen::Map { selected: 0 });
+    scroll_at(&mut app, 80, 24, true);
+    assert_eq!(
+        *app.screen(),
+        Screen::Map { selected: 1 },
+        "wheel-down moves the map selection like ↓/j"
+    );
+    scroll_at(&mut app, 80, 24, false);
+    assert_eq!(
+        *app.screen(),
+        Screen::Map { selected: 0 },
+        "wheel-up moves it back like ↑/k"
+    );
+}
+
 #[test]
 fn clicking_a_map_row_navigates_to_that_slide() {
     let mut app = app();
@@ -534,6 +653,22 @@ fn help_overlay_opens_and_any_key_closes() {
         app.session().current().id,
         "intro",
         "closing help moved nothing"
+    );
+}
+
+#[test]
+fn help_overlay_keeps_quit_and_close_hint_at_44x14() {
+    // P2-2: below the 80x24 documented minimum, the overlay used to clip
+    // its bottom rows — "q quit" and "press any key to close" — which is
+    // the worst order to lose them in. They're now a fixed footer row.
+    let mut app = app();
+    press(&mut app, KeyCode::Char('?'));
+    let s = screen(&app, 44, 14);
+    assert!(s.contains(" Keys "), "{s}");
+    assert!(s.contains("q quit"), "quit key survives at 44x14: {s}");
+    assert!(
+        s.contains("any key closes"),
+        "close hint survives at 44x14: {s}"
     );
 }
 
@@ -691,7 +826,9 @@ fn ascii_art_block_renders_centered_and_sized_to_content() {
 
     let art_screen = screen(&art_app, 80, 24);
     let wide_screen = screen(&wide_app, 80, 24);
-    assert!(art_screen.contains("ascii-art"), "{art_screen}");
+    // P2-1: the audience never sees the implementation-jargon label —
+    // ascii-art renders unframed.
+    assert!(!art_screen.contains("ascii-art"), "{art_screen}");
 
     let art_row = art_screen
         .lines()
@@ -964,9 +1101,22 @@ fn quick_edit_cancel_leaves_the_session_and_pending_save_untouched() {
     press(&mut app, KeyCode::Char(' ')); // -> features
     press(&mut app, KeyCode::Char('e'));
     press(&mut app, KeyCode::Char('X'));
+    // P2-5: with unsaved changes, the first Esc only warns.
+    press(&mut app, KeyCode::Esc);
+    assert!(
+        matches!(app.screen(), Screen::Edit { .. }),
+        "first esc warns, does not close"
+    );
+    let s = screen(&app, 80, 24);
+    assert!(s.contains("Unsaved changes"), "warning shown: {s}");
+    // The second Esc confirms the discard.
     press(&mut app, KeyCode::Esc);
 
-    assert_eq!(*app.screen(), Screen::Present, "esc closes the modal");
+    assert_eq!(
+        *app.screen(),
+        Screen::Present,
+        "second esc closes the modal"
+    );
     assert!(
         app.take_pending_save().is_none(),
         "cancel must not produce a save"
@@ -979,6 +1129,21 @@ fn quick_edit_cancel_leaves_the_session_and_pending_save_untouched() {
             text: "Core Features".to_owned(),
         },
         "cancel must not mutate the live session"
+    );
+}
+
+#[test]
+fn quick_edit_esc_with_no_changes_closes_immediately() {
+    // P2-5's confirmation only applies once the presenter has actually
+    // typed something — an untouched modal still closes on one Esc.
+    let mut app = app();
+    press(&mut app, KeyCode::Char(' ')); // -> features
+    press(&mut app, KeyCode::Char('e'));
+    press(&mut app, KeyCode::Esc);
+    assert_eq!(
+        *app.screen(),
+        Screen::Present,
+        "no changes, esc closes at once"
     );
 }
 
