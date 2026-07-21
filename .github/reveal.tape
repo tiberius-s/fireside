@@ -24,7 +24,7 @@ Sleep 1.5s
 # Jump straight to the extras slide via the map instead of walking there.
 Type "m"
 Sleep 800ms
-Down@250ms 5
+Down@250ms 6
 Sleep 500ms
 Enter
 Sleep 1s

@@ -1,16 +1,16 @@
-# Graph Report - fireside  (2026-07-20)
+# Graph Report - fireside  (2026-07-21)
 
 ## Corpus Check
-- 297 files · ~381,075 words
+- 298 files · ~408,185 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3327 nodes · 4759 edges · 285 communities (240 shown, 45 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 55 edges (avg confidence: 0.83)
+- 3347 nodes · 4814 edges · 286 communities (241 shown, 45 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 57 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d75a6e03`
+- Built from commit: `b2bbe5b2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -219,6 +219,7 @@
 - [[_COMMUNITY_Community 203|Community 203]]
 - [[_COMMUNITY_Community 204|Community 204]]
 - [[_COMMUNITY_Community 205|Community 205]]
+- [[_COMMUNITY_Community 206|Community 206]]
 - [[_COMMUNITY_Community 207|Community 207]]
 - [[_COMMUNITY_Community 208|Community 208]]
 - [[_COMMUNITY_Community 209|Community 209]]
@@ -300,9 +301,9 @@
 - [[_COMMUNITY_Community 287|Community 287]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `app()` - 58 edges
-2. `press()` - 54 edges
-3. `screen()` - 48 edges
+1. `app()` - 63 edges
+2. `press()` - 60 edges
+3. `screen()` - 53 edges
 4. `App` - 45 edges
 5. `fireside()` - 43 edges
 6. `import()` - 33 edges
@@ -353,7 +354,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (285 total, 45 thin omitted)
+## Communities (286 total, 45 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -665,7 +666,7 @@ Nodes (48): CoreError, BranchOption, BranchPoint, ContentBlock, Node, NodeDefaul
 
 ### Community 88 - "Render Module"
 Cohesion: 0.07
-Nodes (58): Buffer, App, Frame, Line, Option, Rect, Tokens, Vec (+50 more)
+Nodes (62): Buffer, App, Frame, Line, Option, Rect, Tokens, Vec (+54 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.15
@@ -1031,6 +1032,10 @@ Nodes (22): Option, Path, PathBuf, Self, String, Value, Map, clear_removes_the_r
 Cohesion: 0.40
 Nodes (5): Research Workflow, Step 1 — Identify the Question Type, Step 2 — Look Up Crate Docs via Context7, Step 3 — Read Relevant Fireside Source, Step 4 — Validate Against Constraints
 
+### Community 206 - "Community 206"
+Cohesion: 0.22
+Nodes (8): ADR-016: Quick-edit modal gains list item text editing, Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+
 ### Community 207 - "Community 207"
 Cohesion: 0.33
 Nodes (5): Specification Quality Checklist: Protocol & Workflow Hardening, Content Quality, Feature Readiness, Notes, Requirement Completeness
@@ -1105,7 +1110,7 @@ Nodes (16): App, Frame, Option, Rect, String, Tokens, Vec, draw_footer() (+8 mor
 
 ### Community 228 - "Community 228"
 Cohesion: 0.08
-Nodes (79): App, KeyCode, Option, String, KeyModifiers, app(), app_maybe_resumed(), arrows_and_enter_choose_an_option() (+71 more)
+Nodes (86): App, KeyCode, Option, String, KeyModifiers, app(), app_maybe_resumed(), arrows_and_enter_choose_an_option() (+78 more)
 
 ### Community 229 - "Community 229"
 Cohesion: 0.14
@@ -1312,7 +1317,7 @@ Nodes (36): Option, Path, PathBuf, SessionStatus, Graph, Self, SessionStatus, Se
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1634 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1629 more)
+- **1641 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1636 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **45 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1324,9 +1329,9 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
   _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `Community 228`, `TUI App Core`, `Render Module`, `Community 122`, `Community 287`?**
-  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1636 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1643 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.07982583454281568 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**

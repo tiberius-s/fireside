@@ -55,8 +55,9 @@ pub enum Screen {
         /// Index of the highlighted node.
         selected: usize,
     },
-    /// The quick-edit modal: one editable field per heading/text block on
-    /// the current node (ADR-005 — content-only, no structural edits).
+    /// The quick-edit modal: one editable field per heading/text/list block
+    /// on the current node (ADR-005/ADR-016 — content-only, no structural
+    /// edits).
     Edit {
         /// One entry per editable block found on the current node.
         fields: Vec<EditableField>,
@@ -74,16 +75,23 @@ pub struct BlockPath {
 }
 
 /// Which kind of editable block an [`EditableField`] represents — carried
-/// only for the modal's label, since heading and text edit identically.
+/// only for the modal's label, since heading, text, and list items all edit
+/// identically: one buffer row per line/item, Enter splits a row, Backspace
+/// at column 0 merges it into the previous one. For a list that means
+/// typing a new bullet is just pressing Enter, and deleting one is just
+/// Backspace to the start and merging it away — no separate "add/remove
+/// item" affordance needed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EditableKind {
     /// A heading block at the given level (1-6).
     Heading(u8),
     /// A prose text block.
     Text,
+    /// A list block's items, one per buffer row.
+    List { ordered: bool },
 }
 
-/// One editable heading/text block in the quick-edit modal, plus its
+/// One editable heading/text/list block in the quick-edit modal, plus its
 /// in-progress edit buffer. Discarded entirely when the modal closes.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EditableField {
@@ -204,8 +212,8 @@ impl EditableField {
     }
 }
 
-/// Every heading/text block on `node`, in document order, including those
-/// nested inside `Container` children — the set the quick-edit modal
+/// Every heading/text/list block on `node`, in document order, including
+/// those nested inside `Container` children — the set the quick-edit modal
 /// offers (ADR-005: content-only, current node only).
 pub(crate) fn editable_fields(node: &Node) -> Vec<EditableField> {
     let mut fields = Vec::new();
@@ -235,6 +243,25 @@ fn collect_editable(blocks: &[ContentBlock], path: &mut Vec<usize>, out: &mut Ve
                 initial: to_buffer(body),
                 cursor: (0, 0),
             }),
+            // Each item is already its own line — the same buffer shape a
+            // multi-line text field uses — so list items need no dedicated
+            // add/remove affordance: Enter splits a new bullet off,
+            // Backspace at column 0 merges one away. An empty list has
+            // nothing to edit, so it gets no field (same as any other
+            // block with no text at all).
+            ContentBlock::List { ordered, items, .. } if !items.is_empty() => {
+                out.push(EditableField {
+                    path: BlockPath {
+                        indices: path.clone(),
+                    },
+                    kind: EditableKind::List {
+                        ordered: ordered.unwrap_or(false),
+                    },
+                    initial: items.clone(),
+                    buffer: items.clone(),
+                    cursor: (0, 0),
+                });
+            }
             ContentBlock::Container { children, .. } => collect_editable(children, path, out),
             _ => {}
         }
@@ -601,8 +628,15 @@ impl App {
         // Read-only first: the hit test only needs the fields already
         // borrowed out of `self.screen`, so it can run before anything
         // needs `&mut self.screen` to apply the result.
-        let edit_hit = if let Screen::Edit { fields, .. } = &self.screen {
-            render::edit_field_hit(frame_area, fields, self.sink_available(), col, row)
+        let edit_hit = if let Screen::Edit { fields, focused } = &self.screen {
+            render::edit_field_hit(
+                frame_area,
+                fields,
+                *focused,
+                self.sink_available(),
+                col,
+                row,
+            )
         } else {
             None
         };
@@ -732,9 +766,9 @@ impl App {
         }
     }
 
-    /// Opens the quick-edit modal on the current node's heading/text
-    /// blocks, or flashes that there is nothing to edit (ADR-005 scope:
-    /// content-only, current node only).
+    /// Opens the quick-edit modal on the current node's heading/text/list
+    /// blocks, or flashes that there is nothing to edit (ADR-005/ADR-016
+    /// scope: content-only, current node only).
     fn open_edit(&mut self) {
         let fields = editable_fields(self.session.current());
         if fields.is_empty() {
@@ -821,6 +855,7 @@ impl App {
                     match block {
                         ContentBlock::Heading { text, .. } => *text = field.text(),
                         ContentBlock::Text { body, .. } => *body = field.text(),
+                        ContentBlock::List { items, .. } => *items = field.buffer.clone(),
                         _ => {}
                     }
                 }

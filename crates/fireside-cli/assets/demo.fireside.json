@@ -31,7 +31,7 @@
     {
       "id": "blocks",
       "title": "Content blocks",
-      "traversal": "code",
+      "traversal": "art",
       "content": [
         { "kind": "heading", "level": 2, "text": "Everything is a block" },
         {
@@ -51,7 +51,25 @@
           "kind": "image",
           "src": "docs/assets/campfire.png",
           "alt": "A campfire",
-          "caption": "Images show a framed placeholder in the terminal."
+          "caption": "A plain `image` block: no picture support in a terminal, so it degrades to a framed placeholder."
+        }
+      ]
+    },
+    {
+      "id": "art",
+      "title": "Real photos, as ASCII art",
+      "traversal": "code",
+      "speaker-notes": "fireside art image <path> — try --charset block for a bolder look, or --invert for a light background.",
+      "content": [
+        { "kind": "heading", "level": 2, "text": "Or convert a real photo" },
+        {
+          "kind": "text",
+          "body": "`fireside art image <path>` turns any photo into ASCII art — paste the output straight into a deck, like this sunset."
+        },
+        {
+          "kind": "ascii-art",
+          "art": "      ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░          \n  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░           \n░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░            \n░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░              \n░░░░░░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░              \n░░░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░              \n░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒             \n░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒░            \n░░░░░░░░▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒░           \n░░░░░░░░▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒              \n░░░░░░░░▒▒▒░░░░▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒░              \n░░░░░░░░░░      ░▒▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒                \n    ░░░░          ░░▒▒▓▓█▓▓▓▓▒▒▒▒░                \n                      ░▒▒▒▒▒░░░░░                 \n",
+          "alt": "A sunset behind silhouetted trees"
         }
       ]
     },

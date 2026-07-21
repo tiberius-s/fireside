@@ -17,7 +17,7 @@ Type "PS1='$ '; clear; alias fireside=./target/release/fireside"
 Enter
 Show
 
-Type "fireside art image docs/src/assets/demo-art.png --width 50"
+Type "fireside art image docs/src/assets/demo-art.png --width 50 --charset block"
 Sleep 800ms
 Enter
 Sleep 3s

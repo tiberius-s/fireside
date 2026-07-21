@@ -180,7 +180,7 @@ pub fn present_watching(
 
 /// Present a graph with live reload and quick-edit write-back: on top of
 /// `present_watching`'s reload polling, a presenter can quick-edit the
-/// current node's heading/text blocks and save — the edited graph is
+/// current node's heading/text/list blocks and save — the edited graph is
 /// handed to `sink`, which owns all file I/O (`fireside-tui` performs
 /// none), per ADR-005. `initial_node` (when it names a real node) opens the
 /// presentation there instead of the graph's normal entry node — an unknown

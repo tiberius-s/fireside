@@ -11,6 +11,7 @@ use unicode_width::UnicodeWidthChar;
 use crate::app::{EditableField, EditableKind};
 use crate::theme::Tokens;
 
+use super::content::indicator;
 use super::{MEASURE, overlay_rect};
 
 /// The column budget available for a field's text once the modal's fixed
@@ -163,10 +164,74 @@ fn locate_in_wrap(segs: &[(String, usize)], col: usize) -> (usize, usize) {
     (last, segs[last].0.chars().count())
 }
 
-/// The quick-edit modal: one editable field per heading/text block found on
-/// the current node, each shown word-wrapped (so nothing is cropped
-/// off-screen) with a visible cursor on the focused field. Content-only per
-/// ADR-005 — no structural edits.
+/// Where the focused field's cursor lands once its row is wrapped: the
+/// buffer row, the wrapped segment's start column, and the local column
+/// within that segment. `None` if `focused` is out of range (shouldn't
+/// happen with a non-empty `fields`, but keeps this total rather than
+/// panicking on a stale index).
+fn cursor_position(
+    fields: &[EditableField],
+    focused: usize,
+    text_width: usize,
+) -> Option<(usize, usize, usize)> {
+    let f = fields.get(focused)?;
+    let (row, col) = f.cursor;
+    let text = f.buffer.get(row)?;
+    let segs = wrap_row(text, text_width);
+    let (seg_idx, local) = locate_in_wrap(&segs, col);
+    Some((row, segs[seg_idx].1, local))
+}
+
+/// The flat index into `rows` the focused field's cursor sits on — `0` if
+/// it can't be found (degenerate/empty `fields`).
+fn cursor_row_index(
+    rows: &[EditRow],
+    fields: &[EditableField],
+    focused: usize,
+    text_width: usize,
+) -> usize {
+    let Some((row, seg_start, _)) = cursor_position(fields, focused, text_width) else {
+        return 0;
+    };
+    rows.iter()
+        .position(|r| {
+            matches!(r, EditRow::Text { field, buffer_row, seg_start: s, .. }
+                if *field == focused && *buffer_row == row && *s == seg_start)
+        })
+        .unwrap_or(0)
+}
+
+/// How many leading rows to skip so the focused field's cursor stays
+/// inside a `visible`-row window — shared by `draw_edit` (which slices
+/// `rows` before rendering) and `hits::edit_field_hit` (which adds this
+/// same offset back to translate a click's screen row into `rows`), so
+/// scrolled content never drifts between what's drawn and what a click
+/// resolves to. A modal short enough to show everything never scrolls
+/// (`0`); once it doesn't fit, this follows the cursor — typing or
+/// navigating past the bottom (or top) edge scrolls exactly enough to keep
+/// it in view, the same "auto-follow" contract every other in-app scroll
+/// (`render::content::draw_content`, the map) already gives a presenter.
+pub(super) fn edit_scroll(
+    rows: &[EditRow],
+    fields: &[EditableField],
+    focused: usize,
+    text_width: usize,
+    visible: usize,
+) -> usize {
+    let max_scroll = rows.len().saturating_sub(visible);
+    if max_scroll == 0 {
+        return 0;
+    }
+    let cursor_idx = cursor_row_index(rows, fields, focused, text_width);
+    cursor_idx
+        .saturating_sub(visible.saturating_sub(1))
+        .min(max_scroll)
+}
+
+/// The quick-edit modal: one editable field per heading/text/list block
+/// found on the current node, each shown word-wrapped (so nothing is
+/// cropped off-screen) with a visible cursor on the focused field.
+/// Content-only per ADR-005/ADR-016 — no structural edits.
 pub(super) fn draw_edit(
     frame: &mut Frame,
     area: Rect,
@@ -195,14 +260,7 @@ pub(super) fn draw_edit(
     // Where the focused field's cursor lands once its row is wrapped —
     // computed once, then matched against each `EditRow::Text` below by
     // its (buffer_row, seg_start), the pair that uniquely names a segment.
-    let cursor_target = fields.get(focused).and_then(|f| {
-        let (row, col) = f.cursor;
-        f.buffer.get(row).map(|text| {
-            let segs = wrap_row(text, text_width);
-            let (seg_idx, local) = locate_in_wrap(&segs, col);
-            (row, segs[seg_idx].1, local)
-        })
-    });
+    let cursor_target = cursor_position(fields, focused, text_width);
 
     let lines: Vec<Line<'static>> = rows
         .iter()
@@ -216,6 +274,8 @@ pub(super) fn draw_edit(
                 let label = match fields[*field].kind {
                     EditableKind::Heading(level) => format!("Heading (level {level})"),
                     EditableKind::Text => "Text".to_owned(),
+                    EditableKind::List { ordered: true } => "Ordered list".to_owned(),
+                    EditableKind::List { ordered: false } => "List".to_owned(),
                 };
                 let style = if *field == focused {
                     tokens.selected.add_modifier(Modifier::BOLD)
@@ -238,7 +298,24 @@ pub(super) fn draw_edit(
             EditRow::Footer => Line::styled(" Ctrl+S save  ·  Esc cancel".to_owned(), tokens.muted),
         })
         .collect();
-    frame.render_widget(Paragraph::new(Text::from(lines)), inner);
+
+    let visible = inner.height as usize;
+    let scroll = edit_scroll(&rows, fields, focused, text_width, visible);
+    let shown: Vec<Line<'static>> = lines.into_iter().skip(scroll).take(visible).collect();
+    frame.render_widget(Paragraph::new(Text::from(shown)), inner);
+
+    if scroll > 0 {
+        indicator(frame, inner, 0, "▲", tokens);
+    }
+    if scroll < rows.len().saturating_sub(visible) {
+        indicator(
+            frame,
+            inner,
+            inner.height.saturating_sub(1),
+            "▼ more",
+            tokens,
+        );
+    }
 }
 
 /// One line of quick-edit buffer text, with a reversed-block cursor cell

@@ -22,7 +22,7 @@ Sleep 1s
 Enter
 Sleep 2.5s
 
-Type "fireside .github/demo-import.fireside.json"
+Type "fireside .github/demo-import.fireside.json --restart"
 Sleep 800ms
 Enter
 Sleep 2s

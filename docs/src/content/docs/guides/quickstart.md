@@ -16,6 +16,13 @@ so you'll need a truecolor terminal (most modern terminal emulators; set
 with Unicode box-drawing support, and is most comfortable at ~80 columns by
 24 rows or larger — narrower windows still work, but content wraps tighter.
 
+Fireside draws into whatever font size your terminal is already using — it
+has no way to set this itself, since font size is the terminal emulator's
+setting, not the app's. If you're presenting to an audience (a projector, a
+screen share), bump your terminal's font size up *before* you launch
+Fireside, the same way you would before opening any other presentation
+tool.
+
 ## Install
 
 ```bash
@@ -48,8 +55,8 @@ fireside my-first-deck.fireside.json
 
 Decks live-reload while you present: edit the JSON in another window, save,
 and the slide on screen updates in place. You can also press `e` during a
-presentation to quick-edit the current slide's heading and text without
-leaving the terminal — see [Presenting a deck](/guides/presenting/#quick-editing-a-slide).
+presentation to quick-edit the current slide's heading, text, and list
+items without leaving the terminal — see [Presenting a deck](/guides/presenting/#quick-editing-a-slide).
 
 ## Write in Markdown instead of JSON
 

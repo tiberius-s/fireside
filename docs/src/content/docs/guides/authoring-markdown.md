@@ -201,7 +201,7 @@ successful run. There's no Markdown marker syntax for reveal today, so a
 deck that needs it has to be hand-edited (add `"reveal": N` to the blocks
 that should appear progressively — see
 [the `reveal` field](/spec/data-model/#the-reveal-field-all-kinds)), or with
-quick-edit (`e` while presenting) for headings and text.
+quick-edit (`e` while presenting) for headings, text, and list items.
 
 ## Validation is not optional
 

@@ -40,8 +40,8 @@ fireside talk.fireside.json
 ```
 
 Decks live-reload while you present: edit the JSON (or press `e` to
-quick-edit a slide's heading/text in place), save, and the slide on screen
-updates immediately.
+quick-edit a slide's heading, text, or list items in place), save, and the
+slide on screen updates immediately.
 
 For the full walkthrough — including live-edit and ASCII art — see the
 [Quickstart guide](https://tiberius-s.github.io/fireside/guides/quickstart/).
@@ -51,7 +51,7 @@ For the full walkthrough — including live-edit and ASCII art — see the
 | | |
 | --- | --- |
 | **Markdown → deck** — `fireside import` | **Quick-edit** — fix a typo without leaving the terminal |
-| ![Compiling a Markdown talk with fireside import, then presenting it](docs/src/assets/import.gif) | ![Quick-editing a slide's heading and saving in place](docs/src/assets/quick-edit.gif) |
+| ![Compiling a Markdown talk with fireside import, then presenting it](docs/src/assets/import.gif) | ![Quick-editing a slide's heading and a list item, saving in place](docs/src/assets/quick-edit.gif) |
 | **Photo → ASCII** — `fireside art image` | **Incremental reveal** — stage content one piece at a time |
 | ![Converting a local image into ASCII shading with fireside art image](docs/src/assets/art-image.gif) | ![Revealing a slide's content one piece at a time](docs/src/assets/reveal.gif) |
 

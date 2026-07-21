@@ -25,6 +25,10 @@ Sleep 2.5s
 Space
 Sleep 3s
 
+# A real photo, converted to ASCII art.
+Space
+Sleep 2.5s
+
 # Highlighted code — then show the fullscreen toggle.
 Space
 Sleep 2.5s

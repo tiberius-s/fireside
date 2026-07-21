@@ -1090,9 +1090,178 @@ fn quick_edit_open_edit_save_updates_the_heading_and_leaves_other_blocks_alone()
         }
         other => panic!("expected the text block, got {other:?}"),
     }
-    // Non-editable siblings on the same node are untouched too.
-    assert!(matches!(node.content[1], ContentBlock::List { .. }));
+    // The other editable field on this node (the list) is untouched since
+    // it was never focused — round-tripping through the modal without
+    // touching a field must not perturb it.
+    match &node.content[1] {
+        ContentBlock::List { items, .. } => {
+            assert_eq!(
+                items,
+                &[
+                    "Graph-native traversal with explicit edges",
+                    "Branching with decision points",
+                    "8 content block types",
+                    "Two-tier validation (schema + semantic)",
+                ]
+            );
+        }
+        other => panic!("expected the list block, got {other:?}"),
+    }
     assert!(matches!(node.content[2], ContentBlock::Divider { .. }));
+}
+
+#[test]
+fn quick_edit_shows_and_labels_the_list_field() {
+    let mut app = app();
+    press(&mut app, KeyCode::Char(' ')); // -> features
+    press(&mut app, KeyCode::Char('e'));
+    let s = screen(&app, 80, 24);
+    assert!(s.contains("List"), "the list field gets its own label: {s}");
+    assert!(
+        s.contains("Graph-native traversal with explicit edges"),
+        "list item text is shown, editable, not just left read-only: {s}"
+    );
+}
+
+#[test]
+fn quick_edit_editing_a_list_item_saves_it() {
+    let mut app = app();
+    press(&mut app, KeyCode::Char(' ')); // -> features
+    press(&mut app, KeyCode::Char('e'));
+    // Move focus down from the heading field to the list field.
+    press(&mut app, KeyCode::Down);
+    let Screen::Edit { fields, focused } = app.screen() else {
+        panic!("still editing");
+    };
+    assert_eq!(
+        fields[*focused].kind,
+        EditableKind::List { ordered: false },
+        "down from the heading lands on the list field next"
+    );
+
+    // Cursor starts at (0, 0) on the first item — inserting prepends it.
+    press(&mut app, KeyCode::Char('X'));
+    press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+    let saved = app
+        .take_pending_save()
+        .expect("a save produces a pending graph");
+    app.update(Msg::SaveResult(Ok(())));
+
+    let node = saved.node("features").expect("features node still exists");
+    match &node.content[1] {
+        ContentBlock::List { items, .. } => {
+            assert_eq!(items[0], "XGraph-native traversal with explicit edges");
+            assert_eq!(items.len(), 4, "the other three items are untouched");
+        }
+        other => panic!("expected the list block, got {other:?}"),
+    }
+}
+
+#[test]
+fn quick_edit_enter_on_a_list_item_splits_a_new_bullet_with_no_dedicated_affordance() {
+    // ADR-005 called item add/remove out as a structural edit that would
+    // need its own UI. It doesn't: list items share the same
+    // multi-line-buffer model text/heading fields already use, so Enter
+    // mid-item is already "add a bullet" and Backspace-to-merge is already
+    // "remove one" for free.
+    let mut app = app();
+    press(&mut app, KeyCode::Char(' ')); // -> features
+    press(&mut app, KeyCode::Char('e'));
+    press(&mut app, KeyCode::Down); // -> list field
+    press(&mut app, KeyCode::Enter); // split a new, empty first item
+    press(&mut app, KeyCode::Char('Y'));
+    press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+    let saved = app
+        .take_pending_save()
+        .expect("a save produces a pending graph");
+    app.update(Msg::SaveResult(Ok(())));
+
+    let node = saved.node("features").expect("features node still exists");
+    match &node.content[1] {
+        ContentBlock::List { items, .. } => {
+            assert_eq!(items.len(), 5, "Enter added a new bullet");
+            assert_eq!(items[0], "");
+            assert_eq!(items[1], "YGraph-native traversal with explicit edges");
+        }
+        other => panic!("expected the list block, got {other:?}"),
+    }
+}
+
+/// A single node with a heading and a 20-item list — long enough that the
+/// quick-edit modal can never show it all at once in a normal terminal, so
+/// `quick_edit_scroll_*` tests get a deterministic overflow regardless of
+/// wrap width.
+fn long_list_app() -> App {
+    let items: Vec<String> = (0..20).map(|i| format!("\"item {i}\"")).collect();
+    let json = format!(
+        r#"{{"nodes":[{{"id":"a","content":[
+            {{"kind":"heading","level":2,"text":"Long list"}},
+            {{"kind":"list","items":[{}]}}
+        ]}}]}}"#,
+        items.join(",")
+    );
+    App::new(Session::new(Graph::from_json(&json).expect("fixture parses")).expect("non-empty"))
+}
+
+#[test]
+fn quick_edit_scrolls_to_keep_the_cursor_visible_when_content_overflows() {
+    let mut app = long_list_app();
+    press(&mut app, KeyCode::Char('e'));
+    press(&mut app, KeyCode::Down); // heading -> list field, item 0
+    for _ in 0..15 {
+        press(&mut app, KeyCode::Down); // walk down to item 15
+    }
+    let (w, h) = (80, 20);
+    let s = screen(&app, w, h);
+    assert!(
+        s.contains("item 15"),
+        "cursor's row must be scrolled into view, not clipped: {s}"
+    );
+    assert!(
+        s.contains('▲'),
+        "scrolled past the top shows the up indicator: {s}"
+    );
+}
+
+#[test]
+fn quick_edit_short_content_never_scrolls_or_shows_indicators() {
+    // The regression this guards: scrolling must only kick in once content
+    // actually overflows — a normal short slide (the "features" node) keeps
+    // its existing "shrink to fit" modal with no indicator clutter.
+    let mut app = app();
+    press(&mut app, KeyCode::Char(' ')); // -> features
+    press(&mut app, KeyCode::Char('e'));
+    let s = screen(&app, 80, 24);
+    assert!(!s.contains('▲'), "nothing above to scroll to: {s}");
+    assert!(!s.contains("more"), "nothing below to scroll to: {s}");
+}
+
+#[test]
+fn clicking_a_scrolled_list_item_positions_the_cursor_there() {
+    let mut app = long_list_app();
+    press(&mut app, KeyCode::Char('e'));
+    press(&mut app, KeyCode::Down);
+    for _ in 0..15 {
+        press(&mut app, KeyCode::Down); // force-scroll the view, as above
+    }
+    let (w, h) = (80, 20);
+    let buf = buffer(&app, w, h);
+    // "item 10" is above the cursor (item 15) but still inside the
+    // scrolled-into-view window — exactly the case that needs the click's
+    // row translated through the same scroll offset the frame was drawn
+    // with, not row 0 of the unscrolled buffer.
+    let (x, y) = locate(&buf, w, h, "item 10");
+    click_at(&mut app, w, h, x, y);
+    press(&mut app, KeyCode::Char('Z'));
+
+    let Screen::Edit { fields, focused } = app.screen() else {
+        panic!("still editing");
+    };
+    assert!(
+        fields[*focused].buffer.iter().any(|b| b == "Zitem 10"),
+        "typed char landed on the clicked, scrolled-into-view row: {:?}",
+        fields[*focused].buffer
+    );
 }
 
 #[test]

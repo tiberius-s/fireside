@@ -67,15 +67,23 @@ once, or recover if you've lost track of where a branch went.
 | `f` | Toggle fullscreen for the current slide                              |
 | `s` | Toggle speaker notes (flashes a message if the slide has none)       |
 | `t` | Toggle an elapsed-time timer in the footer                           |
-| `e` | Open quick-edit for this slide's headings/text (see below)           |
+| `e` | Open quick-edit for this slide's text (see below)                    |
 | `?` / `h` | Open the help overlay — the same table as this page, any key closes it |
 | `q` | Quit                                                                  |
 
 ## Quick-editing a slide
 
-`e` opens a modal that edits the current node's heading and text blocks in
-place — not a full editor: no adding or removing blocks, no restructuring.
-It's for fixing a typo or rewording a line without leaving the terminal.
+`e` opens a modal that edits the current node's heading, text, and list
+blocks in place — not a full editor: no adding, removing, or reordering
+blocks, no restructuring. It's for fixing a typo, rewording a line, or
+tweaking a bullet without leaving the terminal. Click anywhere in a field
+to move the cursor there, or navigate with the keyboard; long lines wrap
+instead of running off the edge, and the modal scrolls to keep your cursor
+in view if a slide has more text than fits on screen.
+
+A list's items are just its field's lines: `Enter` splits a new bullet off
+mid-item, and `Backspace` at the start of one merges it into the previous
+bullet — no separate add/remove step.
 
 | Key      | Effect                                    |
 | -------- | -------------------------------------------- |
@@ -88,7 +96,7 @@ your edit in the modal instead of overwriting it silently — press `Ctrl+S`
 again to overwrite deliberately, or `Esc` to abandon your edit and pick up
 the external change instead.
 
-![Quick-editing a slide's heading and saving in place](../../../assets/quick-edit.gif)
+![Quick-editing a slide's heading and a list item, saving in place](../../../assets/quick-edit.gif)
 
 ## Resuming after a crash or exit
 

@@ -8,7 +8,7 @@ use crate::app::{App, EditableField};
 use crate::theme::Tokens;
 
 use super::content::{NodeLines, content_inner, node_lines, notes_panel};
-use super::overlays::{EditRow, edit_layout, edit_text_width};
+use super::overlays::{EditRow, edit_layout, edit_scroll, edit_text_width};
 use super::{MEASURE, areas, map, overlay_rect, surface};
 
 /// Whether `(col, row)` falls inside `rect` — small helper since the
@@ -60,13 +60,15 @@ pub fn map_row_hit(
 
 /// Which quick-edit field/buffer-row/column (if any) sits at `(col, row)`
 /// of the just-drawn frame — recomputes the exact same pure layout
-/// `overlays::draw_edit` uses (`overlays::edit_layout`), so a click can
-/// never disagree with what's on screen. `None` when the click missed
-/// every text row (chrome, blank space, or outside the modal).
+/// `overlays::draw_edit` uses (`overlays::edit_layout`/`edit_scroll`), so a
+/// click can never disagree with what's on screen, scrolled or not.
+/// `None` when the click missed every text row (chrome, blank space,
+/// outside the modal, or scrolled out of view).
 #[must_use]
 pub fn edit_field_hit(
     frame_area: Rect,
     fields: &[EditableField],
+    focused: usize,
     sink_available: bool,
     col: u16,
     row: u16,
@@ -83,7 +85,8 @@ pub fn edit_field_hit(
     if !rect_contains(inner, col, row) {
         return None;
     }
-    let idx = (row - inner.y) as usize;
+    let scroll = edit_scroll(&rows, fields, focused, text_width, inner.height as usize);
+    let idx = scroll + (row - inner.y) as usize;
     match rows.get(idx)? {
         EditRow::Text {
             field,
