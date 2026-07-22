@@ -56,21 +56,21 @@ Existing 4-crate Rust workspace (`crates/fireside-core`, `fireside-engine`, `fir
 
 ### Hit-testing skeleton
 
-- [ ] T015 Define the `Target` enum and a `hit()` skeleton (toolbar/outline/canvas regions only; form and drag targets land with their own stories) in `crates/fireside-tui/src/editor/hit.rs`, generalizing `crates/fireside-tui/src/render/hits.rs`'s pattern per `contracts/hit-testing.md`
-- [ ] T016 Table-driven unit tests for the `hit()` skeleton's regions in `crates/fireside-tui/src/editor/hit.rs` (depends on T015)
+- [X] T015 Define the `Target` enum and a `hit()` skeleton (toolbar/outline/canvas regions only; form and drag targets land with their own stories) in `crates/fireside-tui/src/editor/hit.rs`, generalizing `crates/fireside-tui/src/render/hits.rs`'s pattern per `contracts/hit-testing.md`
+- [X] T016 Table-driven unit tests for the `hit()` skeleton's regions in `crates/fireside-tui/src/editor/hit.rs` (depends on T015)
 
 ### Theme tokens
 
-- [ ] T017 [P] Add `affordance`, `selection`, `drop-target`, `ghost` tokens to `crates/fireside-tui/src/theme.rs::Tokens`
+- [X] T017 [P] Add `affordance`, `selection`, `drop-target`, `ghost` tokens to `crates/fireside-tui/src/theme.rs::Tokens`
 
 ### `EditorApp` scaffold + read-only studio
 
-- [ ] T018 Define the `EditorApp` struct (`working_graph`, `saved_graph` marker, `selection`, `drag`, `open_form`, `history`, `terminal_size`, `status`, draft-timer fields) and its sole `update()` in `crates/fireside-tui/src/editor/mod.rs`, per `data-model.md`'s `EditorApp` section (depends on T005, T015, T017)
-- [ ] T019 Implement read-only toolbar/outline/canvas/status/hint-line rendering in `crates/fireside-tui/src/render/editor/mod.rs`, `crates/fireside-tui/src/render/editor/canvas.rs`, `crates/fireside-tui/src/render/editor/outline.rs` — canvas renders through the `SlideView` path from T013 (depends on T013, T018)
-- [ ] T020 Implement the minimum-geometry guard (below 80×24: single centered message, no overlapping panes; re-checked continuously, not only at open) in `crates/fireside-tui/src/render/editor/mod.rs` (depends on T019)
-- [ ] T021 Wire click-to-select (outline row, canvas block), hover cues where motion events are reported, and wheel scrolling in `crates/fireside-tui/src/editor/mod.rs` (depends on T018, T019)
-- [ ] T022 Make `event_loop` callable from the editor module (visibility change only) in `crates/fireside-tui/src/lib.rs`, and wire `[ ▶ Present ]` to call it in-process against the already-initialized terminal with a no-op `ReloadSource`, an `Unavailable`-reporting write-back sink, and a no-op position sink, in `crates/fireside-tui/src/editor/mod.rs`, per `research.md` §6 (depends on T018)
-- [ ] T023 TestBackend scenario tests for the read-only studio — open, select a slide, select a block, hover (where supported), scroll, present-and-return — driving both `KeyEvent` and synthetic `MouseEvent`s, in `crates/fireside-tui/src/editor/mod.rs` (depends on T019, T020, T021, T022)
+- [X] T018 Define the `EditorApp` struct (`working_graph`, `saved_graph` marker, `selection`, `drag`, `open_form`, `history`, `terminal_size`, `status`, draft-timer fields) and its sole `update()` in `crates/fireside-tui/src/editor/mod.rs`, per `data-model.md`'s `EditorApp` section (depends on T005, T015, T017)
+- [X] T019 Implement read-only toolbar/outline/canvas/status/hint-line rendering in `crates/fireside-tui/src/render/editor/mod.rs`, `crates/fireside-tui/src/render/editor/canvas.rs`, `crates/fireside-tui/src/render/editor/outline.rs` — canvas renders through the `SlideView` path from T013 (depends on T013, T018)
+- [X] T020 Implement the minimum-geometry guard (below 80×24: single centered message, no overlapping panes; re-checked continuously, not only at open) in `crates/fireside-tui/src/render/editor/mod.rs` (depends on T019)
+- [X] T021 Wire click-to-select (outline row, canvas block), hover cues where motion events are reported, and wheel scrolling in `crates/fireside-tui/src/editor/mod.rs` (depends on T018, T019)
+- [X] T022 Make `event_loop` callable from the editor module (visibility change only) in `crates/fireside-tui/src/lib.rs`, and wire `[ ▶ Present ]` to call it in-process against the already-initialized terminal with a no-op `ReloadSource`, an `Unavailable`-reporting write-back sink, and a no-op position sink, in `crates/fireside-tui/src/editor/mod.rs`, per `research.md` §6 (depends on T018)
+- [X] T023 TestBackend scenario tests for the read-only studio — open, select a slide, select a block, hover (where supported), scroll, present-and-return — driving both `KeyEvent` and synthetic `MouseEvent`s, in `crates/fireside-tui/src/editor/mod.rs` (depends on T019, T020, T021, T022)
 - [ ] T024 CLI `edit` subcommand entry point in `crates/fireside-cli/src/edit.rs`: opening-rules chain (non-tty guard, unparseable-deck refusal with the "fix the file first" line, `.md` import hint, create-if-missing reusing `new.rs`/`templates.rs`, open-with-diagnostics-in-status-banner) per `contracts/cli-edit-command.md`, wired to the `Edit` command from T004 (depends on T004, T018)
 - [ ] T025 [P] CLI e2e tests for `edit`'s opening rules (non-tty, unparseable, `.md` hint, create-if-missing, diagnostics-don't-block-open) in `crates/fireside-cli/tests/cli_e2e.rs` (depends on T024)
 - [ ] T026 tmux smoke: open the editor, confirm the read-only studio renders, click a slide/block via injected mouse coordinates, present-and-return — proves the SGR mouse-injection technique for this feature's smoke suite — in `scripts/smoke.sh` (depends on T023, T024)

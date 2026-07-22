@@ -7,7 +7,8 @@
 //! that contract is what makes the presenter learnable without a manual.
 
 pub mod blocks;
-mod content;
+pub(crate) mod content;
+mod editor;
 mod footer;
 mod header;
 mod hits;
@@ -17,6 +18,7 @@ mod notes;
 mod overlays;
 pub mod syntax;
 
+pub(crate) use editor::draw as draw_editor;
 pub(crate) use notes::draw as draw_notes;
 
 /// Expands tab characters to the next 4-column tab stop (P1-3): ratatui
@@ -241,17 +243,22 @@ fn areas(view: ViewMode, area: Rect) -> (Option<Rect>, Rect, Rect) {
 /// bordered card frames them. Fullscreen and too-small terminals get a bare
 /// flow at (almost) full width; the default view gets a centered card capped
 /// at a readable measure.
-struct Surface {
-    width: u16,
-    height: u16,
-    card: bool,
+///
+/// `pub(crate)`, not private: the authoring editor's `hit()` (spec 013,
+/// `crates/fireside-tui/src/editor/hit.rs`) recomputes this exact geometry
+/// to resolve a click, the same "one pure layout, two consumers" contract
+/// `render::hits` already keeps for the presenter.
+pub(crate) struct Surface {
+    pub(crate) width: u16,
+    pub(crate) height: u16,
+    pub(crate) card: bool,
 }
 
 /// Rows of air between the card and the header rule / footer, so the card
 /// reads as a stage rather than a fence around the whole screen.
 const CARD_GAP: u16 = 2;
 
-fn surface(view: ViewMode, body: Rect) -> Surface {
+pub(crate) fn surface(view: ViewMode, body: Rect) -> Surface {
     let chrome_w = 2 + 2 * PAD_X;
     let chrome_h = 2 + 2 * PAD_Y;
     let card = view == ViewMode::Default

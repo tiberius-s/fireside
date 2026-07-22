@@ -46,6 +46,20 @@ pub struct Tokens {
     /// these, subway-style. Index with [`Tokens::rail`]. None of them repeat
     /// the accent, which the spine (main line) wears.
     pub rail_lines: [Style; 4],
+    /// The authoring editor (spec 013): "you can interact with this" — the
+    /// one accent every clickable chip, row, and hover cue wears (design
+    /// brief principle 3).
+    pub affordance: Style,
+    /// The authoring editor: the currently selected block or outline row —
+    /// distinct from [`Tokens::selected`], which is the presenter's
+    /// highlighted branch option.
+    pub selection: Style,
+    /// The authoring editor: where a drag-in-progress would land if
+    /// released now.
+    pub drop_target: Style,
+    /// The authoring editor: the dimmed block that follows the pointer
+    /// while it is being dragged.
+    pub ghost: Style,
 }
 
 impl Default for Tokens {
@@ -75,6 +89,10 @@ impl Default for Tokens {
                 Style::new().fg(Color::Green),
                 Style::new().fg(Color::Blue),
             ],
+            affordance: Style::new().fg(Color::Cyan),
+            selection: Style::new().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            drop_target: Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            ghost: Style::new().fg(Color::DarkGray).add_modifier(Modifier::DIM),
         }
     }
 }

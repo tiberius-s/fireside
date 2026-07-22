@@ -6,6 +6,7 @@
 //! drawing in [`render`], and every color in [`theme::Tokens`].
 
 pub mod app;
+pub mod editor;
 pub mod error;
 mod follower;
 pub mod render;
@@ -275,8 +276,13 @@ fn present_impl(
     })
 }
 
+/// Visibility note (spec 013, T022): `pub(crate)`, not private — the
+/// authoring editor's `[ ▶ Present ]` (`crates/fireside-tui/src/editor/mod.rs`)
+/// calls this exact loop in-process against its own already-initialized
+/// terminal, so an embedded run can never drift from what `present` itself
+/// does. No other change: same signature, same behavior.
 #[allow(clippy::too_many_arguments)]
-fn event_loop(
+pub(crate) fn event_loop(
     terminal: &mut ratatui::DefaultTerminal,
     app: &mut App,
     source: ReloadSource<'_>,

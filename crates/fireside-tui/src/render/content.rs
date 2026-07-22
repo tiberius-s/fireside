@@ -19,21 +19,26 @@ use super::{PAD_X, PAD_Y, Surface, blocks, markdown, surface};
 /// (spec `013-authoring-editor`) call this exact rendering path instead of
 /// a second implementation, which is what makes WYSIWYG fidelity (`SC-008`)
 /// a structural guarantee rather than a discipline to maintain by hand.
-pub(super) struct SlideView<'a> {
-    pub(super) node: &'a Node,
-    pub(super) reveal_level: u32,
-    pub(super) has_pending_reveal: bool,
-    pub(super) branch_selected: usize,
-    pub(super) fading: bool,
-    pub(super) scroll: u16,
-    pub(super) view_mode: ViewMode,
+///
+/// `pub(crate)`, not `pub(super)`: the editor's `hit()`
+/// (`crates/fireside-tui/src/editor/hit.rs`) also builds one directly, to
+/// recompute the identical line flow a click must resolve against — the
+/// same layout, not a parallel guess at it.
+pub(crate) struct SlideView<'a> {
+    pub(crate) node: &'a Node,
+    pub(crate) reveal_level: u32,
+    pub(crate) has_pending_reveal: bool,
+    pub(crate) branch_selected: usize,
+    pub(crate) fading: bool,
+    pub(crate) scroll: u16,
+    pub(crate) view_mode: ViewMode,
     /// Titles (or ids) of nodes visited before `node`, oldest first — feeds
     /// the end-marker's route trace. Empty when there is no traversal
     /// history to show — always true for the editor's at-rest canvas,
     /// which has never "traveled" anywhere; `end_marker` already handles
     /// this the same way a fresh session landing immediately on an ending
     /// does.
-    pub(super) history_titles: Vec<String>,
+    pub(crate) history_titles: Vec<String>,
 }
 
 impl<'a> SlideView<'a> {
@@ -64,16 +69,16 @@ impl<'a> SlideView<'a> {
 /// on to choose that option (`hit_test::branch_option_at`). Kept alongside
 /// the lines themselves, computed once, so drawing and hit-testing can never
 /// disagree about where an option actually is on screen.
-pub(super) struct NodeLines {
-    pub(super) lines: Vec<Line<'static>>,
+pub(crate) struct NodeLines {
+    pub(crate) lines: Vec<Line<'static>>,
     /// Line index of each branch option's label row, parallel to
     /// `branch_point().options`. Empty when there is no branch menu.
-    pub(super) option_rows: Vec<usize>,
+    pub(crate) option_rows: Vec<usize>,
 }
 
 /// The node's full line flow: content blocks, then the branch menu or the
 /// end-of-path marker.
-pub(super) fn node_lines(view: &SlideView, width: u16, tokens: &Tokens) -> NodeLines {
+pub(crate) fn node_lines(view: &SlideView, width: u16, tokens: &Tokens) -> NodeLines {
     let node = view.node;
     let mut lines = blocks::render_blocks(&node.content, width, tokens, view.reveal_level);
     let mut option_rows = Vec::new();
@@ -134,7 +139,7 @@ pub(super) fn node_lines(view: &SlideView, width: u16, tokens: &Tokens) -> NodeL
 /// pure geometry, no drawing. Shared by `draw_content` (which additionally
 /// paints the card border) and mouse hit-testing (which only needs to know
 /// where each line landed).
-pub(super) fn content_inner(body: Rect, surf: &Surface, total: u16) -> (Option<Rect>, Rect) {
+pub(crate) fn content_inner(body: Rect, surf: &Surface, total: u16) -> (Option<Rect>, Rect) {
     if surf.card {
         let card_width = surf.width + 2 + 2 * PAD_X;
         let card_height = surf.height + 2 + 2 * PAD_Y;
