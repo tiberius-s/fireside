@@ -714,3 +714,104 @@ fn art_image_warning_fires_even_with_no_normalize() {
         .success()
         .stderr(predicate::str::contains("brightness range"));
 }
+
+// ─── `fireside edit` opening rules (spec 013, T024) ─────────────────────
+//
+// The CLI-side opening-rules chain (parse/`.md` hint/create-if-missing)
+// runs entirely before the editor ever checks for a tty, mirroring
+// `present`'s own precedent — so every case below is deterministic under
+// `assert_cmd`'s non-interactive process, without a real pty. The one case
+// that *does* reach the tty check (a deck that parses cleanly) fails with
+// the same `NotATty` message `present`/`notes` already give; T026's tmux
+// smoke exercises the studio itself in a real terminal.
+
+#[test]
+fn edit_a_parseable_deck_reaches_the_tty_guard_not_a_refusal() {
+    // Proves the opening-rules chain doesn't refuse a parseable deck (even
+    // one with diagnostics — see the next test) before handing off to the
+    // editor, which then refuses only because `assert_cmd` has no tty.
+    fireside()
+        .arg("edit")
+        .arg(repo_root().join("docs/examples/hello.json"))
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("interactive terminal"));
+}
+
+#[test]
+fn edit_a_deck_with_diagnostics_is_not_refused_before_the_tty_check() {
+    // An orphaned, unreachable node still parses fine — Layer-2
+    // diagnostics are the editor's job to show and fix (status banner,
+    // spec FR-026), never a reason to refuse opening (contract rule 5).
+    let temp = tempfile::tempdir().expect("temp dir");
+    let deck = temp.path().join("with-diagnostics.fireside.json");
+    std::fs::write(
+        &deck,
+        r#"{"nodes":[{"id":"a","content":[]},{"id":"b","content":[]}]}"#,
+    )
+    .expect("write fixture");
+
+    fireside().arg("edit").arg(&deck).assert().failure().stderr(
+        predicate::str::contains("interactive terminal")
+            .and(predicate::str::contains("cannot be presented").not()),
+    );
+}
+
+#[test]
+fn edit_an_unparseable_deck_is_refused_with_the_fix_it_first_line() {
+    let temp = tempfile::tempdir().expect("temp dir");
+    let deck = temp.path().join("broken.fireside.json");
+    std::fs::write(&deck, "not valid json").expect("write fixture");
+
+    fireside().arg("edit").arg(&deck).assert().failure().stderr(
+        predicate::str::contains("Fix the file first")
+            .and(predicate::str::contains("fireside validate")),
+    );
+}
+
+#[test]
+fn edit_a_markdown_path_suggests_import_first_not_create() {
+    let temp = tempfile::tempdir().expect("temp dir");
+    let deck = temp.path().join("talk.md");
+    std::fs::write(&deck, "# My Conference Talk\n").expect("write fixture");
+
+    fireside().arg("edit").arg(&deck).assert().failure().stderr(
+        predicate::str::contains("This is a Markdown file")
+            .and(predicate::str::contains("fireside import")),
+    );
+}
+
+#[test]
+fn edit_a_missing_markdown_path_suggests_import_not_create() {
+    // Rule 3 (`.md` hint) takes priority over rule 4 (create-if-missing)
+    // even when the path doesn't exist yet.
+    let temp = tempfile::tempdir().expect("temp dir");
+    let deck = temp.path().join("does-not-exist-yet.md");
+
+    fireside()
+        .arg("edit")
+        .arg(&deck)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("This is a Markdown file"));
+    assert!(!deck.exists(), "a .md path must never be created as a deck");
+}
+
+#[test]
+fn edit_a_missing_deck_path_creates_a_starter_deck_reusing_new_templates() {
+    let temp = tempfile::tempdir().expect("temp dir");
+    let deck = temp.path().join("brand-new-talk.fireside.json");
+    assert!(!deck.exists());
+
+    fireside()
+        .arg("edit")
+        .arg(&deck)
+        .assert()
+        .failure() // still fails on the tty guard — but only after creating
+        .stdout(predicate::str::contains("creating a starter deck"))
+        .stderr(predicate::str::contains("interactive terminal"));
+
+    let written = std::fs::read_to_string(&deck).expect("deck was created");
+    let graph = fireside_core::Graph::from_json(&written).expect("created deck parses");
+    assert!(!graph.nodes.is_empty(), "starter deck must have slides");
+}

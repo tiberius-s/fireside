@@ -154,7 +154,11 @@ fn interactive_new() -> Result<(String, Template, Option<String>, bool)> {
     Ok((name, template, author, banner))
 }
 
-fn starter_deck(name: &str, template: Template, author: Option<&str>) -> Result<Graph> {
+/// `pub(crate)`, not private: `edit.rs`'s create-if-missing flow (spec 013,
+/// T024) reuses this exact template builder to seed a new deck at an
+/// arbitrary target path, rather than `new_deck`'s own path-from-slug
+/// scaffolding flow.
+pub(crate) fn starter_deck(name: &str, template: Template, author: Option<&str>) -> Result<Graph> {
     let json = match template {
         Template::Linear => linear_template(name),
         Template::Branching => branching_template(name),
