@@ -35,8 +35,8 @@
 _Update this section whenever an item lands or starts. One line per item:
 status, date._
 
-- [ ] E0 foundations (ADRs, authoring transforms, hit-testing + shared-renderer refactor)
-- [ ] E1 read-only studio (canvas + outline + toolbar, click/hover/scroll, present)
+- [X] E0 foundations (ADRs, authoring transforms, hit-testing + shared-renderer refactor) — done 2026-07-21
+- [X] E1 read-only studio (canvas + outline + toolbar, click/hover/scroll, present) — done 2026-07-21
 - [ ] E2 block editing (select/edit/add/delete, drag-and-drop reorder, undo, save)
 - [ ] E3 structure editing (slides, wiring, choices, reveal staging)
 - [ ] E4 foolproofing polish (drafts, empty states, first-run tour, refinements)

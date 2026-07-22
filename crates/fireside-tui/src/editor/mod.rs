@@ -2,8 +2,8 @@
 //! `fireside edit`).
 //!
 //! TEA-style, matching the presenter's own contract (constitution IV,
-//! generalized): [`EditorApp::update`] is the sole place [`EditorApp`]
-//! state mutates. `fireside-tui` performs no file I/O anywhere in this
+//! generalized): `EditorApp::update` is the sole place `EditorApp` state
+//! mutates. `fireside-tui` performs no file I/O anywhere in this
 //! module — saving, drafts, and deck creation are `fireside-cli`'s job
 //! (ADR-014); this Foundational phase (T015–T026) does not wire save at
 //! all yet (that lands with US1, T035).
