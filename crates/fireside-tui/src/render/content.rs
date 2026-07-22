@@ -2,6 +2,7 @@
 //! end-of-path marker), the card/notes-panel geometry around them, and the
 //! "▲/▼ more" scroll indicators.
 
+use fireside_core::{Node, ViewMode};
 use ratatui::Frame;
 use ratatui::layout::{Margin, Rect};
 use ratatui::style::{Modifier, Style};
@@ -12,6 +13,51 @@ use crate::app::App;
 use crate::theme::Tokens;
 
 use super::{PAD_X, PAD_Y, Surface, blocks, markdown, surface};
+
+/// Everything the content-rendering path needs to draw one slide, decoupled
+/// from `App`/`Session` — the seam that lets the authoring editor's canvas
+/// (spec `013-authoring-editor`) call this exact rendering path instead of
+/// a second implementation, which is what makes WYSIWYG fidelity (`SC-008`)
+/// a structural guarantee rather than a discipline to maintain by hand.
+pub(super) struct SlideView<'a> {
+    pub(super) node: &'a Node,
+    pub(super) reveal_level: u32,
+    pub(super) has_pending_reveal: bool,
+    pub(super) branch_selected: usize,
+    pub(super) fading: bool,
+    pub(super) scroll: u16,
+    pub(super) view_mode: ViewMode,
+    /// Titles (or ids) of nodes visited before `node`, oldest first — feeds
+    /// the end-marker's route trace. Empty when there is no traversal
+    /// history to show — always true for the editor's at-rest canvas,
+    /// which has never "traveled" anywhere; `end_marker` already handles
+    /// this the same way a fresh session landing immediately on an ending
+    /// does.
+    pub(super) history_titles: Vec<String>,
+}
+
+impl<'a> SlideView<'a> {
+    pub(super) fn from_app(app: &'a App) -> Self {
+        let session = app.session();
+        let graph = session.graph();
+        let history_titles = session
+            .history()
+            .iter()
+            .filter_map(|id| graph.node(id))
+            .map(|n| n.title.clone().unwrap_or_else(|| n.id.clone()))
+            .collect();
+        Self {
+            node: session.current(),
+            reveal_level: session.reveal_level(),
+            has_pending_reveal: session.has_pending_reveal(),
+            branch_selected: app.branch_selected(),
+            fading: app.fading(),
+            scroll: app.scroll(),
+            view_mode: app.view_mode(),
+            history_titles,
+        }
+    }
+}
 
 /// The node's full line flow plus, when the flow ends in a branch menu, the
 /// line index of each option's label row — the row a mouse click must land
@@ -27,14 +73,13 @@ pub(super) struct NodeLines {
 
 /// The node's full line flow: content blocks, then the branch menu or the
 /// end-of-path marker.
-pub(super) fn node_lines(app: &App, width: u16, tokens: &Tokens) -> NodeLines {
-    let node = app.session().current();
-    let mut lines =
-        blocks::render_blocks(&node.content, width, tokens, app.session().reveal_level());
+pub(super) fn node_lines(view: &SlideView, width: u16, tokens: &Tokens) -> NodeLines {
+    let node = view.node;
+    let mut lines = blocks::render_blocks(&node.content, width, tokens, view.reveal_level);
     let mut option_rows = Vec::new();
 
-    let pending_reveal = app.session().has_pending_reveal();
-    if let Some(bp) = app.session().branch_point().filter(|_| !pending_reveal) {
+    let pending_reveal = view.has_pending_reveal;
+    if let Some(bp) = node.branch_point().filter(|_| !pending_reveal) {
         if !lines.is_empty() {
             lines.push(Line::default());
         }
@@ -47,7 +92,7 @@ pub(super) fn node_lines(app: &App, width: u16, tokens: &Tokens) -> NodeLines {
         ));
         lines.push(Line::default());
         for (i, opt) in bp.options.iter().enumerate() {
-            let selected = i == app.branch_selected();
+            let selected = i == view.branch_selected;
             let mut spans = vec![
                 if selected {
                     Span::styled(" ▸ ".to_owned(), tokens.accent.add_modifier(Modifier::BOLD))
@@ -80,7 +125,7 @@ pub(super) fn node_lines(app: &App, width: u16, tokens: &Tokens) -> NodeLines {
         if !lines.is_empty() {
             lines.push(Line::default());
         }
-        lines.extend(end_marker(app, width, tokens));
+        lines.extend(end_marker(view, width, tokens));
     }
     NodeLines { lines, option_rows }
 }
@@ -130,7 +175,7 @@ pub(super) fn content_inner(body: Rect, surf: &Surface, total: u16) -> (Option<R
 /// The close of a path. The deck should land, not shrug: a centered rule
 /// with the end mark, a quiet word underneath — and the route actually
 /// travelled, so the ending shows which story this audience got.
-fn end_marker(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
+fn end_marker(view: &SlideView, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     let w = usize::from(width);
     let rule = (w / 4).clamp(2, 12);
     let rule_pad = w.saturating_sub(rule * 2 + 3) / 2;
@@ -149,14 +194,12 @@ fn end_marker(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
         ]),
     ];
 
-    let graph = app.session().graph();
-    let mut stations: Vec<&str> = app
-        .session()
-        .history()
+    let current_title = view.node.title.as_deref().unwrap_or(&view.node.id);
+    let mut stations: Vec<&str> = view
+        .history_titles
         .iter()
-        .filter_map(|id| graph.node(id))
-        .chain([app.session().current()])
-        .map(|n| n.title.as_deref().unwrap_or(&n.id))
+        .map(String::as_str)
+        .chain([current_title])
         .collect();
     if stations.len() > 1 {
         // Long journeys keep their tail: the recent stops tell the story.
@@ -184,12 +227,12 @@ fn end_marker(app: &App, width: u16, tokens: &Tokens) -> Vec<Line<'static>> {
     lines
 }
 
-pub(super) fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &Tokens) {
-    let surf = surface(app.view_mode(), body);
-    let NodeLines { lines, .. } = node_lines(app, surf.width, tokens);
+pub(super) fn draw_content(frame: &mut Frame, body: Rect, view: &SlideView, tokens: &Tokens) {
+    let surf = surface(view.view_mode, body);
+    let NodeLines { lines, .. } = node_lines(view, surf.width, tokens);
     let total = lines.len() as u16;
     // During a fade-in the whole slide starts dim and brightens.
-    let base = if app.fading() {
+    let base = if view.fading {
         Style::new().add_modifier(Modifier::DIM)
     } else {
         Style::new()
@@ -206,7 +249,7 @@ pub(super) fn draw_content(frame: &mut Frame, body: Rect, app: &App, tokens: &To
     }
 
     let max = total.saturating_sub(inner.height);
-    let scroll = app.scroll().min(max);
+    let scroll = view.scroll.min(max);
     let visible: Vec<Line<'static>> = lines
         .into_iter()
         .skip(scroll as usize)

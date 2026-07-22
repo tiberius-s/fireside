@@ -16,6 +16,7 @@ use fireside_core::{CoreError, Graph};
 use fireside_engine::{Severity, validate};
 
 mod art;
+mod edit;
 mod import;
 mod new;
 mod report;
@@ -132,6 +133,13 @@ enum Command {
         #[command(subcommand)]
         mode: ArtMode,
     },
+
+    /// Open a deck in the full-screen authoring studio (spec 013). Omit an
+    /// existing file to be offered a new one, reusing `new`'s templates.
+    Edit {
+        /// Path to the deck file.
+        file: PathBuf,
+    },
 }
 
 /// The two ways to generate ASCII art (spec 009): a stylized text banner,
@@ -223,6 +231,7 @@ fn main() -> Result<()> {
         },
         (None, Some(Command::Demo)) => demo(),
         (None, Some(Command::Import { input, output })) => import_file(&input, output.as_deref()),
+        (None, Some(Command::Edit { file })) => edit::edit_deck(&file),
         (None, Some(Command::Art { mode })) => match mode {
             ArtMode::Text { phrase } => art::art_text(&phrase),
             ArtMode::Image {

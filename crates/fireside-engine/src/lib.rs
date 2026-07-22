@@ -10,6 +10,7 @@
 //! No file I/O, no rendering, no terminal — callers load text, this crate
 //! gives them a validated, navigable presentation.
 
+pub mod authoring;
 pub mod error;
 pub mod session;
 pub mod validation;

@@ -1,5 +1,26 @@
 <!--
 Sync Impact Report
+- Version change: 1.3.0 → 1.3.1
+- Modified principles: IV. Mandatory Code Idioms — the TEA-invariant
+  bullet generalizes from "`App::update` in `fireside-tui` is the ONLY
+  function that mutates `App` state" to "each TUI application struct has
+  exactly one `update` function, which is its sole mutator," so the
+  invariant unambiguously covers the new `EditorApp` (spec
+  `013-authoring-editor`, ADR-018) the same way it already covers `App`,
+  rather than reading as `App`-specific. Also notes the four new
+  `theme.rs::Tokens` entries (`affordance`, `selection`, `drop-target`,
+  `ghost`) the authoring editor adds, under the existing styling rule. No
+  principle removed or redefined, no new obligation created beyond what
+  the existing wording already implied for a second TEA struct — hence
+  PATCH, a clarification, same class of change as the prior
+  Principle-I-wording clarification (2026-07-18).
+- Added sections: none
+- Removed sections: none
+- Templates requiring updates: none (boundary table and principle text
+  are referenced, not duplicated, elsewhere)
+- Follow-up TODOs: none
+
+Sync Impact Report (previous)
 - Version change: 1.2.1 → 1.3.0
 - Modified principles: III. Crate Boundary Discipline — `fireside-cli`'s
   permitted dependency list gains `image`, per ADR-013 (percentile-based
@@ -115,10 +136,16 @@ what keeps the engine portable and the TUI testable.*
 - `#[must_use]` on every public function returning a value the caller
   should act on.
 - `///` doc comments on every public item; `//!` module docs on every file.
-- TEA invariant: `App::update` in `fireside-tui` is the ONLY function that
-  mutates `App` state; rendering is pure.
+- TEA invariant: each TUI application struct has exactly one `update`
+  function, which is its sole mutator of that struct's state; rendering is
+  pure. (`fireside-tui::App::update` and, from spec `013-authoring-editor`
+  onward, `fireside-tui::editor::EditorApp::update` are each their own
+  struct's sole mutator — the invariant applies per struct, not only to
+  `App`.)
 - All visual styling flows through `theme.rs::Tokens` — never construct a
-  `Style` from raw colors in render code.
+  `Style` from raw colors in render code. (`Tokens` includes `affordance`,
+  `selection`, `drop-target`, and `ghost` entries for the authoring
+  editor's mouse-affordance styling, spec `013-authoring-editor`.)
 - Engine operations return `Outcome` — no traversal operation may become a
   silent no-op; the UI MUST be able to give feedback for every keypress.
 - Serde attributes use `rename_all = "kebab-case"`; content blocks use the
@@ -197,4 +224,4 @@ disagree, the constitution wins.
 - **Compliance review**: every `/speckit-plan` run re-checks this file via
   its Constitution Check gate; reviewers verify compliance on every PR.
 
-**Version**: 1.3.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-18
+**Version**: 1.3.1 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-21

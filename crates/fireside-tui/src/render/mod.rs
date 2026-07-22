@@ -113,7 +113,12 @@ pub fn draw(frame: &mut Frame, app: &App) {
         content::draw_notes(frame, notes, app, &tokens);
     }
 
-    content::draw_content(frame, content_area, app, &tokens);
+    content::draw_content(
+        frame,
+        content_area,
+        &content::SlideView::from_app(app),
+        &tokens,
+    );
     footer::draw_footer(frame, footer, app, &tokens);
 
     match app.screen() {
@@ -189,7 +194,8 @@ pub fn max_scroll(app: &App, width: u16, height: u16) -> u16 {
         body.height = body.height.saturating_sub(notes.height);
     }
     let surf = surface(app.view_mode(), body);
-    let total = content::node_lines(app, surf.width, &Tokens::default())
+    let view = content::SlideView::from_app(app);
+    let total = content::node_lines(&view, surf.width, &Tokens::default())
         .lines
         .len() as u16;
     total.saturating_sub(surf.height)

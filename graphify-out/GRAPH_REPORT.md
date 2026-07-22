@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-21)
 
 ## Corpus Check
-- 298 files · ~408,185 words
+- 312 files · ~429,208 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3347 nodes · 4814 edges · 286 communities (241 shown, 45 thin omitted)
+- 3571 nodes · 5253 edges · 300 communities (255 shown, 45 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 57 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b2bbe5b2`
+- Built from commit: `8c5d0102`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -239,6 +239,7 @@
 - [[_COMMUNITY_Community 223|Community 223]]
 - [[_COMMUNITY_Community 224|Community 224]]
 - [[_COMMUNITY_Community 225|Community 225]]
+- [[_COMMUNITY_Community 226|Community 226]]
 - [[_COMMUNITY_Community 227|Community 227]]
 - [[_COMMUNITY_Community 228|Community 228]]
 - [[_COMMUNITY_Community 229|Community 229]]
@@ -292,6 +293,7 @@
 - [[_COMMUNITY_Community 277|Community 277]]
 - [[_COMMUNITY_Community 278|Community 278]]
 - [[_COMMUNITY_Community 279|Community 279]]
+- [[_COMMUNITY_Community 280|Community 280]]
 - [[_COMMUNITY_Community 281|Community 281]]
 - [[_COMMUNITY_Community 282|Community 282]]
 - [[_COMMUNITY_Community 283|Community 283]]
@@ -299,6 +301,18 @@
 - [[_COMMUNITY_Community 285|Community 285]]
 - [[_COMMUNITY_Community 286|Community 286]]
 - [[_COMMUNITY_Community 287|Community 287]]
+- [[_COMMUNITY_Community 288|Community 288]]
+- [[_COMMUNITY_Community 289|Community 289]]
+- [[_COMMUNITY_Community 290|Community 290]]
+- [[_COMMUNITY_Community 291|Community 291]]
+- [[_COMMUNITY_Community 292|Community 292]]
+- [[_COMMUNITY_Community 293|Community 293]]
+- [[_COMMUNITY_Community 294|Community 294]]
+- [[_COMMUNITY_Community 295|Community 295]]
+- [[_COMMUNITY_Community 296|Community 296]]
+- [[_COMMUNITY_Community 297|Community 297]]
+- [[_COMMUNITY_Community 298|Community 298]]
+- [[_COMMUNITY_Community 299|Community 299]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `app()` - 63 edges
@@ -306,11 +320,11 @@
 3. `screen()` - 53 edges
 4. `App` - 45 edges
 5. `fireside()` - 43 edges
-6. `import()` - 33 edges
-7. `render_block()` - 33 edges
-8. `Diagnostic` - 30 edges
-9. `render()` - 30 edges
-10. `flat()` - 28 edges
+6. `apply()` - 39 edges
+7. `import()` - 33 edges
+8. `render_block()` - 33 edges
+9. `Diagnostic` - 30 edges
+10. `render()` - 30 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
@@ -326,6 +340,7 @@
 
 ## Import Cycles
 - 1-file cycle: `crates/fireside-cli/src/art.rs -> crates/fireside-cli/src/art.rs`
+- 1-file cycle: `crates/fireside-cli/src/edit.rs -> crates/fireside-cli/src/edit.rs`
 - 1-file cycle: `crates/fireside-cli/src/import.rs -> crates/fireside-cli/src/import.rs`
 - 1-file cycle: `crates/fireside-tui/src/lib.rs -> crates/fireside-tui/src/lib.rs`
 - 1-file cycle: `crates/fireside-tui/src/render/mod.rs -> crates/fireside-tui/src/render/mod.rs`
@@ -344,7 +359,6 @@
 - 1-file cycle: `crates/fireside-engine/src/validation.rs -> crates/fireside-engine/src/validation.rs`
 - 1-file cycle: `crates/fireside-engine/tests/fixtures.rs -> crates/fireside-engine/tests/fixtures.rs`
 - 1-file cycle: `crates/fireside-tui/src/render/blocks.rs -> crates/fireside-tui/src/render/blocks.rs`
-- 1-file cycle: `crates/fireside-tui/src/render/content.rs -> crates/fireside-tui/src/render/content.rs`
 
 ## Hyperedges (group relationships)
 - **Graphify Two-Track Extraction Pipeline** — graphify_skill_ast_extraction, graphify_skill_semantic_extraction, graphify_skill_extraction_cache, references_extraction_spec_subagent_prompt [EXTRACTED 1.00]
@@ -354,7 +368,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (286 total, 45 thin omitted)
+## Communities (300 total, 45 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -438,7 +452,7 @@ Nodes (25): 1. Initialize Analysis Context, 2. Load Artifacts (Progressive Discl
 
 ### Community 21 - "Presentation Session"
 Cohesion: 0.08
-Nodes (47): BranchOption, BranchPoint, Graph, HashSet, Node, NodeDefaults, NodeId, Option (+39 more)
+Nodes (47): BranchOption, BranchPoint, Graph, HashMap, HashSet, Node, NodeDefaults, NodeId (+39 more)
 
 ### Community 22 - "Community 22"
 Cohesion: 0.08
@@ -665,8 +679,8 @@ Cohesion: 0.07
 Nodes (48): CoreError, BranchOption, BranchPoint, ContentBlock, Node, NodeDefaults, NodeId, Option (+40 more)
 
 ### Community 88 - "Render Module"
-Cohesion: 0.07
-Nodes (62): Buffer, App, Frame, Line, Option, Rect, Tokens, Vec (+54 more)
+Cohesion: 0.06
+Nodes (68): Buffer, App, Frame, Line, Node, Option, Rect, Self (+60 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.15
@@ -765,8 +779,8 @@ Cohesion: 0.22
 Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: ASCII art centering and clipping, Project Structure, Source Code (repository root), Summary, Technical Context
 
 ### Community 115 - "Community 115"
-Cohesion: 0.15
-Nodes (14): Context7 Documentation Expert Agent, Version Upgrade Checking Workflow, Verify-Before-Advising Context7 Rule, 🚨 CRITICAL RULE — VERIFY BEFORE ADVISING, Error Handling Stratification, Fireside-Specific Rules You Must Enforce, Handoff, Rust Expert Agent (+6 more)
+Cohesion: 0.18
+Nodes (10): Layer 1 — `engine::authoring` (pure, fastest feedback), Layer 2 — `hit()` and `EditorApp::update` (TestBackend, fast), Layer 3 — vocabulary gate (snapshot grep, spec FR-024), Layer 4 — preview fidelity (spec SC-008, property test), Layer 5 — CLI e2e, Layer 6 — real terminal (tmux smoke, per wave), Layer 7 — full verification, Manual exploratory pass (before calling any wave done) (+2 more)
 
 ### Community 116 - "Community 116"
 Cohesion: 0.22
@@ -929,8 +943,8 @@ Cohesion: 0.14
 Nodes (13): Assumptions, Edge Cases, Feature Specification: Protocol & Workflow Hardening, Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+5 more)
 
 ### Community 174 - "Community 174"
-Cohesion: 0.33
-Nodes (6): Code Example, Crate Boundary Impact, Output Format, Recommendation, Trade-offs, Verified API
+Cohesion: 0.15
+Nodes (14): Context7 Documentation Expert Agent, Version Upgrade Checking Workflow, Verify-Before-Advising Context7 Rule, 🚨 CRITICAL RULE — VERIFY BEFORE ADVISING, Error Handling Stratification, Fireside-Specific Rules You Must Enforce, Handoff, Rust Expert Agent (+6 more)
 
 ### Community 175 - "Community 175"
 Cohesion: 0.33
@@ -1029,8 +1043,8 @@ Cohesion: 0.17
 Nodes (22): Option, Path, PathBuf, Self, String, Value, Map, clear_removes_the_record() (+14 more)
 
 ### Community 203 - "Community 203"
-Cohesion: 0.40
-Nodes (5): Research Workflow, Step 1 — Identify the Question Type, Step 2 — Look Up Crate Docs via Context7, Step 3 — Read Relevant Fireside Source, Step 4 — Validate Against Constraints
+Cohesion: 0.33
+Nodes (6): Code Example, Crate Boundary Impact, Output Format, Recommendation, Trade-offs, Verified API
 
 ### Community 206 - "Community 206"
 Cohesion: 0.22
@@ -1103,6 +1117,10 @@ Nodes (5): Claiming conformance, Regenerating expectations, Rule catalog, Runnin
 ### Community 225 - "Community 225"
 Cohesion: 0.46
 Nodes (7): App, Frame, Line, Rect, Tokens, draw_header(), header_rail()
+
+### Community 226 - "Community 226"
+Cohesion: 0.12
+Nodes (15): Assumptions, Clarifications, Edge Cases, Feature Specification: Authoring Editor (`fireside edit`), Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)* (+7 more)
 
 ### Community 227 - "Community 227"
 Cohesion: 0.20
@@ -1288,6 +1306,10 @@ Nodes (5): Specification Quality Checklist: Dual-Screen Presenter View, Content 
 Cohesion: 0.29
 Nodes (6): §1: Where does session state live, and how is it keyed?, §2: How does the presenter report reveal step and elapsed time, when `PositionSink` only carries a node id?, §3: Should the follower reuse `App`/`Msg`/`Screen` (the presenter's TEA machine)?, §4: How does the follower resolve "next slide" at a branch, and at the final slide?, §5: Non-tty guard for `fireside notes`, Research: Dual-Screen Presenter View
 
+### Community 280 - "Community 280"
+Cohesion: 0.33
+Nodes (5): Specification Quality Checklist: Authoring Editor (`fireside edit`), Content Quality, Feature Readiness, Notes, Requirement Completeness
+
 ### Community 281 - "Community 281"
 Cohesion: 0.33
 Nodes (5): Data Model: Dual-Screen Presenter View, Follower (in memory — `fireside-tui::follower`), SessionRecord (on disk — `fireside-cli::session`), SessionSnapshot (in memory — `fireside-tui`), SessionTick (in memory — `fireside-tui`, presenter → CLI direction)
@@ -1312,12 +1334,60 @@ Nodes (8): ADR-015: Session-state file contract for the dual-screen presenter vi
 Cohesion: 0.09
 Nodes (36): Option, Path, PathBuf, SessionStatus, Graph, Self, SessionStatus, SessionSnapshot (+28 more)
 
+### Community 288 - "Community 288"
+Cohesion: 0.20
+Nodes (9): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: Authoring Editor (`fireside edit`), Post-Design Constitution Check, Project Structure, Source Code (repository root), Summary (+1 more)
+
+### Community 289 - "Community 289"
+Cohesion: 0.20
+Nodes (9): 1. Hit-testing precedent, 2. `EditableField` reuse, 3. Draft sidecar keying and hashing, 4. Canvas rendering geometry *(clarified 2026-07-21)*, 5. Block drag-initiation target *(clarified 2026-07-21)*, 6. Embedded present mechanics, 7. `SlideView` extraction scope, 8. Outline ordering algorithm reuse (+1 more)
+
+### Community 290 - "Community 290"
+Cohesion: 0.25
+Nodes (7): Existing wire-format entities (unchanged, reused), New: Draft sidecar (on-disk, `fireside-cli`), New: `EditorApp` state (in-memory, `fireside-tui`, TEA), New: `engine::authoring` entities (in-memory, pure, `fireside-engine`), Phase 1 Data Model: Authoring Editor (`fireside edit`), Relationships, Validation / invariant summary (construction vs. detection)
+
+### Community 291 - "Community 291"
+Cohesion: 0.33
+Nodes (5): Behavior, Contract: `fireside edit <file>`, Exit codes, Out of scope for this contract, Preconditions / opening rules (spec FR-025–FR-029)
+
+### Community 292 - "Community 292"
+Cohesion: 0.33
+Nodes (5): Contract: `engine::authoring` operations, Error surface, Operation reference, Outline ordering (not an `Op` — a pure query), Universal guarantees (every `Op`, spec FR-023 / SC-007)
+
+### Community 293 - "Community 293"
+Cohesion: 0.33
+Nodes (5): Contract: editor `hit()` region-testing, Drag resolution (not a separate function — `Target` sequencing), Priority order (top-most drawn wins), `Target` enum (one variant per interactive region), Test contract
+
+### Community 294 - "Community 294"
+Cohesion: 0.40
+Nodes (5): Research Workflow, Step 1 — Identify the Question Type, Step 2 — Look Up Crate Docs via Context7, Step 3 — Read Relevant Fireside Source, Step 4 — Validate Against Constraints
+
+### Community 295 - "Community 295"
+Cohesion: 0.07
+Nodes (26): Dependencies & Execution Order, `EditorApp` scaffold + read-only studio, `engine::authoring` (pure transform layer — TDD: tests alongside each op group, per `contracts/authoring-ops.md`), Format: `[ID] [P?] [Story] Description`, Hit-testing skeleton, Implementation Strategy, Incremental Delivery, MVP First (User Story 1 Only) (+18 more)
+
+### Community 296 - "Community 296"
+Cohesion: 0.22
+Nodes (8): ADR-017: Scope extension — the authoring editor (`fireside edit`), Consequences, Context, Decision, Negative or Trade-offs, Neutral / Follow-up, Positive, Status
+
+### Community 297 - "Community 297"
+Cohesion: 0.17
+Nodes (11): 1. `engine::authoring` module (`fireside-engine/src/authoring.rs`), 2. TEA-invariant wording (Constitution Principle IV, PATCH amendment), 3. New `theme.rs::Tokens` entries, ADR-018: `engine::authoring` module charter, TEA-wording amendment, and new theme tokens, Consequences, Context, Decision, Negative or Trade-offs (+3 more)
+
+### Community 298 - "Community 298"
+Cohesion: 0.67
+Nodes (3): Path, Result, edit_deck()
+
+### Community 299 - "Community 299"
+Cohesion: 0.08
+Nodes (82): BranchPoint, ContentBlock, Graph, HashMap, Node, Option, Result, Strategy (+74 more)
+
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1641 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1636 more)
+- **1741 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1736 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **45 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1327,11 +1397,11 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `Community 228`, `TUI App Core`, `Render Module`, `Community 122`, `Community 287`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1643 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1743 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.07982583454281568 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**

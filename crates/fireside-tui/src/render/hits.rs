@@ -30,7 +30,8 @@ pub fn branch_option_hit(app: &App, frame_area: Rect, col: u16, row: u16) -> Opt
         content.height = content.height.saturating_sub(notes.height);
     }
     let surf = surface(app.view_mode(), content);
-    let NodeLines { lines, option_rows } = node_lines(app, surf.width, &tokens);
+    let view = super::content::SlideView::from_app(app);
+    let NodeLines { lines, option_rows } = node_lines(&view, surf.width, &tokens);
     if option_rows.is_empty() {
         return None;
     }
