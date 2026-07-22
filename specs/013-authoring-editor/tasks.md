@@ -73,7 +73,7 @@ Existing 4-crate Rust workspace (`crates/fireside-core`, `fireside-engine`, `fir
 - [X] T023 TestBackend scenario tests for the read-only studio — open, select a slide, select a block, hover (where supported), scroll, present-and-return — driving both `KeyEvent` and synthetic `MouseEvent`s, in `crates/fireside-tui/src/editor/mod.rs` (depends on T019, T020, T021, T022)
 - [X] T024 CLI `edit` subcommand entry point in `crates/fireside-cli/src/edit.rs`: opening-rules chain (non-tty guard, unparseable-deck refusal with the "fix the file first" line, `.md` import hint, create-if-missing reusing `new.rs`/`templates.rs`, open-with-diagnostics-in-status-banner) per `contracts/cli-edit-command.md`, wired to the `Edit` command from T004 (depends on T004, T018)
 - [X] T025 [P] CLI e2e tests for `edit`'s opening rules (non-tty, unparseable, `.md` hint, create-if-missing, diagnostics-don't-block-open) in `crates/fireside-cli/tests/cli_e2e.rs` (depends on T024)
-- [ ] T026 tmux smoke: open the editor, confirm the read-only studio renders, click a slide/block via injected mouse coordinates, present-and-return — proves the SGR mouse-injection technique for this feature's smoke suite — in `scripts/smoke.sh` (depends on T023, T024)
+- [X] T026 tmux smoke: open the editor, confirm the read-only studio renders, click a slide/block via injected mouse coordinates, present-and-return — proves the SGR mouse-injection technique for this feature's smoke suite — in `scripts/smoke.sh` (depends on T023, T024)
 
 **Checkpoint**: Foundation ready — the editor opens, shows a deck read-only, and every user story below can now proceed.
 

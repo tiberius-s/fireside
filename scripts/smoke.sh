@@ -82,6 +82,36 @@ assert_contains() {
   fi
 }
 
+# Waits briefly, then fails if `needle` is still on screen — used to prove
+# a mode switch (e.g. entering the embedded presenter) actually replaced
+# the editor's chrome, not just left stale text sitting under it.
+assert_not_contains() {
+  local label="$1" needle="$2"
+  sleep 0.4
+  if pane | grep -qF "$needle"; then
+    printf '  \033[1;31m\xe2\x9c\x97\033[0m %s \xe2\x80\x94 still showing: %s\n' "$label" "$needle"
+    echo "    --- pane contents ---"
+    pane | sed 's/^/    | /'
+    fail=$((fail + 1))
+  else
+    printf '  \033[1;32m\xe2\x9c\x93\033[0m %s\n' "$label"
+    pass=$((pass + 1))
+  fi
+}
+
+# Injects a synthetic SGR mouse click (press + release, left button, mode
+# 1006) directly into the pty's input stream at 1-based terminal
+# coordinates (col, row) — crossterm's event parser reads these exactly as
+# it would a real mouse event, so this exercises the same code path a
+# physical click does without depending on the terminal emulator's own
+# mouse-reporting support (spec 013, T026: the first use of this technique
+# in this project's smoke suite).
+mouse_click() {
+  local col="$1" row="$2"
+  tmux send-keys -t "$SESSION" -l -- $'\x1b[<0;'"${col}"';'"${row}"'M'
+  tmux send-keys -t "$SESSION" -l -- $'\x1b[<0;'"${col}"';'"${row}"'m'
+}
+
 # ─── Two-pane helpers (spec 012: presenter + `fireside notes` follower) ──
 # `$SESSION` gets a second pane via split-window; pane ids (`%N`) are
 # stable handles independent of tmux's on-screen pane numbering.
@@ -219,6 +249,48 @@ if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
   pass=$((pass + 1))
 else
   printf '  \033[1;31m\xe2\x9c\x97\033[0m follower q did not end the session\n'
+  fail=$((fail + 1))
+fi
+
+# ─── Scenario 6: fireside edit — read-only studio + mouse clicks (spec 013) ──
+echo
+echo "=== fireside edit: read-only studio, SGR mouse clicks, present-and-return ==="
+(cd "$WORKDIR" && "$BIN" new "Smoke Edit Talk" >/dev/null)
+EDITDECK="$WORKDIR/smoke-edit-talk.fireside.json"
+start "$BIN edit $EDITDECK"
+assert_contains "studio opens showing the deck title" "Smoke Edit Talk"
+assert_contains "outline lists the first two slides" "Welcome"
+assert_contains "status line says the deck is ready" "ready to present"
+assert_contains "hint line teaches click-to-select" "Click a slide or block to select"
+
+# Outline row 2 ("Pick a path") sits at 0-indexed (col 2, row 2) given the
+# 100x30 studio's fixed layout (toolbar row 0, outline starting row 1) —
+# SGR coordinates are 1-based, so (3, 3).
+mouse_click 3 3
+assert_contains "clicking the outline (mouse) selects Pick a path" "A choice"
+
+# A click inside the canvas card, well clear of any block — proves mouse
+# events reach the canvas's hit-testing path without upsetting the studio.
+mouse_click 41 9
+assert_contains "canvas click leaves the studio in a healthy state" "ready to present"
+
+# The Present chip sits in the toolbar's fixed right-aligned chip row —
+# see hit::toolbar_chip_rects; at 100 columns it lands around column 61-74
+# (0-indexed), so 1-based (66, 1) is well inside it.
+mouse_click 66 1
+assert_not_contains "presenting (via mouse) hides the editor's hint line" \
+  "Click a slide or block to select"
+keys "q"
+assert_contains "q returns from the embedded presenter to the editor" \
+  "Click a slide or block to select"
+
+keys "q"
+sleep 0.4
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m editor q quits and the terminal is restored\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m editor q did not end the session\n'
   fail=$((fail + 1))
 fi
 
