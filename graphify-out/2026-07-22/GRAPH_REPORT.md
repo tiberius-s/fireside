@@ -1,11 +1,11 @@
 # Graph Report - fireside  (2026-07-22)
 
 ## Corpus Check
-- 319 files · ~443,436 words
+- 319 files · ~443,322 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3832 nodes · 5986 edges · 306 communities (261 shown, 45 thin omitted)
+- 3830 nodes · 5979 edges · 306 communities (261 shown, 45 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 67 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
@@ -1393,8 +1393,8 @@ Cohesion: 0.08
 Nodes (73): BlockPath, EditorApp, FormState, Graph, Node, Option, Rect, String (+65 more)
 
 ### Community 301 - "Community 301"
-Cohesion: 0.05
-Nodes (69): ArtGenerator, BlockPath, DefaultTerminal, Diagnostic, EditableField, draw(), FieldSlot, FormState (+61 more)
+Cohesion: 0.06
+Nodes (67): ArtGenerator, BlockPath, DefaultTerminal, Diagnostic, EditableField, draw(), FieldSlot, FormState (+59 more)
 
 ### Community 302 - "Community 302"
 Cohesion: 0.64
@@ -1426,12 +1426,12 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Community 122`, `Community 228`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `TUI App Core`, `Community 228`, `Community 301`, `Render Module`, `Community 122`, `Community 287`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **Why does `branch_option_hit()` connect `Render Module` to `Community 300`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
   _1759 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**

@@ -294,6 +294,90 @@ else
   fail=$((fail + 1))
 fi
 
+# ─── Scenario 7: fireside edit — US1 block editing, mouse then keyboard (spec 013) ──
+echo
+echo "=== fireside edit: select -> edit -> save via the mouse, then again via the keyboard only ==="
+US1DECK="$WORKDIR/smoke-us1-talk.fireside.json"
+cat >"$US1DECK" <<'JSON'
+{
+  "fireside-version": "0.1.0",
+  "title": "Smoke US1 Talk",
+  "nodes": [
+    {
+      "id": "intro",
+      "title": "Welcome",
+      "content": [
+        {"kind": "heading", "level": 1, "text": "Hello there"},
+        {"kind": "text", "body": "Original wording"}
+      ]
+    }
+  ]
+}
+JSON
+start "$BIN edit $US1DECK"
+assert_contains "studio opens on the fixture deck" "Smoke US1 Talk"
+
+# The text block ("Original wording") renders at row 15 of the fixed
+# 100x30 studio layout for this exact fixture; SGR coordinates are
+# 1-based. Clicking it selects it — the hint line's [ Edit ] chip follows.
+mouse_click 35 15
+assert_contains "clicking the text block selects it (mouse)" "Edit ]"
+
+# The hint-line [ Edit ] chip sits at the studio's fixed bottom row.
+mouse_click 3 30
+assert_contains "clicking [ Edit ] opens the block's form" "Edit text"
+
+# Typing is inherently a keyboard action even on the mouse-driven path —
+# FR-005 asks for a form with explicit confirm/cancel, not mouse text
+# entry. "Done"'s cell sits at a fixed offset inside the always-identical
+# single-field Text form.
+keys "X"
+mouse_click 18 17
+assert_not_contains "[ Done ] commits and closes the form" "Edit text"
+assert_contains "the canvas shows the edited wording immediately" "XOriginal wording"
+
+# The toolbar's [ Save ] chip sits at a fixed offset for this 100-column,
+# untitled-dot-free deck title.
+mouse_click 82 1
+assert_contains "[ Save ] writes the file and flashes Saved" "Saved"
+if grep -qF "XOriginal wording" "$US1DECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the saved file reflects the mouse-driven edit\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the saved file was not updated\n'
+  fail=$((fail + 1))
+fi
+
+# Repeat content-only, keyboard-only (spec 013 US1 acceptance scenario 5):
+# Tab selects the next block (no mouse at all), Enter opens its form,
+# Ctrl+S commits, a second Ctrl+S saves.
+keys "Tab"
+keys "Tab"
+keys "Enter"
+assert_contains "Tab, Tab, Enter opens the text block's form without the mouse" "Edit text"
+keys "Y"
+tmux send-keys -t "$SESSION" C-s
+assert_not_contains "Ctrl+S commits and closes the form" "Edit text"
+tmux send-keys -t "$SESSION" C-s
+assert_contains "a second Ctrl+S saves" "Saved"
+if grep -qF "YXOriginal wording" "$US1DECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the saved file reflects the keyboard-only edit\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the keyboard-only edit was not saved\n'
+  fail=$((fail + 1))
+fi
+
+keys "q"
+sleep 0.4
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m editor q quits and the terminal is restored\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m editor q did not end the session\n'
+  fail=$((fail + 1))
+fi
+
 echo
 echo "----------------------------------------"
 if [[ "$fail" -eq 0 ]]; then

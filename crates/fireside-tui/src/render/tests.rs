@@ -1,5 +1,6 @@
 use super::*;
-use crate::app::{EditableKind, FlashKind, Msg};
+use crate::app::{FlashKind, Msg};
+use crate::editor::forms::EditableKind;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use fireside_core::{ContentBlock, Graph};
 use fireside_engine::{Outcome, RESERVED_PRESENTER_KEYS, Session};
@@ -1538,6 +1539,212 @@ fn link_cell_carries_osc8_escape_with_forced_width() {
             buf[(x + dx, y)].symbol(),
             " ",
             "trailing label cell at dx={dx} is blanked"
+        );
+    }
+}
+
+// ─── Spec 013 (`fireside edit`) US1: Layer 3 vocabulary gate + Layer 4
+// preview fidelity (T039/T040) ───────────────────────────────────────────
+
+/// A slide with one block of every authoring-facing kind (spec 013 T038's
+/// "each of the 8 block kinds"), titled so the outline never falls back to
+/// showing a raw id.
+const EDITOR_ALL_KINDS: &str = r#"{"nodes":[
+    {"id":"showcase","title":"Showcase","content":[
+        {"kind":"heading","level":2,"text":"A heading"},
+        {"kind":"text","body":"Some text"},
+        {"kind":"code","language":"rust","source":"fn main() {}"},
+        {"kind":"list","items":["one","two"]},
+        {"kind":"image","src":"pic.png","alt":"a picture"},
+        {"kind":"divider"},
+        {"kind":"container","layout":"columns","children":[
+            {"kind":"text","body":"left"}
+        ]},
+        {"kind":"ascii-art","art":"x"}
+    ]}
+]}"#;
+
+fn editor_click(app: &mut crate::editor::EditorApp, col: u16, row: u16) {
+    app.update(crate::editor::Msg::Terminal(Event::Mouse(
+        crossterm::event::MouseEvent {
+            kind: crossterm::event::MouseEventKind::Down(crossterm::event::MouseButton::Left),
+            column: col,
+            row,
+            modifiers: KeyModifiers::empty(),
+        },
+    )));
+}
+
+fn editor_press(app: &mut crate::editor::EditorApp, code: KeyCode) {
+    app.update(crate::editor::Msg::Terminal(Event::Key(KeyEvent::from(
+        code,
+    ))));
+}
+
+/// Selects the entry node's `block_index`-th top-level block by clicking
+/// it on the canvas, then opens its form via Enter — driving the real
+/// click + keyboard paths, not a private-field shortcut, since this test
+/// lives outside the `editor` module.
+fn select_and_open_form(
+    app: &mut crate::editor::EditorApp,
+    width: u16,
+    height: u16,
+    block_index: usize,
+) {
+    app.update(crate::editor::Msg::Terminal(Event::Resize(width, height)));
+    let area = Rect::new(0, 0, width, height);
+    let areas = crate::editor::hit::editor_areas(area);
+    let layout =
+        crate::editor::hit::canvas_layout(app, areas.canvas).expect("entry node has content");
+    let (start, _) = layout.block_extents[block_index];
+    let row = layout.inner.y + start as u16;
+    editor_click(app, layout.inner.x, row);
+    editor_press(app, KeyCode::Enter);
+}
+
+fn editor_screen(app: &crate::editor::EditorApp, width: u16, height: u16) -> String {
+    let mut terminal = Terminal::new(TestBackend::new(width, height)).expect("backend");
+    terminal.draw(|f| draw_editor(f, app)).expect("draw");
+    let buffer = terminal.backend().buffer().clone();
+    let mut out = String::new();
+    for y in 0..height {
+        for x in 0..width {
+            out.push_str(buffer[(x, y)].symbol());
+        }
+        out.push('\n');
+    }
+    out
+}
+
+/// Every internal identifier/JSON-key vocabulary FR-024 forbids on any
+/// editor screen. `divider`/`heading`/`text`/`code`/`list`/`picture` are
+/// deliberately absent — those are spec FR-006's *approved* plain-language
+/// names, identical to (not leaking) their protocol spelling.
+const BANNED_WORDS: &[&str] = &["node", "nodes", "graph", "traversal", "kind", "id"];
+const RAW_KIND_STRINGS: &[&str] = &["ascii-art", "container"];
+
+/// The first vocabulary-gate violation found on `screen`, if any — a
+/// denylisted whole word, a raw `ContentBlock` kind string whose approved
+/// plain-language name differs from it, or any `"`-quoted text at all
+/// (spec FR-024; quickstart.md Layer 3).
+fn vocabulary_violation(screen: &str) -> Option<String> {
+    if screen.contains('"') {
+        return Some("a quoted string".to_owned());
+    }
+    for raw in RAW_KIND_STRINGS {
+        if screen.contains(raw) {
+            return Some((*raw).to_owned());
+        }
+    }
+    screen
+        .split(|c: char| !c.is_alphanumeric())
+        .find(|word| BANNED_WORDS.contains(&word.to_lowercase().as_str()))
+        .map(str::to_owned)
+}
+
+/// The gate itself is not vacuous: it does flag the vocabulary it exists
+/// to catch, and does not flag the approved plain-language names spec
+/// FR-006 requires the editor to use instead.
+#[test]
+fn vocabulary_gate_catches_real_leaks_and_allows_approved_plain_language() {
+    assert!(vocabulary_violation("No slide with that node id").is_some());
+    assert!(vocabulary_violation("Every graph traversal step").is_some());
+    assert!(vocabulary_violation("a container layout").is_some());
+    assert!(vocabulary_violation(r#"{"kind":"text"}"#).is_some());
+    assert!(
+        vocabulary_violation("Edit heading  ·  Edit text  ·  Edit code  ·  Edit list").is_none()
+    );
+    assert!(
+        vocabulary_violation("Edit picture  ·  Edit text art  ·  Edit layout  ·  divider")
+            .is_none()
+    );
+}
+
+#[test]
+fn render_suite_vocabulary_gate() {
+    let graph = Graph::from_json(EDITOR_ALL_KINDS).expect("fixture parses");
+    let (w, h) = (100, 40);
+
+    let mut app = crate::editor::EditorApp::new(graph);
+    app.update(crate::editor::Msg::Terminal(Event::Resize(w, h)));
+    let read_only = editor_screen(&app, w, h);
+    assert_eq!(
+        vocabulary_violation(&read_only),
+        None,
+        "read-only studio leaked internal vocabulary: {read_only}"
+    );
+
+    // Every block kind that has a form (all but the divider, index 5).
+    for index in [0usize, 1, 2, 3, 4, 6, 7] {
+        let mut app = crate::editor::EditorApp::new(
+            Graph::from_json(EDITOR_ALL_KINDS).expect("fixture parses"),
+        );
+        select_and_open_form(&mut app, w, h, index);
+        assert!(
+            app.open_form().is_some(),
+            "block {index} should have opened a form"
+        );
+        let form_screen = editor_screen(&app, w, h);
+        assert_eq!(
+            vocabulary_violation(&form_screen),
+            None,
+            "block {index}'s form leaked internal vocabulary: {form_screen}"
+        );
+    }
+}
+
+/// spec SC-008: the editor canvas's at-rest render buffer is
+/// byte-identical to the presenter's own, for the same slide and the same
+/// rect — the structural guarantee `SlideView`/`content::draw_content`
+/// (research.md §7) exists to make automatic. Compared at each fixture's
+/// entry node with no reveal-gated content: the presenter's `SlideView`
+/// carries a "reached via" history breadcrumb the editor's never does (the
+/// editor addresses slides directly, it does not simulate a traversal
+/// path) — the entry node is the one point in the deck where the
+/// presenter's own history is empty too, so it's the only node "the same
+/// slide" unambiguously means "the same rendered output," not a
+/// navigation-history difference outside `SlideView`'s content fields.
+/// Reveal-gated content is excluded for the same reason `canvas.rs`'s own
+/// doc comment gives: the editor always shows a slide's full content at
+/// once (badges, not omission, mark staged content).
+#[test]
+fn preview_fidelity_editor_canvas_matches_the_presenter_for_every_fixture_deck() {
+    let tokens = Tokens::default();
+    let (w, h) = (76, 20);
+    for fixture in [HELLO, NOTHING_TO_EDIT] {
+        let graph = Graph::from_json(fixture).expect("fixture parses");
+        let node = graph.entry().expect("fixture has an entry node");
+        if !node.reveal_levels().is_empty() {
+            continue;
+        }
+
+        let session = Session::new(graph.clone()).expect("non-empty graph");
+        let presenter = App::new(session);
+        let presenter_view = content::SlideView::from_app(&presenter);
+        let mut presenter_terminal = Terminal::new(TestBackend::new(w, h)).expect("backend");
+        presenter_terminal
+            .draw(|f| content::draw_content(f, f.area(), &presenter_view, &tokens))
+            .expect("draw");
+
+        let editor_view = content::SlideView {
+            node,
+            reveal_level: u32::MAX,
+            has_pending_reveal: false,
+            branch_selected: 0,
+            fading: false,
+            scroll: 0,
+            view_mode: node.resolved_view_mode(graph.defaults.as_ref()),
+            history_titles: Vec::new(),
+        };
+        let mut editor_terminal = Terminal::new(TestBackend::new(w, h)).expect("backend");
+        editor_terminal
+            .draw(|f| content::draw_content(f, f.area(), &editor_view, &tokens))
+            .expect("draw");
+
+        assert_eq!(
+            presenter_terminal.backend().buffer(),
+            editor_terminal.backend().buffer(),
+            "canvas/presenter rendering drifted for the entry node at {w}x{h}",
         );
     }
 }

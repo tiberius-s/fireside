@@ -15,6 +15,7 @@ use fireside_core::{ContentBlock, Graph, Node, Transition, ViewMode};
 use fireside_engine::{Outcome, Session, Severity, validate};
 use ratatui::layout::Rect;
 
+use crate::editor::forms::{EditableField, EditableKind};
 use crate::render;
 
 /// How long feedback messages stay on screen.
@@ -66,152 +67,6 @@ pub enum Screen {
     },
 }
 
-/// Addresses one `ContentBlock` within a node's content tree: the sequence
-/// of indices from the root `content` array down through any nested
-/// `Container::children`.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BlockPath {
-    indices: Vec<usize>,
-}
-
-/// Which kind of editable block an [`EditableField`] represents — carried
-/// only for the modal's label, since heading, text, and list items all edit
-/// identically: one buffer row per line/item, Enter splits a row, Backspace
-/// at column 0 merges it into the previous one. For a list that means
-/// typing a new bullet is just pressing Enter, and deleting one is just
-/// Backspace to the start and merging it away — no separate "add/remove
-/// item" affordance needed.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EditableKind {
-    /// A heading block at the given level (1-6).
-    Heading(u8),
-    /// A prose text block.
-    Text,
-    /// A list block's items, one per buffer row.
-    List { ordered: bool },
-}
-
-/// One editable heading/text/list block in the quick-edit modal, plus its
-/// in-progress edit buffer. Discarded entirely when the modal closes.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct EditableField {
-    path: BlockPath,
-    pub kind: EditableKind,
-    /// Multi-line buffer, initialized from the block's current content.
-    pub buffer: Vec<String>,
-    /// `buffer`'s value when the modal opened, kept to detect unsaved
-    /// changes (P2-5) without re-reading the node.
-    initial: Vec<String>,
-    /// (row, column) into `buffer`, in characters (not bytes).
-    pub cursor: (usize, usize),
-}
-
-impl EditableField {
-    fn char_len(&self, row: usize) -> usize {
-        self.buffer[row].chars().count()
-    }
-
-    fn byte_offset(&self, row: usize, col: usize) -> usize {
-        self.buffer[row]
-            .char_indices()
-            .nth(col)
-            .map_or(self.buffer[row].len(), |(b, _)| b)
-    }
-
-    fn insert_char(&mut self, c: char) {
-        let (row, col) = self.cursor;
-        let idx = self.byte_offset(row, col);
-        self.buffer[row].insert(idx, c);
-        self.cursor.1 += 1;
-    }
-
-    fn newline(&mut self) {
-        let (row, col) = self.cursor;
-        let idx = self.byte_offset(row, col);
-        let rest = self.buffer[row].split_off(idx);
-        self.buffer.insert(row + 1, rest);
-        self.cursor = (row + 1, 0);
-    }
-
-    fn backspace(&mut self) {
-        let (row, col) = self.cursor;
-        if col > 0 {
-            let start = self.byte_offset(row, col - 1);
-            let end = self.byte_offset(row, col);
-            self.buffer[row].replace_range(start..end, "");
-            self.cursor.1 -= 1;
-        } else if row > 0 {
-            let line = self.buffer.remove(row);
-            let prev_len = self.char_len(row - 1);
-            self.buffer[row - 1].push_str(&line);
-            self.cursor = (row - 1, prev_len);
-        }
-    }
-
-    fn delete(&mut self) {
-        let (row, col) = self.cursor;
-        if col < self.char_len(row) {
-            let start = self.byte_offset(row, col);
-            let end = self.byte_offset(row, col + 1);
-            self.buffer[row].replace_range(start..end, "");
-        } else if row + 1 < self.buffer.len() {
-            let next = self.buffer.remove(row + 1);
-            self.buffer[row].push_str(&next);
-        }
-    }
-
-    fn move_left(&mut self) {
-        let (row, col) = self.cursor;
-        if col > 0 {
-            self.cursor.1 -= 1;
-        } else if row > 0 {
-            self.cursor = (row - 1, self.char_len(row - 1));
-        }
-    }
-
-    fn move_right(&mut self) {
-        let (row, col) = self.cursor;
-        if col < self.char_len(row) {
-            self.cursor.1 += 1;
-        } else if row + 1 < self.buffer.len() {
-            self.cursor = (row + 1, 0);
-        }
-    }
-
-    /// Moves the cursor up a line; `false` at the first line means the
-    /// caller should move focus to the previous field instead.
-    fn move_up(&mut self) -> bool {
-        let (row, col) = self.cursor;
-        if row == 0 {
-            return false;
-        }
-        self.cursor = (row - 1, col.min(self.char_len(row - 1)));
-        true
-    }
-
-    /// Moves the cursor down a line; `false` at the last line means the
-    /// caller should move focus to the next field instead.
-    fn move_down(&mut self) -> bool {
-        let (row, col) = self.cursor;
-        if row + 1 >= self.buffer.len() {
-            return false;
-        }
-        self.cursor = (row + 1, col.min(self.char_len(row + 1)));
-        true
-    }
-
-    /// The buffer joined back into the single-string form the protocol
-    /// stores (`Heading::text` / `Text::body`).
-    fn text(&self) -> String {
-        self.buffer.join("\n")
-    }
-
-    /// Whether the presenter has typed anything since the modal opened.
-    fn dirty(&self) -> bool {
-        self.buffer != self.initial
-    }
-}
-
 /// Every heading/text/list block on `node`, in document order, including
 /// those nested inside `Container` children — the set the quick-edit modal
 /// offers (ADR-005: content-only, current node only).
@@ -225,24 +80,18 @@ fn collect_editable(blocks: &[ContentBlock], path: &mut Vec<usize>, out: &mut Ve
     for (i, block) in blocks.iter().enumerate() {
         path.push(i);
         match block {
-            ContentBlock::Heading { level, text, .. } => out.push(EditableField {
-                path: BlockPath {
-                    indices: path.clone(),
-                },
-                kind: EditableKind::Heading(*level),
-                buffer: to_buffer(text),
-                initial: to_buffer(text),
-                cursor: (0, 0),
-            }),
-            ContentBlock::Text { body, .. } => out.push(EditableField {
-                path: BlockPath {
-                    indices: path.clone(),
-                },
-                kind: EditableKind::Text,
-                buffer: to_buffer(body),
-                initial: to_buffer(body),
-                cursor: (0, 0),
-            }),
+            ContentBlock::Heading { level, text, .. } => out.push(EditableField::from_text(
+                path.clone(),
+                EditableKind::Heading(*level),
+                text,
+            )),
+            ContentBlock::Text { body, .. } => {
+                out.push(EditableField::from_text(
+                    path.clone(),
+                    EditableKind::Text,
+                    body,
+                ));
+            }
             // Each item is already its own line — the same buffer shape a
             // multi-line text field uses — so list items need no dedicated
             // add/remove affordance: Enter splits a new bullet off,
@@ -250,30 +99,18 @@ fn collect_editable(blocks: &[ContentBlock], path: &mut Vec<usize>, out: &mut Ve
             // nothing to edit, so it gets no field (same as any other
             // block with no text at all).
             ContentBlock::List { ordered, items, .. } if !items.is_empty() => {
-                out.push(EditableField {
-                    path: BlockPath {
-                        indices: path.clone(),
-                    },
-                    kind: EditableKind::List {
+                out.push(EditableField::new(
+                    path.clone(),
+                    EditableKind::List {
                         ordered: ordered.unwrap_or(false),
                     },
-                    initial: items.clone(),
-                    buffer: items.clone(),
-                    cursor: (0, 0),
-                });
+                    items.clone(),
+                ));
             }
             ContentBlock::Container { children, .. } => collect_editable(children, path, out),
             _ => {}
         }
         path.pop();
-    }
-}
-
-fn to_buffer(text: &str) -> Vec<String> {
-    if text.is_empty() {
-        vec![String::new()]
-    } else {
-        text.split('\n').map(str::to_owned).collect()
     }
 }
 
@@ -851,7 +688,7 @@ impl App {
         let current_id = self.session.current().id.clone();
         if let Some(node) = graph.nodes.iter_mut().find(|n| n.id == current_id) {
             for field in fields {
-                if let Some(block) = block_at_mut(&mut node.content, &field.path.indices) {
+                if let Some(block) = block_at_mut(&mut node.content, &field.path) {
                     match block {
                         ContentBlock::Heading { text, .. } => *text = field.text(),
                         ContentBlock::Text { body, .. } => *body = field.text(),
@@ -1041,10 +878,10 @@ mod tests {
         let node = &graph.nodes[0];
         let fields = editable_fields(node);
         assert_eq!(fields.len(), 2, "one heading + one nested text");
-        assert_eq!(fields[0].path.indices, vec![0]);
+        assert_eq!(fields[0].path, vec![0]);
         assert_eq!(fields[0].kind, EditableKind::Heading(2));
         assert_eq!(fields[0].buffer, vec!["Top heading".to_owned()]);
-        assert_eq!(fields[1].path.indices, vec![2, 1]);
+        assert_eq!(fields[1].path, vec![2, 1]);
         assert_eq!(fields[1].kind, EditableKind::Text);
         assert_eq!(fields[1].buffer, vec!["Nested text".to_owned()]);
     }

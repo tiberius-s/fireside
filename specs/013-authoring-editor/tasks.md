@@ -85,21 +85,21 @@ Existing 4-crate Rust workspace (`crates/fireside-core`, `fireside-engine`, `fir
 
 **Independent Test**: Open a deck with a text and a heading block, edit each via its form, save, present to confirm the change, then undo and confirm the original wording returns.
 
-- [ ] T027 [US1] Promote `EditableField` out of `crates/fireside-tui/src/app.rs` into `crates/fireside-tui/src/editor/forms.rs` (shared location both the presenter's quick-edit and the new editor forms depend on)
-- [ ] T028 [US1] Implement the heading/text block edit form (reuses the promoted `EditableField`) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
-- [ ] T029 [US1] Implement the code block edit form (language picker + multiline source, Tab inserts spaces) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
-- [ ] T030 [US1] Implement the list block edit form (one item per line, blank lines dropped) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
-- [ ] T031 [US1] Implement the picture block edit form (path + description fields, placeholder-frame reminder, `[ Convert to text art ]` chip) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
-- [ ] T032 [US1] Implement the text-art block edit form (paste area + `[ Generate from a phrase… ]` CLI-injected callback + 76-column width check before accepting) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
-- [ ] T033 [US1] Implement the columns/box/stack (container) block edit form — layout picker + breadcrumb navigation into children — in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
-- [ ] T034 [US1] Wire block selection to its contextual `[ ✎ Edit ]` action opening the block's form, and `[ Done ]`/`[ Cancel ]` committing via `EditBlock` or discarding, in `crates/fireside-tui/src/editor/mod.rs` (depends on T009, T028, T029, T030, T031, T032, T033)
-- [ ] T035 [US1] Wire `[ Save ]`/Ctrl+S: atomic write via an injected closure in `crates/fireside-cli/src/edit.rs`, clearing the dirty indicator on success (depends on T024, T034)
-- [ ] T036 [US1] Wire `[ ↶ Undo ]`/`u`/`U`: push a full-`Graph`-clone snapshot (with selection) onto `EditorApp::history` on every committed op, cap at 100, clear the redo stack on any new op, in `crates/fireside-tui/src/editor/mod.rs` (depends on T034)
-- [ ] T037 [US1] Wire the dirty-state (`●`) indicator against `saved_graph` in `crates/fireside-tui/src/editor/mod.rs` (depends on T034)
-- [ ] T038 [US1] TestBackend scenario tests: select → edit → save → undo for each of the 8 block kinds, driving both `KeyEvent` and synthetic `MouseEvent` paths, in `crates/fireside-tui/src/editor/mod.rs` (depends on T034, T035, T036, T037)
-- [ ] T039 [US1] Snapshot vocabulary-gate test walking every editor `insta` snapshot fixture against the denylist regex (`\b(node|nodes|graph|traversal|kind|id)\b`, raw kind strings, quoted JSON keys), exempting the preview-fidelity fixture, in `crates/fireside-tui/src/render/tests.rs` (depends on T038)
-- [ ] T040 [US1] Property test: the editor canvas's at-rest render buffer equals the presenter's render buffer for the same slide and size, across the fixture decks (spec SC-008), in `crates/fireside-tui/src/render/tests.rs` (depends on T013, T019)
-- [ ] T041 [US1] tmux smoke: click a text block, edit via its form with the mouse, save, confirm the file changed on disk; repeat keyboard-only, in `scripts/smoke.sh` (depends on T038)
+- [X] T027 [US1] Promote `EditableField` out of `crates/fireside-tui/src/app.rs` into `crates/fireside-tui/src/editor/forms.rs` (shared location both the presenter's quick-edit and the new editor forms depend on)
+- [X] T028 [US1] Implement the heading/text block edit form (reuses the promoted `EditableField`) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
+- [X] T029 [US1] Implement the code block edit form (language picker + multiline source, Tab inserts spaces) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
+- [X] T030 [US1] Implement the list block edit form (one item per line, blank lines dropped) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
+- [X] T031 [US1] Implement the picture block edit form (path + description fields, placeholder-frame reminder, `[ Convert to text art ]` chip) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
+- [X] T032 [US1] Implement the text-art block edit form (paste area + `[ Generate from a phrase… ]` CLI-injected callback + 76-column width check before accepting) in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
+- [X] T033 [US1] Implement the columns/box/stack (container) block edit form — layout picker + breadcrumb navigation into children — in `crates/fireside-tui/src/editor/forms.rs` (depends on T027)
+- [X] T034 [US1] Wire block selection to its contextual `[ ✎ Edit ]` action opening the block's form, and `[ Done ]`/`[ Cancel ]` committing via `EditBlock` or discarding, in `crates/fireside-tui/src/editor/mod.rs` (depends on T009, T028, T029, T030, T031, T032, T033)
+- [X] T035 [US1] Wire `[ Save ]`/Ctrl+S: atomic write via an injected closure in `crates/fireside-cli/src/edit.rs`, clearing the dirty indicator on success (depends on T024, T034)
+- [X] T036 [US1] Wire `[ ↶ Undo ]`/`u`/`U`: push a full-`Graph`-clone snapshot (with selection) onto `EditorApp::history` on every committed op, cap at 100, clear the redo stack on any new op, in `crates/fireside-tui/src/editor/mod.rs` (depends on T034)
+- [X] T037 [US1] Wire the dirty-state (`●`) indicator against `saved_graph` in `crates/fireside-tui/src/editor/mod.rs` (depends on T034)
+- [X] T038 [US1] TestBackend scenario tests: select → edit → save → undo for each of the 8 block kinds, driving both `KeyEvent` and synthetic `MouseEvent` paths, in `crates/fireside-tui/src/editor/mod.rs` (depends on T034, T035, T036, T037)
+- [X] T039 [US1] Snapshot vocabulary-gate test walking every editor `insta` snapshot fixture against the denylist regex (`\b(node|nodes|graph|traversal|kind|id)\b`, raw kind strings, quoted JSON keys), exempting the preview-fidelity fixture, in `crates/fireside-tui/src/render/tests.rs` (depends on T038)
+- [X] T040 [US1] Property test: the editor canvas's at-rest render buffer equals the presenter's render buffer for the same slide and size, across the fixture decks (spec SC-008), in `crates/fireside-tui/src/render/tests.rs` (depends on T013, T019)
+- [X] T041 [US1] tmux smoke: click a text block, edit via its form with the mouse, save, confirm the file changed on disk; repeat keyboard-only, in `scripts/smoke.sh` (depends on T038)
 
 **Checkpoint**: US1 fully functional and independently testable — content editing without ever seeing JSON.
 

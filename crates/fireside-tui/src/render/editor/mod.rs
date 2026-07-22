@@ -6,6 +6,7 @@
 //! `fireside <deck>` would show (the WYSIWYG guarantee, spec SC-008).
 
 mod canvas;
+mod forms;
 mod outline;
 
 use ratatui::Frame;
@@ -15,8 +16,11 @@ use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, BorderType, Clear, Paragraph, Wrap};
 
+use crate::app::FlashKind;
 use crate::editor::EditorApp;
-use crate::editor::hit::{self, MIN_HEIGHT, MIN_WIDTH, TOOLBAR_CHIPS, editor_areas};
+use crate::editor::hit::{
+    self, BLOCK_EDIT_CHIP, MIN_HEIGHT, MIN_WIDTH, TOOLBAR_CHIPS, editor_areas,
+};
 use crate::theme::Tokens;
 
 /// Paint one frame of the authoring studio.
@@ -32,7 +36,10 @@ pub(crate) fn draw(frame: &mut Frame, app: &EditorApp) {
     outline::draw(frame, areas.outline, app, &tokens);
     canvas::draw(frame, areas.canvas, app, &tokens);
     draw_status(frame, areas.status, app, &tokens);
-    draw_hint(frame, areas.hint, &tokens);
+    draw_hint(frame, areas.hint, app, &tokens);
+    if let Some(form) = app.open_form() {
+        forms::draw(frame, area, form, &tokens);
+    }
     if app.showing_help() {
         draw_help(frame, area, &tokens);
     }
@@ -77,14 +84,10 @@ fn draw_toolbar(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens)
             .iter()
             .find(|(a, _)| *a == action)
             .map_or("", |(_, label)| label);
-        // Add-slide/save/undo aren't wired until later stories (US1/US3) —
-        // muted here says "not yet actionable" without hiding the chip
-        // (principle 2: the five chips are always the whole top-level
-        // surface).
-        let actionable = matches!(
-            action,
-            hit::ToolbarAction::Present | hit::ToolbarAction::Help
-        );
+        // Add-slide isn't wired until US3 — muted here says "not yet
+        // actionable" without hiding the chip (principle 2: the five chips
+        // are always the whole top-level surface).
+        let actionable = !matches!(action, hit::ToolbarAction::AddSlide);
         let hovered = app.hover() == Some(&hit::Target::ToolbarChip(action));
         let style = match (actionable, hovered) {
             (true, true) => tokens.selection,
@@ -119,10 +122,51 @@ fn draw_status(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) 
     frame.render_widget(Paragraph::new(Span::styled(text, style)), area);
 }
 
-fn draw_hint(frame: &mut Frame, area: Rect, tokens: &Tokens) {
+/// The hint line: a flash message when one is active, "editing…" while a
+/// form is open (never the stale pre-open hint underneath it — "no
+/// invisible modes"), the selected block's `[ ✎ Edit ]` chip when one is
+/// selected (and has a form — a divider offers none), or the default
+/// teaching hint — in that priority order, exactly one at a time (design
+/// brief principle 2: progressive disclosure, one contextual affordance at
+/// rest).
+fn draw_hint(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) {
+    if let Some(flash) = app.flash() {
+        let style = match flash.kind {
+            FlashKind::Info => tokens.muted,
+            FlashKind::Error => tokens.error,
+        };
+        frame.render_widget(
+            Paragraph::new(Span::styled(format!(" {}", flash.text), style)),
+            area,
+        );
+        return;
+    }
+    if app.open_form().is_some() {
+        frame.render_widget(
+            Paragraph::new(Span::styled(
+                " Editing \u{b7} Ctrl+S/[ Done ] saves \u{b7} Esc/[ Cancel ] discards",
+                tokens.muted,
+            )),
+            area,
+        );
+        return;
+    }
+    if hit::selection_has_form(app) {
+        let hovered = matches!(
+            app.hover(),
+            Some(hit::Target::BlockChip(_, _, hit::BlockAction::Edit))
+        );
+        let style = if hovered {
+            tokens.selection
+        } else {
+            tokens.affordance
+        };
+        frame.render_widget(Paragraph::new(Span::styled(BLOCK_EDIT_CHIP, style)), area);
+        return;
+    }
     frame.render_widget(
         Paragraph::new(Span::styled(
-            "Click a slide or block to select \u{b7} ? shows every key",
+            "Click a slide or block to select \u{b7} Tab selects a block \u{b7} ? shows every key",
             tokens.muted,
         )),
         area,
@@ -136,7 +180,9 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
             tokens.accent.add_modifier(Modifier::BOLD),
         )),
         Line::default(),
-        Line::from("click / Enter     select a slide or block"),
+        Line::from("click / Tab       select a slide or block"),
+        Line::from("Enter             edit the selected block"),
+        Line::from("Ctrl+S            save \u{b7} u/U undo"),
         Line::from("p                 present from the selected slide"),
         Line::from("\u{2191}/\u{2193}, wheel       scroll the canvas"),
         Line::from("Esc               deselect"),

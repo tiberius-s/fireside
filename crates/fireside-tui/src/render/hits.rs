@@ -4,7 +4,8 @@
 
 use ratatui::layout::Rect;
 
-use crate::app::{App, EditableField};
+use crate::app::App;
+use crate::editor::forms::EditableField;
 use crate::theme::Tokens;
 
 use super::content::{NodeLines, content_inner, node_lines, notes_panel};

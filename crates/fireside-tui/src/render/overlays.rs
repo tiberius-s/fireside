@@ -8,7 +8,7 @@ use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Clear, Paragraph};
 use unicode_width::UnicodeWidthChar;
 
-use crate::app::{EditableField, EditableKind};
+use crate::editor::forms::{EditableField, EditableKind};
 use crate::theme::Tokens;
 
 use super::content::indicator;

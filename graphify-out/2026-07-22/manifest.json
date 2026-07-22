@@ -1485,8 +1485,8 @@
     "semantic_hash": ""
   },
   "scripts/smoke.sh": {
-    "mtime": 1784742396.1519604,
-    "ast_hash": "35aed87e29654e49db61212ab9b9a3c5",
+    "mtime": 1784680229.8563771,
+    "ast_hash": "13b1963d738591e7b3f003b21e242928",
     "semantic_hash": ""
   },
   "specs/012-presenter-view/spec.md": {
@@ -1650,8 +1650,8 @@
     "semantic_hash": ""
   },
   "specs/013-authoring-editor/tasks.md": {
-    "mtime": 1784742477.1254494,
-    "ast_hash": "a3976a305a877cfced85541f9c39077f",
+    "mtime": 1784680303.019943,
+    "ast_hash": "c5afa089de224badff944f61c7a4da25",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-017-fireside-edit-scope.md": {
@@ -1680,8 +1680,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/mod.rs": {
-    "mtime": 1784742237.7204578,
-    "ast_hash": "b2690545f3e351c6d9d000eba82548c2",
+    "mtime": 1784742187.2698274,
+    "ast_hash": "0aaf38245286e547cfde4a93302ef2e2",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/mod.rs": {

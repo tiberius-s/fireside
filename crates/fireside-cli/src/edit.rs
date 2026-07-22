@@ -13,6 +13,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use fireside_core::{CoreError, Graph};
+use fireside_tui::WriteBackError;
 
 use crate::Template;
 use crate::new::starter_deck;
@@ -25,8 +26,44 @@ use crate::new::starter_deck;
 /// is never refused, since fixing those is the editor's job.
 pub(crate) fn edit_deck(file: &Path) -> Result<()> {
     let graph = load_or_create(file)?;
-    crate::exit_on_not_a_tty(fireside_tui::editor::run(graph))?;
+    let mut sink = |g: &Graph| -> Result<(), WriteBackError> {
+        let json = g
+            .to_json_pretty()
+            .map_err(|err| WriteBackError::Io(err.to_string()))?;
+        atomic_write(file, &(json + "\n")).map_err(|err| WriteBackError::Io(err.to_string()))
+    };
+    let mut art_generator = |phrase: &str| -> Result<String, String> {
+        crate::art::render_text_banner(phrase).map_err(|err| err.to_string())
+    };
+    crate::exit_on_not_a_tty(fireside_tui::editor::run(
+        graph,
+        &mut sink,
+        Some(&mut art_generator),
+    ))?;
     Ok(())
+}
+
+/// Writes `contents` to `path` atomically (spec 013 FR-022): a temp file in
+/// the same directory, then a same-filesystem rename, so a reader (or a
+/// crash mid-write) never observes a partially written deck — the same
+/// technique `fireside-cli::session.rs::write` already uses for its own
+/// state file.
+fn atomic_write(path: &Path, contents: &str) -> std::io::Result<()> {
+    let dir = path.parent().filter(|p| !p.as_os_str().is_empty());
+    let tmp_name = format!(
+        ".tmp-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or_default()
+    );
+    let tmp_path = match dir {
+        Some(dir) => dir.join(tmp_name),
+        None => Path::new(&tmp_name).to_path_buf(),
+    };
+    std::fs::write(&tmp_path, contents)?;
+    std::fs::rename(&tmp_path, path)
 }
 
 /// Loads `file` as a deck, offering to create one if it doesn't exist yet.
