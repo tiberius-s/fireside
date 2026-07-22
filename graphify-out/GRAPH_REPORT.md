@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-22)
 
 ## Corpus Check
-- 319 files · ~443,436 words
+- 319 files · ~448,329 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3832 nodes · 5986 edges · 306 communities (261 shown, 45 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 67 edges (avg confidence: 0.82)
+- 3860 nodes · 6132 edges · 306 communities (261 shown, 45 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 71 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `792da373`
+- Built from commit: `bfcb4d0f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -321,7 +321,7 @@
 - [[_COMMUNITY_Community 305|Community 305]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `EditorApp` - 65 edges
+1. `EditorApp` - 72 edges
 2. `app()` - 63 edges
 3. `press()` - 60 edges
 4. `screen()` - 53 edges
@@ -1297,8 +1297,8 @@ Cohesion: 0.10
 Nodes (20): Acceptance bar (testable), Architecture, Block forms (never syntax), Constitution notes (explicit), Decisions needed at `/speckit-clarify`, Explicitly out of scope, Fireside — WYSIWYG Block Editor Plan (`fireside edit`, 2026-07-19, rev 3), Interaction design principles (the anti-overwhelm charter) (+12 more)
 
 ### Community 276 - "Community 276"
-Cohesion: 0.27
-Nodes (13): assert_contains(), assert_not_contains(), assert_pane_contains(), keys(), mouse_click(), pane(), pane_of(), start() (+5 more)
+Cohesion: 0.25
+Nodes (14): assert_contains(), assert_not_contains(), assert_pane_contains(), keys(), mouse_click(), mouse_drag(), pane(), pane_of() (+6 more)
 
 ### Community 277 - "Community 277"
 Cohesion: 0.15
@@ -1390,11 +1390,11 @@ Nodes (82): BranchPoint, ContentBlock, Graph, HashMap, Node, Option, Result, Str
 
 ### Community 300 - "Community 300"
 Cohesion: 0.08
-Nodes (73): BlockPath, EditorApp, FormState, Graph, Node, Option, Rect, String (+65 more)
+Nodes (81): BlockPath, EditorApp, FormState, Graph, Node, Option, Rect, String (+73 more)
 
 ### Community 301 - "Community 301"
 Cohesion: 0.05
-Nodes (69): ArtGenerator, BlockPath, DefaultTerminal, Diagnostic, EditableField, draw(), FieldSlot, FormState (+61 more)
+Nodes (80): ArtGenerator, BlockKind, BlockPath, DefaultTerminal, Diagnostic, EditableField, draw(), FieldSlot (+72 more)
 
 ### Community 302 - "Community 302"
 Cohesion: 0.64
@@ -1409,15 +1409,15 @@ Cohesion: 0.29
 Nodes (12): EditableField, FieldSlot, FormState, Frame, Line, Rect, Tokens, draw() (+4 more)
 
 ### Community 305 - "Community 305"
-Cohesion: 0.71
-Nodes (6): EditorApp, Frame, Rect, Tokens, draw(), draw_selection_marker()
+Cohesion: 0.73
+Nodes (9): EditorApp, Frame, Rect, Tokens, draw(), draw_drag_ghost(), draw_empty_slide_target(), draw_insertion_indicator() (+1 more)
 
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1757 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1752 more)
+- **1756 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1751 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **45 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1426,15 +1426,15 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `Session` connect `TUI App Core` to `Render Module`, `CLI Commands`, `Community 122`, `Community 228`?**
+- **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
   _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `TUI App Core`, `Community 228`, `Community 301`, `Render Module`, `Community 122`, `Community 287`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
-- **Why does `branch_option_hit()` connect `Render Module` to `Community 300`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+  _High betweenness centrality (0.031) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1759 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1758 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.07982583454281568 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.11462450592885376 - nodes in this community are weakly interconnected._
+- **Should `TUI App Core` be split into smaller, more focused modules?**
+  _Cohesion score 0.07373271889400922 - nodes in this community are weakly interconnected._

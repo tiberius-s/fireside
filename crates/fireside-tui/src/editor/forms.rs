@@ -277,6 +277,15 @@ pub(crate) enum FormState {
         layout: ContainerLayout,
         children: Vec<ChildSummary>,
     },
+    /// The add-block palette (spec 013, T042): not an edit form for an
+    /// existing block — `path` addresses the *parent* container (empty =
+    /// top-level) and `at` the position a chosen kind will be inserted
+    /// at, mirroring `Op::AddBlock`'s own addressing.
+    AddPalette {
+        node: String,
+        path: BlockPath,
+        at: usize,
+    },
 }
 
 impl FormState {
@@ -288,7 +297,8 @@ impl FormState {
             | Self::List { node, .. }
             | Self::Picture { node, .. }
             | Self::TextArt { node, .. }
-            | Self::Container { node, .. } => node,
+            | Self::Container { node, .. }
+            | Self::AddPalette { node, .. } => node,
         }
     }
 
@@ -300,14 +310,20 @@ impl FormState {
             | Self::List { path, .. }
             | Self::Picture { path, .. }
             | Self::TextArt { path, .. }
-            | Self::Container { path, .. } => path,
+            | Self::Container { path, .. }
+            | Self::AddPalette { path, .. } => path,
         }
     }
 
     /// The block containing this one, if any — any block whose path
     /// has more than one index lives inside a `Container`, so the parent's
     /// path is simply this one's own path with its last index dropped.
+    /// `AddPalette`'s `path` already addresses a parent container (not a
+    /// block), so it never reports one of its own.
     pub(crate) fn parent_container_path(&self) -> Option<BlockPath> {
+        if matches!(self, Self::AddPalette { .. }) {
+            return None;
+        }
         let path = self.path();
         (path.len() > 1).then(|| path[..path.len() - 1].to_vec())
     }
@@ -399,7 +415,7 @@ impl FormState {
                     alt: (!alt_text.trim().is_empty()).then_some(alt_text),
                 })
             }
-            Self::Container { .. } => None,
+            Self::Container { .. } | Self::AddPalette { .. } => None,
         }
     }
 }

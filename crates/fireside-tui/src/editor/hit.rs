@@ -14,7 +14,7 @@
 use ratatui::layout::{Constraint, Layout, Rect};
 
 use fireside_core::{ContainerLayout, Graph, Node};
-use fireside_engine::authoring::{BlockPath, OutlineRow, outline_order};
+use fireside_engine::authoring::{BlockKind, BlockPath, OutlineRow, outline_order};
 
 use crate::render::content::{NodeLines, SlideView, content_inner, node_lines};
 use crate::render::{Surface, blocks, surface};
@@ -39,10 +39,11 @@ pub(crate) enum ToolbarAction {
     Help,
 }
 
-/// One of a selected block's contextual chips. Only `Edit` is produced by
-/// `hit()` as of US1 (T034) — the rest wait for US2/US3's add/move/
-/// reveal/delete wiring. `#[allow(dead_code)]`: forward-declared API
-/// surface per `contracts/hit-testing.md`, not dead code to clean up.
+/// One of a selected block's contextual chips. `Edit`, `AddBelow`, and
+/// `Delete` are produced by `hit()` as of US1/US2 (T034, T042, T043) —
+/// `MoveUp`/`MoveDown`/`Reveal` wait for US3. `#[allow(dead_code)]`:
+/// forward-declared API surface per `contracts/hit-testing.md`, not dead
+/// code to clean up.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(dead_code)]
 pub(crate) enum BlockAction {
@@ -54,11 +55,12 @@ pub(crate) enum BlockAction {
     Delete,
 }
 
-/// One chip inside the currently open form (spec 013, US1/T034). `Done`
+/// One chip inside the currently open form (spec 013, US1-US2). `Done`
 /// and `Cancel` are common to every form; `ConvertToTextArt` is the
 /// picture form's shortcut (T031), `GenerateFromPhrase` the text-art
-/// form's CLI-injected callback trigger (T032), and `CycleLayout` the
-/// container form's layout picker (T033).
+/// form's CLI-injected callback trigger (T032), `CycleLayout` the
+/// container form's layout picker (T033), and `PaletteCard` one of the
+/// add-block palette's eight cards (T042).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum FormChipKind {
     Done,
@@ -66,6 +68,7 @@ pub(crate) enum FormChipKind {
     ConvertToTextArt,
     GenerateFromPhrase,
     CycleLayout,
+    PaletteCard(BlockKind),
 }
 
 /// Which of an open form's text fields a click landed in — coarse-grained
@@ -227,10 +230,15 @@ pub(crate) fn selected_node(app: &EditorApp) -> Option<&Node> {
 /// Each top-level content block's `[start, end)` line range within the
 /// node's rendered flow, computed the same way `render::blocks::render_blocks`
 /// itself joins blocks (one blank line between each) — so a click can
-/// never disagree with what's on screen. Nested (`Container`) children are
-/// out of scope for the Foundational-phase skeleton; hit-testing addresses
-/// only top-level blocks until the container form (US1, T033) needs to
-/// reach inside one.
+/// never disagree with what's on screen. The one-row blank separator
+/// `render_blocks` inserts before every block after the first is
+/// deliberately *excluded* from both neighbors' ranges: it is the
+/// insertion-slot gap `canvas_hit`/`resolve_drop_slot` resolve to
+/// `Target::InsertionSlot` instead (spec 013 US2, T045) — a block's own
+/// extent is exactly its rendered content, never the gap above it.
+/// Nested (`Container`) children are out of scope for the canvas; only
+/// top-level blocks are addressed here (container children are reached
+/// through the container form's breadcrumb, T033).
 fn block_extents(
     node: &Node,
     width: u16,
@@ -238,12 +246,13 @@ fn block_extents(
     reveal_level: u32,
 ) -> Vec<(usize, usize)> {
     let mut out = Vec::with_capacity(node.content.len());
-    let mut prev = 0usize;
+    let mut prev_cumulative = 0usize;
     for i in 0..node.content.len() {
         let cumulative =
             blocks::render_blocks(&node.content[..=i], width, tokens, reveal_level).len();
-        out.push((prev, cumulative));
-        prev = cumulative;
+        let start = if i == 0 { 0 } else { prev_cumulative + 1 };
+        out.push((start, cumulative));
+        prev_cumulative = cumulative;
     }
     out
 }
@@ -318,6 +327,13 @@ fn canvas_hit(app: &EditorApp, canvas: Rect, col: u16, row: u16) -> Option<Targe
         return None;
     }
     let node = selected_node(app)?;
+    if node.content.is_empty() {
+        // Empty slide (spec 013 T046): the whole pane is the "add your
+        // first block" target, equivalent to inserting at position 0 —
+        // a zero-content card has no non-empty `inner` rect to test
+        // against otherwise (`content_inner` sizes to content height).
+        return Some(Target::InsertionSlot(node.id.clone(), Vec::new(), 0));
+    }
     let CanvasLayout {
         inner,
         block_extents: extents,
@@ -327,28 +343,78 @@ fn canvas_hit(app: &EditorApp, canvas: Rect, col: u16, row: u16) -> Option<Targe
         return None;
     }
     let clicked_line = scroll as usize + (row - inner.y) as usize;
+    for (i, &(start, _)) in extents.iter().enumerate().skip(1) {
+        if clicked_line == start - 1 {
+            return Some(Target::InsertionSlot(node.id.clone(), Vec::new(), i));
+        }
+    }
     let block_index = extents
         .iter()
         .position(|&(start, end)| clicked_line >= start && clicked_line < end)?;
     Some(Target::Block(node.id.clone(), vec![block_index]))
 }
 
-/// The selected block's `[ ✎ Edit ]` chip, drawn in the hint line (spec
-/// 013, T034): "at rest, ~7 controls" (spec FR-030) rules out a permanent
-/// floating action bar on the canvas, so the block's one contextual action
-/// takes over the hint line exactly the way a flash message would — visible
-/// only while something is selected, gone the moment it isn't.
-pub(crate) const BLOCK_EDIT_CHIP: &str = " [ \u{270e} Edit ]";
-
-fn block_chip_rect(hint: Rect) -> Rect {
-    let width = BLOCK_EDIT_CHIP.chars().count() as u16;
-    Rect {
-        x: hint.x,
-        y: hint.y,
-        width: width.min(hint.width),
-        height: 1,
+/// Resolves where a block drag currently hovering `(col, row)` on
+/// `node_id`'s canvas would drop, in the *pre-removal* index space (see
+/// `editor::EditorApp::on_release` for the conversion `Op::MoveBlock`'s
+/// `to` parameter needs) — `None` when the pointer isn't over `node_id`'s
+/// canvas at all. A row on a gap gives that gap's slot directly, exactly
+/// like a plain click would (`canvas_hit`); a row within a block's own
+/// extent resolves to "insert before" or "insert after" that block by
+/// whichever half of its rendered rows the pointer is nearer — this
+/// halfway split exists only for drag resolution (`hit()` itself always
+/// resolves a block's full extent to `Target::Block`, per
+/// `contracts/hit-testing.md`'s test contract) and is what lets a block
+/// become the deck's first or last without a dedicated gap row to target.
+#[must_use]
+pub(crate) fn resolve_drop_slot(
+    app: &EditorApp,
+    node_id: &str,
+    canvas: Rect,
+    col: u16,
+    row: u16,
+) -> Option<usize> {
+    let node = selected_node(app)?;
+    if node.id != node_id {
+        return None;
     }
+    if node.content.is_empty() {
+        return rect_contains(canvas, col, row).then_some(0);
+    }
+    let CanvasLayout {
+        inner,
+        block_extents: extents,
+        scroll,
+    } = canvas_layout(app, canvas)?;
+    if !rect_contains(inner, col, row) {
+        return None;
+    }
+    let clicked_line = scroll as usize + (row - inner.y) as usize;
+    for (i, &(start, _)) in extents.iter().enumerate().skip(1) {
+        if clicked_line == start - 1 {
+            return Some(i);
+        }
+    }
+    let idx = extents
+        .iter()
+        .position(|&(s, e)| clicked_line >= s && clicked_line < e)
+        .unwrap_or(extents.len() - 1);
+    let (s, e) = extents[idx];
+    let mid = s + (e - s) / 2;
+    Some(if clicked_line < mid { idx } else { idx + 1 })
 }
+
+/// The selected block's contextual chips, drawn in the hint line (spec
+/// 013, T034/T042/T043): "at rest, ~7 controls" (spec FR-030) rules out a
+/// permanent floating action bar on the canvas, so a block's actions take
+/// over the hint line exactly the way a flash message would — visible
+/// only while something is selected, gone the moment it isn't.
+/// `[ ✎ Edit ]` only appears when the block has a form (a `Divider` has
+/// nothing to edit); `[ + Add below ]` and `[ Delete ]` are always
+/// available for any selected block.
+pub(crate) const BLOCK_EDIT_CHIP: &str = " [ \u{270e} Edit ]";
+pub(crate) const BLOCK_ADD_BELOW_CHIP: &str = " [ + Add below ]";
+pub(crate) const BLOCK_DELETE_CHIP: &str = " [ Delete ]";
 
 /// Whether `block` has an edit form at all — a `Divider` has nothing to
 /// edit, so a selected divider offers no `[ Edit ]` chip.
@@ -358,10 +424,10 @@ fn has_form(node: &str, path: &BlockPath, node_ref: &Node) -> bool {
 }
 
 /// Whether the currently selected block has an edit form — shared by
-/// `hint_hit` (does the hint-line chip resolve?) and
-/// `render::editor::mod::draw_hint` (does it draw the chip at all?), so the
-/// two can never disagree about whether a divider gets an `[ Edit ]` label
-/// it wouldn't actually respond to.
+/// `selected_block_chips` (does `[ Edit ]` appear?) and
+/// `render::editor::mod::draw_hint`, so the two can never disagree about
+/// whether a divider gets an `[ Edit ]` label it wouldn't actually respond
+/// to.
 #[must_use]
 pub(crate) fn selection_has_form(app: &EditorApp) -> bool {
     let Selection::Block(node, path) = app.selection() else {
@@ -372,18 +438,59 @@ pub(crate) fn selection_has_form(app: &EditorApp) -> bool {
         .is_some_and(|node_ref| has_form(node, path, node_ref))
 }
 
+/// The currently selected block's contextual chips, in on-screen order —
+/// shared by `hint_hit` (does a click resolve to one?) and
+/// `render::editor::mod::draw_hint` (drawing), so the two can never
+/// disagree. Empty when nothing is selected.
+#[must_use]
+pub(crate) fn selected_block_chips(app: &EditorApp) -> Vec<(BlockAction, &'static str)> {
+    if !matches!(app.selection(), Selection::Block(..)) {
+        return Vec::new();
+    }
+    let mut chips = Vec::new();
+    if selection_has_form(app) {
+        chips.push((BlockAction::Edit, BLOCK_EDIT_CHIP));
+    }
+    chips.push((BlockAction::AddBelow, BLOCK_ADD_BELOW_CHIP));
+    chips.push((BlockAction::Delete, BLOCK_DELETE_CHIP));
+    chips
+}
+
+/// Column rects for `chips` within the hint line, left-to-right in the
+/// order given — the same "one pure layout, two consumers" convention
+/// `toolbar_chip_rects` already keeps for the toolbar.
+#[must_use]
+pub(crate) fn block_chip_rects(
+    hint: Rect,
+    chips: &[(BlockAction, &'static str)],
+) -> Vec<(BlockAction, Rect)> {
+    let mut x = hint.x;
+    let mut out = Vec::with_capacity(chips.len());
+    for (action, label) in chips {
+        let w = (label.chars().count() as u16).min(hint.width.saturating_sub(x - hint.x));
+        out.push((
+            *action,
+            Rect {
+                x,
+                y: hint.y,
+                width: w,
+                height: 1,
+            },
+        ));
+        x += w;
+    }
+    out
+}
+
 fn hint_hit(app: &EditorApp, hint: Rect, col: u16, row: u16) -> Option<Target> {
     let Selection::Block(node, path) = app.selection() else {
         return None;
     };
-    if !selection_has_form(app) || !rect_contains(block_chip_rect(hint), col, row) {
-        return None;
-    }
-    Some(Target::BlockChip(
-        node.clone(),
-        path.clone(),
-        BlockAction::Edit,
-    ))
+    let chips = selected_block_chips(app);
+    let (action, _) = block_chip_rects(hint, &chips)
+        .into_iter()
+        .find(|(_, r)| rect_contains(*r, col, row))?;
+    Some(Target::BlockChip(node.clone(), path.clone(), action))
 }
 
 // ─── Open-form layout (spec 013, US1/T034) ─────────────────────────────────
@@ -422,6 +529,7 @@ fn form_title(form: &FormState) -> &'static str {
         FormState::Picture { .. } => " Edit picture ",
         FormState::TextArt { .. } => " Edit text art ",
         FormState::Container { .. } => " Edit layout ",
+        FormState::AddPalette { .. } => " Add a block ",
     }
 }
 
@@ -449,7 +557,7 @@ fn form_sections(form: &FormState) -> Vec<(FieldSlot, &'static str, u16)> {
             (FieldSlot::Art, "Art", n(art.buffer.len())),
             (FieldSlot::Alt, "Description", n(alt.buffer.len())),
         ],
-        FormState::Container { .. } => Vec::new(),
+        FormState::Container { .. } | FormState::AddPalette { .. } => Vec::new(),
     }
 }
 
@@ -466,7 +574,45 @@ fn form_hints(form: &FormState) -> Vec<String> {
     }
 }
 
+/// Every add-block palette card (spec 013 T042/FR-006/FR-007): a plain
+/// name plus a one-line description, in the order shown. The divider
+/// kind is named "Line" here (not the raw kind string, which the
+/// vocabulary gate denies) and the container kind "Columns / box /
+/// stack" — the same plain names `.claude/plans/2026-07-19-wysiwyg-editor-plan.md`
+/// specifies.
+const PALETTE_CARDS: [(BlockKind, &str); 8] = [
+    (
+        BlockKind::Heading,
+        "Heading \u{2014} a big title or section heading",
+    ),
+    (BlockKind::Text, "Text \u{2014} a paragraph of prose"),
+    (
+        BlockKind::Code,
+        "Code \u{2014} a code sample with syntax highlighting",
+    ),
+    (BlockKind::List, "List \u{2014} a bulleted or numbered list"),
+    (
+        BlockKind::Image,
+        "Picture \u{2014} an image placeholder with a caption",
+    ),
+    (BlockKind::Divider, "Line \u{2014} a plain horizontal rule"),
+    (
+        BlockKind::Container,
+        "Columns / box / stack \u{2014} group blocks side-by-side, centered, or stacked",
+    ),
+    (
+        BlockKind::AsciiArt,
+        "Text art \u{2014} a banner made of characters",
+    ),
+];
+
 fn form_chip_defs(form: &FormState) -> Vec<(FormChipKind, &'static str)> {
+    if matches!(form, FormState::AddPalette { .. }) {
+        // Unreachable via `form_layout` (which early-returns to
+        // `add_palette_layout` for this variant) — kept only so this
+        // match stays exhaustive over every `FormState` variant.
+        return Vec::new();
+    }
     let mut chips = match form {
         FormState::Picture { .. } => {
             vec![(FormChipKind::ConvertToTextArt, "[ Convert to text art ]")]
@@ -490,6 +636,52 @@ fn form_chip_defs(form: &FormState) -> Vec<(FormChipKind, &'static str)> {
     chips
 }
 
+/// The add-block palette's own layout (spec 013 T042): a vertical list of
+/// the 8 kind cards plus `[ Cancel ]` — distinct from the generic
+/// field/hint/chip-row shape every block-edit form shares, since 8
+/// plain-language cards don't fit one horizontal chip row.
+fn add_palette_layout(area: Rect) -> FormLayout {
+    let content_lines: u16 = 1 + PALETTE_CARDS.len() as u16 + 1 + 1;
+    let overlay = form_overlay(area, content_lines);
+    let inner = Rect {
+        x: overlay.x + 1,
+        y: overlay.y + 1,
+        width: overlay.width.saturating_sub(2),
+        height: overlay.height.saturating_sub(2),
+    };
+    let bottom = inner.y.saturating_add(inner.height);
+    let mut y = inner.y.saturating_add(1);
+    let mut chips = Vec::new();
+    for (kind, label) in PALETTE_CARDS {
+        let rect = Rect {
+            x: inner.x,
+            y: y.min(bottom.saturating_sub(1)),
+            width: inner.width,
+            height: 1,
+        };
+        chips.push((FormChipKind::PaletteCard(kind), label, rect));
+        y = y.saturating_add(1);
+    }
+    y = y.saturating_add(1);
+    let cancel_rect = Rect {
+        x: inner.x,
+        y: y.min(bottom.saturating_sub(1)),
+        width: inner.width,
+        height: 1,
+    };
+    chips.push((FormChipKind::Cancel, "[ Cancel ]", cancel_rect));
+    FormLayout {
+        overlay,
+        title: " Add a block ",
+        fields: Vec::new(),
+        hint_lines: Vec::new(),
+        hint_rect: Rect::new(inner.x, bottom, inner.width, 0),
+        children_lines: Vec::new(),
+        children_rect: Rect::new(inner.x, bottom, inner.width, 0),
+        chips,
+    }
+}
+
 /// A centered overlay sized to fit `content_lines` of content (plus its
 /// border), clamped to `area` — the same shape `render::overlay_rect`
 /// gives the presenter's own overlays, reproduced here since that helper
@@ -509,6 +701,9 @@ fn form_overlay(area: Rect, content_lines: u16) -> Rect {
 /// computed purely from `form` and the frame `area` — reused verbatim by
 /// `render::editor::forms::draw` and this module's `form_hit`.
 pub(crate) fn form_layout(form: &FormState, area: Rect) -> FormLayout {
+    if matches!(form, FormState::AddPalette { .. }) {
+        return add_palette_layout(area);
+    }
     let sections = form_sections(form);
     let hint_lines = form_hints(form);
     let children_lines: Vec<String> = match form {
@@ -767,5 +962,119 @@ mod tests {
     fn a_coordinate_outside_every_region_is_none() {
         let app = app();
         assert_eq!(hit(&app, area(), 0, 29), None);
+    }
+
+    // ─── InsertionSlot / drag resolution (spec 013 US2, T045) ────────────
+
+    #[test]
+    fn the_gap_between_two_blocks_resolves_to_an_insertion_slot() {
+        let app = app();
+        let areas = editor_areas(area());
+        let node = app.working_graph().node("a").expect("node a");
+        let tokens = Tokens::default();
+        let view_mode = node.resolved_view_mode(app.working_graph().defaults.as_ref());
+        let surf = surface(view_mode, areas.canvas);
+        let extents = block_extents(node, surf.width, &tokens, u32::MAX);
+        let view = SlideView {
+            node,
+            reveal_level: u32::MAX,
+            has_pending_reveal: false,
+            branch_selected: 0,
+            fading: false,
+            scroll: 0,
+            view_mode,
+            history_titles: Vec::new(),
+        };
+        let NodeLines { lines, .. } = node_lines(&view, surf.width, &tokens);
+        let (_, inner) = content_inner(areas.canvas, &surf, lines.len() as u16);
+
+        // The row between block 0 and block 1 is the gap `render_blocks`
+        // joins them with — neither block's own extent, per
+        // `block_extents`'s doc.
+        let gap_row = extents[1].0 - 1;
+        let row = inner.y + gap_row as u16;
+        assert_eq!(
+            hit(&app, area(), inner.x, row),
+            Some(Target::InsertionSlot("a".to_owned(), Vec::new(), 1))
+        );
+    }
+
+    #[test]
+    fn empty_slide_resolves_the_whole_card_to_slot_zero() {
+        const EMPTY: &str = r#"{"nodes":[{"id":"a","title":"Blank","content":[]}]}"#;
+        let app = EditorApp::new(Graph::from_json(EMPTY).expect("fixture parses"));
+        let areas = editor_areas(area());
+        let target = hit(&app, area(), areas.canvas.x + 5, areas.canvas.y + 2);
+        assert_eq!(
+            target,
+            Some(Target::InsertionSlot("a".to_owned(), Vec::new(), 0))
+        );
+    }
+
+    #[test]
+    fn resolve_drop_slot_snaps_to_the_nearer_half_of_a_block() {
+        // A body long enough to wrap across several rows at this width, so
+        // the block has a genuine top/bottom half to snap to.
+        const TALL: &str = r#"{"nodes":[{"id":"a","title":"Welcome","content":[
+            {"kind":"divider"},
+            {"kind":"text","body":"one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty"}
+        ]}]}"#;
+        let app = EditorApp::new(Graph::from_json(TALL).expect("fixture parses"));
+        let areas = editor_areas(area());
+        let node = app.working_graph().node("a").expect("node a");
+        let tokens = Tokens::default();
+        let view_mode = node.resolved_view_mode(app.working_graph().defaults.as_ref());
+        let surf = surface(view_mode, areas.canvas);
+        let extents = block_extents(node, surf.width, &tokens, u32::MAX);
+        let view = SlideView {
+            node,
+            reveal_level: u32::MAX,
+            has_pending_reveal: false,
+            branch_selected: 0,
+            fading: false,
+            scroll: 0,
+            view_mode,
+            history_titles: Vec::new(),
+        };
+        let NodeLines { lines, .. } = node_lines(&view, surf.width, &tokens);
+        let (_, inner) = content_inner(areas.canvas, &surf, lines.len() as u16);
+
+        let (start, end) = extents[1]; // block 1, the wrapped text block
+        assert!(end - start > 1, "fixture must wrap across multiple rows");
+        // A pointer in the top half of block 1 resolves to "insert before
+        // block 1" (slot 1); the bottom half resolves to "after" (slot 2).
+        assert_eq!(
+            resolve_drop_slot(&app, "a", areas.canvas, inner.x, inner.y + start as u16),
+            Some(1)
+        );
+        assert_eq!(
+            resolve_drop_slot(&app, "a", areas.canvas, inner.x, inner.y + (end - 1) as u16),
+            Some(2)
+        );
+    }
+
+    #[test]
+    fn resolve_drop_slot_is_none_off_the_matching_nodes_canvas() {
+        let app = app();
+        let areas = editor_areas(area());
+        assert_eq!(
+            resolve_drop_slot(
+                &app,
+                "does-not-exist",
+                areas.canvas,
+                areas.canvas.x,
+                areas.canvas.y
+            ),
+            None
+        );
+    }
+
+    #[test]
+    fn add_below_chip_and_delete_chip_resolve_once_a_block_is_selected() {
+        let mut app = app();
+        app.selection = Selection::Block("a".to_owned(), vec![1]);
+        let chips = selected_block_chips(&app);
+        assert!(chips.iter().any(|(a, _)| *a == BlockAction::AddBelow));
+        assert!(chips.iter().any(|(a, _)| *a == BlockAction::Delete));
     }
 }

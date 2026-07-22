@@ -1691,6 +1691,37 @@ fn render_suite_vocabulary_gate() {
             "block {index}'s form leaked internal vocabulary: {form_screen}"
         );
     }
+
+    // The add-block palette (spec 013 US2, T042): every one of its 8
+    // plain-language cards, on screen at once.
+    let mut app =
+        crate::editor::EditorApp::new(Graph::from_json(EDITOR_ALL_KINDS).expect("fixture parses"));
+    app.update(crate::editor::Msg::Terminal(Event::Resize(w, h)));
+    let area = Rect::new(0, 0, w, h);
+    let areas = crate::editor::hit::editor_areas(area);
+    let layout =
+        crate::editor::hit::canvas_layout(&app, areas.canvas).expect("entry node has content");
+    let (start, _) = layout.block_extents[0];
+    editor_click(&mut app, layout.inner.x, layout.inner.y + start as u16);
+    let chips = crate::editor::hit::selected_block_chips(&app);
+    let (_, add_below_rect) = crate::editor::hit::block_chip_rects(areas.hint, &chips)
+        .into_iter()
+        .find(|(a, _)| *a == crate::editor::hit::BlockAction::AddBelow)
+        .expect("an Add below chip exists");
+    editor_click(&mut app, add_below_rect.x, add_below_rect.y);
+    assert!(
+        matches!(
+            app.open_form(),
+            Some(crate::editor::forms::FormState::AddPalette { .. })
+        ),
+        "expected the add-block palette to be open"
+    );
+    let palette_screen = editor_screen(&app, w, h);
+    assert_eq!(
+        vocabulary_violation(&palette_screen),
+        None,
+        "the add-block palette leaked internal vocabulary: {palette_screen}"
+    );
 }
 
 /// spec SC-008: the editor canvas's at-rest render buffer is

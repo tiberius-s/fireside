@@ -43,12 +43,24 @@ pub(crate) enum Selection {
     Block(String, BlockPath),
 }
 
-/// A block or slide drag in progress. Only `Idle` exists until US2/US3
-/// (T044/T050) add the lifting/hovering states drag-and-drop needs.
+/// A block or slide drag in progress (spec 013, `data-model.md`'s
+/// `EditorApp::drag`). `Lifting` covers a press on a block that hasn't
+/// moved yet (indistinguishable from a plain click until it does);
+/// `Over` is an active drag currently resolved over a drop slot. Slide
+/// drag (US3, T050) reuses this same state.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub(crate) enum DragState {
     #[default]
     Idle,
+    Lifting {
+        node: String,
+        path: BlockPath,
+    },
+    Over {
+        node: String,
+        path: BlockPath,
+        to: usize,
+    },
 }
 
 /// One undo/redo checkpoint: a full graph clone plus the selection at that
@@ -94,7 +106,6 @@ pub(crate) struct EditorApp {
     working_graph: Graph,
     saved_graph: Graph,
     selection: Selection,
-    #[allow(dead_code)] // read once drag-and-drop (US2, T044) lands
     drag: DragState,
     open_form: Option<FormState>,
     history: Vec<HistorySnapshot>,
@@ -200,10 +211,10 @@ impl EditorApp {
         self.history.len()
     }
 
-    /// Forward-declared accessor: drag-and-drop (US2, T044) is the first
-    /// thing that reads this outside tests.
+    /// The block (or slide, once US3's outline drag lands) drag in
+    /// progress, if any — read by `render::editor::canvas` to draw the
+    /// dimmed ghost and drop indicator.
     #[must_use]
-    #[allow(dead_code)]
     pub(crate) fn drag(&self) -> &DragState {
         &self.drag
     }
@@ -343,6 +354,9 @@ impl EditorApp {
             hit::FormChipKind::ConvertToTextArt => self.convert_picture_to_text_art(),
             hit::FormChipKind::GenerateFromPhrase => self.request_art_generation(),
             hit::FormChipKind::CycleLayout => self.cycle_container_layout(),
+            // Handled by `on_click` before it ever reaches here (needs the
+            // `BlockKind` payload); kept so this match stays exhaustive.
+            hit::FormChipKind::PaletteCard(kind) => self.add_block_from_palette(kind),
         }
     }
 
@@ -487,7 +501,7 @@ impl EditorApp {
                 TextArtFocus::Art => art,
                 TextArtFocus::Alt => alt,
             }),
-            FormState::Container { .. } => None,
+            FormState::Container { .. } | FormState::AddPalette { .. } => None,
         }
     }
 
@@ -547,15 +561,83 @@ impl EditorApp {
     /// at 100, per spec FR-016) and clearing `redo` — the sole path any op
     /// reaches `working_graph` through. A precondition failure flashes the
     /// error rather than touching `working_graph` (`authoring::apply` is
-    /// atomic: `Err` never partially mutates).
-    fn apply_op(&mut self, op: Op) {
+    /// atomic: `Err` never partially mutates). Returns whether the op
+    /// applied, so callers that only want to react on success (delete's
+    /// flash, a drag's selection follow-up) don't have to duplicate the
+    /// match.
+    fn apply_op(&mut self, op: Op) -> bool {
         match authoring::apply(&self.working_graph, &op) {
             Ok(next) => {
                 self.push_history();
                 self.working_graph = next;
                 self.redo.clear();
+                true
             }
-            Err(err) => self.set_flash(err.to_string(), FlashKind::Error),
+            Err(err) => {
+                self.set_flash(err.to_string(), FlashKind::Error);
+                false
+            }
+        }
+    }
+
+    // ─── Add / delete / reorder blocks (spec 013, US2) ──────────────────
+
+    /// Opens the add-block palette (spec 013 T042), targeting position
+    /// `at` within `path` (empty = the slide's top-level content).
+    fn open_add_palette(&mut self, node: String, path: BlockPath, at: usize) {
+        self.open_form = Some(FormState::AddPalette { node, path, at });
+    }
+
+    /// A palette card was chosen: inserts a placeholder block of `kind`
+    /// via `Op::AddBlock`, then opens *its* edit form immediately — "the
+    /// new block MUST start with placeholder content and open for editing
+    /// immediately" (spec FR-007).
+    fn add_block_from_palette(&mut self, kind: authoring::BlockKind) {
+        let Some(FormState::AddPalette { node, path, at }) = self.open_form.clone() else {
+            return;
+        };
+        self.open_form = None;
+        if self.apply_op(Op::AddBlock {
+            node: node.clone(),
+            path: path.clone(),
+            kind,
+            at,
+        }) {
+            let mut new_path = path;
+            new_path.push(at);
+            self.selection = Selection::Block(node.clone(), new_path.clone());
+            self.open_form_at(&node, &new_path);
+        }
+    }
+
+    /// `[ Delete ]`: removes the block via `Op::DeleteBlock`, reindexes or
+    /// clears a selection whose position the deletion shifted, and
+    /// flashes a reversible, word-labeled notice rather than a blocking
+    /// dialog (spec US2 acceptance scenario 2, FR-008/FR-017) — the
+    /// toolbar's `[ ↶ Undo ]` chip/`u` key is the actual undo path.
+    fn delete_block(&mut self, node: String, path: BlockPath) {
+        let deleted_index = path.last().copied().unwrap_or(0);
+        let deleted_parent = path[..path.len().saturating_sub(1)].to_vec();
+        if self.apply_op(Op::DeleteBlock {
+            node: node.clone(),
+            path,
+        }) {
+            if let Selection::Block(sel_node, sel_path) = &mut self.selection
+                && *sel_node == node
+                && sel_path.len() == deleted_parent.len() + 1
+                && sel_path[..deleted_parent.len()] == deleted_parent[..]
+            {
+                let sel_index = sel_path[deleted_parent.len()];
+                match sel_index.cmp(&deleted_index) {
+                    std::cmp::Ordering::Equal => self.selection = Selection::None,
+                    std::cmp::Ordering::Greater => sel_path[deleted_parent.len()] -= 1,
+                    std::cmp::Ordering::Less => {}
+                }
+            }
+            self.set_flash(
+                "Deleted \u{2014} press \u{21b6} Undo to bring it back",
+                FlashKind::Info,
+            );
         }
     }
 
@@ -645,7 +727,13 @@ impl EditorApp {
                 self.request_save();
             }
             KeyCode::Esc => {
-                if self.selection != Selection::None {
+                if self.drag != DragState::Idle {
+                    // A drag cancels without applying anything — nothing
+                    // was ever written to `working_graph` until release,
+                    // so "cancel" is just discarding the in-progress
+                    // target (design brief: "the block returns").
+                    self.drag = DragState::Idle;
+                } else if self.selection != Selection::None {
                     self.selection = Selection::None;
                 }
             }
@@ -701,6 +789,10 @@ impl EditorApp {
     fn on_mouse(&mut self, event: MouseEvent) {
         match event.kind {
             MouseEventKind::Down(MouseButton::Left) => self.on_click(event.column, event.row),
+            MouseEventKind::Drag(MouseButton::Left) => {
+                self.on_drag_move(event.column, event.row);
+            }
+            MouseEventKind::Up(MouseButton::Left) => self.on_release(),
             MouseEventKind::Moved => {
                 let (w, h) = self.terminal_size;
                 self.hover = hit::hit(self, Rect::new(0, 0, w, h), event.column, event.row);
@@ -708,6 +800,56 @@ impl EditorApp {
             MouseEventKind::ScrollDown => self.scroll = self.scroll.saturating_add(1),
             MouseEventKind::ScrollUp => self.scroll = self.scroll.saturating_sub(1),
             _ => {}
+        }
+    }
+
+    /// A pointer move while the left button is held (crossterm reports
+    /// this as `Drag`, distinct from button-less `Moved`): re-resolves
+    /// the drop candidate for the block being lifted, auto-scrolling the
+    /// canvas near its top/bottom edge (spec FR-009's "auto-scroll near
+    /// canvas edges", design brief). A no-op unless a block drag is
+    /// actually in progress.
+    fn on_drag_move(&mut self, col: u16, row: u16) {
+        let (node, path) = match &self.drag {
+            DragState::Lifting { node, path } | DragState::Over { node, path, .. } => {
+                (node.clone(), path.clone())
+            }
+            DragState::Idle => return,
+        };
+        let (w, h) = self.terminal_size;
+        let areas = hit::editor_areas(Rect::new(0, 0, w, h));
+        if row <= areas.canvas.y {
+            self.scroll = self.scroll.saturating_sub(1);
+        } else if row.saturating_add(1) >= areas.canvas.bottom() {
+            self.scroll = self.scroll.saturating_add(1);
+        }
+        if let Some(to) = hit::resolve_drop_slot(self, &node, areas.canvas, col, row) {
+            self.drag = DragState::Over { node, path, to };
+        }
+    }
+
+    /// Left-button release: commits the drag's last-resolved slot via
+    /// `Op::MoveBlock`, converting the insertion-slot position (measured
+    /// in the array's pre-removal order) into the post-removal index the
+    /// engine's `MoveBlock::to` expects. A release with no resolved slot
+    /// (the pointer never left the origin block, or left the canvas
+    /// entirely) is a no-op — indistinguishable from, and as harmless as,
+    /// a plain click.
+    fn on_release(&mut self) {
+        let drag = std::mem::replace(&mut self.drag, DragState::Idle);
+        let DragState::Over { node, path, to } = drag else {
+            return;
+        };
+        let Some(&origin) = path.last() else { return };
+        let move_to = if to <= origin { to } else { to - 1 };
+        if move_to != origin
+            && self.apply_op(Op::MoveBlock {
+                node: node.clone(),
+                path: path.clone(),
+                to: move_to,
+            })
+        {
+            self.selection = Selection::Block(node, vec![move_to]);
         }
     }
 
@@ -719,10 +861,25 @@ impl EditorApp {
                 self.scroll = 0;
             }
             Some(hit::Target::Block(node_id, path)) => {
-                self.selection = Selection::Block(node_id, path);
+                self.selection = Selection::Block(node_id.clone(), path.clone());
+                self.drag = DragState::Lifting {
+                    node: node_id,
+                    path,
+                };
+            }
+            Some(hit::Target::InsertionSlot(node, path, at)) => {
+                self.open_add_palette(node, path, at);
             }
             Some(hit::Target::BlockChip(node, path, hit::BlockAction::Edit)) => {
                 self.open_form_at(&node, &path);
+            }
+            Some(hit::Target::BlockChip(node, path, hit::BlockAction::AddBelow)) => {
+                let mut parent = path;
+                let at = parent.pop().map_or(0, |i| i + 1);
+                self.open_add_palette(node, parent, at);
+            }
+            Some(hit::Target::BlockChip(node, path, hit::BlockAction::Delete)) => {
+                self.delete_block(node, path);
             }
             Some(hit::Target::ToolbarChip(hit::ToolbarAction::Present)) => {
                 self.present_requested = true;
@@ -736,16 +893,18 @@ impl EditorApp {
             Some(hit::Target::ToolbarChip(hit::ToolbarAction::Undo)) => {
                 self.undo();
             }
+            Some(hit::Target::FormChip(hit::FormChipKind::PaletteCard(kind))) => {
+                self.add_block_from_palette(kind);
+            }
             Some(hit::Target::FormChip(kind)) => self.on_form_chip(kind),
             Some(hit::Target::FormField(slot)) => self.focus_form_field(slot),
-            // Add-slide isn't wired until US3 — the chip resolves but is a
-            // no-op for now (design brief: "no mutations" beyond a wave's
-            // own scope).
+            // Add-slide/move-up/move-down/reveal aren't wired until US3 —
+            // the chip resolves but is a no-op for now (design brief: "no
+            // mutations" beyond a wave's own scope).
             Some(
                 hit::Target::BlockChip(..)
                 | hit::Target::ToolbarChip(hit::ToolbarAction::AddSlide)
                 | hit::Target::OutlineNewSlide
-                | hit::Target::InsertionSlot(..)
                 | hit::Target::GoesToChip(_)
                 | hit::Target::StatusBanner,
             ) => {}
@@ -931,6 +1090,24 @@ mod tests {
     fn move_to(app: &mut EditorApp, col: u16, row: u16) {
         app.update(Msg::Terminal(Event::Mouse(MouseEvent {
             kind: MouseEventKind::Moved,
+            column: col,
+            row,
+            modifiers: crossterm::event::KeyModifiers::empty(),
+        })));
+    }
+
+    fn drag_to(app: &mut EditorApp, col: u16, row: u16) {
+        app.update(Msg::Terminal(Event::Mouse(MouseEvent {
+            kind: MouseEventKind::Drag(MouseButton::Left),
+            column: col,
+            row,
+            modifiers: crossterm::event::KeyModifiers::empty(),
+        })));
+    }
+
+    fn release(app: &mut EditorApp, col: u16, row: u16) {
+        app.update(Msg::Terminal(Event::Mouse(MouseEvent {
+            kind: MouseEventKind::Up(MouseButton::Left),
             column: col,
             row,
             modifiers: crossterm::event::KeyModifiers::empty(),
@@ -1459,5 +1636,302 @@ mod tests {
             app.flash().map(|f| f.text.clone()),
             Some("disk full".to_owned())
         );
+    }
+
+    // ─── US2: add / delete / drag-reorder blocks (T047) ─────────────────
+
+    #[test]
+    fn add_block_via_palette_inserts_a_placeholder_and_opens_its_form() {
+        let mut app = app();
+        select_block(&mut app, "a", 0); // the heading
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        let chips = hit::selected_block_chips(&app);
+        let (_, add_below_rect) = hit::block_chip_rects(areas.hint, &chips)
+            .into_iter()
+            .find(|(a, _)| *a == hit::BlockAction::AddBelow)
+            .expect("an Add below chip exists");
+        click(&mut app, add_below_rect.x, add_below_rect.y);
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::AddPalette { .. })
+        ));
+
+        let layout = hit::form_layout(app.open_form().expect("palette open"), area);
+        let (_, _, card_rect) = layout
+            .chips
+            .iter()
+            .find(|(kind, _, _)| {
+                matches!(kind, hit::FormChipKind::PaletteCard(k) if *k == authoring::BlockKind::Text)
+            })
+            .expect("a Text card exists");
+        click(&mut app, card_rect.x, card_rect.y);
+
+        // Placeholder content is inserted right after the selected block
+        // (position 1) and its own form opens immediately (spec FR-007).
+        assert!(
+            matches!(app.open_form(), Some(FormState::Text { .. })),
+            "the new block's form opens immediately: {:?}",
+            app.open_form()
+        );
+        let node = app.working_graph().node("a").expect("node a");
+        assert_eq!(node.content.len(), 3);
+        assert_eq!(
+            node.content[1],
+            ContentBlock::Text {
+                reveal: None,
+                body: "New text".to_owned(),
+            }
+        );
+        assert_eq!(app.selection(), &Selection::Block("a".to_owned(), vec![1]));
+    }
+
+    #[test]
+    fn every_palette_card_inserts_its_own_block_kind() {
+        type KindCheck = fn(&ContentBlock) -> bool;
+        let cases: [(authoring::BlockKind, KindCheck); 8] = [
+            (authoring::BlockKind::Heading, |b| {
+                matches!(b, ContentBlock::Heading { .. })
+            }),
+            (authoring::BlockKind::Text, |b| {
+                matches!(b, ContentBlock::Text { .. })
+            }),
+            (authoring::BlockKind::Code, |b| {
+                matches!(b, ContentBlock::Code { .. })
+            }),
+            (authoring::BlockKind::List, |b| {
+                matches!(b, ContentBlock::List { .. })
+            }),
+            (authoring::BlockKind::Image, |b| {
+                matches!(b, ContentBlock::Image { .. })
+            }),
+            (authoring::BlockKind::Divider, |b| {
+                matches!(b, ContentBlock::Divider { .. })
+            }),
+            (authoring::BlockKind::Container, |b| {
+                matches!(b, ContentBlock::Container { .. })
+            }),
+            (authoring::BlockKind::AsciiArt, |b| {
+                matches!(b, ContentBlock::AsciiArt { .. })
+            }),
+        ];
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        for (kind, is_expected_kind) in cases {
+            let mut app = app();
+            select_block(&mut app, "a", 0);
+            let chips = hit::selected_block_chips(&app);
+            let (_, add_below_rect) = hit::block_chip_rects(areas.hint, &chips)
+                .into_iter()
+                .find(|(a, _)| *a == hit::BlockAction::AddBelow)
+                .expect("an Add below chip exists");
+            click(&mut app, add_below_rect.x, add_below_rect.y);
+            let layout = hit::form_layout(app.open_form().expect("palette open"), area);
+            let (_, _, card_rect) = layout
+                .chips
+                .iter()
+                .find(|(k, _, _)| matches!(k, hit::FormChipKind::PaletteCard(k) if *k == kind))
+                .unwrap_or_else(|| panic!("a card exists for {kind:?}"));
+            click(&mut app, card_rect.x, card_rect.y);
+
+            let node = app.working_graph().node("a").expect("node a");
+            assert!(
+                is_expected_kind(&node.content[1]),
+                "{kind:?}'s card inserted the wrong block kind: {:?}",
+                node.content[1]
+            );
+            // Every kind but Divider opens its own form immediately.
+            if kind != authoring::BlockKind::Divider {
+                assert!(
+                    app.open_form().is_some(),
+                    "{kind:?}'s new block should open its own form"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn cancel_chip_closes_the_palette_without_adding_anything() {
+        let mut app = app();
+        select_block(&mut app, "a", 0);
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        let chips = hit::selected_block_chips(&app);
+        let (_, add_below_rect) = hit::block_chip_rects(areas.hint, &chips)
+            .into_iter()
+            .find(|(a, _)| *a == hit::BlockAction::AddBelow)
+            .expect("an Add below chip exists");
+        click(&mut app, add_below_rect.x, add_below_rect.y);
+        let layout = hit::form_layout(app.open_form().expect("palette open"), area);
+        let (_, _, cancel_rect) = layout
+            .chips
+            .iter()
+            .find(|(kind, _, _)| *kind == hit::FormChipKind::Cancel)
+            .expect("a Cancel chip exists");
+        click(&mut app, cancel_rect.x, cancel_rect.y);
+        assert!(app.open_form().is_none());
+        assert_eq!(app.working_graph().node("a").unwrap().content.len(), 2);
+        assert!(!app.dirty());
+    }
+
+    #[test]
+    fn delete_chip_removes_the_block_flashes_and_is_undoable() {
+        let mut app = app();
+        select_block(&mut app, "a", 1); // the text block
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        let chips = hit::selected_block_chips(&app);
+        let (_, delete_rect) = hit::block_chip_rects(areas.hint, &chips)
+            .into_iter()
+            .find(|(a, _)| *a == hit::BlockAction::Delete)
+            .expect("a Delete chip exists");
+        click(&mut app, delete_rect.x, delete_rect.y);
+
+        assert_eq!(app.working_graph().node("a").unwrap().content.len(), 1);
+        assert_eq!(app.selection(), &Selection::None);
+        assert!(
+            app.flash().is_some_and(|f| f.text.starts_with("Deleted")),
+            "expected a reversible 'Deleted' notice, got {:?}",
+            app.flash()
+        );
+
+        app.undo();
+        let node = app.working_graph().node("a").expect("node a");
+        assert_eq!(node.content.len(), 2, "undo restores the deleted block");
+        assert_eq!(
+            node.content[1],
+            ContentBlock::Text {
+                reveal: None,
+                body: "World".to_owned(),
+            }
+        );
+    }
+
+    #[test]
+    fn drag_reorders_blocks_mouse_only() {
+        let mut app = app();
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        let layout = hit::canvas_layout(&app, areas.canvas).expect("canvas has layout");
+        let (start0, _) = layout.block_extents[0];
+        let (_, end1) = layout.block_extents[1];
+
+        // Press on block 0 (the heading): selects it and arms the drag.
+        click(&mut app, layout.inner.x, layout.inner.y + start0 as u16);
+        assert_eq!(app.selection(), &Selection::Block("a".to_owned(), vec![0]));
+        assert_eq!(
+            app.drag(),
+            &DragState::Lifting {
+                node: "a".to_owned(),
+                path: vec![0],
+            }
+        );
+
+        // Drag into the bottom half of block 1 — "insert after block 1".
+        let drop_row = layout.inner.y + (end1 - 1) as u16;
+        drag_to(&mut app, layout.inner.x, drop_row);
+        assert_eq!(
+            app.drag(),
+            &DragState::Over {
+                node: "a".to_owned(),
+                path: vec![0],
+                to: 2,
+            }
+        );
+
+        release(&mut app, layout.inner.x, drop_row);
+        assert_eq!(app.drag(), &DragState::Idle);
+        let node = app.working_graph().node("a").expect("node a");
+        assert_eq!(
+            node.content[0],
+            ContentBlock::Text {
+                reveal: None,
+                body: "World".to_owned(),
+            },
+            "the text block is now first"
+        );
+        assert_eq!(
+            node.content[1],
+            ContentBlock::Heading {
+                reveal: None,
+                level: 1,
+                text: "Hello".to_owned(),
+            },
+            "the dragged heading is now last"
+        );
+        assert_eq!(app.selection(), &Selection::Block("a".to_owned(), vec![1]));
+
+        app.undo();
+        let node = app.working_graph().node("a").expect("node a");
+        assert_eq!(
+            node.content[0],
+            ContentBlock::Heading {
+                reveal: None,
+                level: 1,
+                text: "Hello".to_owned(),
+            },
+            "undo restores the original order"
+        );
+    }
+
+    #[test]
+    fn esc_cancels_a_drag_leaving_the_block_where_it_was() {
+        let mut app = app();
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        let layout = hit::canvas_layout(&app, areas.canvas).expect("canvas has layout");
+
+        click(&mut app, layout.inner.x, layout.inner.y);
+        assert_ne!(app.drag(), &DragState::Idle);
+        let (_, end1) = layout.block_extents[1];
+        drag_to(&mut app, layout.inner.x, layout.inner.y + (end1 - 1) as u16);
+        assert!(matches!(app.drag(), DragState::Over { .. }));
+
+        press(&mut app, KeyCode::Esc);
+        assert_eq!(app.drag(), &DragState::Idle, "Esc cancels the drag");
+        let node = app.working_graph().node("a").expect("node a");
+        assert_eq!(
+            node.content[0],
+            ContentBlock::Heading {
+                reveal: None,
+                level: 1,
+                text: "Hello".to_owned(),
+            },
+            "cancelling a drag makes no change"
+        );
+        assert!(!app.dirty());
+    }
+
+    #[test]
+    fn a_press_and_release_with_no_movement_is_a_plain_click() {
+        let mut app = app();
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        let layout = hit::canvas_layout(&app, areas.canvas).expect("canvas has layout");
+        click(&mut app, layout.inner.x, layout.inner.y);
+        assert_eq!(app.selection(), &Selection::Block("a".to_owned(), vec![0]));
+        release(&mut app, layout.inner.x, layout.inner.y);
+        assert_eq!(app.drag(), &DragState::Idle);
+        assert!(
+            !app.dirty(),
+            "a click with no drag movement changes nothing"
+        );
+    }
+
+    #[test]
+    fn empty_slide_shows_and_resolves_the_add_first_block_target() {
+        const EMPTY: &str = r#"{"nodes":[{"id":"a","title":"Blank","content":[]}]}"#;
+        let mut app = EditorApp::new(Graph::from_json(EMPTY).expect("fixture parses"));
+        app.set_terminal_size(100, 30);
+        let screen = draw(&app, 100, 30);
+        assert!(screen.contains("Add your first block"));
+
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        click(&mut app, areas.canvas.x + 2, areas.canvas.y + 2);
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::AddPalette { .. })
+        ));
     }
 }

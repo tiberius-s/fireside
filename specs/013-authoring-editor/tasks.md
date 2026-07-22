@@ -111,13 +111,13 @@ Existing 4-crate Rust workspace (`crates/fireside-core`, `fireside-engine`, `fir
 
 **Independent Test**: Add a new block, delete an existing one, and drag the remaining blocks into a new order — mouse-only — then confirm the presented order/content and that every step is undoable.
 
-- [ ] T042 [US2] Implement the add-block palette (8 plain-language cards, each inserting placeholder content and opening its form immediately) in `crates/fireside-tui/src/render/editor/forms.rs`, wired to `AddBlock` in `crates/fireside-tui/src/editor/mod.rs` (depends on T034)
-- [ ] T043 [US2] Wire block delete (`[ Delete ]` chip) to `DeleteBlock` plus a non-blocking undo-toast ("Deleted — Undo") in `crates/fireside-tui/src/editor/mod.rs` (depends on T036)
-- [ ] T044 [US2] Implement block drag-and-drop reorder: press-anywhere-on-the-block drag start, dimmed ghost, insertion-line indicator, auto-scroll near canvas edges, Esc cancels and returns the block, release commits `MoveBlock`, in `crates/fireside-tui/src/editor/mod.rs` and `crates/fireside-tui/src/render/editor/canvas.rs` (depends on T009, T015, T034)
-- [ ] T045 [US2] Extend `hit()` with `InsertionSlot` targets and drag-target resolution, per `contracts/hit-testing.md`, in `crates/fireside-tui/src/editor/hit.rs` (depends on T015, T044)
-- [ ] T046 [US2] Implement the empty-slide state (centered `＋ Add your first block` target) in `crates/fireside-tui/src/render/editor/canvas.rs` (depends on T042)
-- [ ] T047 [US2] TestBackend scenario tests: add each block kind via the palette, delete + undo, drag-reorder via synthetic press/move/release `MouseEvent` sequences including Esc-cancel, in `crates/fireside-tui/src/editor/mod.rs` (depends on T042, T043, T044, T045, T046)
-- [ ] T048 [US2] tmux smoke: drag-reorder two blocks via injected SGR mouse sequences, confirm the saved file reflects the new order, in `scripts/smoke.sh` (depends on T047)
+- [X] T042 [US2] Implement the add-block palette (8 plain-language cards, each inserting placeholder content and opening its form immediately) in `crates/fireside-tui/src/render/editor/forms.rs`, wired to `AddBlock` in `crates/fireside-tui/src/editor/mod.rs` (depends on T034)
+- [X] T043 [US2] Wire block delete (`[ Delete ]` chip) to `DeleteBlock` plus a non-blocking undo-toast ("Deleted — Undo") in `crates/fireside-tui/src/editor/mod.rs` (depends on T036)
+- [X] T044 [US2] Implement block drag-and-drop reorder: press-anywhere-on-the-block drag start, dimmed ghost, insertion-line indicator, auto-scroll near canvas edges, Esc cancels and returns the block, release commits `MoveBlock`, in `crates/fireside-tui/src/editor/mod.rs` and `crates/fireside-tui/src/render/editor/canvas.rs` (depends on T009, T015, T034)
+- [X] T045 [US2] Extend `hit()` with `InsertionSlot` targets and drag-target resolution, per `contracts/hit-testing.md`, in `crates/fireside-tui/src/editor/hit.rs` (depends on T015, T044)
+- [X] T046 [US2] Implement the empty-slide state (centered `＋ Add your first block` target) in `crates/fireside-tui/src/render/editor/canvas.rs` (depends on T042)
+- [X] T047 [US2] TestBackend scenario tests: add each block kind via the palette, delete + undo, drag-reorder via synthetic press/move/release `MouseEvent` sequences including Esc-cancel, in `crates/fireside-tui/src/editor/mod.rs` (depends on T042, T043, T044, T045, T046)
+- [X] T048 [US2] tmux smoke: drag-reorder two blocks via injected SGR mouse sequences, confirm the saved file reflects the new order, in `scripts/smoke.sh` (depends on T047)
 
 **Checkpoint**: US1 + US2 both independently functional — full content composition on a slide.
 

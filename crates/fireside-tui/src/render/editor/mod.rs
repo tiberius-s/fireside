@@ -18,9 +18,7 @@ use ratatui::widgets::{Block, BorderType, Clear, Paragraph, Wrap};
 
 use crate::app::FlashKind;
 use crate::editor::EditorApp;
-use crate::editor::hit::{
-    self, BLOCK_EDIT_CHIP, MIN_HEIGHT, MIN_WIDTH, TOOLBAR_CHIPS, editor_areas,
-};
+use crate::editor::hit::{self, MIN_HEIGHT, MIN_WIDTH, TOOLBAR_CHIPS, editor_areas};
 use crate::theme::Tokens;
 
 /// Paint one frame of the authoring studio.
@@ -151,17 +149,22 @@ fn draw_hint(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) {
         );
         return;
     }
-    if hit::selection_has_form(app) {
-        let hovered = matches!(
-            app.hover(),
-            Some(hit::Target::BlockChip(_, _, hit::BlockAction::Edit))
-        );
-        let style = if hovered {
-            tokens.selection
-        } else {
-            tokens.affordance
-        };
-        frame.render_widget(Paragraph::new(Span::styled(BLOCK_EDIT_CHIP, style)), area);
+    let chips = hit::selected_block_chips(app);
+    if !chips.is_empty() {
+        let mut spans = Vec::with_capacity(chips.len());
+        for (action, label) in &chips {
+            let hovered = matches!(
+                app.hover(),
+                Some(hit::Target::BlockChip(_, _, a)) if a == action
+            );
+            let style = if hovered {
+                tokens.selection
+            } else {
+                tokens.affordance
+            };
+            spans.push(Span::styled(*label, style));
+        }
+        frame.render_widget(Paragraph::new(Line::from(spans)), area);
         return;
     }
     frame.render_widget(

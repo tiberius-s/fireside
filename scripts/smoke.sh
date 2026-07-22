@@ -112,6 +112,21 @@ mouse_click() {
   tmux send-keys -t "$SESSION" -l -- $'\x1b[<0;'"${col}"';'"${row}"'m'
 }
 
+# Injects a synthetic SGR mouse *drag*: press at (col1,row1), a motion
+# event with the left button still held at (col2,row2) — button code 32
+# added to the press code per the SGR protocol's motion-report convention,
+# always terminated with 'M' regardless of press/release — then release
+# at (col2,row2). Exercises the same crossterm Down/Drag/Up event path a
+# physical block drag would (spec 013, T048).
+mouse_drag() {
+  local col1="$1" row1="$2" col2="$3" row2="$4"
+  tmux send-keys -t "$SESSION" -l -- $'\x1b[<0;'"${col1}"';'"${row1}"'M'
+  sleep 0.1
+  tmux send-keys -t "$SESSION" -l -- $'\x1b[<32;'"${col2}"';'"${row2}"'M'
+  sleep 0.1
+  tmux send-keys -t "$SESSION" -l -- $'\x1b[<0;'"${col2}"';'"${row2}"'m'
+}
+
 # ─── Two-pane helpers (spec 012: presenter + `fireside notes` follower) ──
 # `$SESSION` gets a second pane via split-window; pane ids (`%N`) are
 # stable handles independent of tmux's on-screen pane numbering.
@@ -365,6 +380,60 @@ if grep -qF "YXOriginal wording" "$US1DECK"; then
   pass=$((pass + 1))
 else
   printf '  \033[1;31m\xe2\x9c\x97\033[0m the keyboard-only edit was not saved\n'
+  fail=$((fail + 1))
+fi
+
+keys "q"
+sleep 0.4
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m editor q quits and the terminal is restored\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m editor q did not end the session\n'
+  fail=$((fail + 1))
+fi
+
+# ─── Scenario 8: fireside edit — US2 drag-reorder blocks (spec 013, T048) ──
+echo
+echo "=== fireside edit: drag-reorder two blocks via injected SGR mouse sequences ==="
+US2DECK="$WORKDIR/smoke-us2-talk.fireside.json"
+cat >"$US2DECK" <<'JSON'
+{
+  "fireside-version": "0.1.0",
+  "title": "Smoke US2 Talk",
+  "nodes": [
+    {
+      "id": "intro",
+      "title": "Welcome",
+      "content": [
+        {"kind": "heading", "level": 1, "text": "Hello there"},
+        {"kind": "text", "body": "Original wording"}
+      ]
+    }
+  ]
+}
+JSON
+start "$BIN edit $US2DECK"
+assert_contains "studio opens on the fixture deck" "Smoke US2 Talk"
+
+# Same fixture shape as scenario 7's US1DECK, so the same 100x30 layout
+# applies: the level-1 heading (2 rendered lines: text + rule) spans rows
+# 12-13, the text block sits at row 15 (scenario 7 already confirmed a
+# click there selects it). Pressing anywhere on the heading and dragging
+# past the text block's row drops it after the text block (spec FR-009:
+# drag from anywhere on the block, not just a handle).
+mouse_drag 35 13 35 15
+sleep 0.3
+mouse_click 82 1
+assert_contains "[ Save ] writes the reordered deck" "Saved"
+
+text_offset="$(grep -bo "Original wording" "$US2DECK" | head -1 | cut -d: -f1)"
+heading_offset="$(grep -bo "Hello there" "$US2DECK" | head -1 | cut -d: -f1)"
+if [[ -n "$text_offset" && -n "$heading_offset" && "$text_offset" -lt "$heading_offset" ]]; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the saved file reflects the drag-reordered block order\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the saved file did not reflect the new block order\n'
   fail=$((fail + 1))
 fi
 
