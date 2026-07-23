@@ -633,6 +633,99 @@ fn center(
     lines
 }
 
+/// One child's on-screen extent within its container's own rendered line
+/// flow, relative to the container's own row 0 (spec 014). `cols: None`
+/// means the child spans the container's full width, exactly like a
+/// top-level block (`Stack`/`Center`); `Some((x0, x1))` gives its column
+/// sub-range for a side-by-side `Columns` layout, whose children share
+/// the container's rows but not its columns.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct ChildGeometry {
+    pub(crate) rows: (usize, usize),
+    pub(crate) cols: Option<(u16, u16)>,
+}
+
+/// Each of `children`'s own on-screen extents within their container's
+/// rendered output at `width` columns — the same geometry `container`
+/// itself draws, computed independently so hit-testing/selection can
+/// never disagree with it (spec 014, mirroring the top-level
+/// `editor::hit::block_extents`'s "recompute, don't observe" contract).
+///
+/// Callers MUST pass a `reveal_level` at least as high as every child's
+/// own reveal step (the editor always calls this with `u32::MAX`, same as
+/// `editor::hit::canvas_layout` does for the top-level case) — the
+/// returned `Vec` is only guaranteed index-aligned with `children` under
+/// that assumption; this function has no other caller.
+#[must_use]
+pub(crate) fn container_child_geometry(
+    children: &[ContentBlock],
+    layout: ContainerLayout,
+    width: u16,
+    tokens: &Tokens,
+    reveal_level: u32,
+) -> Vec<ChildGeometry> {
+    if layout == ContainerLayout::Columns {
+        return columns_child_geometry(children, width, tokens, reveal_level);
+    }
+    // `Stack` and `Center` both render each child independently (no
+    // cross-child layout decision like column-width division), so the
+    // same increasing-prefix technique `editor::hit::block_extents` uses
+    // at the top level applies here unchanged, just against `container`
+    // instead of `render_blocks` directly (for `Stack` the two are the
+    // same function anyway).
+    let mut out = Vec::with_capacity(children.len());
+    let mut prev = 0usize;
+    for i in 0..children.len() {
+        let cumulative = container(&children[..=i], layout, width, tokens, reveal_level).len();
+        let start = if i == 0 { 0 } else { prev + 1 };
+        out.push(ChildGeometry {
+            rows: (start, cumulative),
+            cols: None,
+        });
+        prev = cumulative;
+    }
+    out
+}
+
+/// `Columns`' own child geometry: side-by-side column bands, mirroring
+/// `columns()`'s exact `col_width` math (including its narrow-width
+/// fallback to a stack) so the two can never disagree about where a
+/// column sits. A child's row range is its own rendered height within its
+/// column, not padded down to the tallest sibling — the blank space below
+/// a shorter column isn't part of any child's clickable extent.
+fn columns_child_geometry(
+    children: &[ContentBlock],
+    width: u16,
+    tokens: &Tokens,
+    reveal_level: u32,
+) -> Vec<ChildGeometry> {
+    let n = children.len() as u16;
+    if n == 0 {
+        return Vec::new();
+    }
+    let col_width = width.saturating_sub(GUTTER * (n - 1)) / n;
+    if col_width < 8 {
+        return container_child_geometry(
+            children,
+            ContainerLayout::Stack,
+            width,
+            tokens,
+            reveal_level,
+        );
+    }
+    let mut out = Vec::with_capacity(children.len());
+    let mut x = 0u16;
+    for child in children {
+        let rows_len = render_block(child, col_width, tokens, reveal_level).len();
+        out.push(ChildGeometry {
+            rows: (0, rows_len),
+            cols: Some((x, x + col_width)),
+        });
+        x += col_width + GUTTER;
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

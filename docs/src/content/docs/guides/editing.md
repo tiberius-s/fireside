@@ -47,6 +47,15 @@ list item per line, path/description for pictures (with a
 columns/box/stack containers. `Ctrl+S` (or `[ Done ]`) commits a form;
 `Esc` (or `[ Cancel ]`) discards it.
 
+A columns/box/stack container's own children are reachable the same way:
+`Tab` walks into a selected container's children before moving on to its
+next sibling, clicking a child's own rendered text selects just that
+child, and its `[ ✎ Edit ]`/`[ + Add below ]`/`[ Reveal ]`/`[ Delete ]`
+chips work exactly like a top-level block's. The container's own form
+also lists each child by name — clicking a row opens that child's form
+directly — and offers `[ + Add a block inside ]` to append a new one,
+which you can then drag to wherever it belongs among its new siblings.
+
 ## Adding, deleting, and reordering blocks
 
 The gap between any two blocks (and the top of an empty slide) is an

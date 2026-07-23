@@ -1779,3 +1779,97 @@ fn preview_fidelity_editor_canvas_matches_the_presenter_for_every_fixture_deck()
         );
     }
 }
+
+// ─── Spec 014 (container block editing): a container's own children ───────
+
+/// A slide built from a single top-level `Stack` container with two
+/// children, followed by a top-level sibling.
+const EDITOR_CONTAINER: &str = r#"{"nodes":[
+    {"id":"a","title":"Welcome","content":[
+        {"kind":"container","layout":"stack","children":[
+            {"kind":"heading","level":1,"text":"Title"},
+            {"kind":"text","body":"Tagline"}
+        ]},
+        {"kind":"text","body":"After the container"}
+    ]}
+]}"#;
+
+/// End-to-end proof (Constitution VII) that a container's child is
+/// reachable through the real render pipeline, not just the state
+/// machine: clicking its own rendered text selects only that child (drawn
+/// with its own selection glow, not the whole container's), Enter opens
+/// its own form, and an edit saved through that form is visible back on
+/// the canvas afterward.
+#[test]
+fn container_child_selection_glow_and_edit_round_trip_through_the_real_render_pipeline() {
+    let (w, h) = (100, 30);
+    let mut app =
+        crate::editor::EditorApp::new(Graph::from_json(EDITOR_CONTAINER).expect("fixture parses"));
+    app.update(crate::editor::Msg::Terminal(Event::Resize(w, h)));
+    let area = Rect::new(0, 0, w, h);
+    let areas = crate::editor::hit::editor_areas(area);
+    let layout = crate::editor::hit::canvas_layout(&app, areas.canvas).expect("canvas has layout");
+    let child1 = layout
+        .child_extents
+        .iter()
+        .find(|c| c.path == vec![0, 1])
+        .expect("container's second child has an extent")
+        .clone();
+
+    editor_click(
+        &mut app,
+        layout.inner.x,
+        layout.inner.y + child1.rows.0 as u16,
+    );
+    assert_eq!(
+        app.selection(),
+        &crate::editor::Selection::Block("a".to_owned(), vec![0, 1])
+    );
+
+    // The glow marker sits at the child's own rows, in the gutter column —
+    // proving `draw_selection_marker` actually drew for the nested path,
+    // not silently skipping it.
+    let screen = editor_screen(&app, w, h);
+    let lines: Vec<&str> = screen.lines().collect();
+    let gutter_col = layout.inner.x as usize - 1;
+    for line in (layout.inner.y + child1.rows.0 as u16)..(layout.inner.y + child1.rows.1 as u16) {
+        let row_text: Vec<char> = lines[line as usize].chars().collect();
+        assert_eq!(
+            row_text[gutter_col], '\u{258e}',
+            "row {line} of the selected child should carry the glow marker"
+        );
+    }
+    // The container's *other* child carries no glow.
+    let child0 = layout
+        .child_extents
+        .iter()
+        .find(|c| c.path == vec![0, 0])
+        .expect("container's first child has an extent");
+    for line in (layout.inner.y + child0.rows.0 as u16)..(layout.inner.y + child0.rows.1 as u16) {
+        let row_text: Vec<char> = lines[line as usize].chars().collect();
+        assert_ne!(
+            row_text[gutter_col], '\u{258e}',
+            "row {line} of the unselected sibling must not carry the glow marker"
+        );
+    }
+
+    editor_press(&mut app, KeyCode::Enter);
+    assert!(matches!(
+        app.open_form(),
+        Some(crate::editor::forms::FormState::Text { .. })
+    ));
+    for c in "Rewritten".chars() {
+        editor_press(&mut app, KeyCode::Char(c));
+    }
+    app.update(crate::editor::Msg::Terminal(Event::Key(KeyEvent::new(
+        KeyCode::Char('s'),
+        KeyModifiers::CONTROL,
+    ))));
+    assert!(app.open_form().is_none());
+
+    let screen_after = editor_screen(&app, w, h);
+    assert!(
+        screen_after.contains("Rewritten"),
+        "the edited child's new text must render on the canvas: {screen_after}"
+    );
+}

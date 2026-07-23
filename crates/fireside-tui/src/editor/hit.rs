@@ -13,9 +13,10 @@
 
 use ratatui::layout::{Constraint, Layout, Rect};
 
-use fireside_core::{BranchOption, ContainerLayout, Graph, Node};
+use fireside_core::{BranchOption, ContainerLayout, ContentBlock, Graph, Node};
 use fireside_engine::authoring::{BlockKind, BlockPath, OutlineRow, outline_order};
 
+use crate::render::blocks::ChildGeometry;
 use crate::render::content::{NodeLines, SlideView, content_inner, node_lines};
 use crate::render::{Surface, blocks, surface};
 use crate::theme::Tokens;
@@ -39,18 +40,13 @@ pub(crate) enum ToolbarAction {
     Help,
 }
 
-/// One of a selected block's contextual chips. `Edit`, `AddBelow`,
-/// `Reveal`, and `Delete` are produced by `hit()` (T034, T042, T043,
-/// T053) — `MoveUp`/`MoveDown` stay forward-declared: block drag (US2)
-/// already covers reordering. `#[allow(dead_code)]` on those two only.
+/// One of a selected block's contextual chips, produced by `hit()`
+/// (T034, T042, T043, T053) — block drag (spec 013 US2, spec 014 US2)
+/// covers reordering, so there is no `MoveUp`/`MoveDown` chip.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum BlockAction {
     Edit,
     AddBelow,
-    #[allow(dead_code)]
-    MoveUp,
-    #[allow(dead_code)]
-    MoveDown,
     Reveal,
     Delete,
 }
@@ -160,6 +156,14 @@ pub(crate) enum FormChipKind {
     PickerEnding,
     /// The picker's "a new slide…" row.
     PickerNewSlide,
+    /// One row of an open `FormState::Container`'s child summary list, by
+    /// index into its `children` (spec 014 US1): selecting it opens that
+    /// child's own form.
+    ContainerChild(usize),
+    /// The container form's `[ + Add a block inside ]` chip (spec 014
+    /// US3): opens the add-block palette targeting this container as the
+    /// new block's parent, appended after its current last child.
+    AddChild,
 }
 
 /// Which of an open form's text fields a click landed in — coarse-grained
@@ -467,9 +471,10 @@ pub(crate) fn selected_node(app: &EditorApp) -> Option<&Node> {
 /// insertion-slot gap `canvas_hit`/`resolve_drop_slot` resolve to
 /// `Target::InsertionSlot` instead (spec 013 US2, T045) — a block's own
 /// extent is exactly its rendered content, never the gap above it.
-/// Nested (`Container`) children are out of scope for the canvas; only
-/// top-level blocks are addressed here (container children are reached
-/// through the container form's breadcrumb, T033).
+/// A `Container` block's own extent covers its full rendered body
+/// (including every child); [`container_child_extents`] computes its
+/// children's own sub-extents within that range one level deep (spec 014
+/// — a container's direct children only, per that feature's scope).
 fn block_extents(
     node: &Node,
     width: u16,
@@ -484,6 +489,58 @@ fn block_extents(
         let start = if i == 0 { 0 } else { prev_cumulative + 1 };
         out.push((start, cumulative));
         prev_cumulative = cumulative;
+    }
+    out
+}
+
+/// One container child's on-screen extent in the *same* coordinate space
+/// as `block_extents`' top-level ranges — absolute row numbers within the
+/// node's full rendered flow, and absolute columns relative to the
+/// canvas's own inner rect (spec 014). `path` is the child's full
+/// `BlockPath` (the container's top-level index, then the child's own
+/// index within it).
+#[derive(Debug, Clone)]
+pub(crate) struct ChildExtent {
+    pub(crate) path: BlockPath,
+    pub(crate) rows: (usize, usize),
+    pub(crate) cols: Option<(u16, u16)>,
+}
+
+/// Every top-level `Container` block's direct children, each with an
+/// absolute [`ChildExtent`] — computed from [`blocks::container_child_geometry`]
+/// (container-relative) offset by that container's own `block_extents`
+/// start row, so a click can never disagree with what's drawn. Containers
+/// with no children contribute nothing (spec 014 US1 acceptance scenario
+/// 4: an empty container behaves exactly as it did before this feature).
+fn container_child_extents(
+    content: &[ContentBlock],
+    extents: &[(usize, usize)],
+    width: u16,
+    tokens: &Tokens,
+    reveal_level: u32,
+) -> Vec<ChildExtent> {
+    let mut out = Vec::new();
+    for (ci, &(start, _end)) in extents.iter().enumerate() {
+        let Some(ContentBlock::Container {
+            children, layout, ..
+        }) = content.get(ci)
+        else {
+            continue;
+        };
+        let geoms = blocks::container_child_geometry(
+            children,
+            layout.unwrap_or_default(),
+            width,
+            tokens,
+            reveal_level,
+        );
+        for (j, ChildGeometry { rows, cols }) in geoms.into_iter().enumerate() {
+            out.push(ChildExtent {
+                path: vec![ci, j],
+                rows: (start + rows.0, start + rows.1),
+                cols,
+            });
+        }
     }
     out
 }
@@ -555,6 +612,10 @@ fn outline_hit(app: &EditorApp, outline: Rect, col: u16, row: u16) -> Option<Tar
 pub(crate) struct CanvasLayout {
     pub(crate) inner: Rect,
     pub(crate) block_extents: Vec<(usize, usize)>,
+    /// Every top-level container's direct children, each with its own
+    /// absolute extent (spec 014) — empty when the slide has no
+    /// containers, or every container on it is empty.
+    pub(crate) child_extents: Vec<ChildExtent>,
     pub(crate) scroll: u16,
 }
 
@@ -579,9 +640,12 @@ pub(crate) fn canvas_layout(app: &EditorApp, canvas: Rect) -> Option<CanvasLayou
     let max = total.saturating_sub(inner.height);
     let scroll = app.scroll().min(max);
     let block_extents = block_extents(node, surf.width, &tokens, u32::MAX);
+    let child_extents =
+        container_child_extents(&node.content, &block_extents, surf.width, &tokens, u32::MAX);
     Some(CanvasLayout {
         inner,
         block_extents,
+        child_extents,
         scroll,
     })
 }
@@ -601,6 +665,7 @@ fn canvas_hit(app: &EditorApp, canvas: Rect, col: u16, row: u16) -> Option<Targe
     let CanvasLayout {
         inner,
         block_extents: extents,
+        child_extents,
         scroll,
     } = canvas_layout(app, canvas)?;
     if !rect_contains(inner, col, row) {
@@ -615,6 +680,20 @@ fn canvas_hit(app: &EditorApp, canvas: Rect, col: u16, row: u16) -> Option<Targe
     let block_index = extents
         .iter()
         .position(|&(start, end)| clicked_line >= start && clicked_line < end)?;
+    if matches!(
+        node.content.get(block_index),
+        Some(ContentBlock::Container { .. })
+    ) {
+        let rel_col = col.saturating_sub(inner.x);
+        if let Some(child) = child_extents.iter().find(|c| {
+            c.path[0] == block_index
+                && clicked_line >= c.rows.0
+                && clicked_line < c.rows.1
+                && c.cols.is_none_or(|(x0, x1)| rel_col >= x0 && rel_col < x1)
+        }) {
+            return Some(Target::Block(node.id.clone(), child.path.clone()));
+        }
+    }
     Some(Target::Block(node.id.clone(), vec![block_index]))
 }
 
@@ -622,18 +701,24 @@ fn canvas_hit(app: &EditorApp, canvas: Rect, col: u16, row: u16) -> Option<Targe
 /// `node_id`'s canvas would drop, in the *pre-removal* index space (see
 /// `editor::EditorApp::on_release` for the conversion `Op::MoveBlock`'s
 /// `to` parameter needs) — `None` when the pointer isn't over `node_id`'s
-/// canvas at all. A row on a gap gives that gap's slot directly, exactly
-/// like a plain click would (`canvas_hit`); a row within a block's own
-/// extent resolves to "insert before" or "insert after" that block by
-/// whichever half of its rendered rows the pointer is nearer — this
-/// halfway split exists only for drag resolution (`hit()` itself always
-/// resolves a block's full extent to `Target::Block`, per
-/// `contracts/hit-testing.md`'s test contract) and is what lets a block
-/// become the deck's first or last without a dedicated gap row to target.
+/// canvas at all. `parent` is the path of the container whose children are
+/// being reordered (empty = the node's own top-level blocks, spec 013 US2;
+/// one container index, e.g. `[2]` = that container's direct children,
+/// spec 014 US2) — a drag can only reorder a block among its own current
+/// siblings, so the caller always passes the dragged block's own parent.
+/// A row on a gap gives that gap's slot directly, exactly like a plain
+/// click would (`canvas_hit`); a row within a block's own extent resolves
+/// to "insert before" or "insert after" that block by whichever half of
+/// its rendered rows the pointer is nearer — this halfway split exists
+/// only for drag resolution (`hit()` itself always resolves a block's full
+/// extent to `Target::Block`, per `contracts/hit-testing.md`'s test
+/// contract) and is what lets a block become its siblings' first or last
+/// without a dedicated gap row to target.
 #[must_use]
 pub(crate) fn resolve_drop_slot(
     app: &EditorApp,
     node_id: &str,
+    parent: &[usize],
     canvas: Rect,
     col: u16,
     row: u16,
@@ -642,30 +727,95 @@ pub(crate) fn resolve_drop_slot(
     if node.id != node_id {
         return None;
     }
-    if node.content.is_empty() {
-        return rect_contains(canvas, col, row).then_some(0);
+    if parent.is_empty() {
+        if node.content.is_empty() {
+            return rect_contains(canvas, col, row).then_some(0);
+        }
+        let CanvasLayout {
+            inner,
+            block_extents: extents,
+            scroll,
+            ..
+        } = canvas_layout(app, canvas)?;
+        if !rect_contains(inner, col, row) {
+            return None;
+        }
+        let clicked_line = scroll as usize + (row - inner.y) as usize;
+        for (i, &(start, _)) in extents.iter().enumerate().skip(1) {
+            if clicked_line == start - 1 {
+                return Some(i);
+            }
+        }
+        let idx = extents
+            .iter()
+            .position(|&(s, e)| clicked_line >= s && clicked_line < e)
+            .unwrap_or(extents.len() - 1);
+        let (s, e) = extents[idx];
+        let mid = s + (e - s) / 2;
+        return Some(if clicked_line < mid { idx } else { idx + 1 });
     }
+    let ci = *parent.first()?;
     let CanvasLayout {
         inner,
-        block_extents: extents,
+        child_extents,
         scroll,
+        ..
     } = canvas_layout(app, canvas)?;
     if !rect_contains(inner, col, row) {
         return None;
     }
-    let clicked_line = scroll as usize + (row - inner.y) as usize;
-    for (i, &(start, _)) in extents.iter().enumerate().skip(1) {
-        if clicked_line == start - 1 {
-            return Some(i);
-        }
+    let siblings: Vec<&ChildExtent> = child_extents.iter().filter(|c| c.path[0] == ci).collect();
+    if siblings.is_empty() {
+        return None;
     }
-    let idx = extents
+    let clicked_line = scroll as usize + (row - inner.y) as usize;
+    let rel_col = col.saturating_sub(inner.x);
+    resolve_sibling_slot(&siblings, clicked_line, rel_col)
+}
+
+/// A container child's own drop-slot resolution (spec 014 US2), separate
+/// from the top-level branch of [`resolve_drop_slot`] above so that
+/// branch's already-tested row-gap/half-split behavior stays byte-for-byte
+/// unchanged. `Stack`/`Center` siblings (`cols: None`) resolve by row,
+/// exactly like the top-level case; `Columns` siblings (`cols: Some`)
+/// resolve by column instead — nearest sibling by distance, then which
+/// half of *that* sibling's own extent the pointer falls in.
+fn resolve_sibling_slot(
+    siblings: &[&ChildExtent],
+    clicked_line: usize,
+    rel_col: u16,
+) -> Option<usize> {
+    if siblings.iter().all(|c| c.cols.is_none()) {
+        for (i, c) in siblings.iter().enumerate().skip(1) {
+            if clicked_line == c.rows.0.saturating_sub(1) {
+                return Some(i);
+            }
+        }
+        let idx = siblings
+            .iter()
+            .position(|c| clicked_line >= c.rows.0 && clicked_line < c.rows.1)
+            .unwrap_or(siblings.len() - 1);
+        let (s, e) = siblings[idx].rows;
+        let mid = s + (e - s) / 2;
+        return Some(if clicked_line < mid { idx } else { idx + 1 });
+    }
+    let idx = siblings
         .iter()
-        .position(|&(s, e)| clicked_line >= s && clicked_line < e)
-        .unwrap_or(extents.len() - 1);
-    let (s, e) = extents[idx];
-    let mid = s + (e - s) / 2;
-    Some(if clicked_line < mid { idx } else { idx + 1 })
+        .enumerate()
+        .min_by_key(|(_, c)| {
+            let (x0, x1) = c.cols.unwrap_or((0, 0));
+            if rel_col < x0 {
+                x0 - rel_col
+            } else if rel_col >= x1 {
+                rel_col - x1 + 1
+            } else {
+                0
+            }
+        })
+        .map(|(i, _)| i)?;
+    let (x0, x1) = siblings[idx].cols.unwrap_or((0, 0));
+    let mid = x0 + (x1 - x0) / 2;
+    Some(if rel_col < mid { idx } else { idx + 1 })
 }
 
 /// The selected block's contextual chips, drawn in the hint line (spec
@@ -849,6 +999,11 @@ pub(crate) struct FormLayout {
     pub(crate) hint_rect: Rect,
     pub(crate) children_lines: Vec<String>,
     pub(crate) children_rect: Rect,
+    /// One rect per `children_lines` row, same order (spec 014 US1) — a
+    /// click resolves to `Target::FormChip(FormChipKind::ContainerChild(i))`.
+    /// Kept separate from `chips` so `render::editor::forms::draw` doesn't
+    /// double-draw these rows through the generic chip-styling loop.
+    pub(crate) children_targets: Vec<Rect>,
     pub(crate) chips: Vec<(FormChipKind, String, Rect)>,
 }
 
@@ -996,14 +1151,17 @@ fn form_chip_defs(form: &FormState) -> Vec<(FormChipKind, String)> {
             FormChipKind::GenerateFromPhrase,
             "[ Generate from a phrase\u{2026} ]",
         )],
-        FormState::Container { layout, .. } => vec![(
-            FormChipKind::CycleLayout,
-            match layout {
-                ContainerLayout::Stack => "[ Layout: Stack \u{25be} ]",
-                ContainerLayout::Columns => "[ Layout: Columns \u{25be} ]",
-                ContainerLayout::Center => "[ Layout: Centered \u{25be} ]",
-            },
-        )],
+        FormState::Container { layout, .. } => vec![
+            (
+                FormChipKind::CycleLayout,
+                match layout {
+                    ContainerLayout::Stack => "[ Layout: Stack \u{25be} ]",
+                    ContainerLayout::Columns => "[ Layout: Columns \u{25be} ]",
+                    ContainerLayout::Center => "[ Layout: Centered \u{25be} ]",
+                },
+            ),
+            (FormChipKind::AddChild, "[ + Add a block inside ]"),
+        ],
         _ => Vec::new(),
     };
     let mut chips: Vec<(FormChipKind, String)> = leading
@@ -1064,6 +1222,7 @@ fn add_palette_layout(area: Rect) -> FormLayout {
         hint_rect: Rect::new(inner.x, bottom, inner.width, 0),
         children_lines: Vec::new(),
         children_rect: Rect::new(inner.x, bottom, inner.width, 0),
+        children_targets: Vec::new(),
         chips,
     }
 }
@@ -1125,6 +1284,7 @@ fn picker_layout(target: &PickerTarget, rows: &[PickerRow], area: Rect) -> FormL
         hint_rect: Rect::new(inner.x, bottom, inner.width, 0),
         children_lines: Vec::new(),
         children_rect: Rect::new(inner.x, bottom, inner.width, 0),
+        children_targets: Vec::new(),
         chips,
     }
 }
@@ -1160,6 +1320,17 @@ pub(crate) fn form_layout(form: &FormState, area: Rect) -> FormLayout {
         FormState::Container { children, .. } => children.iter().map(|c| c.label.clone()).collect(),
         _ => Vec::new(),
     };
+    // A container child's form (spec 014) shows a fixed one-line notice
+    // instead of `hint_lines` (`render::editor::forms::draw`'s
+    // `parent_container_path` branch) — reserve exactly the one row that
+    // notice needs so it can never overlap the chip row below it, the same
+    // way `hint_lines.len()` already reserves rows for the other kind of
+    // hint.
+    let hint_row_count = if form.parent_container_path().is_some() {
+        1
+    } else {
+        hint_lines.len() as u16
+    };
 
     let mut content_lines: u16 = 1; // leading blank under the title
     for (_, _, n) in &sections {
@@ -1168,7 +1339,7 @@ pub(crate) fn form_layout(form: &FormState, area: Rect) -> FormLayout {
     if !children_lines.is_empty() {
         content_lines += children_lines.len() as u16 + 1;
     }
-    content_lines += hint_lines.len() as u16;
+    content_lines += hint_row_count;
     content_lines += 1; // chip row
 
     let overlay = form_overlay(area, content_lines);
@@ -1202,8 +1373,11 @@ pub(crate) fn form_layout(form: &FormState, area: Rect) -> FormLayout {
             .saturating_add(1);
     }
 
-    let children_rect = if children_lines.is_empty() {
-        Rect::new(inner.x, y.min(bottom), inner.width, 0)
+    let (children_rect, children_targets) = if children_lines.is_empty() {
+        (
+            Rect::new(inner.x, y.min(bottom), inner.width, 0),
+            Vec::new(),
+        )
     } else {
         let rect = Rect {
             x: inner.x,
@@ -1211,19 +1385,27 @@ pub(crate) fn form_layout(form: &FormState, area: Rect) -> FormLayout {
             width: inner.width,
             height: (children_lines.len() as u16).min(bottom.saturating_sub(y.min(bottom))),
         };
+        let targets = (0..rect.height)
+            .map(|i| Rect {
+                x: rect.x,
+                y: rect.y + i,
+                width: rect.width,
+                height: 1,
+            })
+            .collect();
         y = y
             .saturating_add(children_lines.len() as u16)
             .saturating_add(1);
-        rect
+        (rect, targets)
     };
 
     let hint_rect = Rect {
         x: inner.x,
         y: y.min(bottom),
         width: inner.width,
-        height: (hint_lines.len() as u16).min(bottom.saturating_sub(y.min(bottom))),
+        height: hint_row_count.min(bottom.saturating_sub(y.min(bottom))),
     };
-    y = y.saturating_add(hint_lines.len() as u16);
+    y = y.saturating_add(hint_row_count);
 
     let chip_row = Rect {
         x: inner.x,
@@ -1256,6 +1438,7 @@ pub(crate) fn form_layout(form: &FormState, area: Rect) -> FormLayout {
         hint_rect,
         children_lines,
         children_rect,
+        children_targets,
         chips,
     }
 }
@@ -1273,6 +1456,13 @@ fn form_hit(app: &EditorApp, area: Rect, col: u16, row: u16) -> Option<Target> {
         .find(|(_, _, r)| rect_contains(*r, col, row))
     {
         return Some(Target::FormChip(*action));
+    }
+    if let Some(i) = layout
+        .children_targets
+        .iter()
+        .position(|r| rect_contains(*r, col, row))
+    {
+        return Some(Target::FormChip(FormChipKind::ContainerChild(i)));
     }
     layout
         .fields
@@ -1620,11 +1810,25 @@ mod tests {
         // A pointer in the top half of block 1 resolves to "insert before
         // block 1" (slot 1); the bottom half resolves to "after" (slot 2).
         assert_eq!(
-            resolve_drop_slot(&app, "a", areas.canvas, inner.x, inner.y + start as u16),
+            resolve_drop_slot(
+                &app,
+                "a",
+                &[],
+                areas.canvas,
+                inner.x,
+                inner.y + start as u16
+            ),
             Some(1)
         );
         assert_eq!(
-            resolve_drop_slot(&app, "a", areas.canvas, inner.x, inner.y + (end - 1) as u16),
+            resolve_drop_slot(
+                &app,
+                "a",
+                &[],
+                areas.canvas,
+                inner.x,
+                inner.y + (end - 1) as u16
+            ),
             Some(2)
         );
     }
@@ -1637,6 +1841,7 @@ mod tests {
             resolve_drop_slot(
                 &app,
                 "does-not-exist",
+                &[],
                 areas.canvas,
                 areas.canvas.x,
                 areas.canvas.y
@@ -1652,5 +1857,152 @@ mod tests {
         let chips = selected_block_chips(&app);
         assert!(chips.iter().any(|(a, _)| *a == BlockAction::AddBelow));
         assert!(chips.iter().any(|(a, _)| *a == BlockAction::Delete));
+    }
+
+    // ─── Container children (spec 014) ─────────────────────────────────────
+
+    const STACK_CONTAINER_FIXTURE: &str = r#"{"nodes":[
+        {"id":"a","title":"Welcome","content":[
+            {"kind":"container","layout":"stack","children":[
+                {"kind":"heading","level":1,"text":"Title"},
+                {"kind":"text","body":"Tagline"}
+            ]},
+            {"kind":"text","body":"After the container"}
+        ]}
+    ]}"#;
+
+    const COLUMNS_CONTAINER_FIXTURE: &str = r#"{"nodes":[
+        {"id":"a","title":"Layout","content":[
+            {"kind":"container","layout":"columns","children":[
+                {"kind":"text","body":"Left"},
+                {"kind":"text","body":"Right"}
+            ]}
+        ]}
+    ]}"#;
+
+    fn app_from(fixture: &str) -> EditorApp {
+        EditorApp::new(Graph::from_json(fixture).expect("fixture parses"))
+    }
+
+    fn canvas_geometry(app: &EditorApp, canvas: Rect) -> CanvasLayout {
+        canvas_layout(app, canvas).expect("selected node has a canvas layout")
+    }
+
+    #[test]
+    fn a_stack_containers_children_get_their_own_extents_within_it() {
+        let app = app_from(STACK_CONTAINER_FIXTURE);
+        let areas = editor_areas(area());
+        let layout = canvas_geometry(&app, areas.canvas);
+        assert_eq!(layout.child_extents.len(), 2, "container has two children");
+        for child in &layout.child_extents {
+            assert_eq!(child.path[0], 0, "both children belong to container 0");
+            assert!(child.cols.is_none(), "stack children span the full width");
+        }
+        // Every row of each child resolves to that child's own Block target,
+        // not the container's.
+        for child in &layout.child_extents {
+            for line in child.rows.0..child.rows.1 {
+                let row = layout.inner.y + line as u16;
+                assert_eq!(
+                    hit(&app, area(), layout.inner.x, row),
+                    Some(Target::Block("a".to_owned(), child.path.clone())),
+                    "line {line} did not resolve to child {:?}",
+                    child.path
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn clicking_a_containers_gutter_still_selects_the_whole_container() {
+        let app = app_from(STACK_CONTAINER_FIXTURE);
+        let areas = editor_areas(area());
+        let layout = canvas_geometry(&app, areas.canvas);
+        // The one-row blank gap between the container's two children is
+        // part of the container's own extent but no child's — clicking it
+        // must fall back to selecting the container as a whole.
+        let first_child_end = layout.child_extents[0].rows.1;
+        let second_child_start = layout.child_extents[1].rows.0;
+        assert_eq!(
+            second_child_start,
+            first_child_end + 1,
+            "fixture must have exactly a one-row gap between children"
+        );
+        let row = layout.inner.y + first_child_end as u16;
+        assert_eq!(
+            hit(&app, area(), layout.inner.x, row),
+            Some(Target::Block("a".to_owned(), vec![0]))
+        );
+    }
+
+    #[test]
+    fn empty_container_click_behavior_is_unchanged_by_this_feature() {
+        // Acceptance scenario 4: an empty container's own top-level extent
+        // is zero-height (nothing to click), and the rest of the slide's
+        // hit-testing is unaffected by its presence.
+        let app = app_from(
+            r#"{"nodes":[{"id":"a","title":"x","content":[
+                {"kind":"container","layout":"stack","children":[]},
+                {"kind":"text","body":"After"}
+            ]}]}"#,
+        );
+        let areas = editor_areas(area());
+        let layout = canvas_geometry(&app, areas.canvas);
+        assert!(
+            layout.child_extents.is_empty(),
+            "an empty container contributes no child extents"
+        );
+        let (start, _) = layout.block_extents[1];
+        let row = layout.inner.y + start as u16;
+        assert_eq!(
+            hit(&app, area(), layout.inner.x, row),
+            Some(Target::Block("a".to_owned(), vec![1]))
+        );
+    }
+
+    #[test]
+    fn a_columns_containers_children_resolve_by_column_not_row() {
+        let app = app_from(COLUMNS_CONTAINER_FIXTURE);
+        let areas = editor_areas(area());
+        let layout = canvas_geometry(&app, areas.canvas);
+        assert_eq!(layout.child_extents.len(), 2);
+        assert!(
+            layout.child_extents.iter().all(|c| c.cols.is_some()),
+            "columns children carry a column range"
+        );
+        for child in &layout.child_extents {
+            let (x0, x1) = child.cols.expect("columns child has a column range");
+            let row = layout.inner.y + child.rows.0 as u16;
+            let col = layout.inner.x + x0 + (x1 - x0) / 2;
+            assert_eq!(
+                hit(&app, area(), col, row),
+                Some(Target::Block("a".to_owned(), child.path.clone()))
+            );
+        }
+    }
+
+    #[test]
+    fn container_child_chip_and_form_open_exactly_like_a_top_level_block() {
+        let mut app = app_from(STACK_CONTAINER_FIXTURE);
+        app.selection = Selection::Block("a".to_owned(), vec![0, 0]);
+        let chips = selected_block_chips(&app);
+        assert!(chips.iter().any(|(a, _)| *a == BlockAction::Edit));
+        assert!(chips.iter().any(|(a, _)| *a == BlockAction::AddBelow));
+        assert!(chips.iter().any(|(a, _)| *a == BlockAction::Delete));
+    }
+
+    #[test]
+    fn selecting_a_container_form_child_row_resolves_to_container_child_chip() {
+        let mut app = app_from(STACK_CONTAINER_FIXTURE);
+        let node = app.working_graph().node("a").expect("node a");
+        let form = forms::open("a", vec![0], &node.content[0]).expect("container has a form");
+        app.open_form = Some(form);
+        let layout = form_layout(app.open_form.as_ref().unwrap(), area());
+        assert_eq!(layout.children_targets.len(), 2);
+        let row0 = layout.children_targets[0];
+        assert_eq!(
+            hit(&app, area(), row0.x, row0.y),
+            Some(Target::FormChip(FormChipKind::ContainerChild(0)))
+        );
     }
 }

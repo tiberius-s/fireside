@@ -90,8 +90,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/blocks.rs": {
-    "mtime": 1784576409.03926,
-    "ast_hash": "61ad4700ad180a8928598d0ff44eee3f",
+    "mtime": 1784838421.125589,
+    "ast_hash": "9f68cd5977d3bbdac8af249db2f408a2",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/mod.rs": {
@@ -670,8 +670,8 @@
     "semantic_hash": ""
   },
   ".specify/feature.json": {
-    "mtime": 1784658818.1685688,
-    "ast_hash": "e4fc1554baa2137117fad76ea7c4cd4d",
+    "mtime": 1784833445.2140467,
+    "ast_hash": "c254e4a038f5f2aa1c5416ff889908fc",
     "semantic_hash": ""
   },
   "specs/001-validate-watch/plan.md": {
@@ -1205,8 +1205,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/tests.rs": {
-    "mtime": 1784752275.8278334,
-    "ast_hash": "97171361bc0e29afa7229ac1b7351553",
+    "mtime": 1784839242.7744062,
+    "ast_hash": "550c05d2a1428d76dd73a7aa2000fa24",
     "semantic_hash": ""
   },
   ".github/demo-watch-toggle.sh": {
@@ -1485,8 +1485,8 @@
     "semantic_hash": ""
   },
   "scripts/smoke.sh": {
-    "mtime": 1784771576.2815702,
-    "ast_hash": "e772f40e262b16f2ef2e01498076cf97",
+    "mtime": 1784839989.694706,
+    "ast_hash": "9586c83b4488132fe9644c8dfce433bb",
     "semantic_hash": ""
   },
   "specs/012-presenter-view/spec.md": {
@@ -1675,13 +1675,13 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/hit.rs": {
-    "mtime": 1784773192.0032911,
-    "ast_hash": "0beeaa6f0523c141c56c3a800b37e2b9",
+    "mtime": 1784839582.0464506,
+    "ast_hash": "1f120f3d229b9637cb967a850ca119d1",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/mod.rs": {
-    "mtime": 1784773445.0702813,
-    "ast_hash": "ac6e3baee0fad3232b91e2b80dbb1838",
+    "mtime": 1784839294.9613585,
+    "ast_hash": "5d889232556bf157443e8a75ed3158a2",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/mod.rs": {
@@ -1690,8 +1690,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/canvas.rs": {
-    "mtime": 1784752243.0585952,
-    "ast_hash": "67ce80b6bb698529f87afc8234c3a0b8",
+    "mtime": 1784839242.7516222,
+    "ast_hash": "a8acd2ca5c553d967e138d579dc2786a",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/outline.rs": {
@@ -1700,13 +1700,13 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/forms.rs": {
-    "mtime": 1784752721.5732903,
-    "ast_hash": "e73d9c6f44d64ecd415d52c9f83cc478",
+    "mtime": 1784838827.8030365,
+    "ast_hash": "3da5082bea998b62d6be730237f11353",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/forms.rs": {
-    "mtime": 1784752230.9684255,
-    "ast_hash": "b3a8e0d9063e2bebdd11e34072e1bce7",
+    "mtime": 1784838813.1329618,
+    "ast_hash": "1e8b4b5cbb5ac0a1c3d2f23553b51f7f",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/wiring.rs": {
@@ -1715,13 +1715,58 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/editing.md": {
-    "mtime": 1784773972.4587595,
-    "ast_hash": "d870e2d27f3be5597c76aff89ad9292c",
+    "mtime": 1784839327.7167103,
+    "ast_hash": "7bb050c73782501e42c1be76eb23ca79",
     "semantic_hash": ""
   },
   "docs/src/assets/editing.gif": {
     "mtime": 1784773834.394572,
     "ast_hash": "e0090faac00e47d65dbbab272e5dc412",
+    "semantic_hash": ""
+  },
+  ".claude/plans/2026-07-23-ux-audit.md": {
+    "mtime": 1784832866.8160257,
+    "ast_hash": "32207ca626535443f7142987e5daa46a",
+    "semantic_hash": ""
+  },
+  "specs/014-container-block-editing/spec.md": {
+    "mtime": 1784833556.434875,
+    "ast_hash": "0f5ba4f6b695ff5029cdd3422a8ef3ba",
+    "semantic_hash": ""
+  },
+  "specs/014-container-block-editing/checklists/requirements.md": {
+    "mtime": 1784833565.6768506,
+    "ast_hash": "52d7e347b14b123e4f96594b3df8a242",
+    "semantic_hash": ""
+  },
+  "specs/014-container-block-editing/plan.md": {
+    "mtime": 1784836260.9131842,
+    "ast_hash": "fa6e291c38694e19054f3a472da6f763",
+    "semantic_hash": ""
+  },
+  "specs/014-container-block-editing/research.md": {
+    "mtime": 1784836171.7942474,
+    "ast_hash": "b1b22a239c2128c1aa7d744c2eff3be3",
+    "semantic_hash": ""
+  },
+  "specs/014-container-block-editing/data-model.md": {
+    "mtime": 1784836198.427856,
+    "ast_hash": "f59c3a5010e4d7599deeafa86ba12e2c",
+    "semantic_hash": ""
+  },
+  "specs/014-container-block-editing/contracts/nested-block-selection.md": {
+    "mtime": 1784836228.0835824,
+    "ast_hash": "e4f2ba2d86eaeefcc69f11eb0d7eb697",
+    "semantic_hash": ""
+  },
+  "specs/014-container-block-editing/quickstart.md": {
+    "mtime": 1784836249.2016435,
+    "ast_hash": "b20dca6d1252f6e3b46f062395546381",
+    "semantic_hash": ""
+  },
+  "specs/014-container-block-editing/tasks.md": {
+    "mtime": 1784839381.5343504,
+    "ast_hash": "5478e9c10214eefef0451b5ade2bf3a6",
     "semantic_hash": ""
   }
 }

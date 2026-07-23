@@ -96,20 +96,37 @@ fn draw_drag_ghost(frame: &mut Frame, canvas: Rect, app: &EditorApp, tokens: &To
     let Some(node) = hit::selected_node(app) else {
         return;
     };
-    if node.id != node_id || path.len() != 1 {
+    if node.id != node_id {
         return;
     }
     let Some(hit::CanvasLayout {
         inner,
         block_extents,
+        child_extents,
         scroll,
     }) = hit::canvas_layout(app, canvas)
     else {
         return;
     };
-    let Some(&(start, end)) = block_extents.get(path[0]) else {
-        return;
+    let (rows, cols) = match path.as_slice() {
+        [index] => {
+            let Some(&r) = block_extents.get(*index) else {
+                return;
+            };
+            (r, None)
+        }
+        [ci, cj] => {
+            let Some(child) = child_extents
+                .iter()
+                .find(|c| c.path.as_slice() == [*ci, *cj])
+            else {
+                return;
+            };
+            (child.rows, child.cols)
+        }
+        _ => return,
     };
+    let (start, end) = rows;
     let scroll = scroll as usize;
     let top = start.max(scroll);
     if top >= end {
@@ -121,11 +138,15 @@ fn draw_drag_ghost(frame: &mut Frame, canvas: Rect, app: &EditorApp, tokens: &To
         return;
     }
     let visible_rows = ((end - top) as u16).min(bottom - first_row);
+    let (x, width) = match cols {
+        Some((x0, x1)) => (inner.x + x0, x1 - x0),
+        None => (inner.x, inner.width),
+    };
     frame.buffer_mut().set_style(
         Rect {
-            x: inner.x,
+            x,
             y: first_row,
-            width: inner.width,
+            width,
             height: visible_rows,
         },
         tokens.ghost,
@@ -145,33 +166,45 @@ fn draw_insertion_indicator(frame: &mut Frame, canvas: Rect, app: &EditorApp, to
     let Some(node) = hit::selected_node(app) else {
         return;
     };
-    let (slot, dragging) = match app.drag() {
-        DragState::Over { node: n, to, .. } if n == &node.id => (Some(*to), true),
-        _ => (
-            match app.hover() {
-                Some(hit::Target::InsertionSlot(id, path, at))
-                    if id == &node.id && path.is_empty() =>
-                {
-                    Some(*at)
-                }
-                _ => None,
-            },
-            false,
-        ),
+    let (parent, slot, dragging): (Vec<usize>, usize, bool) = match app.drag() {
+        DragState::Over { node: n, path, to } if n == &node.id => {
+            (path[..path.len().saturating_sub(1)].to_vec(), *to, true)
+        }
+        _ => match app.hover() {
+            Some(hit::Target::InsertionSlot(id, path, at)) if id == &node.id => {
+                (path.clone(), *at, false)
+            }
+            _ => return,
+        },
     };
-    let Some(slot) = slot else { return };
     let Some(hit::CanvasLayout {
         inner,
         block_extents,
+        child_extents,
         scroll,
     }) = hit::canvas_layout(app, canvas)
     else {
         return;
     };
-    if slot == 0 || slot >= block_extents.len() {
-        return; // no dedicated gap row for the first/last position (see doc above)
-    }
-    let row_line = block_extents[slot].0 - 1;
+    // Only the row-based case (top level, or a `Stack`/`Center` container's
+    // children) has a dedicated gap row to draw on; a `Columns` container's
+    // children have no analogous row, so a drag among them still commits
+    // correctly (`hit::resolve_drop_slot`) but draws no line here — the
+    // drag ghost's dimming is the only visual cue for that case (spec 014).
+    let row_line = if parent.is_empty() {
+        if slot == 0 || slot >= block_extents.len() {
+            return; // no dedicated gap row for the first/last position (see doc above)
+        }
+        block_extents[slot].0 - 1
+    } else {
+        let ci = parent[0];
+        let siblings: Vec<&hit::ChildExtent> =
+            child_extents.iter().filter(|c| c.path[0] == ci).collect();
+        if siblings.iter().any(|c| c.cols.is_some()) || slot == 0 || slot >= siblings.len() {
+            return;
+        }
+        siblings[slot].rows.0 - 1
+    };
     let scroll = scroll as usize;
     if row_line < scroll {
         return;
@@ -203,24 +236,29 @@ fn draw_insertion_indicator(frame: &mut Frame, canvas: Rect, app: &EditorApp, to
     );
 }
 
-/// A `▎` marker in the card's left gutter across a selected top-level
-/// block's full rendered extent (spec 013 US1 acceptance scenario 1: "the
-/// block shows a clear selected state") — an overlay drawn *after*
-/// `draw_content`, never a parameter threaded into it, so the presenter's
-/// own rendering stays byte-identical (spec SC-008). Nested blocks
-/// (`path.len() > 1`) aren't marked yet — canvas hit-testing itself only
-/// addresses top-level blocks until US2 extends it (see `hit::canvas_hit`).
+/// A `▎` marker in the card's left gutter across a selected block's full
+/// rendered extent (spec 013 US1 acceptance scenario 1: "the block shows
+/// a clear selected state") — an overlay drawn *after* `draw_content`,
+/// never a parameter threaded into it, so the presenter's own rendering
+/// stays byte-identical (spec SC-008). A selected container child (spec
+/// 014 US1) gets the same tick, positioned at its own rows — and, for a
+/// side-by-side `Columns` child, at its own column's left edge instead of
+/// the card's, so the mark can never look like it belongs to a different
+/// block.
 fn draw_selection_marker(frame: &mut Frame, canvas: Rect, app: &EditorApp, tokens: &Tokens) {
     let Some(node) = hit::selected_node(app) else {
         return;
     };
-    let index = match app.selection() {
-        Selection::Block(id, path) if id == &node.id && path.len() == 1 => path[0],
-        _ => return,
+    let Selection::Block(id, path) = app.selection() else {
+        return;
     };
+    if id != &node.id {
+        return;
+    }
     let Some(hit::CanvasLayout {
         inner,
         block_extents,
+        child_extents,
         scroll,
     }) = hit::canvas_layout(app, canvas)
     else {
@@ -229,10 +267,28 @@ fn draw_selection_marker(frame: &mut Frame, canvas: Rect, app: &EditorApp, token
     if inner.x <= canvas.x {
         return; // no gutter column available to mark
     }
-    let Some(&(start, end)) = block_extents.get(index) else {
-        return;
+    let ((start, end), gutter_x) = match path.as_slice() {
+        [index] => {
+            let Some(&r) = block_extents.get(*index) else {
+                return;
+            };
+            (r, inner.x - 1)
+        }
+        [ci, cj] => {
+            let Some(child) = child_extents
+                .iter()
+                .find(|c| c.path.as_slice() == [*ci, *cj])
+            else {
+                return;
+            };
+            let gutter_x = match child.cols {
+                Some((x0, _)) if x0 > 0 => inner.x + x0 - 1,
+                _ => inner.x - 1,
+            };
+            (child.rows, gutter_x)
+        }
+        _ => return,
     };
-    let gutter_x = inner.x - 1;
     let scroll = scroll as usize;
     for line in start.max(scroll)..end {
         let row = inner.y + (line - scroll) as u16;

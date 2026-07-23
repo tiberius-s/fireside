@@ -730,6 +730,142 @@ else
   fail=$((fail + 1))
 fi
 
+# ─── Scenario 12: fireside edit — container block children (spec 014) ─────
+echo
+echo "=== fireside edit: select, edit, drag-reorder, delete, and add a container's children ==="
+US014DECK="$WORKDIR/smoke-014-talk.fireside.json"
+cat >"$US014DECK" <<'JSON'
+{
+  "fireside-version": "0.1.0",
+  "title": "Smoke Container Talk",
+  "nodes": [
+    {
+      "id": "intro",
+      "title": "Welcome",
+      "content": [
+        {
+          "kind": "container",
+          "layout": "stack",
+          "children": [
+            {"kind": "heading", "level": 1, "text": "Title text"},
+            {"kind": "text", "body": "Tagline text"}
+          ]
+        },
+        {"kind": "text", "body": "After the container"}
+      ]
+    }
+  ]
+}
+JSON
+start "$BIN edit $US014DECK"
+assert_contains "studio opens on the fixture deck" "Smoke Container Talk"
+
+# For this exact fixture at 100x30, the card centers its content: the
+# container's heading child ("Title text" + its rule) renders at rows
+# 10-11, its text child ("Tagline text") at row 13, and the top-level
+# sibling after the container at row 15 — confirmed by hand against a live
+# tmux session before hardcoding here, the same way scenario 7 established
+# its own coordinates. A container child's own form is one row taller than
+# the same block kind at the top level (the extra "This block is part of
+# a layout block above." line, spec 014), so its [ Done ]/[ Cancel ] chip
+# row lands at a different offset each time depending on the form's own
+# field count — committed via Ctrl+S here rather than a hardcoded chip
+# click for that reason (scenario 7 already covers clicking [ Done ] for
+# a top-level block's form).
+mouse_click 35 13
+assert_contains "clicking the container's second child selects only it (mouse)" "Edit ]"
+mouse_click 3 30
+assert_contains "the child's own text form opens, not the container's layout form" "Edit text"
+keys "!"
+keys "C-s"
+assert_not_contains "Ctrl+S commits the child's edit and closes the form" "Edit text"
+mouse_click 82 1
+assert_contains "[ Save ] writes the edited child" "Saved"
+if grep -qF "!Tagline text" "$US014DECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the saved file reflects the container child edit\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the saved file did not reflect the container child edit\n'
+  fail=$((fail + 1))
+fi
+
+# Drag the heading child (rows 10-11) past the text child (row 13) —
+# reorders within the container only, per spec 014 US2.
+mouse_drag 35 10 35 13
+sleep 0.3
+mouse_click 82 1
+assert_contains "[ Save ] writes the reordered container" "Saved"
+title_offset="$(grep -bo "Title text" "$US014DECK" | head -1 | cut -d: -f1)"
+tagline_offset="$(grep -bo "!Tagline text" "$US014DECK" | head -1 | cut -d: -f1)"
+if [[ -n "$title_offset" && -n "$tagline_offset" && "$tagline_offset" -lt "$title_offset" ]]; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the saved file reflects the drag-reordered container children\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the saved file did not reflect the reordered container children\n'
+  fail=$((fail + 1))
+fi
+if grep -qF "After the container" "$US014DECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the container'"'"'s top-level sibling is untouched by the within-container drag\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the top-level sibling after the container went missing\n'
+  fail=$((fail + 1))
+fi
+
+# The drag left selection on the dragged heading (now the container's
+# second child) — its hint-line chips are already showing; delete it via
+# its own [ Delete ] chip and confirm only it disappears.
+mouse_click 49 30
+assert_contains "deleting the dragged child flashes a reversible notice" "Deleted"
+mouse_click 82 1
+assert_contains "[ Save ] writes the deck after deleting a child" "Saved"
+if grep -qF "Title text" "$US014DECK"; then
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the deleted child is still in the saved file\n'
+  fail=$((fail + 1))
+else
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the deleted child is gone from the saved file\n'
+  pass=$((pass + 1))
+fi
+if grep -qF "!Tagline text" "$US014DECK" && grep -qF "After the container" "$US014DECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the remaining sibling and the container itself survived the delete\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m deleting one child damaged its sibling or the container\n'
+  fail=$((fail + 1))
+fi
+
+# Deleting the selected child clears selection (same fallback a top-level
+# delete already uses); Tab from nothing lands on the container itself
+# (spec 014 US1's pre-order walk), whose own form offers to add a child.
+keys "Tab"
+keys "Enter"
+assert_contains "Tab, Enter opens the now-single-child container's own form" "Edit layout"
+mouse_click 36 17
+assert_contains "the add-block palette opens targeting the container" "Add a block"
+mouse_click 14 12
+assert_contains "picking Text opens the new child's form immediately" "Edit text"
+keys "C-s"
+assert_not_contains "Ctrl+S commits the new child" "Edit text"
+mouse_click 82 1
+assert_contains "[ Save ] writes the deck with the new child" "Saved"
+if grep -qF "New text" "$US014DECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the new block was added as the container'"'"'s child\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the new block never reached the saved file\n'
+  fail=$((fail + 1))
+fi
+
+keys "q"
+sleep 0.4
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m editor q quits and the terminal is restored\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m editor q did not end the session\n'
+  fail=$((fail + 1))
+fi
+
 echo
 echo "----------------------------------------"
 if [[ "$fail" -eq 0 ]]; then

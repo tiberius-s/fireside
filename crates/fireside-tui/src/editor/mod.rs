@@ -207,6 +207,25 @@ fn other_reveal_levels(content: &[ContentBlock], path: &[usize]) -> Vec<u32> {
     out
 }
 
+/// A pre-order flattening of `content`'s block tree, one level deep (spec
+/// 014): each top-level block's own path, and immediately after a
+/// `Container` block, each of its direct children's paths in order — the
+/// walking order [`EditorApp::select_adjacent_block`] cycles through.
+/// Grandchildren (a container nested inside a container) are out of scope
+/// for this feature and are not flattened further.
+fn flattened_block_paths(content: &[ContentBlock]) -> Vec<BlockPath> {
+    let mut out = Vec::with_capacity(content.len());
+    for (i, block) in content.iter().enumerate() {
+        out.push(vec![i]);
+        if let ContentBlock::Container { children, .. } = block {
+            for j in 0..children.len() {
+                out.push(vec![i, j]);
+            }
+        }
+    }
+    out
+}
+
 /// The node whose branch answer targets `id`, if any (spec 013 US3, T050's
 /// cross-branch-boundary refusal toast's "take me there" link).
 fn find_branch_predecessor(graph: &Graph, id: &str) -> Option<String> {
@@ -474,31 +493,37 @@ impl EditorApp {
         self.scroll = 0;
     }
 
-    /// Tab/Shift+Tab: selects the next/previous top-level block on the
-    /// canvas's current slide, wrapping — the keyboard-only counterpart to
-    /// clicking a block (spec 013 US1 acceptance scenario 5: the same task
-    /// must succeed mouse-only or keyboard-only). A no-op on an empty
-    /// slide.
+    /// Tab/Shift+Tab: selects the next/previous block on the canvas's
+    /// current slide, wrapping — the keyboard-only counterpart to clicking
+    /// a block (spec 013 US1 acceptance scenario 5: the same task must
+    /// succeed mouse-only or keyboard-only). Order is a pre-order
+    /// flattening of the slide's content tree (spec 014 US1): each
+    /// top-level block, and immediately after a `Container` block, each of
+    /// its direct children in order, before moving to the container's next
+    /// top-level sibling — so tabbing off a container's last child (or
+    /// tabbing backward onto its first) lands on the container's
+    /// neighbor, never back inside it. A no-op on an empty slide.
     fn select_adjacent_block(&mut self, backward: bool) {
         let Some(node) = hit::selected_node(self) else {
             return;
         };
-        let count = node.content.len();
-        if count == 0 {
+        let paths = flattened_block_paths(&node.content);
+        if paths.is_empty() {
             return;
         }
         let node_id = node.id.clone();
         let current = match &self.selection {
-            Selection::Block(id, path) if *id == node_id && path.len() == 1 => Some(path[0]),
+            Selection::Block(id, path) if *id == node_id => paths.iter().position(|p| p == path),
             _ => None,
         };
+        let count = paths.len();
         let next = match (current, backward) {
             (None, false) => 0,
             (None, true) => count - 1,
             (Some(i), false) => (i + 1) % count,
             (Some(i), true) => (i + count - 1) % count,
         };
-        self.selection = Selection::Block(node_id, vec![next]);
+        self.selection = Selection::Block(node_id, paths[next].clone());
     }
 
     /// A click on the status banner (spec 013 E4, `contracts`'s
@@ -643,7 +668,42 @@ impl EditorApp {
             hit::FormChipKind::PickerRow(idx) => self.commit_picker_row(idx),
             hit::FormChipKind::PickerEnding => self.commit_picker_ending(),
             hit::FormChipKind::PickerNewSlide => self.commit_picker_new_slide(),
+            hit::FormChipKind::ContainerChild(idx) => self.open_container_child_form(idx),
+            hit::FormChipKind::AddChild => self.open_add_child_palette(),
         }
+    }
+
+    /// The container form's `[ + Add a block inside ]` chip (spec 014
+    /// US3): opens the add-block palette targeting this container as the
+    /// new block's parent, appended after its current last child — the
+    /// author can then reorder it among its new siblings via drag (US2).
+    fn open_add_child_palette(&mut self) {
+        let Some(FormState::Container {
+            node,
+            path,
+            children,
+            ..
+        }) = self.open_form.clone()
+        else {
+            return;
+        };
+        let at = children.len();
+        self.open_add_palette(node, path, at);
+    }
+
+    /// Selecting a row in an open `FormState::Container`'s child summary
+    /// list (spec 014 US1): closes the container form and opens that
+    /// child's own edit form — its path is the container form's own path
+    /// with the row's index appended (the row's position *is* its child
+    /// index, per `forms::child_summary`'s build order).
+    fn open_container_child_form(&mut self, idx: usize) {
+        let Some(FormState::Container { node, path, .. }) = self.open_form.clone() else {
+            return;
+        };
+        let mut child_path = path;
+        child_path.push(idx);
+        self.selection = Selection::Block(node.clone(), child_path.clone());
+        self.open_form_at(&node, &child_path);
     }
 
     // ─── Structure: slides, wiring, choices, reveal (spec 013, US3) ─────
@@ -1692,7 +1752,10 @@ impl EditorApp {
                 } else if row.saturating_add(1) >= areas.canvas.bottom() {
                     self.scroll = self.scroll.saturating_add(1);
                 }
-                if let Some(to) = hit::resolve_drop_slot(self, &node, areas.canvas, col, row) {
+                let parent = &path[..path.len().saturating_sub(1)];
+                if let Some(to) =
+                    hit::resolve_drop_slot(self, &node, parent, areas.canvas, col, row)
+                {
                     self.drag = DragState::Over { node, path, to };
                 }
             }
@@ -1738,7 +1801,10 @@ impl EditorApp {
                         to: move_to,
                     })
                 {
-                    self.selection = Selection::Block(node, vec![move_to]);
+                    let mut new_path = path;
+                    let last = new_path.len() - 1;
+                    new_path[last] = move_to;
+                    self.selection = Selection::Block(node, new_path);
                 }
             }
             DragState::OutlineOver { id, before } => {
@@ -1824,9 +1890,6 @@ impl EditorApp {
             Some(hit::Target::FormChip(kind)) => self.on_form_chip(kind),
             Some(hit::Target::FormField(slot)) => self.focus_form_field(slot),
             Some(hit::Target::StatusBanner) => self.jump_to_diagnostic(),
-            // `MoveUp`/`MoveDown` chips aren't wired — block drag (US2)
-            // already covers reordering (see `hit::BlockAction`'s doc).
-            Some(hit::Target::BlockChip(..)) => {}
             None => {
                 // A form, while open, occupies the whole hit-testing
                 // surface (`hit::form_hit`) — a click outside it is
@@ -2025,6 +2088,24 @@ mod tests {
         {"id":"b","title":"B slide","content":[{"kind":"text","body":"b"}]},
         {"id":"c","title":"C slide","content":[{"kind":"text","body":"c"}]}
     ]}"#;
+
+    /// A slide built from a single top-level `Stack` container with two
+    /// children, followed by a top-level sibling (spec 014 fixtures).
+    const CONTAINER: &str = r#"{"nodes":[
+        {"id":"a","title":"Welcome","content":[
+            {"kind":"container","layout":"stack","children":[
+                {"kind":"heading","level":1,"text":"Title"},
+                {"kind":"text","body":"Tagline"}
+            ]},
+            {"kind":"text","body":"After the container"}
+        ]}
+    ]}"#;
+
+    fn container_app() -> EditorApp {
+        let mut app = EditorApp::new(Graph::from_json(CONTAINER).expect("fixture parses"));
+        app.set_terminal_size(100, 30);
+        app
+    }
 
     fn linear3_app() -> EditorApp {
         let mut app = EditorApp::new(Graph::from_json(LINEAR3).expect("fixture parses"));
@@ -3729,6 +3810,231 @@ mod tests {
                 .speaker_notes
                 .as_deref(),
             Some("Smile and slow down")
+        );
+    }
+
+    // ─── Container children (spec 014) ─────────────────────────────────────
+
+    #[test]
+    fn tab_cycles_into_a_containers_children_and_back_out_to_its_sibling() {
+        let mut app = container_app();
+        press(&mut app, KeyCode::Tab); // the container itself
+        assert_eq!(app.selection(), &Selection::Block("a".to_owned(), vec![0]));
+        press(&mut app, KeyCode::Tab); // its first child
+        assert_eq!(
+            app.selection(),
+            &Selection::Block("a".to_owned(), vec![0, 0])
+        );
+        press(&mut app, KeyCode::Tab); // its second child
+        assert_eq!(
+            app.selection(),
+            &Selection::Block("a".to_owned(), vec![0, 1])
+        );
+        press(&mut app, KeyCode::Tab); // the container's top-level sibling, not back inside it
+        assert_eq!(app.selection(), &Selection::Block("a".to_owned(), vec![1]));
+        press(&mut app, KeyCode::BackTab);
+        assert_eq!(
+            app.selection(),
+            &Selection::Block("a".to_owned(), vec![0, 1]),
+            "shift+tab from the container's sibling lands back on its last child"
+        );
+    }
+
+    #[test]
+    fn clicking_a_container_childs_text_selects_only_that_child() {
+        let mut app = container_app();
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        let layout = hit::canvas_layout(&app, areas.canvas).expect("canvas has layout");
+        let child1 = layout
+            .child_extents
+            .iter()
+            .find(|c| c.path == vec![0, 1])
+            .expect("container's second child has an extent");
+        click(
+            &mut app,
+            layout.inner.x,
+            layout.inner.y + child1.rows.0 as u16,
+        );
+        assert_eq!(
+            app.selection(),
+            &Selection::Block("a".to_owned(), vec![0, 1])
+        );
+    }
+
+    #[test]
+    fn a_container_childs_edit_form_round_trips_exactly_like_a_top_level_block() {
+        let mut app = container_app();
+        app.selection = Selection::Block("a".to_owned(), vec![0, 1]);
+        press(&mut app, KeyCode::Enter);
+        assert!(matches!(app.open_form(), Some(FormState::Text { .. })));
+        type_text(&mut app, "!");
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        assert!(app.open_form().is_none());
+        let ContentBlock::Container { children, .. } =
+            &app.working_graph().node("a").unwrap().content[0]
+        else {
+            panic!("block 0 must still be a container");
+        };
+        assert_eq!(
+            children[1],
+            ContentBlock::Text {
+                reveal: None,
+                body: "!Tagline".to_owned(),
+            }
+        );
+    }
+
+    #[test]
+    fn drag_reorders_a_containers_children_mouse_only() {
+        let mut app = container_app();
+        let area = Rect::new(0, 0, 100, 30);
+        let areas = hit::editor_areas(area);
+        let layout = hit::canvas_layout(&app, areas.canvas).expect("canvas has layout");
+        let child0 = layout
+            .child_extents
+            .iter()
+            .find(|c| c.path == vec![0, 0])
+            .unwrap()
+            .clone();
+        let child1 = layout
+            .child_extents
+            .iter()
+            .find(|c| c.path == vec![0, 1])
+            .unwrap()
+            .clone();
+
+        click(
+            &mut app,
+            layout.inner.x,
+            layout.inner.y + child0.rows.0 as u16,
+        );
+        assert_eq!(
+            app.drag(),
+            &DragState::Lifting {
+                node: "a".to_owned(),
+                path: vec![0, 0],
+            }
+        );
+
+        let drop_row = layout.inner.y + (child1.rows.1 - 1) as u16;
+        drag_to(&mut app, layout.inner.x, drop_row);
+        assert_eq!(
+            app.drag(),
+            &DragState::Over {
+                node: "a".to_owned(),
+                path: vec![0, 0],
+                to: 2,
+            }
+        );
+
+        release(&mut app, layout.inner.x, drop_row);
+        assert_eq!(app.drag(), &DragState::Idle);
+        let ContentBlock::Container { children, .. } =
+            &app.working_graph().node("a").unwrap().content[0]
+        else {
+            panic!("block 0 must still be a container");
+        };
+        assert_eq!(
+            children[0],
+            ContentBlock::Text {
+                reveal: None,
+                body: "Tagline".to_owned(),
+            },
+            "the tagline is now first within the container"
+        );
+        assert_eq!(
+            children[1],
+            ContentBlock::Heading {
+                reveal: None,
+                level: 1,
+                text: "Title".to_owned(),
+            },
+            "the dragged heading is now last within the container"
+        );
+        assert_eq!(
+            app.selection(),
+            &Selection::Block("a".to_owned(), vec![0, 1]),
+            "selection follows the dragged child to its new position"
+        );
+
+        // The top-level sibling after the container is untouched — this
+        // was purely a within-container reorder.
+        assert_eq!(
+            app.working_graph().node("a").unwrap().content[1],
+            ContentBlock::Text {
+                reveal: None,
+                body: "After the container".to_owned(),
+            }
+        );
+    }
+
+    #[test]
+    fn deleting_a_containers_child_leaves_its_sibling_and_the_container_in_place() {
+        let mut app = container_app();
+        app.selection = Selection::Block("a".to_owned(), vec![0, 0]);
+        app.delete_block("a".to_owned(), vec![0, 0]);
+        let ContentBlock::Container { children, .. } =
+            &app.working_graph().node("a").unwrap().content[0]
+        else {
+            panic!("block 0 must still be a container, not deleted");
+        };
+        assert_eq!(children.len(), 1, "the sibling remains");
+        assert_eq!(
+            children[0],
+            ContentBlock::Text {
+                reveal: None,
+                body: "Tagline".to_owned(),
+            }
+        );
+        assert_eq!(
+            app.selection(),
+            &Selection::None,
+            "a deleted selection falls back to none, same as deleting a top-level block"
+        );
+    }
+
+    #[test]
+    fn add_a_block_inside_a_container_via_its_form_chip() {
+        let mut app = container_app();
+        app.selection = Selection::Block("a".to_owned(), vec![0]);
+        press(&mut app, KeyCode::Enter);
+        assert!(matches!(app.open_form(), Some(FormState::Container { .. })));
+        app.on_form_chip(hit::FormChipKind::AddChild);
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::AddPalette { .. })
+        ));
+        app.on_form_chip(hit::FormChipKind::PaletteCard(authoring::BlockKind::Text));
+        // The new block opens for editing immediately, as a child (path
+        // length 2), appended after the container's existing two children.
+        assert_eq!(
+            app.selection(),
+            &Selection::Block("a".to_owned(), vec![0, 2])
+        );
+        assert!(matches!(app.open_form(), Some(FormState::Text { .. })));
+        type_text(&mut app, "New child");
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        let ContentBlock::Container { children, .. } =
+            &app.working_graph().node("a").unwrap().content[0]
+        else {
+            panic!("block 0 must still be a container");
+        };
+        assert_eq!(children.len(), 3);
+        assert_eq!(
+            children[2],
+            ContentBlock::Text {
+                reveal: None,
+                body: "New childNew text".to_owned(),
+            }
+        );
+        // The container's top-level sibling is untouched.
+        assert_eq!(
+            app.working_graph().node("a").unwrap().content[1],
+            ContentBlock::Text {
+                reveal: None,
+                body: "After the container".to_owned(),
+            }
         );
     }
 }

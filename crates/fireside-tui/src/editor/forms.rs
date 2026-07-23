@@ -222,10 +222,10 @@ pub(crate) enum TextArtFocus {
 }
 
 /// A plain-language, one-line summary of a container's child — shown
-/// read-only inside the container form (spec 013 T033's "breadcrumb
-/// navigation into children"; drilling in to *edit* a child is left to the
-/// canvas's own block selection once US2 extends hit-testing past
-/// top-level blocks, per `hit.rs`'s note on `canvas_hit`).
+/// inside the container form (spec 013 T033's "breadcrumb navigation into
+/// children"). Each row is clickable (spec 014 US1,
+/// `hit::FormChipKind::ContainerChild`): selecting one opens that child's
+/// own edit form directly, the same form its canvas selection would open.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ChildSummary {
     pub(crate) label: String,

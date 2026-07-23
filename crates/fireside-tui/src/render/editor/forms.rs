@@ -29,10 +29,13 @@ pub(super) fn draw(frame: &mut Frame, area: Rect, form: &FormState, tokens: &Tok
         draw_field(frame, field_layout, form, tokens);
     }
     if !layout.children_lines.is_empty() {
+        // Affordance-styled, not muted (spec 014 US1): each row is now a
+        // clickable target (`hit::form_hit`'s `children_targets`) that
+        // opens that child's own form, not a read-only summary.
         let lines: Vec<Line<'static>> = layout
             .children_lines
             .iter()
-            .map(|l| Line::styled(format!("  \u{2022} {l}"), tokens.muted))
+            .map(|l| Line::styled(format!("  \u{2022} {l}"), tokens.affordance))
             .collect();
         frame.render_widget(Paragraph::new(lines), layout.children_rect);
     }
