@@ -1,11 +1,11 @@
 # Graph Report - fireside  (2026-07-23)
 
 ## Corpus Check
-- 322 files · ~480,958 words
+- 321 files · ~479,058 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4045 nodes · 6714 edges · 312 communities (267 shown, 45 thin omitted)
+- 4035 nodes · 6705 edges · 311 communities (266 shown, 45 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 71 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
@@ -324,7 +324,6 @@
 - [[_COMMUNITY_Community 308|Community 308]]
 - [[_COMMUNITY_Community 309|Community 309]]
 - [[_COMMUNITY_Community 310|Community 310]]
-- [[_COMMUNITY_Community 311|Community 311]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `EditorApp` - 124 edges
@@ -380,7 +379,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (312 total, 45 thin omitted)
+## Communities (311 total, 45 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -1438,16 +1437,12 @@ Nodes (14): DraftPrompt, draw(), EditorApp, Frame, Rect, Tokens, draw_draft_choi
 Cohesion: 0.22
 Nodes (8): Adding, deleting, and reordering blocks, Crash safety, Every key, Restructuring the deck, Selecting and editing, The studio's layout, Trying it, saving, and undo, Where to go next
 
-### Community 311 - "Community 311"
-Cohesion: 0.20
-Nodes (9): Codebase health, Docs, Executive summary, Fireside — Follow-up UX Audit (2026-07-23), Progress Log, Sanity sweep (no findings), Suggested order, Wave 1 — P1: editor correctness (+1 more)
-
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
   COPILOT-CLI-CHEATSHEET.md · relation: references
 
 ## Knowledge Gaps
-- **1773 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1768 more)
+- **1765 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1760 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **45 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1457,13 +1452,13 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **Why does `Event` connect `Community 137` to `TUI App Core`, `Community 228`, `Community 229`, `Render Module`, `Community 122`, `Community 287`?**
-  _High betweenness centrality (0.030) - this node is a cross-community bridge._
+  _High betweenness centrality (0.031) - this node is a cross-community bridge._
 - **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.025) - this node is a cross-community bridge._
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **Why does `outline_lines()` connect `Community 300` to `Community 299`?**
   _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
-  _1775 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1767 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
   _Cohesion score 0.125 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**

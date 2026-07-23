@@ -152,10 +152,11 @@ status, date._
       `scripts/verify.sh` passes in full. Docs updated: presenting.md's
       "Presenting with two screens" section, cli.md's `notes` entry,
       quickstart.md pointer.
-- [ ] WYSIWYG authoring editor — planned separately in
+- [X] WYSIWYG authoring editor — done 2026-07-22, full detail in
       `.claude/plans/2026-07-19-wysiwyg-editor-plan.md` (user decision
       2026-07-19, Tier 2 selected). Spec-kit feature candidate
-      `013-authoring-editor`.
+      `013-authoring-editor`, all 73 tasks complete, `scripts/verify.sh`
+      passes in full.
 
 ## Executive summary
 

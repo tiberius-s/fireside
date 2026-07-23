@@ -1723,10 +1723,5 @@
     "mtime": 1784773834.394572,
     "ast_hash": "e0090faac00e47d65dbbab272e5dc412",
     "semantic_hash": ""
-  },
-  ".claude/plans/2026-07-23-ux-audit.md": {
-    "mtime": 1784832866.8160257,
-    "ast_hash": "32207ca626535443f7142987e5daa46a",
-    "semantic_hash": ""
   }
 }
