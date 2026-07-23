@@ -116,6 +116,18 @@ pub(crate) enum Msg {
     ArtGenerated(Result<String, String>),
 }
 
+/// What the open-time draft-vs-saved-file prompt shows (spec 013 US4,
+/// FR-020, `contracts/cli-edit-command.md`'s "Behavior" section):
+/// `fireside-cli` reads and compares the draft sidecar itself (this crate
+/// never touches the filesystem or a clock) and hands over the recovered
+/// graph plus two already-formatted, plain-language timestamps.
+#[derive(Debug, Clone)]
+pub struct DraftPrompt {
+    pub draft: Graph,
+    pub draft_touched: String,
+    pub saved_touched: String,
+}
+
 /// All authoring-editor state (spec 013, `data-model.md`'s `EditorApp`
 /// section).
 #[derive(Debug)]
@@ -131,11 +143,19 @@ pub(crate) struct EditorApp {
     status: Vec<fireside_engine::Diagnostic>,
     scroll: u16,
     hover: Option<hit::Target>,
-    #[allow(dead_code)] // read once draft autosave (US4, T060) lands
     dirty_since_draft: bool,
-    #[allow(dead_code)] // read once draft autosave (US4, T060) lands
+    #[allow(dead_code)] // read by tests; a "draft saved Xs ago" indicator is future polish
     last_draft_write: Instant,
     showing_help: bool,
+    /// The quit-with-unsaved-changes prompt (spec 013 US4, FR-019), open
+    /// when `q` was pressed while [`Self::dirty`] was true.
+    quit_prompt: bool,
+    /// Set by the quit-prompt's `[ Save ]` chip: quit once the pending
+    /// save this triggers comes back successful, never on a failed save.
+    quit_after_save: bool,
+    /// The open-time draft-vs-saved-file prompt (spec 013 US4, FR-020),
+    /// gating the whole studio until resolved.
+    draft_choice: Option<DraftPrompt>,
     present_requested: bool,
     pending_save: Option<Graph>,
     pending_art_request: Option<String>,
@@ -210,12 +230,26 @@ impl EditorApp {
             dirty_since_draft: false,
             last_draft_write: Instant::now(),
             showing_help: false,
+            quit_prompt: false,
+            quit_after_save: false,
+            draft_choice: None,
             present_requested: false,
             pending_save: None,
             pending_art_request: None,
             flash: None,
             quit: false,
         }
+    }
+
+    /// Opens a fresh editor session over `graph` (the deck file's own
+    /// content), gated behind the open-time draft-vs-saved-file prompt
+    /// (spec 013 US4, FR-020) — the studio itself doesn't draw until
+    /// [`Self::resolve_draft_choice`] resolves it.
+    #[must_use]
+    pub(crate) fn new_with_draft(graph: Graph, prompt: DraftPrompt) -> Self {
+        let mut app = Self::new(graph);
+        app.draft_choice = Some(prompt);
+        app
     }
 
     #[must_use]
@@ -270,6 +304,27 @@ impl EditorApp {
     #[allow(dead_code)] // read by tests; a visible undo-depth indicator is future polish
     pub(crate) fn history_len(&self) -> usize {
         self.history.len()
+    }
+
+    #[must_use]
+    #[allow(dead_code)] // read by tests
+    pub(crate) fn last_draft_write(&self) -> Instant {
+        self.last_draft_write
+    }
+
+    /// Whether the quit-with-unsaved-changes prompt is open (spec 013 US4,
+    /// FR-019) — read by `render::editor` to draw its overlay.
+    #[must_use]
+    pub(crate) fn quit_prompt(&self) -> bool {
+        self.quit_prompt
+    }
+
+    /// The open-time draft-vs-saved-file prompt, if unresolved (spec 013
+    /// US4, FR-020) — read by `render::editor` to draw its takeover screen
+    /// in place of the studio.
+    #[must_use]
+    pub(crate) fn draft_choice(&self) -> Option<&DraftPrompt> {
+        self.draft_choice.as_ref()
     }
 
     /// The block (or slide, once US3's outline drag lands) drag in
@@ -338,6 +393,21 @@ impl EditorApp {
     /// Consumes a pending text-art generation request, if one is set.
     fn take_pending_art_request(&mut self) -> Option<String> {
         self.pending_art_request.take()
+    }
+
+    /// Consumes a pending draft-write request: `Some` whenever
+    /// `working_graph` has changed (via [`Self::apply_op`]/
+    /// [`Self::apply_direct`]) since the last draft write — checked once
+    /// per event-loop tick, mirroring [`Self::take_pending_save`]'s
+    /// pull-based contract (spec 013 US4, FR-020: "periodically... and on
+    /// every structural op").
+    fn take_pending_draft(&mut self) -> Option<Graph> {
+        if std::mem::take(&mut self.dirty_since_draft) {
+            self.last_draft_write = Instant::now();
+            Some(self.working_graph.clone())
+        } else {
+            None
+        }
     }
 
     /// `[`/`]`: selects the previous/next slide in outline order, wrapping
@@ -458,6 +528,7 @@ impl EditorApp {
         self.push_history();
         mutate(&mut self.working_graph);
         self.redo.clear();
+        self.dirty_since_draft = true;
     }
 
     /// `[ Done ]` on a direct-effect `Prompt` (`NewSlide`/`DeckTitle`/
@@ -1107,6 +1178,7 @@ impl EditorApp {
                 self.push_history();
                 self.working_graph = next;
                 self.redo.clear();
+                self.dirty_since_draft = true;
                 true
             }
             Err(err) => {
@@ -1222,9 +1294,20 @@ impl EditorApp {
         match result {
             Ok(()) => {
                 self.saved_graph = self.working_graph.clone();
+                self.dirty_since_draft = false;
                 self.set_flash("Saved", FlashKind::Info);
+                // The quit-prompt's `[ Save ]` chip (spec 013 US4, FR-019):
+                // only a *successful* save finishes the quit — a failure
+                // leaves the author in the editor to retry or choose
+                // differently, never losing the edit.
+                if std::mem::take(&mut self.quit_after_save) {
+                    self.quit = true;
+                }
             }
-            Err(message) => self.set_flash(message, FlashKind::Error),
+            Err(message) => {
+                self.quit_after_save = false;
+                self.set_flash(message, FlashKind::Error);
+            }
         }
     }
 
@@ -1245,8 +1328,94 @@ impl EditorApp {
         }
     }
 
+    // ─── Quit / drafts (spec 013, US4) ──────────────────────────────────
+
+    /// `q`: quits immediately if there is nothing unsaved, otherwise opens
+    /// the `[ Save ] [ Discard ] [ Keep editing ]` prompt (spec FR-019) —
+    /// unsaved work is never silently discarded.
+    fn request_quit(&mut self) {
+        if self.dirty() {
+            self.quit_prompt = true;
+        } else {
+            self.quit = true;
+        }
+    }
+
+    fn on_quit_prompt_key(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Char('s' | 'S') => self.quit_prompt_save(),
+            KeyCode::Char('d' | 'D') => {
+                self.quit_prompt = false;
+                self.quit = true;
+            }
+            KeyCode::Char('k' | 'K') | KeyCode::Esc => self.quit_prompt = false,
+            _ => {}
+        }
+    }
+
+    fn on_quit_prompt_click(&mut self, col: u16, row: u16) {
+        let (w, h) = self.terminal_size;
+        match hit::quit_prompt_hit(Rect::new(0, 0, w, h), col, row) {
+            Some(hit::QuitAction::Save) => self.quit_prompt_save(),
+            Some(hit::QuitAction::Discard) => {
+                self.quit_prompt = false;
+                self.quit = true;
+            }
+            Some(hit::QuitAction::KeepEditing) => self.quit_prompt = false,
+            None => {}
+        }
+    }
+
+    /// The quit-prompt's `[ Save ]` chip: stages the save exactly like
+    /// Ctrl+S, then finishes the quit once [`Self::on_save_result`] sees
+    /// it succeed.
+    fn quit_prompt_save(&mut self) {
+        self.quit_prompt = false;
+        self.quit_after_save = true;
+        self.request_save();
+    }
+
+    fn on_draft_choice_key(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Char('r' | 'R') => self.resolve_draft_choice(true),
+            KeyCode::Char('o' | 'O') => self.resolve_draft_choice(false),
+            _ => {}
+        }
+    }
+
+    fn on_draft_choice_click(&mut self, col: u16, row: u16) {
+        let (w, h) = self.terminal_size;
+        if let Some(action) = hit::draft_choice_hit(Rect::new(0, 0, w, h), col, row) {
+            self.resolve_draft_choice(action == hit::DraftAction::RestoreDraft);
+        }
+    }
+
+    /// Resolves the open-time draft-vs-saved-file prompt (spec 013 US4,
+    /// FR-020): `true` swaps the recovered draft in as `working_graph`
+    /// (immediately dirty against the already-loaded saved file, exactly
+    /// like any other unsaved edit — [`Self::dirty`] needs no special
+    /// case); `false` keeps the saved file already loaded and simply
+    /// declines the offer.
+    fn resolve_draft_choice(&mut self, use_draft: bool) {
+        let Some(choice) = self.draft_choice.take() else {
+            return;
+        };
+        if use_draft {
+            self.working_graph = choice.draft;
+            self.status = validate(&self.working_graph);
+        }
+    }
+
     fn on_key(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
+            return;
+        }
+        if self.draft_choice.is_some() {
+            self.on_draft_choice_key(key);
+            return;
+        }
+        if self.quit_prompt {
+            self.on_quit_prompt_key(key);
             return;
         }
         if self.showing_help {
@@ -1258,7 +1427,7 @@ impl EditorApp {
             return;
         }
         match key.code {
-            KeyCode::Char('q') => self.quit = true,
+            KeyCode::Char('q') => self.request_quit(),
             KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                 self.request_save();
             }
@@ -1402,6 +1571,18 @@ impl EditorApp {
     }
 
     fn on_mouse(&mut self, event: MouseEvent) {
+        if self.draft_choice.is_some() {
+            if let MouseEventKind::Down(MouseButton::Left) = event.kind {
+                self.on_draft_choice_click(event.column, event.row);
+            }
+            return;
+        }
+        if self.quit_prompt {
+            if let MouseEventKind::Down(MouseButton::Left) = event.kind {
+                self.on_quit_prompt_click(event.column, event.row);
+            }
+            return;
+        }
         match event.kind {
             MouseEventKind::Down(MouseButton::Left) => self.on_click(event.column, event.row),
             MouseEventKind::Drag(MouseButton::Left) => {
@@ -1597,10 +1778,20 @@ pub type EditorWriteBackSink<'a> = &'a mut dyn FnMut(&Graph) -> Result<(), Write
 /// (the chip still shows; using it reports "not available").
 pub type ArtGenerator<'a> = &'a mut dyn FnMut(&str) -> Result<String, String>;
 
+/// The draft sidecar's write sink (spec 013 US4, T060): called with the
+/// working graph whenever there has been a structural change since the
+/// last draft write. Best-effort and infallible from the editor's point of
+/// view, exactly like the presenter's own live session-state write
+/// (`fireside-cli::session::write`) — an autosave failure must never
+/// interrupt authoring.
+pub type DraftSink<'a> = &'a mut dyn FnMut(&Graph);
+
 /// Opens the full-screen authoring studio (spec 013) over `graph`: sets up
 /// the terminal, runs the editor's own event loop, and always restores the
 /// terminal, even on error — the same contract [`crate::present`] gives
-/// the presenter.
+/// the presenter. `draft`, if given, opens the studio behind the
+/// draft-vs-saved-file prompt (spec 013 US4, FR-020) instead of drawing it
+/// directly.
 ///
 /// # Errors
 ///
@@ -1608,19 +1799,24 @@ pub type ArtGenerator<'a> = &'a mut dyn FnMut(&str) -> Result<String, String>;
 /// [`TuiError::Io`] for terminal failures.
 pub fn run(
     graph: Graph,
+    draft: Option<DraftPrompt>,
     sink: EditorWriteBackSink<'_>,
+    draft_sink: DraftSink<'_>,
     art_generator: Option<ArtGenerator<'_>>,
 ) -> Result<(), TuiError> {
     if !io::stdout().is_tty() || !io::stdin().is_tty() {
         return Err(TuiError::NotATty);
     }
-    let mut app = EditorApp::new(graph);
+    let mut app = match draft {
+        Some(prompt) => EditorApp::new_with_draft(graph, prompt),
+        None => EditorApp::new(graph),
+    };
     let mut terminal = ratatui::try_init()?;
     // Mouse capture is enabled once for the whole editor session — both
     // the studio's own loop and the in-process presenter loop `present_now`
     // enters share it, per research.md §6.
     let _ = execute!(io::stdout(), EnableMouseCapture);
-    let result = editor_event_loop(&mut terminal, &mut app, sink, art_generator);
+    let result = editor_event_loop(&mut terminal, &mut app, sink, draft_sink, art_generator);
     let _ = execute!(io::stdout(), DisableMouseCapture);
     ratatui::restore();
     result
@@ -1630,6 +1826,7 @@ fn editor_event_loop(
     terminal: &mut ratatui::DefaultTerminal,
     app: &mut EditorApp,
     sink: EditorWriteBackSink<'_>,
+    draft_sink: DraftSink<'_>,
     mut art_generator: Option<ArtGenerator<'_>>,
 ) -> Result<(), TuiError> {
     if let Ok(size) = terminal.size() {
@@ -1639,6 +1836,9 @@ fn editor_event_loop(
         if let Some(graph) = app.take_pending_save() {
             let result = sink(&graph).map_err(|err| err.to_string());
             app.update(Msg::SaveResult(result));
+        }
+        if let Some(graph) = app.take_pending_draft() {
+            draft_sink(&graph);
         }
         if let Some(phrase) = app.take_pending_art_request() {
             let result = match &mut art_generator {
@@ -1921,6 +2121,218 @@ mod tests {
         assert!(app.should_quit());
     }
 
+    /// Spec 013 US4, FR-019/acceptance scenario 2: `q` with unsaved
+    /// changes must ask first, never quit or discard silently.
+    #[test]
+    fn q_with_unsaved_changes_opens_the_quit_prompt_instead_of_quitting() {
+        let mut app = app();
+        assert!(app.apply_op(Op::RetitleSlide {
+            id: "a".to_owned(),
+            title: "Edited".to_owned(),
+        }));
+        assert!(app.dirty());
+
+        press(&mut app, KeyCode::Char('q'));
+        assert!(!app.should_quit(), "q must not quit immediately when dirty");
+        assert!(app.quit_prompt());
+    }
+
+    #[test]
+    fn quit_prompt_keep_editing_dismisses_without_losing_the_edit() {
+        let mut app = app();
+        app.apply_op(Op::RetitleSlide {
+            id: "a".to_owned(),
+            title: "Edited".to_owned(),
+        });
+        press(&mut app, KeyCode::Char('q'));
+        press(&mut app, KeyCode::Char('k'));
+        assert!(!app.quit_prompt());
+        assert!(!app.should_quit());
+        assert!(app.dirty(), "the edit is still there, unsaved");
+    }
+
+    #[test]
+    fn quit_prompt_discard_quits_without_saving() {
+        let mut app = app();
+        app.apply_op(Op::RetitleSlide {
+            id: "a".to_owned(),
+            title: "Edited".to_owned(),
+        });
+        press(&mut app, KeyCode::Char('q'));
+        press(&mut app, KeyCode::Char('d'));
+        assert!(app.should_quit());
+        assert!(app.dirty(), "discard quits without writing back");
+    }
+
+    #[test]
+    fn quit_prompt_save_saves_then_quits_once_the_save_succeeds() {
+        let mut app = app();
+        app.apply_op(Op::RetitleSlide {
+            id: "a".to_owned(),
+            title: "Edited".to_owned(),
+        });
+        press(&mut app, KeyCode::Char('q'));
+        press(&mut app, KeyCode::Char('s'));
+        assert!(!app.quit_prompt());
+        assert!(
+            !app.should_quit(),
+            "the quit finishes only once the save result comes back"
+        );
+        app.update(Msg::SaveResult(Ok(())));
+        assert!(app.should_quit());
+        assert!(!app.dirty());
+    }
+
+    #[test]
+    fn quit_prompt_save_failure_keeps_editing_rather_than_quitting() {
+        let mut app = app();
+        app.apply_op(Op::RetitleSlide {
+            id: "a".to_owned(),
+            title: "Edited".to_owned(),
+        });
+        press(&mut app, KeyCode::Char('q'));
+        press(&mut app, KeyCode::Char('s'));
+        app.update(Msg::SaveResult(Err("disk full".to_owned())));
+        assert!(
+            !app.should_quit(),
+            "a failed save must never lose the edit by quitting anyway"
+        );
+        assert!(app.dirty());
+    }
+
+    #[test]
+    fn quit_prompt_chips_are_clickable() {
+        let mut app = app();
+        app.apply_op(Op::RetitleSlide {
+            id: "a".to_owned(),
+            title: "Edited".to_owned(),
+        });
+        press(&mut app, KeyCode::Char('q'));
+        let area = Rect::new(0, 0, 100, 30);
+        let (_, discard_rect) = hit::quit_prompt_chip_rects(area)
+            .into_iter()
+            .find(|(a, _)| *a == hit::QuitAction::Discard)
+            .expect("discard chip rect");
+        click(&mut app, discard_rect.x, discard_rect.y);
+        assert!(app.should_quit());
+    }
+
+    /// Spec 013 US4, FR-020/contract "Behavior" section: the draft-choice
+    /// prompt takes over the whole screen rather than drawing on top of
+    /// the studio.
+    #[test]
+    fn draft_choice_gates_the_studio_until_resolved() {
+        let saved = Graph::from_json(FIXTURE).expect("fixture parses");
+        let mut draft = saved.clone();
+        draft.nodes[0].title = Some("Recovered title".to_owned());
+        let mut app = EditorApp::new_with_draft(
+            saved,
+            DraftPrompt {
+                draft,
+                draft_touched: "2 minutes ago".to_owned(),
+                saved_touched: "an hour ago".to_owned(),
+            },
+        );
+        app.set_terminal_size(100, 30);
+        assert!(app.draft_choice().is_some());
+        let screen = draw(&app, 100, 30);
+        assert!(screen.contains("Recovered unsaved changes"));
+        assert!(screen.contains("2 minutes ago"));
+        assert!(screen.contains("an hour ago"));
+        assert!(
+            !screen.contains("Click a slide or block to select"),
+            "the studio's hint line must not draw underneath the draft prompt"
+        );
+    }
+
+    #[test]
+    fn draft_choice_restore_swaps_in_the_draft_and_leaves_it_dirty() {
+        let saved = Graph::from_json(FIXTURE).expect("fixture parses");
+        let mut draft = saved.clone();
+        draft.nodes[0].title = Some("Recovered title".to_owned());
+        let draft_clone = draft.clone();
+        let mut app = EditorApp::new_with_draft(
+            saved,
+            DraftPrompt {
+                draft,
+                draft_touched: "just now".to_owned(),
+                saved_touched: "an hour ago".to_owned(),
+            },
+        );
+        app.set_terminal_size(100, 30);
+        press(&mut app, KeyCode::Char('r'));
+        assert!(app.draft_choice().is_none());
+        assert_eq!(app.working_graph(), &draft_clone);
+        assert!(
+            app.dirty(),
+            "restoring a differing draft is an unsaved change"
+        );
+    }
+
+    #[test]
+    fn draft_choice_open_saved_keeps_the_saved_file() {
+        let saved = Graph::from_json(FIXTURE).expect("fixture parses");
+        let saved_clone = saved.clone();
+        let mut draft = saved.clone();
+        draft.nodes[0].title = Some("Recovered title".to_owned());
+        let mut app = EditorApp::new_with_draft(
+            saved,
+            DraftPrompt {
+                draft,
+                draft_touched: "just now".to_owned(),
+                saved_touched: "an hour ago".to_owned(),
+            },
+        );
+        app.set_terminal_size(100, 30);
+        press(&mut app, KeyCode::Char('o'));
+        assert!(app.draft_choice().is_none());
+        assert_eq!(app.working_graph(), &saved_clone);
+        assert!(!app.dirty());
+    }
+
+    #[test]
+    fn draft_choice_chips_are_clickable() {
+        let saved = Graph::from_json(FIXTURE).expect("fixture parses");
+        let saved_clone = saved.clone();
+        let draft = saved.clone();
+        let mut app = EditorApp::new_with_draft(
+            saved,
+            DraftPrompt {
+                draft,
+                draft_touched: "just now".to_owned(),
+                saved_touched: "an hour ago".to_owned(),
+            },
+        );
+        app.set_terminal_size(100, 30);
+        let area = Rect::new(0, 0, 100, 30);
+        let (_, rect) = hit::draft_choice_chip_rects(area)
+            .into_iter()
+            .find(|(a, _)| *a == hit::DraftAction::OpenSaved)
+            .expect("open-saved chip rect");
+        click(&mut app, rect.x, rect.y);
+        assert!(app.draft_choice().is_none());
+        assert_eq!(app.working_graph(), &saved_clone);
+    }
+
+    /// Spec 013 US4, T060: a structural op marks the draft dirty, and the
+    /// event loop's pull (`take_pending_draft`) consumes it exactly once.
+    #[test]
+    fn structural_ops_queue_exactly_one_pending_draft_write_each() {
+        let mut app = app();
+        assert_eq!(app.take_pending_draft(), None, "nothing pending yet");
+        app.apply_op(Op::RetitleSlide {
+            id: "a".to_owned(),
+            title: "Edited".to_owned(),
+        });
+        let pending = app.take_pending_draft();
+        assert_eq!(pending.as_ref(), Some(app.working_graph()));
+        assert_eq!(
+            app.take_pending_draft(),
+            None,
+            "already consumed, no repeat write for the same op"
+        );
+    }
+
     #[test]
     fn resize_updates_terminal_size_and_clears_hover() {
         let mut app = app();
@@ -2063,6 +2475,83 @@ mod tests {
                 text: "Hello".to_owned(),
             },
             "undo restores the exact prior wording"
+        );
+    }
+
+    /// Spec 013 US4, FR-016/acceptance scenario 3: at least the 100 most
+    /// recent actions must each undo in order, restoring the exact prior
+    /// state. 100 ops exactly fits the cap (`push_history`'s `> 100`
+    /// eviction never triggers), so every one of them stays undoable.
+    #[test]
+    fn undo_reverses_one_hundred_sequential_actions_in_exact_order() {
+        let mut app = app();
+        let mut snapshots = vec![app.working_graph().clone()];
+        for i in 0..100 {
+            assert!(app.apply_op(Op::EditBlock {
+                node: "a".to_owned(),
+                path: vec![1],
+                content: ContentBlock::Text {
+                    reveal: None,
+                    body: format!("Body {i}"),
+                },
+            }));
+            snapshots.push(app.working_graph().clone());
+        }
+        assert_eq!(app.history_len(), 100);
+
+        for i in (0..100).rev() {
+            app.undo();
+            assert_eq!(
+                app.working_graph(),
+                &snapshots[i],
+                "undo did not restore the exact state after action {i}"
+            );
+        }
+        app.undo();
+        assert_eq!(
+            app.working_graph(),
+            &snapshots[0],
+            "an extra undo past the beginning is a no-op, not a further change"
+        );
+    }
+
+    /// The 100-action cap (spec FR-016: "at least the 100 most recent") —
+    /// a 101st action evicts the oldest snapshot, so undo can restore
+    /// everything back to the state after the first action, but no
+    /// further.
+    #[test]
+    fn history_caps_at_one_hundred_evicting_the_oldest_snapshot() {
+        let mut app = app();
+        let after_first = {
+            assert!(app.apply_op(Op::EditBlock {
+                node: "a".to_owned(),
+                path: vec![1],
+                content: ContentBlock::Text {
+                    reveal: None,
+                    body: "Body 0".to_owned(),
+                },
+            }));
+            app.working_graph().clone()
+        };
+        for i in 1..101 {
+            assert!(app.apply_op(Op::EditBlock {
+                node: "a".to_owned(),
+                path: vec![1],
+                content: ContentBlock::Text {
+                    reveal: None,
+                    body: format!("Body {i}"),
+                },
+            }));
+        }
+        assert_eq!(app.history_len(), 100, "history never grows past the cap");
+
+        for _ in 0..100 {
+            app.undo();
+        }
+        assert_eq!(
+            app.working_graph(),
+            &after_first,
+            "100 undos land on the state right after the first action, the oldest still retained"
         );
     }
 

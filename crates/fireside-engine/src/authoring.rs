@@ -1531,5 +1531,41 @@ mod tests {
                 }
             }
         }
+
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(20))]
+
+            /// Spec 013 US4, FR-016/acceptance scenario 3 ("at least 100
+            /// prior actions"): the crown-jewel invariants
+            /// (`arbitrary_op_sequences_never_violate_invariants`'s own
+            /// 0-10-op sequences) must keep holding over sequences at
+            /// least that long — fewer cases than the main proptest since
+            /// each one now does an order of magnitude more work.
+            #[test]
+            fn long_op_sequences_never_violate_invariants(ops in pvec(arbitrary_small_op(5), 100..150)) {
+                let mut g = arbitrary_linear_graph(5);
+                for op in ops {
+                    let ids: Vec<String> = g.nodes.iter().map(|n| n.id.clone()).collect();
+                    let translated = match op {
+                        SmallOp::Retitle { idx, title } => {
+                            ids.get(idx).map(|id| Op::RetitleSlide { id: id.clone(), title })
+                        }
+                        SmallOp::Delete { idx } => ids.get(idx).map(|id| Op::DeleteSlide { id: id.clone() }),
+                        SmallOp::Reorder { idx, before_idx } => ids.get(idx).map(|id| Op::ReorderSlide {
+                            id: id.clone(),
+                            before: before_idx.and_then(|bi| ids.get(bi).cloned()),
+                        }),
+                    };
+                    if let Some(op) = translated
+                        && let Ok(next) = apply(&g, &op)
+                    {
+                        g = next;
+                    }
+                    prop_assert!(no_dangling_reference(&g));
+                    prop_assert!(no_duplicate_id(&g));
+                    prop_assert!(no_next_and_branch_conflict(&g));
+                }
+            }
+        }
     }
 }

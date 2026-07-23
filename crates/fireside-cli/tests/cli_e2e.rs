@@ -815,3 +815,51 @@ fn edit_a_missing_deck_path_creates_a_starter_deck_reusing_new_templates() {
     let graph = fireside_core::Graph::from_json(&written).expect("created deck parses");
     assert!(!graph.nodes.is_empty(), "starter deck must have slides");
 }
+
+// ─── `fireside edit` drafts (spec 013, US4, T059-T062) ───────────────────
+//
+// The draft-vs-saved-file prompt and the save-conflict guard are both
+// interactive TUI screens (`fireside_tui::editor::run` reaches them only
+// after the tty check) — `assert_cmd` has no pty, so they can't be driven
+// end-to-end here (T065's tmux smoke does). What's testable at the process
+// boundary without a tty: that the new draft-lookup machinery added for
+// this story never crashes or has a side effect before the tty guard
+// fires. The read/write/delete round trip and the draft-vs-saved decision
+// itself are covered directly in `edit.rs`'s own unit tests, mirroring
+// `session.rs`/`resume.rs`'s existing precedent for state-file logic.
+
+#[test]
+fn edit_with_an_isolated_state_dir_still_reaches_the_tty_guard() {
+    // Regression guard: opening a deck now always looks up a draft
+    // sidecar under `$XDG_STATE_HOME` before ever reaching the tty check
+    // — this must never itself fail or panic, even against a completely
+    // fresh state directory with nothing in it yet.
+    let state_dir = tempfile::tempdir().expect("temp state dir");
+    fireside()
+        .env("XDG_STATE_HOME", state_dir.path())
+        .arg("edit")
+        .arg(repo_root().join("docs/examples/hello.json"))
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("interactive terminal"));
+}
+
+#[test]
+fn edit_never_creates_a_draft_sidecar_merely_from_opening() {
+    // Opening (and immediately refusing on the tty guard) must not write
+    // anything into the drafts directory — a draft is only ever written
+    // from inside the interactive event loop, on an actual edit.
+    let state_dir = tempfile::tempdir().expect("temp state dir");
+    fireside()
+        .env("XDG_STATE_HOME", state_dir.path())
+        .arg("edit")
+        .arg(repo_root().join("docs/examples/hello.json"))
+        .assert()
+        .failure();
+
+    let drafts_dir = state_dir.path().join("fireside").join("drafts");
+    assert!(
+        !drafts_dir.exists() || std::fs::read_dir(&drafts_dir).unwrap().next().is_none(),
+        "no draft sidecar should exist after opening never reaches the event loop"
+    );
+}

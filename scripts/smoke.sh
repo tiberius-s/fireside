@@ -631,6 +631,105 @@ else
   fail=$((fail + 1))
 fi
 
+# ─── Scenario 11: fireside edit — US4 crash-safety (spec 013, T065) ───────
+echo
+echo "=== fireside edit: force-kill mid-edit recovers a draft; quit-with-unsaved-changes asks first ==="
+US4DECK="$WORKDIR/smoke-us4-talk.fireside.json"
+cat >"$US4DECK" <<'JSON'
+{
+  "fireside-version": "0.1.0",
+  "title": "Smoke US4 Talk",
+  "nodes": [
+    {
+      "id": "intro",
+      "title": "Welcome",
+      "content": [
+        {"kind": "heading", "level": 1, "text": "Hello there"},
+        {"kind": "text", "body": "Original wording"}
+      ]
+    }
+  ]
+}
+JSON
+start "$BIN edit $US4DECK"
+assert_contains "studio opens on the fixture deck" "Smoke US4 Talk"
+
+# Same fixture shape as scenarios 7/8, so the same fixed 100x30 layout
+# applies: the text block sits at row 14, its [ Edit ] chip at the hint
+# line (row 30), and this single-field form's [ Done ] cell at (18, 17).
+mouse_click 35 14
+mouse_click 3 30
+assert_contains "the block's form opens" "Edit text"
+keys "Z"
+mouse_click 18 17
+assert_not_contains "[ Done ] commits and closes the form" "Edit text"
+assert_contains "the unsaved edit shows on the canvas" "ZOriginal wording"
+
+# Force-kill the process mid-edit, before any save — only the draft
+# sidecar's autosave (spec 013 US4, T060) can have preserved this.
+KILL_PID="$(tmux list-panes -t "$SESSION" -F '#{pane_pid}' | head -1)"
+kill -9 "$KILL_PID" >/dev/null 2>&1 || true
+sleep 0.5
+
+start "$BIN edit $US4DECK"
+assert_contains "reopening offers to restore the crashed session's draft" \
+  "Recovered unsaved changes"
+assert_contains "the draft's timestamp is shown in plain language" \
+  "Draft last touched: just now"
+keys "r"
+assert_contains "restoring the draft (keyboard) brings back the unsaved edit" \
+  "ZOriginal wording"
+
+mouse_click 82 1
+assert_contains "saving the restored draft writes it to disk" "Saved"
+if grep -qF "ZOriginal wording" "$US4DECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the recovered edit reached the saved file\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the recovered edit never reached the saved file\n'
+  fail=$((fail + 1))
+fi
+
+# Now the quit-with-unsaved-changes prompt (FR-019): one more edit, then
+# both of its non-save outcomes, keyboard-only.
+mouse_click 35 14
+mouse_click 3 30
+keys "Y"
+mouse_click 18 17
+assert_not_contains "a second edit's form closes" "Edit text"
+keys "q"
+assert_contains "q with unsaved changes asks first, instead of quitting" \
+  "unsaved changes"
+keys "k"
+assert_not_contains "Keep editing dismisses the prompt" "unsaved changes"
+assert_contains "the unsaved edit is still there after Keep editing" \
+  "YZOriginal wording"
+
+keys "q"
+keys "d"
+sleep 0.4
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m Discard quits without saving\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m Discard did not end the session\n'
+  fail=$((fail + 1))
+fi
+if grep -qF "YZOriginal wording" "$US4DECK"; then
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m Discard must not have saved the second edit, but it did\n'
+  fail=$((fail + 1))
+else
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the discarded edit never reached the saved file\n'
+  pass=$((pass + 1))
+fi
+if grep -qF "ZOriginal wording" "$US4DECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the earlier, actually-saved edit is still intact\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m Discard corrupted the previously saved content\n'
+  fail=$((fail + 1))
+fi
+
 echo
 echo "----------------------------------------"
 if [[ "$fail" -eq 0 ]]; then

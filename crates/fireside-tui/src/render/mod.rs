@@ -281,7 +281,7 @@ pub(crate) fn surface(view: ViewMode, body: Rect) -> Surface {
 }
 
 /// A centered overlay rect.
-fn overlay_rect(area: Rect, width: u16, height: u16) -> Rect {
+pub(crate) fn overlay_rect(area: Rect, width: u16, height: u16) -> Rect {
     let w = width.min(area.width.saturating_sub(2));
     let h = height.min(area.height.saturating_sub(2));
     Rect {

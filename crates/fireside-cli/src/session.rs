@@ -51,9 +51,11 @@ pub(crate) fn session_path_for(key: &str) -> Option<PathBuf> {
 /// across compiler versions — the presenter and a separately launched
 /// follower process must derive the same filename from the same path) and
 /// over `watch::fingerprint`'s `(mtime, len)` pair (a staleness check, not
-/// a stable identifier — see ADR-015).
+/// a stable identifier — see ADR-015). `pub(crate)`: `edit.rs`'s draft
+/// sidecar (spec 013 US4, T059) reuses this exact hash rather than
+/// implementing a third copy (research.md §3).
 #[must_use]
-fn fnv1a64(bytes: &[u8]) -> u64 {
+pub(crate) fn fnv1a64(bytes: &[u8]) -> u64 {
     const OFFSET_BASIS: u64 = 0xcbf2_9ce4_8422_2325;
     const PRIME: u64 = 0x0000_0100_0000_01b3;
     let mut hash = OFFSET_BASIS;

@@ -18,8 +18,8 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, BorderType, Clear, Paragraph, Wrap};
 
 use crate::app::FlashKind;
-use crate::editor::EditorApp;
 use crate::editor::hit::{self, MIN_HEIGHT, MIN_WIDTH, TOOLBAR_CHIPS, editor_areas};
+use crate::editor::{DraftPrompt, EditorApp};
 use crate::theme::Tokens;
 
 /// Paint one frame of the authoring studio.
@@ -28,6 +28,13 @@ pub(crate) fn draw(frame: &mut Frame, app: &EditorApp) {
     let area = frame.area();
     if area.width < MIN_WIDTH || area.height < MIN_HEIGHT {
         draw_size_guard(frame, area, &tokens);
+        return;
+    }
+    // The open-time draft-vs-saved-file prompt (spec 013 US4, FR-020)
+    // takes over the whole screen — the studio itself never draws until
+    // it's resolved (`contracts/cli-edit-command.md`'s "Behavior" section).
+    if let Some(choice) = app.draft_choice() {
+        draw_draft_choice(frame, area, choice, &tokens);
         return;
     }
     let areas = editor_areas(area);
@@ -42,6 +49,11 @@ pub(crate) fn draw(frame: &mut Frame, app: &EditorApp) {
     }
     if app.showing_help() {
         draw_help(frame, area, &tokens);
+    }
+    // Drawn last so it sits on top of everything else, exactly like the
+    // help overlay (spec 013 US4, FR-019).
+    if app.quit_prompt() {
+        draw_quit_prompt(frame, area, &tokens);
     }
 }
 
@@ -230,4 +242,64 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
     let inner = block.inner(rect);
     frame.render_widget(block, rect);
     frame.render_widget(Paragraph::new(lines), inner);
+}
+
+/// The quit-with-unsaved-changes prompt (spec 013 US4, FR-019) — its
+/// chips draw into exactly the rects `hit::quit_prompt_chip_rects`
+/// resolves clicks against, so drawing and hit-testing can never disagree.
+fn draw_quit_prompt(frame: &mut Frame, area: Rect, tokens: &Tokens) {
+    let rect = hit::quit_prompt_rect(area);
+    frame.render_widget(Clear, rect);
+    let block = Block::bordered()
+        .border_type(BorderType::Rounded)
+        .border_style(tokens.border);
+    let inner = block.inner(rect);
+    frame.render_widget(block, rect);
+    frame.render_widget(
+        Paragraph::new(Span::styled("You have unsaved changes.", tokens.accent)),
+        inner,
+    );
+    for (action, chip_area) in hit::quit_prompt_chip_rects(area) {
+        let label = hit::QUIT_PROMPT_CHIPS
+            .iter()
+            .find(|(a, _)| *a == action)
+            .map_or("", |(_, label)| label);
+        frame.render_widget(
+            Paragraph::new(Span::styled(label, tokens.affordance)),
+            chip_area,
+        );
+    }
+}
+
+/// The open-time draft-vs-saved-file prompt (spec 013 US4, FR-020) — a
+/// full-screen takeover, drawn in place of the studio (never on top of
+/// it) until resolved.
+fn draw_draft_choice(frame: &mut Frame, area: Rect, choice: &DraftPrompt, tokens: &Tokens) {
+    let rect = hit::draft_choice_rect(area);
+    frame.render_widget(Clear, rect);
+    let block = Block::bordered()
+        .border_type(BorderType::Rounded)
+        .border_style(tokens.border);
+    let inner = block.inner(rect);
+    frame.render_widget(block, rect);
+    let lines = vec![
+        Line::from(Span::styled(
+            "Recovered unsaved changes from last time",
+            tokens.accent.add_modifier(Modifier::BOLD),
+        )),
+        Line::default(),
+        Line::from(format!("Draft last touched: {}", choice.draft_touched)),
+        Line::from(format!("Saved file last touched: {}", choice.saved_touched)),
+    ];
+    frame.render_widget(Paragraph::new(lines), inner);
+    for (action, chip_area) in hit::draft_choice_chip_rects(area) {
+        let label = hit::DRAFT_CHOICE_CHIPS
+            .iter()
+            .find(|(a, _)| *a == action)
+            .map_or("", |(_, label)| label);
+        frame.render_widget(
+            Paragraph::new(Span::styled(label, tokens.affordance)),
+            chip_area,
+        );
+    }
 }

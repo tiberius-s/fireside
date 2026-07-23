@@ -149,14 +149,14 @@ Existing 4-crate Rust workspace (`crates/fireside-core`, `fireside-engine`, `fir
 
 **Independent Test**: Make several unsaved edits, force-quit, reopen, confirm the draft-restore choice appears with correct timestamps; separately, make 20 sequential edits and confirm every one undoes in order.
 
-- [ ] T058 [US4] Implement the quit-with-unsaved-changes prompt (`[ Save ] [ Discard ] [ Keep editing ]`) in `crates/fireside-tui/src/editor/mod.rs` (depends on T037)
-- [ ] T059 [US4] Implement draft sidecar write/read/delete — `fnv1a64` + canonicalized-path keying reused from `crates/fireside-cli/src/session.rs`/`resume.rs`, atomic temp+rename — per `data-model.md`'s Draft sidecar schema, in `crates/fireside-cli/src/edit.rs` (depends on T024)
-- [ ] T060 [US4] Wire periodic autosave-to-draft (on a tick while dirty, and on every structural op) in `crates/fireside-tui/src/editor/mod.rs` and `crates/fireside-cli/src/edit.rs` (depends on T059)
-- [ ] T061 [US4] Implement the open-time draft-vs-saved-file conflict prompt (`[ Restore draft ] [ Open saved file ]`, both timestamps shown) in `crates/fireside-cli/src/edit.rs` (depends on T059)
-- [ ] T062 [US4] Implement the external-change save-conflict guard (fingerprint check at save time, symmetric to quick-edit's existing conflict guard) in `crates/fireside-cli/src/edit.rs` (depends on T035)
-- [ ] T063 [US4] Extend undo/redo tests to ≥100 sequential actions, each restoring the exact prior state, in `crates/fireside-engine/src/authoring.rs` and `crates/fireside-tui/src/editor/mod.rs` (depends on T036)
-- [ ] T064 [US4] CLI e2e tests for the draft-restore prompt, the save-conflict guard, and atomic-write-survives-interruption, in `crates/fireside-cli/tests/cli_e2e.rs` (depends on T059, T060, T061, T062)
-- [ ] T065 [US4] tmux smoke: make unsaved edits, force-kill the process, reopen, confirm the draft-restore prompt with correct timestamps; separately walk the quit-with-unsaved-changes prompt, in `scripts/smoke.sh` (depends on T064)
+- [X] T058 [US4] Implement the quit-with-unsaved-changes prompt (`[ Save ] [ Discard ] [ Keep editing ]`) in `crates/fireside-tui/src/editor/mod.rs` (depends on T037)
+- [X] T059 [US4] Implement draft sidecar write/read/delete — `fnv1a64` + canonicalized-path keying reused from `crates/fireside-cli/src/session.rs`/`resume.rs`, atomic temp+rename — per `data-model.md`'s Draft sidecar schema, in `crates/fireside-cli/src/edit.rs` (depends on T024)
+- [X] T060 [US4] Wire periodic autosave-to-draft (on a tick while dirty, and on every structural op) in `crates/fireside-tui/src/editor/mod.rs` and `crates/fireside-cli/src/edit.rs` (depends on T059)
+- [X] T061 [US4] Implement the open-time draft-vs-saved-file conflict prompt (`[ Restore draft ] [ Open saved file ]`, both timestamps shown) in `crates/fireside-cli/src/edit.rs` (depends on T059)
+- [X] T062 [US4] Implement the external-change save-conflict guard (fingerprint check at save time, symmetric to quick-edit's existing conflict guard) in `crates/fireside-cli/src/edit.rs` (depends on T035)
+- [X] T063 [US4] Extend undo/redo tests to ≥100 sequential actions, each restoring the exact prior state, in `crates/fireside-engine/src/authoring.rs` and `crates/fireside-tui/src/editor/mod.rs` (depends on T036)
+- [X] T064 [US4] CLI e2e tests for the draft-restore prompt, the save-conflict guard, and atomic-write-survives-interruption, in `crates/fireside-cli/tests/cli_e2e.rs` (depends on T059, T060, T061, T062)
+- [X] T065 [US4] tmux smoke: make unsaved edits, force-kill the process, reopen, confirm the draft-restore prompt with correct timestamps; separately walk the quit-with-unsaved-changes prompt, in `scripts/smoke.sh` (depends on T064)
 
 **Checkpoint**: All four user stories independently functional — the spec's full acceptance bar is achievable.
 

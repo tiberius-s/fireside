@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-22)
 
 ## Corpus Check
-- 320 files · ~455,667 words
+- 320 files · ~460,344 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3939 nodes · 6430 edges · 312 communities (266 shown, 46 thin omitted)
+- 4009 nodes · 6647 edges · 309 communities (264 shown, 45 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 71 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1cc78934`
+- Built from commit: `aba8febe`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -322,21 +322,18 @@
 - [[_COMMUNITY_Community 306|Community 306]]
 - [[_COMMUNITY_Community 307|Community 307]]
 - [[_COMMUNITY_Community 308|Community 308]]
-- [[_COMMUNITY_Community 309|Community 309]]
-- [[_COMMUNITY_Community 310|Community 310]]
-- [[_COMMUNITY_Community 311|Community 311]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `EditorApp` - 104 edges
+1. `EditorApp` - 117 edges
 2. `app()` - 63 edges
 3. `press()` - 60 edges
 4. `screen()` - 53 edges
-5. `fireside()` - 49 edges
+5. `fireside()` - 51 edges
 6. `App` - 45 edges
 7. `apply()` - 39 edges
-8. `import()` - 33 edges
-9. `render_block()` - 33 edges
-10. `Diagnostic` - 30 edges
+8. `app()` - 39 edges
+9. `Rect` - 35 edges
+10. `press()` - 34 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Command / CommandHistory (undo-redo)` --semantically_similar_to--> `Core Runtime Guarantees`  [INFERRED] [semantically similar]
@@ -354,7 +351,6 @@
 - 1-file cycle: `crates/fireside-cli/src/art.rs -> crates/fireside-cli/src/art.rs`
 - 1-file cycle: `crates/fireside-cli/src/edit.rs -> crates/fireside-cli/src/edit.rs`
 - 1-file cycle: `crates/fireside-cli/src/new.rs -> crates/fireside-cli/src/new.rs`
-- 1-file cycle: `crates/fireside-cli/src/watch.rs -> crates/fireside-cli/src/watch.rs`
 - 1-file cycle: `crates/fireside-cli/src/import.rs -> crates/fireside-cli/src/import.rs`
 - 1-file cycle: `crates/fireside-tui/src/editor/mod.rs -> crates/fireside-tui/src/editor/mod.rs`
 - 1-file cycle: `crates/fireside-tui/src/lib.rs -> crates/fireside-tui/src/lib.rs`
@@ -366,6 +362,7 @@
 - 1-file cycle: `crates/fireside-cli/src/report.rs -> crates/fireside-cli/src/report.rs`
 - 1-file cycle: `crates/fireside-cli/src/resume.rs -> crates/fireside-cli/src/resume.rs`
 - 1-file cycle: `crates/fireside-cli/src/session.rs -> crates/fireside-cli/src/session.rs`
+- 1-file cycle: `crates/fireside-cli/src/watch.rs -> crates/fireside-cli/src/watch.rs`
 - 1-file cycle: `crates/fireside-cli/tests/cli_e2e.rs -> crates/fireside-cli/tests/cli_e2e.rs`
 - 1-file cycle: `crates/fireside-core/src/model/mod.rs -> crates/fireside-core/src/model/mod.rs`
 - 1-file cycle: `crates/fireside-engine/src/session.rs -> crates/fireside-engine/src/session.rs`
@@ -380,15 +377,15 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (312 total, 46 thin omitted)
+## Communities (309 total, 45 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
 Nodes (12): Option, Span, Style, Tokens, Vec, highlight(), row_text_reassembles_the_source_exactly(), rust_keywords_strings_and_comments_get_distinct_styles() (+4 more)
 
 ### Community 1 - "CLI Commands"
-Cohesion: 0.08
-Nodes (44): Command, Duration, Graph, Option, Path, PathBuf, Result, String (+36 more)
+Cohesion: 0.12
+Nodes (27): Command, Duration, Graph, Option, Path, PathBuf, Result, String (+19 more)
 
 ### Community 2 - "Block Rendering Types"
 Cohesion: 0.22
@@ -756,7 +753,7 @@ Nodes (9): 1. Confirm non-watch behavior is unchanged (FR-002), 2. Start watch m
 
 ### Community 106 - "Community 106"
 Cohesion: 0.07
-Nodes (54): Command, PathBuf, Drop, art_image_charset_flag_changes_output_characters(), art_image_converts_a_readable_file(), art_image_default_charset_matches_unflagged_output(), art_image_invert_flag_flips_shading(), art_image_no_normalize_reproduces_prior_behavior() (+46 more)
+Nodes (56): Command, PathBuf, Drop, art_image_charset_flag_changes_output_characters(), art_image_converts_a_readable_file(), art_image_default_charset_matches_unflagged_output(), art_image_invert_flag_flips_shading(), art_image_no_normalize_reproduces_prior_behavior() (+48 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.12
@@ -1143,8 +1140,8 @@ Cohesion: 0.07
 Nodes (93): App, EditorApp, KeyCode, KeyModifiers, Option, String, app(), app_maybe_resumed() (+85 more)
 
 ### Community 229 - "Community 229"
-Cohesion: 0.17
-Nodes (38): KeyCode, KeyModifiers, add_block_via_palette_inserts_a_placeholder_and_opens_its_form(), all_kinds_app(), app(), arrow_keys_scroll_too(), below_minimum_size_shows_the_resize_guard_not_the_studio(), bracket_keys_select_the_adjacent_slide_and_wrap() (+30 more)
+Cohesion: 0.11
+Nodes (49): KeyCode, KeyModifiers, all_kinds_app(), app(), arrow_keys_scroll_too(), below_minimum_size_shows_the_resize_guard_not_the_studio(), bracket_keys_select_the_adjacent_slide_and_wrap(), cancel_discards_the_in_progress_edit() (+41 more)
 
 ### Community 230 - "Community 230"
 Cohesion: 0.20
@@ -1195,8 +1192,8 @@ Cohesion: 0.15
 Nodes (12): Dependencies & Execution Order, Follow-up (2026-07-18, second pass), Implementation Strategy, Parallel Execution Examples, Phase 1: Setup, Phase 2: Foundational (blocking prerequisite for all user stories), Phase 3: User Story 1 - Author turns a title into a stylized banner (Priority: P1), Phase 4: User Story 2 - Author converts an existing image into ASCII art (Priority: P1) (+4 more)
 
 ### Community 245 - "Community 245"
-Cohesion: 0.15
-Nodes (29): BufRead, Graph, Path, Result, Graph, Option, PathBuf, Result (+21 more)
+Cohesion: 0.08
+Nodes (51): BufRead, DraftPrompt, Graph, Option, Path, PathBuf, Result, String (+43 more)
 
 ### Community 249 - "Community 249"
 Cohesion: 0.13
@@ -1395,16 +1392,16 @@ Cohesion: 0.08
 Nodes (82): BranchPoint, ContentBlock, Graph, HashMap, Node, Option, Result, Strategy (+74 more)
 
 ### Community 300 - "Community 300"
-Cohesion: 0.06
-Nodes (101): A, BlockPath, BranchOption, EditorApp, FormState, Graph, Node, Option (+93 more)
+Cohesion: 0.05
+Nodes (124): A, BlockPath, BranchOption, EditorApp, FormState, Graph, Node, Option (+116 more)
 
 ### Community 301 - "Community 301"
-Cohesion: 0.07
-Nodes (21): BlockKind, BlockPath, Diagnostic, EditableField, FieldSlot, FormState, Instant, KeyEvent (+13 more)
+Cohesion: 0.05
+Nodes (23): BlockKind, BlockPath, ContentBlock, Diagnostic, EditableField, FieldSlot, FormState, Instant (+15 more)
 
 ### Community 302 - "Community 302"
-Cohesion: 0.14
-Nodes (28): draw(), Self, a_press_and_release_with_no_movement_is_a_plain_click(), answer_chip_retargets_an_existing_branch_answer(), branch_app(), click(), click_block_reveal_chip(), click_form_chip() (+20 more)
+Cohesion: 0.16
+Nodes (30): a_press_and_release_with_no_movement_is_a_plain_click(), add_block_via_palette_inserts_a_placeholder_and_opens_its_form(), answer_chip_retargets_an_existing_branch_answer(), branch_app(), cancel_chip_closes_the_palette_without_adding_anything(), click(), click_block_reveal_chip(), click_form_chip() (+22 more)
 
 ### Community 303 - "Community 303"
 Cohesion: 0.42
@@ -1415,28 +1412,20 @@ Cohesion: 0.29
 Nodes (12): EditableField, FieldSlot, FormState, Frame, Line, Rect, Tokens, draw() (+4 more)
 
 ### Community 305 - "Community 305"
-Cohesion: 0.14
-Nodes (20): Diagnostic, Path, Result, String, Error, CoreError, EngineError, TuiError (+12 more)
+Cohesion: 0.09
+Nodes (37): Diagnostic, Path, Result, String, Graph, Option, Path, PathBuf (+29 more)
 
 ### Community 306 - "Community 306"
-Cohesion: 0.17
-Nodes (14): ArtGenerator, DefaultTerminal, Graph, Option, Result, TuiError, editor_event_loop(), find_branch_predecessor() (+6 more)
+Cohesion: 0.14
+Nodes (21): ArtGenerator, DefaultTerminal, draw(), Graph, Option, Result, Self, String (+13 more)
 
 ### Community 307 - "Community 307"
-Cohesion: 0.22
-Nodes (5): MouseEvent, hover_tracks_the_pointer_without_selecting(), move_to(), Msg, resize_updates_terminal_size_and_clears_hover()
+Cohesion: 0.73
+Nodes (9): EditorApp, Frame, Rect, Tokens, draw(), draw_drag_ghost(), draw_empty_slide_target(), draw_insertion_indicator() (+1 more)
 
 ### Community 308 - "Community 308"
 Cohesion: 0.60
 Nodes (5): EditorApp, Frame, Rect, Tokens, draw()
-
-### Community 310 - "Community 310"
-Cohesion: 0.64
-Nodes (10): draw(), EditorApp, Frame, Rect, Tokens, draw_help(), draw_hint(), draw_size_guard() (+2 more)
-
-### Community 311 - "Community 311"
-Cohesion: 0.73
-Nodes (9): EditorApp, Frame, Rect, Tokens, draw(), draw_drag_ghost(), draw_empty_slide_target(), draw_insertion_indicator() (+1 more)
 
 ## Ambiguous Edges - Review These
 - `Copilot CLI Cheat Sheet` → `Transition enum (8 variants, core)`  [AMBIGUOUS]
@@ -1445,22 +1434,22 @@ Nodes (9): EditorApp, Frame, Rect, Tokens, draw(), draw_drag_ghost(), draw_empty
 ## Knowledge Gaps
 - **1755 isolated node(s):** `allow`, `PreToolUse`, `PostToolUse`, `allow`, `install.sh script` (+1750 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **46 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **45 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Copilot CLI Cheat Sheet` and `Transition enum (8 variants, core)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **Why does `Event` connect `Community 137` to `TUI App Core`, `Community 228`, `Community 229`, `Render Module`, `Community 122`, `Community 287`?**
   _High betweenness centrality (0.031) - this node is a cross-community bridge._
-- **Why does `branch_option_hit()` connect `Render Module` to `Community 300`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+- **Why does `Session` connect `TUI App Core` to `CLI Commands`, `Community 228`, `Presentation Session`, `Render Module`, `Community 122`?**
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Why does `outline_lines()` connect `Community 300` to `Community 299`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **What connects `allow`, `PreToolUse`, `PostToolUse` to the rest of the system?**
   _1757 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CLI Commands` be split into smaller, more focused modules?**
-  _Cohesion score 0.07982583454281568 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.125 - nodes in this community are weakly interconnected._
 - **Should `Agent & Skill Governance` be split into smaller, more focused modules?**
   _Cohesion score 0.11462450592885376 - nodes in this community are weakly interconnected._

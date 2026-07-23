@@ -296,6 +296,128 @@ pub(crate) fn toolbar_chip_rects(toolbar: Rect) -> Vec<(ToolbarAction, Rect)> {
     out
 }
 
+// ─── Quit prompt / draft-choice modals (spec 013 US4, T058/T061) ──────────
+//
+// Both are full-takeover confirmation screens rather than part of the
+// ordinary toolbar/outline/canvas surface, so their layout lives here as
+// its own small section instead of extending `Target`/`hit()` — the same
+// "one pure layout, two consumers" convention (`render::editor` draws
+// exactly these rects; `EditorApp::on_click` resolves clicks against them
+// directly), just for a screen that replaces everything else instead of
+// sitting inside it.
+
+/// The `[ Save ] [ Discard ] [ Keep editing ]` quit-with-unsaved-changes
+/// prompt's three choices (spec FR-019) — shown when `q` is pressed while
+/// [`EditorApp::dirty`](super::EditorApp::dirty) is true.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum QuitAction {
+    Save,
+    Discard,
+    KeepEditing,
+}
+
+pub(crate) const QUIT_PROMPT_CHIPS: [(QuitAction, &str); 3] = [
+    (QuitAction::Save, "[ Save ]"),
+    (QuitAction::Discard, "[ Discard ]"),
+    (QuitAction::KeepEditing, "[ Keep editing ]"),
+];
+
+const QUIT_PROMPT_SIZE: (u16, u16) = (46, 4);
+
+/// The quit-prompt modal's centered rect — same sizing convention
+/// `render::overlay_rect` already uses for the help overlay.
+pub(crate) fn quit_prompt_rect(area: Rect) -> Rect {
+    crate::render::overlay_rect(area, QUIT_PROMPT_SIZE.0, QUIT_PROMPT_SIZE.1)
+}
+
+/// Chip rects for the quit prompt, in on-screen order, in absolute
+/// terminal coordinates — the last row inside the modal's bordered
+/// interior.
+pub(crate) fn quit_prompt_chip_rects(area: Rect) -> Vec<(QuitAction, Rect)> {
+    let inner = bordered_inset(quit_prompt_rect(area));
+    let labels: Vec<&str> = QUIT_PROMPT_CHIPS.iter().map(|(_, l)| *l).collect();
+    let row = chip_row_rects(inner, inner.height.saturating_sub(1), &labels);
+    QUIT_PROMPT_CHIPS.iter().map(|(a, _)| *a).zip(row).collect()
+}
+
+/// Which quit-prompt chip (if any) is at `(col, row)`.
+pub(crate) fn quit_prompt_hit(area: Rect, col: u16, row: u16) -> Option<QuitAction> {
+    quit_prompt_chip_rects(area)
+        .into_iter()
+        .find(|(_, r)| r.x <= col && col < r.x + r.width && r.y == row)
+        .map(|(a, _)| a)
+}
+
+/// The open-time draft-vs-saved-file prompt's two choices (spec FR-020).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum DraftAction {
+    RestoreDraft,
+    OpenSaved,
+}
+
+pub(crate) const DRAFT_CHOICE_CHIPS: [(DraftAction, &str); 2] = [
+    (DraftAction::RestoreDraft, "[ Restore draft ]"),
+    (DraftAction::OpenSaved, "[ Open saved file ]"),
+];
+
+const DRAFT_CHOICE_SIZE: (u16, u16) = (54, 8);
+
+pub(crate) fn draft_choice_rect(area: Rect) -> Rect {
+    crate::render::overlay_rect(area, DRAFT_CHOICE_SIZE.0, DRAFT_CHOICE_SIZE.1)
+}
+
+pub(crate) fn draft_choice_chip_rects(area: Rect) -> Vec<(DraftAction, Rect)> {
+    let inner = bordered_inset(draft_choice_rect(area));
+    let labels: Vec<&str> = DRAFT_CHOICE_CHIPS.iter().map(|(_, l)| *l).collect();
+    let row = chip_row_rects(inner, inner.height.saturating_sub(1), &labels);
+    DRAFT_CHOICE_CHIPS
+        .iter()
+        .map(|(a, _)| *a)
+        .zip(row)
+        .collect()
+}
+
+/// Which draft-choice chip (if any) is at `(col, row)`.
+pub(crate) fn draft_choice_hit(area: Rect, col: u16, row: u16) -> Option<DraftAction> {
+    draft_choice_chip_rects(area)
+        .into_iter()
+        .find(|(_, r)| r.x <= col && col < r.x + r.width && r.y == row)
+        .map(|(a, _)| a)
+}
+
+/// A bordered `Block`'s interior, replicated arithmetically (one row/col
+/// inset on every side, matching `Block::bordered().inner()`) rather than
+/// imported from `ratatui::widgets` — hit-testing stays free of
+/// widget-drawing types, the same posture the rest of this module keeps.
+fn bordered_inset(rect: Rect) -> Rect {
+    Rect {
+        x: rect.x + 1,
+        y: rect.y + 1,
+        width: rect.width.saturating_sub(2),
+        height: rect.height.saturating_sub(2),
+    }
+}
+
+/// One row of centered chip labels within `inner` at line `y`, left to
+/// right with one space between — shared by the quit-prompt's and
+/// draft-choice's chip rows.
+fn chip_row_rects(inner: Rect, y: u16, labels: &[&str]) -> Vec<Rect> {
+    let widths: Vec<u16> = labels.iter().map(|l| l.chars().count() as u16).collect();
+    let total = widths.iter().sum::<u16>() + widths.len().saturating_sub(1) as u16;
+    let mut x = inner.x + inner.width.saturating_sub(total) / 2;
+    let mut out = Vec::with_capacity(labels.len());
+    for &w in &widths {
+        out.push(Rect {
+            x,
+            y: inner.y + y,
+            width: w.min(inner.width),
+            height: 1,
+        });
+        x += w + 1;
+    }
+    out
+}
+
 /// One line of the outline pane: a slide row, the "not linked yet" divider
 /// (shown once, before the first unreachable row), or the permanent
 /// "+ new slide" row. Built once by [`outline_lines`] and shared by
