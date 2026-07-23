@@ -166,14 +166,14 @@ Existing 4-crate Rust workspace (`crates/fireside-core`, `fireside-engine`, `fir
 
 **Purpose**: Foolproofing polish that spans every story, plus the release-readiness gates every prior wave already had to clear.
 
-- [ ] T066 [P] First-run hint tour (three rotating hint-line messages, dismissed forever after the first save) in `crates/fireside-tui/src/editor/mod.rs`
-- [ ] T067 [P] Status-banner jump-to-diagnostic wiring (click a status-line issue → select the offending slide/block), sourced from the existing `fireside_engine::validation::rules()`, in `crates/fireside-tui/src/editor/mod.rs`
-- [ ] T068 [P] Drag auto-scroll tuning pass (block drag and outline drag) in `crates/fireside-tui/src/editor/mod.rs`
-- [ ] T069 [P] New guide `docs/src/content/docs/guides/editing.md` plus a VHS tape via `scripts/demos.sh`
-- [ ] T070 [P] Update `docs/src/content/docs/guides/quickstart.md`, `README.md`, and `docs/src/content/docs/reference/cli.md` for the `edit` verb, plus the bare-invocation teaching line
-- [ ] T071 Run `scripts/verify.sh` (full run, not `--skip-slow`) and fix any failures
-- [ ] T072 Run `graphify update .`
-- [ ] T073 Tick this feature's Progress Log entries in `.claude/plans/2026-07-19-wysiwyg-editor-plan.md` (E0–E4 lines) with completion dates, per this project's established per-wave convention
+- [X] T066 [P] First-run hint tour (three rotating hint-line messages, dismissed forever after the first save) in `crates/fireside-tui/src/editor/mod.rs`
+- [X] T067 [P] Status-banner jump-to-diagnostic wiring (click a status-line issue → select the offending slide/block), sourced from the existing `fireside_engine::validation::rules()`, in `crates/fireside-tui/src/editor/mod.rs`
+- [X] T068 [P] Drag auto-scroll tuning pass (block drag and outline drag) in `crates/fireside-tui/src/editor/mod.rs`
+- [X] T069 [P] New guide `docs/src/content/docs/guides/editing.md` plus a VHS tape via `scripts/demos.sh`
+- [X] T070 [P] Update `docs/src/content/docs/guides/quickstart.md`, `README.md`, and `docs/src/content/docs/reference/cli.md` for the `edit` verb, plus the bare-invocation teaching line
+- [X] T071 Run `scripts/verify.sh` (full run, not `--skip-slow`) and fix any failures
+- [X] T072 Run `graphify update .`
+- [X] T073 Tick this feature's Progress Log entries in `.claude/plans/2026-07-19-wysiwyg-editor-plan.md` (E0–E4 lines) with completion dates, per this project's established per-wave convention
 
 ---
 

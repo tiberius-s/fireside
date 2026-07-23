@@ -46,6 +46,16 @@ fn bare_invocation_mentions_notes_and_fullscreen() {
 }
 
 #[test]
+fn bare_invocation_mentions_edit() {
+    // Spec 013: the fifth verb must be discoverable from the same no-args
+    // teaching text every other verb is.
+    fireside()
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("fireside edit <file>"));
+}
+
+#[test]
 fn validate_hello_exits_zero() {
     fireside()
         .arg("validate")

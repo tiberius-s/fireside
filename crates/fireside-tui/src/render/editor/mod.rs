@@ -10,6 +10,8 @@ mod forms;
 mod outline;
 mod wiring;
 
+use std::time::{Duration, Instant};
+
 use ratatui::Frame;
 use ratatui::layout::Alignment;
 use ratatui::layout::Rect;
@@ -112,13 +114,18 @@ fn draw_toolbar(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens)
     }
 }
 
+/// The status banner (spec FR-026): a summary of validation diagnostics,
+/// clickable — when it's hovered and at least one diagnostic names a
+/// slide, a click jumps there (spec 013 E4, `EditorApp::jump_to_diagnostic`)
+/// — so the hover cue only lights up when a click would actually do
+/// something.
 fn draw_status(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) {
     let errors = app
         .status()
         .iter()
         .filter(|d| d.severity == fireside_engine::Severity::Error)
         .count();
-    let (text, style) = if errors == 0 {
+    let (text, base_style) = if errors == 0 {
         (
             format!(
                 "\u{2713} ready to present \u{b7} {} slides",
@@ -132,6 +139,13 @@ fn draw_status(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) 
             format!("\u{2717} won't present yet: {errors} {word}"),
             tokens.error,
         )
+    };
+    let jumpable = app.status().iter().any(|d| d.node.is_some());
+    let hovered = jumpable && app.hover() == Some(&hit::Target::StatusBanner);
+    let style = if hovered {
+        tokens.selection
+    } else {
+        base_style
     };
     frame.render_widget(Paragraph::new(Span::styled(text, style)), area);
 }
@@ -205,12 +219,38 @@ fn draw_hint(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) {
         return;
     }
     frame.render_widget(
-        Paragraph::new(Span::styled(
-            "Click a slide or block to select \u{b7} Tab a block, [ ] a slide \u{b7} ? shows every key",
-            tokens.muted,
-        )),
+        Paragraph::new(Span::styled(hint_tour_text(app), tokens.muted)),
         area,
     );
+}
+
+/// The first-run hint tour (design brief E4): three messages, each
+/// teaching a different affordance, rotating on a clock read purely at
+/// render time (same `Instant::now()`-filter pattern `EditorApp::flash`
+/// already uses) while the studio sits idle with nothing selected. The
+/// first message is the steady click-to-select teaching line this hint
+/// always showed before the tour existed — kept first, and kept verbatim,
+/// so an author who saves before the tour ever rotates (or after it's
+/// dismissed) still sees exactly that line.
+const HINT_TOUR: [&str; 3] = [
+    "Click a slide or block to select \u{b7} Tab a block, [ ] a slide \u{b7} ? shows every key",
+    "Drag any block to reorder it \u{b7} drop it where the line appears",
+    "Ctrl+S saves your work \u{b7} u undoes, U redoes",
+];
+
+/// How long each tour message stays up before rotating to the next.
+const HINT_TOUR_INTERVAL: Duration = Duration::from_secs(15);
+
+/// The tour's current message: rotating while unsaved, frozen on the
+/// first (steadiest) message forever once [`EditorApp::hint_tour_dismissed`]
+/// is set by a successful save (spec 013 E4).
+fn hint_tour_text(app: &EditorApp) -> &'static str {
+    if app.hint_tour_dismissed() {
+        return HINT_TOUR[0];
+    }
+    let elapsed = Instant::now().saturating_duration_since(app.opened_at());
+    let index = (elapsed.as_secs() / HINT_TOUR_INTERVAL.as_secs()) as usize % HINT_TOUR.len();
+    HINT_TOUR[index]
 }
 
 fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {

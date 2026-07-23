@@ -3,7 +3,7 @@ title: 'CLI Reference'
 description: 'Every fireside subcommand, its flags, and its exit codes.'
 ---
 
-The `fireside` binary has seven verbs. Running `fireside` with no arguments
+The `fireside` binary has eight verbs. Running `fireside` with no arguments
 prints this same summary:
 
 ```text
@@ -17,6 +17,8 @@ fireside new               create a deck (asks a few questions)
 fireside new <name>        create a starter deck instantly
 fireside import <file.md>  compile a Markdown talk into a deck
 fireside art text <phrase> generate a text banner to paste in
+fireside art image <file>  convert a picture to ASCII art
+fireside edit <file>       open a deck in the full-screen editor
 ```
 
 `fireside <file>` is shorthand for `fireside present <file>` — the `present`
@@ -208,6 +210,40 @@ content block kind, including `ascii-art` on the welcome slide, and both view
 modes without writing any JSON first.
 
 **Exit codes:** `0` on a clean exit; `1` on a terminal presenter error.
+
+## `fireside edit <file>`
+
+Opens a deck in a full-screen, mouse-first authoring studio — a toolbar,
+an outline of every slide, and a canvas that renders each slide through
+the exact same code path `fireside <file>` presents with, so what you see
+while editing is always what an audience would see. Every slide is a
+stack of clickable blocks (heading, text, code, list, image, divider,
+container, ascii-art) — there is no JSON or graph vocabulary anywhere in
+the studio. Click a slide or a block to select it, click `[ ✎ Edit ]` to
+open its form, drag blocks to reorder them, and use the toolbar's
+`[ ▶ Present ]` chip to try the deck without leaving the editor. Every
+mouse action has a keyboard equivalent — `?` lists them all. See
+[Editing a deck](/guides/editing/) for the full walkthrough.
+
+If `file` doesn't exist yet (and doesn't end in `.md`/`.markdown`), `edit`
+offers to create it, reusing the same template flow as `fireside new`.
+`edit` refuses to open a file that fails to parse — fix it first with
+`fireside validate <file>`, the same as `present` would ask.
+
+`edit` autosaves your in-progress work to a draft file as you go, entirely
+separate from the deck file itself. If the editor didn't get a chance to
+save cleanly last time (a crash, a force-quit), reopening the same deck
+offers `[ Restore draft ] [ Open saved file ]` with both timestamps shown,
+so a crash never loses work. `[ Save ]`/Ctrl+S writes the deck file
+atomically and clears the draft; quitting with unsaved changes prompts
+`[ Save ] [ Discard ] [ Keep editing ]` rather than exiting silently.
+
+`edit` never touches the resume position or live session state
+`present`/`notes` use — those are presenter-only, and stay untouched even
+when you try the deck out via `[ ▶ Present ]` from inside the editor.
+
+**Exit codes:** `0` on a clean quit (saved or explicitly discarded); `1` if
+the deck fails to parse or the terminal isn't interactive.
 
 ## Common conventions across verbs
 

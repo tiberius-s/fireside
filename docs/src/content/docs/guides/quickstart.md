@@ -72,10 +72,23 @@ node, and a small fence syntax declares branch points. See
 [Authoring a Deck in Markdown](/guides/authoring-markdown/) for the full
 syntax.
 
+## Edit a deck without touching JSON
+
+```bash
+fireside edit my-first-deck.fireside.json
+```
+
+Opens a full-screen, mouse-first editor: click a slide or a block to
+select it, drag blocks to reorder them, and the canvas renders through
+the exact same code path the presenter uses, so it's always WYSIWYG.
+Click `[ ▶ Present ]` any time to try the deck without leaving the
+editor. See [Editing a deck](/guides/editing/) for the full walkthrough.
+
 ## Where to go next
 
 | If you want to...                                        | Go to                                            |
 | ---------------------------------------------------------- | --------------------------------------------------- |
+| Build or restructure a deck with the mouse, no JSON         | [Editing a deck](/guides/editing/)                   |
 | Learn every key the presenter responds to                  | [Presenting a deck](/guides/presenting/)             |
 | Present on a projector with notes on your own laptop screen | [Presenting with two screens](/guides/presenting/#presenting-with-two-screens) |
 | Write a talk in Markdown instead of JSON                    | [Authoring a Deck in Markdown](/guides/authoring-markdown/) |

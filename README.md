@@ -77,6 +77,9 @@ a cursor plus a history stack can build a conforming engine.
   fence in `fireside import`
 - **A presenter built for the room** — quick-edit a slide without leaving the
   terminal, an elapsed-time timer, and resume exactly where you left off
+- **A full-screen, mouse-first editor** — `fireside edit` builds and
+  restructures a deck as clickable blocks and slides, no JSON required,
+  rendering through the same code path the presenter does
 
 The normative spec lives in `protocol/main.tsp` and
 `docs/src/content/docs/spec/`. `docs/examples/hello.json` is the canonical
@@ -92,6 +95,7 @@ fireside new <name>        create a starter deck
 fireside import <file.md>  compile a Markdown talk into a deck
 fireside art text <phrase> generate a text banner to paste in
 fireside art image <path>  convert a local image to ASCII shading
+fireside edit <file>       open a deck in the full-screen editor
 ```
 
 `present` takes `--restart` (skip the saved resume position); `validate`

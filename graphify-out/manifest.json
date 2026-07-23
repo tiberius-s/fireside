@@ -30,13 +30,13 @@
     "semantic_hash": "fea677fc223fb823add6863c76e00dc4"
   },
   "crates/fireside-cli/src/main.rs": {
-    "mtime": 1784675212.7188258,
-    "ast_hash": "a816f872f2b7d6d3113bf9c21d443630",
+    "mtime": 1784773532.9547734,
+    "ast_hash": "35030358379b4b86be5725aaee381c44",
     "semantic_hash": ""
   },
   "crates/fireside-cli/tests/cli_e2e.rs": {
-    "mtime": 1784771357.2192845,
-    "ast_hash": "94c1a532ccef6c4119f6b8bd698f2f99",
+    "mtime": 1784773539.77316,
+    "ast_hash": "594a27d566b4b862b6c431f8be649848",
     "semantic_hash": ""
   },
   "crates/fireside-core/src/error.rs": {
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784644711.0266068,
-    "ast_hash": "f2ca1733b06e12f30ef67257d7f982d7",
+    "mtime": 1784773612.2039838,
+    "ast_hash": "7e767d403225a5ed15e6d51978cf0fee",
     "semantic_hash": ""
   },
   "crates/fireside-cli/README.md": {
@@ -1160,8 +1160,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/reference/cli.md": {
-    "mtime": 1784562565.288421,
-    "ast_hash": "1b967a0edb6d30db5a2dd63919a48311",
+    "mtime": 1784773594.4997091,
+    "ast_hash": "d2c3553c8108141859e9372077b1128c",
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/presenting.md": {
@@ -1235,8 +1235,8 @@
     "semantic_hash": ""
   },
   "scripts/demos.sh": {
-    "mtime": 1784399246.4018178,
-    "ast_hash": "5c348df48d32bb69fef705b3aa51b6da",
+    "mtime": 1784773747.1577199,
+    "ast_hash": "f3950cdbf6b315936c49a8c3ae7b1709",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-011-ascii-art-crate-msrv-spike.md": {
@@ -1470,8 +1470,8 @@
     "semantic_hash": ""
   },
   "docs/src/content/docs/guides/quickstart.md": {
-    "mtime": 1784644668.831059,
-    "ast_hash": "28f11ad0e1bec96afdba6375819bfdc3",
+    "mtime": 1784773629.5466316,
+    "ast_hash": "948cb8890dce530047ffac020b530f3c",
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-19-fable-ux-audit.md": {
@@ -1480,8 +1480,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-19-wysiwyg-editor-plan.md": {
-    "mtime": 1784761446.0736597,
-    "ast_hash": "a2e96648f281a9d8323a6f684d958ffe",
+    "mtime": 1784774151.645396,
+    "ast_hash": "1dcaefe1bdaa2c1d3ecab24fa12235cd",
     "semantic_hash": ""
   },
   "scripts/smoke.sh": {
@@ -1650,8 +1650,8 @@
     "semantic_hash": ""
   },
   "specs/013-authoring-editor/tasks.md": {
-    "mtime": 1784771625.5809524,
-    "ast_hash": "196b59899c012fbbaba64e1345a4e3fc",
+    "mtime": 1784774161.9972148,
+    "ast_hash": "20ad83fb240f83711644c6d13e6dad68",
     "semantic_hash": ""
   },
   ".claude/adrs/adr-017-fireside-edit-scope.md": {
@@ -1675,18 +1675,18 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/hit.rs": {
-    "mtime": 1784771380.435667,
-    "ast_hash": "9d78c520455a982c24cff26f72e84778",
+    "mtime": 1784773192.0032911,
+    "ast_hash": "0beeaa6f0523c141c56c3a800b37e2b9",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/mod.rs": {
-    "mtime": 1784771380.4482574,
-    "ast_hash": "83ff65711f1de0a55b8bed3848dcb083",
+    "mtime": 1784773445.0702813,
+    "ast_hash": "ac6e3baee0fad3232b91e2b80dbb1838",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/mod.rs": {
-    "mtime": 1784771010.04548,
-    "ast_hash": "cd3a0f2194e9b550cfb9c3fd0602e314",
+    "mtime": 1784773058.7482076,
+    "ast_hash": "8deab3c06225e7b07968cd2350e73d9d",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/canvas.rs": {
@@ -1695,8 +1695,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/outline.rs": {
-    "mtime": 1784679892.9611263,
-    "ast_hash": "ee89d90e83312772b273cd2b535828a9",
+    "mtime": 1784773201.1510782,
+    "ast_hash": "6ad4adae0fe52733d00bc24afb636ab8",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/forms.rs": {
@@ -1712,6 +1712,16 @@
   "crates/fireside-tui/src/render/editor/wiring.rs": {
     "mtime": 1784752721.6029868,
     "ast_hash": "9b3d04c14de3cddc3899c01f8a74d31c",
+    "semantic_hash": ""
+  },
+  "docs/src/content/docs/guides/editing.md": {
+    "mtime": 1784773972.4587595,
+    "ast_hash": "d870e2d27f3be5597c76aff89ad9292c",
+    "semantic_hash": ""
+  },
+  "docs/src/assets/editing.gif": {
+    "mtime": 1784773834.394572,
+    "ast_hash": "e0090faac00e47d65dbbab272e5dc412",
     "semantic_hash": ""
   }
 }

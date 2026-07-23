@@ -39,7 +39,7 @@ status, date._
 - [X] E1 read-only studio (canvas + outline + toolbar, click/hover/scroll, present) — done 2026-07-21
 - [X] E2 block editing (select/edit/add/delete, drag-and-drop reorder, undo, save) — done 2026-07-22
 - [X] E3 structure editing (slides, wiring, choices, reveal staging) — done 2026-07-22
-- [ ] E4 foolproofing polish (drafts, empty states, first-run tour, refinements)
+- [X] E4 foolproofing polish (drafts, empty states, first-run tour, refinements) — done 2026-07-22
 
 ## Product definition
 

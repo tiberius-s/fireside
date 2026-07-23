@@ -488,7 +488,7 @@ fn block_extents(
     out
 }
 
-fn rect_contains(rect: Rect, col: u16, row: u16) -> bool {
+pub(crate) fn rect_contains(rect: Rect, col: u16, row: u16) -> bool {
     col >= rect.x && col < rect.right() && row >= rect.y && row < rect.bottom()
 }
 
@@ -523,11 +523,23 @@ fn toolbar_hit(app: &EditorApp, toolbar: Rect, col: u16, row: u16) -> Option<Tar
     rect_contains(toolbar_title_rect(toolbar, app), col, row).then_some(Target::ToolbarTitle)
 }
 
+/// The outline pane's clamped scroll offset at `outline`'s current
+/// height — shared by `outline_hit`, `resolve_outline_drop`, and
+/// `render::editor::outline::draw` so drawing and hit-testing can never
+/// disagree about which rows are visible (same clamp-at-read pattern
+/// `canvas_layout`'s `scroll` already uses for the canvas).
+#[must_use]
+pub(crate) fn outline_scroll_offset(app: &EditorApp, outline: Rect) -> usize {
+    let total = outline_lines(app.working_graph()).len();
+    let max = total.saturating_sub(outline.height as usize);
+    (app.outline_scroll() as usize).min(max)
+}
+
 fn outline_hit(app: &EditorApp, outline: Rect, col: u16, row: u16) -> Option<Target> {
     if !rect_contains(outline, col, row) {
         return None;
     }
-    let idx = (row - outline.y) as usize;
+    let idx = outline_scroll_offset(app, outline) + (row - outline.y) as usize;
     match outline_lines(app.working_graph()).get(idx)? {
         OutlineLine::Row(r) => Some(Target::OutlineRow(r.node_id.clone())),
         OutlineLine::Divider => None,
@@ -1385,7 +1397,7 @@ pub(crate) fn resolve_outline_drop(
     if !rect_contains(outline, col, row) {
         return None;
     }
-    let idx = (row - outline.y) as usize;
+    let idx = outline_scroll_offset(app, outline) + (row - outline.y) as usize;
     let lines = outline_lines(app.working_graph());
     match lines.get(idx) {
         Some(OutlineLine::Row(r)) => Some(Some(r.node_id.clone())),

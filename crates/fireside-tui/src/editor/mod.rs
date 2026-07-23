@@ -142,6 +142,11 @@ pub(crate) struct EditorApp {
     terminal_size: (u16, u16),
     status: Vec<fireside_engine::Diagnostic>,
     scroll: u16,
+    /// The outline pane's own scroll offset (spec 013 E4, T068) — separate
+    /// from the canvas's `scroll` so scrolling one pane never disturbs the
+    /// other; clamped at read time by `hit::outline_scroll_offset`, the
+    /// same pattern `scroll`/`canvas_layout` already use.
+    outline_scroll: u16,
     hover: Option<hit::Target>,
     dirty_since_draft: bool,
     #[allow(dead_code)] // read by tests; a "draft saved Xs ago" indicator is future polish
@@ -160,6 +165,14 @@ pub(crate) struct EditorApp {
     pending_save: Option<Graph>,
     pending_art_request: Option<String>,
     flash: Option<Flash>,
+    /// When this session opened — the first-run hint tour (spec 013 E4)
+    /// rotates its three messages off this clock, read purely at render
+    /// time (same pattern as [`Self::flash`]'s `Instant::now()` filter).
+    opened_at: Instant,
+    /// Set on the first successful save: the hint tour is dismissed
+    /// forever after that (design brief E4) — an author who has already
+    /// saved once doesn't need to keep being taught the basics.
+    hint_tour_dismissed: bool,
     quit: bool,
 }
 
@@ -226,6 +239,7 @@ impl EditorApp {
             terminal_size: (80, 24),
             status,
             scroll: 0,
+            outline_scroll: 0,
             hover: None,
             dirty_since_draft: false,
             last_draft_write: Instant::now(),
@@ -237,6 +251,8 @@ impl EditorApp {
             pending_save: None,
             pending_art_request: None,
             flash: None,
+            opened_at: Instant::now(),
+            hint_tour_dismissed: false,
             quit: false,
         }
     }
@@ -268,6 +284,11 @@ impl EditorApp {
     }
 
     #[must_use]
+    pub(crate) fn outline_scroll(&self) -> u16 {
+        self.outline_scroll
+    }
+
+    #[must_use]
     pub(crate) fn status(&self) -> &[fireside_engine::Diagnostic] {
         &self.status
     }
@@ -291,6 +312,21 @@ impl EditorApp {
     #[must_use]
     pub(crate) fn flash(&self) -> Option<&Flash> {
         self.flash.as_ref().filter(|f| f.expires > Instant::now())
+    }
+
+    /// When this session opened — `render::editor` reads this to pick the
+    /// first-run hint tour's current message (spec 013 E4).
+    #[must_use]
+    pub(crate) fn opened_at(&self) -> Instant {
+        self.opened_at
+    }
+
+    /// Whether the first-run hint tour has been dismissed by a successful
+    /// save (spec 013 E4) — once true, the hint line settles on the tour's
+    /// first, steadiest message instead of continuing to rotate.
+    #[must_use]
+    pub(crate) fn hint_tour_dismissed(&self) -> bool {
+        self.hint_tour_dismissed
     }
 
     /// Whether `working_graph` has unsaved changes — the toolbar's `●` dot
@@ -463,6 +499,19 @@ impl EditorApp {
             (Some(i), true) => (i + count - 1) % count,
         };
         self.selection = Selection::Block(node_id, vec![next]);
+    }
+
+    /// A click on the status banner (spec 013 E4, `contracts`'s
+    /// `Target::StatusBanner`): jumps to the slide behind the most serious
+    /// diagnostic that names one. `status` is already sorted errors-first
+    /// (`validation::validate`), so the first diagnostic with a `node` is
+    /// the right one to select. A no-op when every diagnostic is deck-wide
+    /// (no single offending slide to jump to).
+    fn jump_to_diagnostic(&mut self) {
+        if let Some(id) = self.status.iter().find_map(|d| d.node.clone()) {
+            self.selection = Selection::Slide(id);
+            self.scroll = 0;
+        }
     }
 
     // ─── Forms (spec 013, US1) ──────────────────────────────────────────
@@ -1295,6 +1344,7 @@ impl EditorApp {
             Ok(()) => {
                 self.saved_graph = self.working_graph.clone();
                 self.dirty_since_draft = false;
+                self.hint_tour_dismissed = true;
                 self.set_flash("Saved", FlashKind::Info);
                 // The quit-prompt's `[ Save ]` chip (spec 013 US4, FR-019):
                 // only a *successful* save finishes the quit — a failure
@@ -1593,9 +1643,30 @@ impl EditorApp {
                 let (w, h) = self.terminal_size;
                 self.hover = hit::hit(self, Rect::new(0, 0, w, h), event.column, event.row);
             }
-            MouseEventKind::ScrollDown => self.scroll = self.scroll.saturating_add(1),
-            MouseEventKind::ScrollUp => self.scroll = self.scroll.saturating_sub(1),
+            MouseEventKind::ScrollDown => self.scroll_at(event.column, event.row, true),
+            MouseEventKind::ScrollUp => self.scroll_at(event.column, event.row, false),
             _ => {}
+        }
+    }
+
+    /// Mouse-wheel scroll (spec 013 E4, T068): scrolls whichever pane the
+    /// pointer sits over — the outline has its own offset from the canvas
+    /// (`Self::outline_scroll`), so scrolling to find an off-screen slide
+    /// in the outline never disturbs where the canvas is scrolled to, and
+    /// vice versa. Off both panes (toolbar, status, hint), scrolls the
+    /// canvas, matching this method's pre-existing behavior.
+    fn scroll_at(&mut self, col: u16, row: u16, down: bool) {
+        let (w, h) = self.terminal_size;
+        let areas = hit::editor_areas(Rect::new(0, 0, w, h));
+        let target = if hit::rect_contains(areas.outline, col, row) {
+            &mut self.outline_scroll
+        } else {
+            &mut self.scroll
+        };
+        if down {
+            *target = target.saturating_add(1);
+        } else {
+            *target = target.saturating_sub(1);
         }
     }
 
@@ -1634,6 +1705,11 @@ impl EditorApp {
                 };
                 let (w, h) = self.terminal_size;
                 let areas = hit::editor_areas(Rect::new(0, 0, w, h));
+                if row <= areas.outline.y {
+                    self.outline_scroll = self.outline_scroll.saturating_sub(1);
+                } else if row.saturating_add(1) >= areas.outline.bottom() {
+                    self.outline_scroll = self.outline_scroll.saturating_add(1);
+                }
                 if let Some(before) = hit::resolve_outline_drop(self, areas.outline, col, row) {
                     self.drag = DragState::OutlineOver { id, before };
                 }
@@ -1747,9 +1823,10 @@ impl EditorApp {
             }
             Some(hit::Target::FormChip(kind)) => self.on_form_chip(kind),
             Some(hit::Target::FormField(slot)) => self.focus_form_field(slot),
+            Some(hit::Target::StatusBanner) => self.jump_to_diagnostic(),
             // `MoveUp`/`MoveDown` chips aren't wired — block drag (US2)
             // already covers reordering (see `hit::BlockAction`'s doc).
-            Some(hit::Target::BlockChip(..) | hit::Target::StatusBanner) => {}
+            Some(hit::Target::BlockChip(..)) => {}
             None => {
                 // A form, while open, occupies the whole hit-testing
                 // surface (`hit::form_hit`) — a click outside it is
@@ -1961,6 +2038,40 @@ mod tests {
         app
     }
 
+    /// A linear deck of `n` slides at a `height` short enough that the
+    /// outline pane can't show them all at once — for T068's outline
+    /// scroll/auto-scroll tests.
+    fn many_slides_app(n: usize, height: u16) -> EditorApp {
+        let nodes: Vec<String> = (0..n)
+            .map(|i| {
+                let next = if i + 1 < n {
+                    format!(r#","traversal":"s{}""#, i + 1)
+                } else {
+                    String::new()
+                };
+                format!(
+                    r#"{{"id":"s{i}","title":"Slide {i}"{next},"content":[{{"kind":"text","body":"x"}}]}}"#
+                )
+            })
+            .collect();
+        let json = format!(r#"{{"nodes":[{}]}}"#, nodes.join(","));
+        let mut app = EditorApp::new(Graph::from_json(&json).expect("fixture parses"));
+        app.set_terminal_size(100, height);
+        app
+    }
+
+    /// A single slide whose `traversal` points nowhere — the fixture for
+    /// T067's status-banner jump-to-diagnostic test.
+    const DANGLING_TARGET: &str = r#"{"nodes":[
+        {"id":"a","title":"Start","traversal":"missing","content":[{"kind":"text","body":"hi"}]}
+    ]}"#;
+
+    fn dangling_target_app() -> EditorApp {
+        let mut app = EditorApp::new(Graph::from_json(DANGLING_TARGET).expect("fixture parses"));
+        app.set_terminal_size(100, 30);
+        app
+    }
+
     fn press(app: &mut EditorApp, code: KeyCode) {
         app.update(Msg::Terminal(Event::Key(KeyEvent::from(code))));
     }
@@ -2094,6 +2205,75 @@ mod tests {
         assert_eq!(app.scroll(), 1);
         press(&mut app, KeyCode::Up);
         assert_eq!(app.scroll(), 0);
+    }
+
+    /// Spec 013 E4, T068: wheel scroll over the outline advances the
+    /// outline's own offset, not the canvas's — the two panes scroll
+    /// independently.
+    #[test]
+    fn wheel_over_the_outline_scrolls_the_outline_not_the_canvas() {
+        let mut app = many_slides_app(30, hit::MIN_HEIGHT);
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, hit::MIN_HEIGHT));
+        app.update(Msg::Terminal(Event::Mouse(MouseEvent {
+            kind: MouseEventKind::ScrollDown,
+            column: areas.outline.x,
+            row: areas.outline.y,
+            modifiers: crossterm::event::KeyModifiers::empty(),
+        })));
+        assert_eq!(app.outline_scroll(), 1);
+        assert_eq!(app.scroll(), 0);
+    }
+
+    /// Spec 013 E4, T068: dragging an outline row to the pane's bottom
+    /// edge auto-scrolls it, the same way a block drag already
+    /// auto-scrolls the canvas near its edges — without this, a slide
+    /// couldn't be dragged past whatever fits on screen in a large deck.
+    #[test]
+    fn dragging_an_outline_row_to_the_bottom_edge_auto_scrolls_it() {
+        let mut app = many_slides_app(30, hit::MIN_HEIGHT);
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, hit::MIN_HEIGHT));
+        click(&mut app, areas.outline.x, areas.outline.y);
+        assert!(matches!(app.drag(), DragState::OutlineLifting { .. }));
+        drag_to(&mut app, areas.outline.x, areas.outline.bottom() - 1);
+        assert_eq!(app.outline_scroll(), 1);
+    }
+
+    /// Spec 013 E4, T067: clicking the status banner jumps to the slide
+    /// behind its diagnostic (`contracts`'s `Target::StatusBanner`).
+    #[test]
+    fn clicking_the_status_banner_jumps_to_the_offending_slide() {
+        let mut app = dangling_target_app();
+        assert_eq!(app.selection(), &Selection::None);
+        assert!(!app.status().is_empty(), "the dangling target is flagged");
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, 30));
+        click(&mut app, areas.status.x, areas.status.y);
+        assert_eq!(app.selection(), &Selection::Slide("a".to_owned()));
+    }
+
+    /// Spec 013 E4, T066: a fresh session starts with the first-run hint
+    /// tour un-dismissed and showing its (steady, click-to-select)
+    /// message at rest.
+    #[test]
+    fn hint_tour_starts_undismissed_and_visible() {
+        let app = app();
+        assert!(!app.hint_tour_dismissed());
+        let screen = draw(&app, 100, 30);
+        assert!(screen.contains("Click a slide or block to select"));
+    }
+
+    /// Spec 013 E4, T066: the first successful save dismisses the hint
+    /// tour forever — it settles on the tour's first, steadiest message.
+    #[test]
+    fn hint_tour_is_dismissed_forever_after_the_first_save() {
+        let mut app = app();
+        app.update(Msg::SaveResult(Ok(())));
+        assert!(app.hint_tour_dismissed());
+        // The save's own "Saved" flash takes priority over the hint line
+        // while it's up (`draw_hint`'s priority order) — clear it to see
+        // what the hint line settles on underneath.
+        app.flash = None;
+        let screen = draw(&app, 100, 30);
+        assert!(screen.contains("Click a slide or block to select"));
     }
 
     #[test]

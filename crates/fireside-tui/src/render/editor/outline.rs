@@ -13,8 +13,10 @@ use crate::editor::{EditorApp, Selection, hit};
 use crate::theme::Tokens;
 
 pub(super) fn draw(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) {
+    let scroll = hit::outline_scroll_offset(app, area);
     let lines: Vec<Line<'static>> = hit::outline_lines(app.working_graph())
         .iter()
+        .skip(scroll)
         .take(area.height as usize)
         .map(|item| render_line(item, app, tokens))
         .collect();

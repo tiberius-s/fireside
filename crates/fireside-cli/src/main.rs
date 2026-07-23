@@ -256,6 +256,7 @@ fn main() -> Result<()> {
             println!("  fireside import <file.md>  compile a Markdown talk into a deck");
             println!("  fireside art text <phrase> generate a text banner to paste in");
             println!("  fireside art image <file>  convert a picture to ASCII art");
+            println!("  fireside edit <file>       open a deck in the full-screen editor");
             println!("\nTry: fireside demo");
             Ok(())
         }
