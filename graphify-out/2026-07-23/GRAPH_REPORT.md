@@ -1,16 +1,16 @@
 # Graph Report - fireside  (2026-07-23)
 
 ## Corpus Check
-- 330 files · ~492,440 words
+- 330 files · ~493,659 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4144 nodes · 6893 edges · 321 communities (276 shown, 45 thin omitted)
+- 4144 nodes · 6895 edges · 320 communities (275 shown, 45 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 71 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c14dbd3b`
+- Built from commit: `c2abfcce`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -315,7 +315,6 @@
 - [[_COMMUNITY_Community 299|Community 299]]
 - [[_COMMUNITY_Community 300|Community 300]]
 - [[_COMMUNITY_Community 301|Community 301]]
-- [[_COMMUNITY_Community 302|Community 302]]
 - [[_COMMUNITY_Community 303|Community 303]]
 - [[_COMMUNITY_Community 304|Community 304]]
 - [[_COMMUNITY_Community 305|Community 305]]
@@ -389,7 +388,7 @@
 - **Rust Reference Implementation Layering (core -> engine -> tui -> cli)** — fireside_core_readme_fireside_core, fireside_engine_readme_fireside_engine, fireside_tui_readme_fireside_tui, fireside_cli_readme_fireside_cli [EXTRACTED 1.00]
 - **Fireside Document Data Model** — spec_data_model_graph, spec_data_model_node, spec_data_model_contentblock, spec_data_model_traversal, spec_data_model_branchpoint, spec_data_model_branchoption, spec_data_model_nodeid [EXTRACTED 1.00]
 
-## Communities (321 total, 45 thin omitted)
+## Communities (320 total, 45 thin omitted)
 
 ### Community 0 - "TUI App Helpers"
 Cohesion: 0.23
@@ -1409,11 +1408,7 @@ Nodes (124): A, BlockPath, BranchOption, ContentBlock, EditorApp, FormState, Gra
 
 ### Community 301 - "Community 301"
 Cohesion: 0.06
-Nodes (19): BlockKind, BlockPath, Diagnostic, EditableField, FieldSlot, Instant, KeyEvent, String (+11 more)
-
-### Community 302 - "Community 302"
-Cohesion: 0.50
-Nodes (4): ContentBlock, Vec, flattened_block_paths(), other_reveal_levels()
+Nodes (20): BlockKind, BlockPath, ContentBlock, Diagnostic, EditableField, FieldSlot, Instant, KeyEvent (+12 more)
 
 ### Community 303 - "Community 303"
 Cohesion: 0.42
@@ -1428,8 +1423,8 @@ Cohesion: 0.09
 Nodes (37): Diagnostic, Path, Result, String, Graph, Option, Path, PathBuf (+29 more)
 
 ### Community 306 - "Community 306"
-Cohesion: 0.16
-Nodes (15): ArtGenerator, DefaultTerminal, Graph, Option, Result, TuiError, DraftSink, DraftPrompt (+7 more)
+Cohesion: 0.12
+Nodes (18): ArtGenerator, DefaultTerminal, Graph, Option, Result, String, TuiError, DraftSink (+10 more)
 
 ### Community 307 - "Community 307"
 Cohesion: 0.11

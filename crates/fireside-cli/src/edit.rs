@@ -28,7 +28,18 @@ use crate::new::starter_deck;
 /// prompt (spec 013 US4, FR-020) when a draft sidecar disagrees with the
 /// file just loaded.
 pub(crate) fn edit_deck(file: &Path) -> Result<()> {
-    let graph = load_or_create(file)?;
+    let (graph, created) = load_or_create(file)?;
+    // Leads with the fact that matters, unlike the println below: the
+    // hint line doesn't wrap (P1-6 already flagged this truncation class
+    // for the footer), so on a narrow terminal or a long path the tail
+    // may clip, but "New deck created" — the one thing an author must not
+    // miss before they start typing into it — always survives.
+    let created_notice = created.then(|| {
+        format!(
+            "New deck created \u{2014} nothing existed at {} yet.",
+            file.display()
+        )
+    });
 
     let draft_key = crate::resume::resume_key(file);
     let draft_path = draft_key.as_deref().and_then(draft_path_for);
@@ -58,6 +69,7 @@ pub(crate) fn edit_deck(file: &Path) -> Result<()> {
     let result = fireside_tui::editor::run(
         graph,
         draft_prompt,
+        created_notice,
         &mut sink,
         &mut draft_sink,
         Some(&mut art_generator),
@@ -126,22 +138,27 @@ fn atomic_write(path: &Path, contents: &str) -> std::io::Result<()> {
 /// Loads `file` as a deck, offering to create one if it doesn't exist yet.
 /// Exits the process directly (matching `main.rs::load`'s convention) for
 /// every refusal case, so the tty check inside `fireside_tui::editor::run`
-/// is only ever reached once a real, parseable deck is in hand.
-fn load_or_create(file: &Path) -> Result<Graph> {
+/// is only ever reached once a real, parseable deck is in hand. The `bool`
+/// is `true` only when `file` didn't exist and a starter deck was created
+/// in its place — the caller uses it to flash a visible confirmation
+/// inside the studio (2026-07-23 follow-up audit, P1-1), since the
+/// create-if-missing `println!` below is overwritten by the alternate
+/// screen before a real terminal ever shows it.
+fn load_or_create(file: &Path) -> Result<(Graph, bool)> {
     let text = match std::fs::read_to_string(file) {
         Ok(text) => text,
         Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
             if crate::is_markdown_path(file) {
                 markdown_hint(file);
             }
-            return create_deck(file);
+            return create_deck(file).map(|graph| (graph, true));
         }
         Err(err) => {
             return Err(err).with_context(|| format!("could not read {}", file.display()));
         }
     };
     match Graph::from_json(&text) {
-        Ok(graph) => Ok(graph),
+        Ok(graph) => Ok((graph, false)),
         Err(CoreError::Parse(err)) => {
             if crate::is_markdown_path(file) {
                 markdown_hint(file);

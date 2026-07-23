@@ -1931,7 +1931,11 @@ pub type DraftSink<'a> = &'a mut dyn FnMut(&Graph);
 /// terminal, even on error — the same contract [`crate::present`] gives
 /// the presenter. `draft`, if given, opens the studio behind the
 /// draft-vs-saved-file prompt (spec 013 US4, FR-020) instead of drawing it
-/// directly.
+/// directly. `created_notice`, if given, is shown as the studio's first
+/// flash message (2026-07-23 follow-up audit, P1-1) — the caller's
+/// create-if-missing `println!` runs before the alternate screen takes
+/// over and is invisible in a real terminal session; this is the message
+/// an author actually sees once inside the tool.
 ///
 /// # Errors
 ///
@@ -1940,6 +1944,7 @@ pub type DraftSink<'a> = &'a mut dyn FnMut(&Graph);
 pub fn run(
     graph: Graph,
     draft: Option<DraftPrompt>,
+    created_notice: Option<String>,
     sink: EditorWriteBackSink<'_>,
     draft_sink: DraftSink<'_>,
     art_generator: Option<ArtGenerator<'_>>,
@@ -1951,6 +1956,9 @@ pub fn run(
         Some(prompt) => EditorApp::new_with_draft(graph, prompt),
         None => EditorApp::new(graph),
     };
+    if let Some(notice) = created_notice {
+        app.set_flash(notice, FlashKind::Info);
+    }
     let mut terminal = ratatui::try_init()?;
     // Mouse capture is enabled once for the whole editor session — both
     // the studio's own loop and the in-process presenter loop `present_now`

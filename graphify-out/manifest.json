@@ -1485,8 +1485,8 @@
     "semantic_hash": ""
   },
   "scripts/smoke.sh": {
-    "mtime": 1784839989.694706,
-    "ast_hash": "9586c83b4488132fe9644c8dfce433bb",
+    "mtime": 1784844248.3346684,
+    "ast_hash": "b020e40c8ebafb8c698c74c7c66be717",
     "semantic_hash": ""
   },
   "specs/012-presenter-view/spec.md": {
@@ -1665,8 +1665,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-cli/src/edit.rs": {
-    "mtime": 1784771380.3672535,
-    "ast_hash": "cab858a06f60465b144eebd89fd0a12b",
+    "mtime": 1784844241.8422382,
+    "ast_hash": "fd51f1c21811f2380f438198c4c00186",
     "semantic_hash": ""
   },
   "crates/fireside-engine/src/authoring.rs": {
@@ -1680,8 +1680,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/mod.rs": {
-    "mtime": 1784839294.9613585,
-    "ast_hash": "5d889232556bf157443e8a75ed3158a2",
+    "mtime": 1784843929.4253588,
+    "ast_hash": "38fa790660eec6ccaf3af9755007bace",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/mod.rs": {
@@ -1725,8 +1725,8 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-23-ux-audit.md": {
-    "mtime": 1784840174.42213,
-    "ast_hash": "a2e439f4bee87a7680452e43c861ee4b",
+    "mtime": 1784844486.5261722,
+    "ast_hash": "bc367d4c5439364fe30b106d5ad3f2c5",
     "semantic_hash": ""
   },
   "specs/014-container-block-editing/spec.md": {

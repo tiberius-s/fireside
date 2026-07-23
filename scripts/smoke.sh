@@ -866,6 +866,35 @@ else
   fail=$((fail + 1))
 fi
 
+# ─── Scenario 13: fireside edit on a missing path flashes the create notice (2026-07-23 audit P1-1) ──
+echo
+echo "=== fireside edit <missing path>: the create-if-missing notice is visible inside the studio ==="
+MISSINGDECK="$WORKDIR/typo-d-talk.fireside.json"
+if [[ -e "$MISSINGDECK" ]]; then
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m fixture setup: %s already exists\n' "$MISSINGDECK"
+  fail=$((fail + 1))
+fi
+start "$BIN edit $MISSINGDECK"
+assert_contains "the create notice is visible on the studio's first frame" \
+  "New deck created"
+assert_contains "the studio still opens normally on the new deck" "typo d talk"
+if [[ -f "$MISSINGDECK" ]]; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the starter deck was written to the typo'"'"'d path\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m no file was written at the typo'"'"'d path\n'
+  fail=$((fail + 1))
+fi
+keys "q"
+sleep 0.4
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m editor q quits and the terminal is restored\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m editor q did not end the session\n'
+  fail=$((fail + 1))
+fi
+
 echo
 echo "----------------------------------------"
 if [[ "$fail" -eq 0 ]]; then
