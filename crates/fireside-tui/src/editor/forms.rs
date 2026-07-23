@@ -11,6 +11,8 @@
 use fireside_core::{ContainerLayout, ContentBlock};
 use fireside_engine::authoring::BlockPath;
 
+use super::hit::{PickerRow, PickerTarget, PromptKind};
+
 // ─── EditableField (promoted from `app.rs`) ────────────────────────────────
 
 /// Which editable text the field represents — carried only for the
@@ -286,6 +288,24 @@ pub(crate) enum FormState {
         path: BlockPath,
         at: usize,
     },
+    /// A single- or double-field text prompt (spec 013 US3): new-slide
+    /// title, deck-title rename, speaker notes, or the first two fields of
+    /// a choice/answer before its target is picked. `[ Done ]` applies a
+    /// direct effect for the first three kinds; `ChoicePrompt`/`NewAnswer`
+    /// show `[ Choose target \u{2192} ]` instead, handing off to
+    /// [`FormState::SlidePicker`].
+    Prompt {
+        kind: PromptKind,
+        fields: Vec<EditableField>,
+        focus: usize,
+    },
+    /// The generic "choose a slide" picker (spec 013 US3, T051): every
+    /// existing slide by title, plus "a new slide…" and (for
+    /// `PickerTarget::Next` only) "nothing — an ending".
+    SlidePicker {
+        target: PickerTarget,
+        rows: Vec<PickerRow>,
+    },
 }
 
 impl FormState {
@@ -299,6 +319,7 @@ impl FormState {
             | Self::TextArt { node, .. }
             | Self::Container { node, .. }
             | Self::AddPalette { node, .. } => node,
+            Self::Prompt { .. } | Self::SlidePicker { .. } => "",
         }
     }
 
@@ -312,6 +333,13 @@ impl FormState {
             | Self::TextArt { path, .. }
             | Self::Container { path, .. }
             | Self::AddPalette { path, .. } => path,
+            Self::Prompt { .. } | Self::SlidePicker { .. } => {
+                // Never actually read: `EditorApp::commit_form` special-cases
+                // these variants before calling `path()`. Exists only so
+                // this match stays exhaustive.
+                static EMPTY: BlockPath = Vec::new();
+                &EMPTY
+            }
         }
     }
 
@@ -319,9 +347,13 @@ impl FormState {
     /// has more than one index lives inside a `Container`, so the parent's
     /// path is simply this one's own path with its last index dropped.
     /// `AddPalette`'s `path` already addresses a parent container (not a
-    /// block), so it never reports one of its own.
+    /// block), and `Prompt`/`SlidePicker` address no block at all — neither
+    /// ever reports a parent.
     pub(crate) fn parent_container_path(&self) -> Option<BlockPath> {
-        if matches!(self, Self::AddPalette { .. }) {
+        if matches!(
+            self,
+            Self::AddPalette { .. } | Self::Prompt { .. } | Self::SlidePicker { .. }
+        ) {
             return None;
         }
         let path = self.path();
@@ -346,6 +378,21 @@ impl FormState {
     /// first.
     pub(crate) fn can_commit(&self) -> bool {
         !self.art_too_wide()
+    }
+
+    /// Whether this form's `[ Done ]` chip applies a direct effect
+    /// (`NewSlide`/`DeckTitle`/`Notes`) rather than a `[ Choose target → ]`
+    /// hand-off (`ChoicePrompt`/`NewAnswer`) — spec 013 US3, T051/T052.
+    pub(crate) fn prompt_commits_directly(&self) -> bool {
+        matches!(
+            self,
+            Self::Prompt {
+                kind: PromptKind::NewSlide { .. }
+                    | PromptKind::DeckTitle
+                    | PromptKind::Notes { .. },
+                ..
+            }
+        )
     }
 
     /// The [`ContentBlock`] this form's current field values build, ready
@@ -415,7 +462,10 @@ impl FormState {
                     alt: (!alt_text.trim().is_empty()).then_some(alt_text),
                 })
             }
-            Self::Container { .. } | Self::AddPalette { .. } => None,
+            Self::Container { .. }
+            | Self::AddPalette { .. }
+            | Self::Prompt { .. }
+            | Self::SlidePicker { .. } => None,
         }
     }
 }

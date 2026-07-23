@@ -89,7 +89,9 @@ fn draw_drag_ghost(frame: &mut Frame, canvas: Rect, app: &EditorApp, tokens: &To
         DragState::Lifting { node, path } | DragState::Over { node, path, .. } => {
             (node.clone(), path.clone())
         }
-        DragState::Idle => return,
+        DragState::Idle | DragState::OutlineLifting { .. } | DragState::OutlineOver { .. } => {
+            return;
+        }
     };
     let Some(node) = hit::selected_node(app) else {
         return;

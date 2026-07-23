@@ -64,7 +64,7 @@ pub(super) fn draw(frame: &mut Frame, area: Rect, form: &FormState, tokens: &Tok
         } else {
             tokens.affordance
         };
-        frame.render_widget(Paragraph::new(Span::styled(*label, style)), *rect);
+        frame.render_widget(Paragraph::new(Span::styled(label.clone(), style)), *rect);
     }
 }
 
@@ -106,6 +106,9 @@ fn field_for(form: &FormState, slot: hit::FieldSlot) -> (&EditableField, bool) {
             alt,
             matches!(focus, crate::editor::forms::TextArtFocus::Alt),
         ),
+        (FormState::Prompt { fields, focus, .. }, FieldSlot::Prompt(i)) => {
+            (&fields[i], i == *focus)
+        }
         _ => unreachable!("form_layout never emits a FormFieldLayout the form itself doesn't have"),
     }
 }

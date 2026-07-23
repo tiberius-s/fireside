@@ -1205,8 +1205,8 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/tests.rs": {
-    "mtime": 1784750102.1988442,
-    "ast_hash": "1527286f860a04ac19fae042ece2d2a5",
+    "mtime": 1784752275.8278334,
+    "ast_hash": "97171361bc0e29afa7229ac1b7351553",
     "semantic_hash": ""
   },
   ".github/demo-watch-toggle.sh": {
@@ -1480,13 +1480,13 @@
     "semantic_hash": ""
   },
   ".claude/plans/2026-07-19-wysiwyg-editor-plan.md": {
-    "mtime": 1784680476.3007948,
-    "ast_hash": "bf350608ffbef23e3585bbe5aaceb421",
+    "mtime": 1784761446.0736597,
+    "ast_hash": "a2e96648f281a9d8323a6f684d958ffe",
     "semantic_hash": ""
   },
   "scripts/smoke.sh": {
-    "mtime": 1784750219.3357751,
-    "ast_hash": "9db8740db343fc03b4686d3b6875fb32",
+    "mtime": 1784761395.446687,
+    "ast_hash": "8a331238f958a67f5b3cdf2dd17bfa6a",
     "semantic_hash": ""
   },
   "specs/012-presenter-view/spec.md": {
@@ -1675,23 +1675,23 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/hit.rs": {
-    "mtime": 1784750320.5055814,
-    "ast_hash": "8a001e94a6053477d60d982390fa767b",
+    "mtime": 1784761484.3051138,
+    "ast_hash": "21ab268e568dd105fd529292c8841bb2",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/mod.rs": {
-    "mtime": 1784750389.4512815,
-    "ast_hash": "e509f7ef4062ec325fca3c4d698b2e68",
+    "mtime": 1784761522.3980858,
+    "ast_hash": "0c799d28af04a97d0b1f972f75e3c881",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/mod.rs": {
-    "mtime": 1784749692.2462947,
-    "ast_hash": "1160cf9c09609844d5fb9f7c568d2bc5",
+    "mtime": 1784760301.960626,
+    "ast_hash": "1474d1458e5879be6e6669e9b99d15f3",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/canvas.rs": {
-    "mtime": 1784750320.5217214,
-    "ast_hash": "0a047a751ec2608440d164c25607d65c",
+    "mtime": 1784752243.0585952,
+    "ast_hash": "67ce80b6bb698529f87afc8234c3a0b8",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/outline.rs": {
@@ -1700,13 +1700,18 @@
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/editor/forms.rs": {
-    "mtime": 1784749532.4341946,
-    "ast_hash": "0b4cd9bcf85bb991f6e566a71305c538",
+    "mtime": 1784752721.5732903,
+    "ast_hash": "e73d9c6f44d64ecd415d52c9f83cc478",
     "semantic_hash": ""
   },
   "crates/fireside-tui/src/render/editor/forms.rs": {
-    "mtime": 1784741625.969602,
-    "ast_hash": "f86da9b6e9fa59339f522527d969600b",
+    "mtime": 1784752230.9684255,
+    "ast_hash": "b3a8e0d9063e2bebdd11e34072e1bce7",
+    "semantic_hash": ""
+  },
+  "crates/fireside-tui/src/render/editor/wiring.rs": {
+    "mtime": 1784752721.6029868,
+    "ast_hash": "9b3d04c14de3cddc3899c01f8a74d31c",
     "semantic_hash": ""
   }
 }

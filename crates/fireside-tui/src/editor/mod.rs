@@ -21,7 +21,7 @@ use crossterm::event::{
 };
 use crossterm::execute;
 use crossterm::tty::IsTty;
-use fireside_engine::authoring::{self, BlockPath, Op};
+use fireside_engine::authoring::{self, AuthoringError, BlockPath, Op};
 use fireside_engine::validate;
 use ratatui::layout::Rect;
 
@@ -33,6 +33,7 @@ use crate::error::TuiError;
 use crate::{WriteBackError, render};
 
 use forms::{CodeFocus, EditableField, FormState, PictureFocus, TextArtFocus};
+use hit::{PickerRow, PickerTarget, PromptKind, SlideAction};
 
 /// What's selected in the studio, if anything.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -61,6 +62,18 @@ pub(crate) enum DragState {
         path: BlockPath,
         to: usize,
     },
+    /// A press on an outline row that hasn't moved yet (spec 013 US3,
+    /// T050) — indistinguishable from a plain click until it does, exactly
+    /// like `Lifting` for blocks.
+    OutlineLifting {
+        id: String,
+    },
+    /// An outline slide drag currently resolved over a drop candidate;
+    /// `before: None` means "end of the run."
+    OutlineOver {
+        id: String,
+        before: Option<String>,
+    },
 }
 
 /// One undo/redo checkpoint: a full graph clone plus the selection at that
@@ -84,6 +97,10 @@ const FLASH_DURATION: Duration = Duration::from_millis(3000);
 pub(crate) struct Flash {
     pub(crate) text: String,
     pub(crate) kind: FlashKind,
+    /// A clickable follow-up action, if this flash offers one (T050's
+    /// cross-branch-boundary refusal toast: "a way to perform the intended
+    /// change correctly").
+    pub(crate) action: Option<hit::FlashAction>,
     expires: Instant,
 }
 
@@ -124,6 +141,50 @@ pub(crate) struct EditorApp {
     pending_art_request: Option<String>,
     flash: Option<Flash>,
     quit: bool,
+}
+
+/// Every distinct positive reveal step used by `content`, excluding the
+/// block at `path` itself (spec 013 US3, T053's reveal-cycle ceiling) —
+/// recurses into `Container` children like `Node::reveal_levels()` does,
+/// so a step held only by a nested block still counts.
+fn other_reveal_levels(content: &[ContentBlock], path: &[usize]) -> Vec<u32> {
+    fn walk(blocks: &[ContentBlock], path: &[usize], out: &mut Vec<u32>) {
+        for (i, block) in blocks.iter().enumerate() {
+            let is_excluded = path.len() == 1 && path[0] == i;
+            if !is_excluded
+                && let Some(v) = block.reveal()
+                && v > 0
+            {
+                out.push(v);
+            }
+            if let ContentBlock::Container { children, .. } = block {
+                let child_path: &[usize] = if path.first() == Some(&i) {
+                    &path[1..]
+                } else {
+                    &[]
+                };
+                walk(children, child_path, out);
+            }
+        }
+    }
+    let mut out = Vec::new();
+    walk(content, path, &mut out);
+    out.sort_unstable();
+    out.dedup();
+    out
+}
+
+/// The node whose branch answer targets `id`, if any (spec 013 US3, T050's
+/// cross-branch-boundary refusal toast's "take me there" link).
+fn find_branch_predecessor(graph: &Graph, id: &str) -> Option<String> {
+    graph
+        .nodes
+        .iter()
+        .find(|n| {
+            n.branch_point()
+                .is_some_and(|bp| bp.options.iter().any(|o| o.target == id))
+        })
+        .map(|n| n.id.clone())
 }
 
 impl EditorApp {
@@ -232,6 +293,21 @@ impl EditorApp {
         self.flash = Some(Flash {
             text: text.into(),
             kind,
+            action: None,
+            expires: Instant::now() + FLASH_DURATION,
+        });
+    }
+
+    fn set_flash_with_action(
+        &mut self,
+        text: impl Into<String>,
+        kind: FlashKind,
+        action: hit::FlashAction,
+    ) {
+        self.flash = Some(Flash {
+            text: text.into(),
+            kind,
+            action: Some(action),
             expires: Instant::now() + FLASH_DURATION,
         });
     }
@@ -262,6 +338,34 @@ impl EditorApp {
     /// Consumes a pending text-art generation request, if one is set.
     fn take_pending_art_request(&mut self) -> Option<String> {
         self.pending_art_request.take()
+    }
+
+    /// `[`/`]`: selects the previous/next slide in outline order, wrapping
+    /// — the keyboard-only counterpart to clicking an outline row (spec
+    /// 013 US3: outline drag has no keyboard equivalent, per the design
+    /// brief's "reorder slides" scope, but plain *selection* — the
+    /// prerequisite for every other slide-level action — must still work
+    /// without a mouse, per ADR-017's keyboard-complete posture). A no-op
+    /// on an empty deck.
+    fn select_adjacent_slide(&mut self, backward: bool) {
+        let rows = authoring::outline_order(&self.working_graph);
+        if rows.is_empty() {
+            return;
+        }
+        let current = match &self.selection {
+            Selection::Slide(id) | Selection::Block(id, _) => {
+                rows.iter().position(|r| &r.node_id == id)
+            }
+            Selection::None => None,
+        };
+        let next = match (current, backward) {
+            (None, false) => 0,
+            (None, true) => rows.len() - 1,
+            (Some(i), false) => (i + 1) % rows.len(),
+            (Some(i), true) => (i + rows.len() - 1) % rows.len(),
+        };
+        self.selection = Selection::Slide(rows[next].node_id.clone());
+        self.scroll = 0;
     }
 
     /// Tab/Shift+Tab: selects the next/previous top-level block on the
@@ -322,6 +426,10 @@ impl EditorApp {
         let Some(form) = &self.open_form else {
             return;
         };
+        if matches!(form, FormState::Prompt { .. }) {
+            self.commit_prompt();
+            return;
+        }
         if !form.can_commit() {
             self.set_flash(
                 "That text art is too wide — shorten it or generate a new one",
@@ -337,6 +445,60 @@ impl EditorApp {
                 path,
                 content,
             });
+        }
+        self.open_form = None;
+    }
+
+    /// Directly mutates `working_graph` outside `engine::authoring` (spec
+    /// 013 US3, T054): deck-title rename and per-slide notes have no
+    /// `Op` — they're metadata this feature's contract deliberately leaves
+    /// out of the authoring-ops table — but still need undo, so this
+    /// pushes history exactly like [`Self::apply_op`] does.
+    fn apply_direct(&mut self, mutate: impl FnOnce(&mut Graph)) {
+        self.push_history();
+        mutate(&mut self.working_graph);
+        self.redo.clear();
+    }
+
+    /// `[ Done ]` on a direct-effect `Prompt` (`NewSlide`/`DeckTitle`/
+    /// `Notes`) — `ChoicePrompt`/`NewAnswer` never reach here (their
+    /// `[ Choose target → ]` chip routes to [`Self::begin_picker`]
+    /// instead, per `FormState::prompt_commits_directly`).
+    fn commit_prompt(&mut self) {
+        let Some(FormState::Prompt { kind, fields, .. }) = self.open_form.clone() else {
+            return;
+        };
+        match kind {
+            PromptKind::NewSlide { after } => {
+                let title = fields[0].text();
+                if title.trim().is_empty() {
+                    self.set_flash("Type a title first", FlashKind::Info);
+                    return;
+                }
+                if self.apply_op(Op::AddSlide {
+                    after: after.clone(),
+                    title,
+                }) && let Some(idx) = self.working_graph.nodes.iter().position(|n| n.id == after)
+                    && let Some(new_node) = self.working_graph.nodes.get(idx + 1)
+                {
+                    self.selection = Selection::Slide(new_node.id.clone());
+                }
+            }
+            PromptKind::DeckTitle => {
+                let title = fields[0].text();
+                self.apply_direct(|g| {
+                    g.title = (!title.trim().is_empty()).then_some(title);
+                });
+            }
+            PromptKind::Notes { node } => {
+                let notes = fields[0].text();
+                self.apply_direct(|g| {
+                    if let Some(n) = g.nodes.iter_mut().find(|n| n.id == node) {
+                        n.speaker_notes = (!notes.trim().is_empty()).then_some(notes);
+                    }
+                });
+            }
+            PromptKind::ChoicePrompt { .. } | PromptKind::NewAnswer { .. } => return,
         }
         self.open_form = None;
     }
@@ -357,6 +519,366 @@ impl EditorApp {
             // Handled by `on_click` before it ever reaches here (needs the
             // `BlockKind` payload); kept so this match stays exhaustive.
             hit::FormChipKind::PaletteCard(kind) => self.add_block_from_palette(kind),
+            hit::FormChipKind::ChooseTarget => self.begin_picker(),
+            hit::FormChipKind::PickerRow(idx) => self.commit_picker_row(idx),
+            hit::FormChipKind::PickerEnding => self.commit_picker_ending(),
+            hit::FormChipKind::PickerNewSlide => self.commit_picker_new_slide(),
+        }
+    }
+
+    // ─── Structure: slides, wiring, choices, reveal (spec 013, US3) ─────
+
+    /// Every slide, by title — the picker's row list (spec 013, T051).
+    fn picker_rows(&self) -> Vec<PickerRow> {
+        self.working_graph
+            .nodes
+            .iter()
+            .map(|n| PickerRow {
+                id: n.id.clone(),
+                title: n.title.clone().unwrap_or_else(|| n.id.clone()),
+            })
+            .collect()
+    }
+
+    /// `[ Choose target → ]` on a `ChoicePrompt`/`NewAnswer` prompt: reads
+    /// the typed fields and hands off to `FormState::SlidePicker`.
+    fn begin_picker(&mut self) {
+        let Some(FormState::Prompt { kind, fields, .. }) = &self.open_form else {
+            return;
+        };
+        let target = match kind.clone() {
+            PromptKind::ChoicePrompt { node } => {
+                let prompt = fields[0].text();
+                let label = fields[1].text();
+                if label.trim().is_empty() {
+                    self.set_flash("Type the first answer's label", FlashKind::Info);
+                    return;
+                }
+                PickerTarget::FirstAnswer {
+                    node,
+                    prompt: (!prompt.trim().is_empty()).then_some(prompt),
+                    label,
+                }
+            }
+            PromptKind::NewAnswer { node } => {
+                let label = fields[0].text();
+                let key = fields[1].text();
+                if label.trim().is_empty() {
+                    self.set_flash("Type the answer's label", FlashKind::Info);
+                    return;
+                }
+                PickerTarget::NewAnswer {
+                    node,
+                    label,
+                    key: (!key.trim().is_empty()).then_some(key),
+                }
+            }
+            PromptKind::NewSlide { .. } | PromptKind::DeckTitle | PromptKind::Notes { .. } => {
+                return;
+            }
+        };
+        let rows = self.picker_rows();
+        self.open_form = Some(FormState::SlidePicker { target, rows });
+    }
+
+    /// Applies `target`'s op with `chosen` as its slide, then closes the
+    /// picker and re-selects the slide the wiring/choice belongs to.
+    fn commit_picker_target(&mut self, target: PickerTarget, chosen: String) {
+        let node = target.origin().to_owned();
+        let applied = match target {
+            PickerTarget::Next { node } => self.apply_op(Op::SetNext {
+                id: node,
+                target: chosen,
+            }),
+            PickerTarget::FirstAnswer {
+                node,
+                prompt,
+                label,
+            } => self.apply_op(Op::TurnIntoChoice {
+                id: node,
+                prompt,
+                first_label: label,
+                first_target: chosen,
+            }),
+            PickerTarget::NewAnswer { node, label, key } => self.apply_op(Op::AddAnswer {
+                id: node,
+                label,
+                key,
+                target: chosen,
+            }),
+            PickerTarget::RetargetAnswer { node, index } => self.apply_op(Op::RetargetAnswer {
+                id: node,
+                index,
+                target: chosen,
+            }),
+        };
+        if applied {
+            self.selection = Selection::Slide(node);
+        }
+        self.open_form = None;
+    }
+
+    fn commit_picker_row(&mut self, idx: usize) {
+        let Some(FormState::SlidePicker { target, rows }) = self.open_form.clone() else {
+            return;
+        };
+        let Some(row) = rows.get(idx) else {
+            return;
+        };
+        self.commit_picker_target(target, row.id.clone());
+    }
+
+    /// The picker's "nothing — an ending" row — `PickerTarget::Next` only
+    /// (per `hit::form_chip_defs`, the only kind that ever shows it).
+    fn commit_picker_ending(&mut self) {
+        let Some(FormState::SlidePicker {
+            target: PickerTarget::Next { node },
+            ..
+        }) = self.open_form.clone()
+        else {
+            return;
+        };
+        if self.apply_op(Op::ClearNext { id: node.clone() }) {
+            self.selection = Selection::Slide(node);
+        }
+        self.open_form = None;
+    }
+
+    /// The picker's "a new slide…" row: creates a placeholder slide right
+    /// after the wiring's origin, then wires the picker's target to it —
+    /// no typed identifier anywhere (spec 013 US3, T051).
+    fn commit_picker_new_slide(&mut self) {
+        let Some(FormState::SlidePicker { target, .. }) = self.open_form.clone() else {
+            return;
+        };
+        let origin = target.origin().to_owned();
+        let existing: Vec<String> = self
+            .working_graph
+            .nodes
+            .iter()
+            .map(|n| n.id.clone())
+            .collect();
+        let new_id = authoring::slug("New slide", &existing);
+        if !self.apply_op(Op::AddSlide {
+            after: origin,
+            title: "New slide".to_owned(),
+        }) {
+            return;
+        }
+        self.commit_picker_target(target, new_id);
+    }
+
+    /// An open `FormState::SlidePicker`'s keyboard-only row selection
+    /// (spec 013 US3, ADR-017's keyboard-complete posture): digits 1-9
+    /// pick a row by position, `n` picks "a new slide…", `e` picks
+    /// "nothing — an ending" (`PickerTarget::Next` only, mirroring
+    /// `form_chip_defs`'s rule for when that row exists at all). Returns
+    /// whether the key was one of these, so the caller skips routing it to
+    /// a (nonexistent) focused field.
+    fn on_picker_key(&mut self, target: &PickerTarget, rows: &[PickerRow], code: KeyCode) -> bool {
+        match code {
+            KeyCode::Char(c) if c.is_ascii_digit() && c != '0' => {
+                let idx = c.to_digit(10).expect("ascii digit") as usize - 1;
+                if idx < rows.len() {
+                    self.commit_picker_row(idx);
+                }
+                true
+            }
+            KeyCode::Char('n') => {
+                self.commit_picker_new_slide();
+                true
+            }
+            KeyCode::Char('e') if matches!(target, PickerTarget::Next { .. }) => {
+                self.commit_picker_ending();
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// `[ Reveal: … ▾ ]`: cycles the selected block's reveal step
+    /// none → 1 → 2 → … → none, auto-compacting via `Op::SetRevealStep`
+    /// (spec 013 US3, T053).
+    fn cycle_reveal_step(&mut self, node: String, path: BlockPath) {
+        let Some(node_ref) = self.working_graph.node(&node) else {
+            return;
+        };
+        let Some(block) = forms::block_at(&node_ref.content, &path) else {
+            return;
+        };
+        let current = block.reveal().filter(|&v| v > 0);
+        // Steps in use by every *other* block, excluding this one's own
+        // current value — the ceiling this block can advance to is one
+        // past that count (join an existing step, or start the next one),
+        // so a lone block still cycles none → 1 → none rather than
+        // getting stuck (spec 013 US3, T053).
+        let other_levels = other_reveal_levels(&node_ref.content, &path);
+        let next = match current {
+            None => Some(1),
+            Some(n) if n as usize <= other_levels.len() => Some(n + 1),
+            Some(_) => None,
+        };
+        self.apply_op(Op::SetRevealStep {
+            node,
+            path,
+            step: next,
+        });
+    }
+
+    /// The toolbar chip / outline `＋ new slide` row (spec 013 US3, T049):
+    /// opens the title prompt, wiring the new slide after the currently
+    /// selected slide (or the deck's last slide when nothing is selected).
+    fn open_new_slide_prompt(&mut self) {
+        let after = match &self.selection {
+            Selection::Slide(id) | Selection::Block(id, _) => id.clone(),
+            Selection::None => match self.working_graph.nodes.last() {
+                Some(n) => n.id.clone(),
+                None => return,
+            },
+        };
+        self.open_form = Some(FormState::Prompt {
+            kind: PromptKind::NewSlide { after },
+            fields: vec![EditableField::single_line(Vec::new(), "")],
+            focus: 0,
+        });
+    }
+
+    fn open_rename_deck_prompt(&mut self) {
+        let title = self.working_graph.title.clone().unwrap_or_default();
+        self.open_form = Some(FormState::Prompt {
+            kind: PromptKind::DeckTitle,
+            fields: vec![EditableField::single_line(Vec::new(), &title)],
+            focus: 0,
+        });
+    }
+
+    fn open_notes_prompt(&mut self, node: String) {
+        let notes = self
+            .working_graph
+            .node(&node)
+            .and_then(|n| n.speaker_notes.clone())
+            .unwrap_or_default();
+        self.open_form = Some(FormState::Prompt {
+            kind: PromptKind::Notes { node },
+            fields: vec![EditableField::from_text(
+                Vec::new(),
+                forms::EditableKind::Text,
+                &notes,
+            )],
+            focus: 0,
+        });
+    }
+
+    fn open_choice_prompt(&mut self, node: String) {
+        self.open_form = Some(FormState::Prompt {
+            kind: PromptKind::ChoicePrompt { node },
+            fields: vec![
+                EditableField::single_line(Vec::new(), ""),
+                EditableField::single_line(Vec::new(), ""),
+            ],
+            focus: 1,
+        });
+    }
+
+    fn open_new_answer_prompt(&mut self, node: String) {
+        self.open_form = Some(FormState::Prompt {
+            kind: PromptKind::NewAnswer { node },
+            fields: vec![
+                EditableField::single_line(Vec::new(), ""),
+                EditableField::single_line(Vec::new(), ""),
+            ],
+            focus: 0,
+        });
+    }
+
+    fn on_slide_chip(&mut self, node: String, action: SlideAction) {
+        match action {
+            SlideAction::Duplicate => {
+                let Some(idx) = self.working_graph.nodes.iter().position(|n| n.id == node) else {
+                    return;
+                };
+                if self.apply_op(Op::DuplicateSlide { id: node })
+                    && let Some(dup) = self.working_graph.nodes.get(idx + 1)
+                {
+                    self.selection = Selection::Slide(dup.id.clone());
+                }
+            }
+            SlideAction::Delete => {
+                if self.apply_op(Op::DeleteSlide { id: node }) {
+                    self.selection = Selection::None;
+                    self.set_flash(
+                        "Deleted \u{2014} press \u{21b6} Undo to bring it back",
+                        FlashKind::Info,
+                    );
+                }
+            }
+            SlideAction::TurnIntoChoice => self.open_choice_prompt(node),
+            SlideAction::TurnBackIntoSlide => {
+                if self.apply_op(Op::TurnBackIntoSlide { id: node.clone() }) {
+                    self.selection = Selection::Slide(node);
+                }
+            }
+            SlideAction::AddAnswer => self.open_new_answer_prompt(node),
+            SlideAction::RemoveAnswer => {
+                let Some(bp) = self
+                    .working_graph
+                    .node(&node)
+                    .and_then(|n| n.branch_point())
+                else {
+                    return;
+                };
+                let index = bp.options.len().saturating_sub(1);
+                if self.apply_op(Op::RemoveAnswer {
+                    id: node.clone(),
+                    index,
+                }) {
+                    self.selection = Selection::Slide(node);
+                    self.set_flash(
+                        "Removed \u{2014} press \u{21b6} Undo to bring it back",
+                        FlashKind::Info,
+                    );
+                }
+            }
+            SlideAction::Notes => self.open_notes_prompt(node),
+        }
+    }
+
+    /// Outline slide drag across a branch boundary (spec 013 US3, T050):
+    /// the flash carries a `[ take me there ]`-style link, resolved by
+    /// finding the branch point whose answer targets `bad_id`, if any.
+    fn attempt_reorder(&mut self, id: String, before: Option<String>) {
+        match authoring::apply(
+            &self.working_graph,
+            &Op::ReorderSlide {
+                id: id.clone(),
+                before,
+            },
+        ) {
+            Ok(next) => {
+                self.push_history();
+                self.working_graph = next;
+                self.redo.clear();
+                self.selection = Selection::Slide(id);
+            }
+            Err(AuthoringError::CrossesBranchBoundary(bad_id)) => {
+                let title = self
+                    .working_graph
+                    .node(&bad_id)
+                    .and_then(|n| n.title.clone())
+                    .unwrap_or_else(|| bad_id.clone());
+                let text = format!(
+                    "\"{title}\" is reached only through a branch answer \u{2014} change the answer's target instead"
+                );
+                match find_branch_predecessor(&self.working_graph, &bad_id) {
+                    Some(pred) => self.set_flash_with_action(
+                        text,
+                        FlashKind::Error,
+                        hit::FlashAction::SelectSlide(pred),
+                    ),
+                    None => self.set_flash(text, FlashKind::Error),
+                }
+            }
+            Err(err) => self.set_flash(err.to_string(), FlashKind::Error),
         }
     }
 
@@ -501,24 +1023,35 @@ impl EditorApp {
                 TextArtFocus::Art => art,
                 TextArtFocus::Alt => alt,
             }),
-            FormState::Container { .. } | FormState::AddPalette { .. } => None,
+            FormState::Prompt { fields, focus, .. } => fields.get_mut(*focus),
+            FormState::Container { .. }
+            | FormState::AddPalette { .. }
+            | FormState::SlidePicker { .. } => None,
         }
     }
 
     /// Whether the currently focused field is single-line (Enter never
     /// inserts a newline into one — see `forms::EditableField::single_line`).
     fn focused_field_is_single_line(&self) -> bool {
-        matches!(
-            &self.open_form,
+        match &self.open_form {
             Some(FormState::Code {
                 focus: CodeFocus::Language,
                 ..
-            }) | Some(FormState::Picture { .. })
-                | Some(FormState::TextArt {
-                    focus: TextArtFocus::Alt,
-                    ..
-                })
-        )
+            })
+            | Some(FormState::Picture { .. })
+            | Some(FormState::TextArt {
+                focus: TextArtFocus::Alt,
+                ..
+            }) => true,
+            // Every `Prompt` field is single-line except `Notes`, which is
+            // free text (spec 013 US3, T054).
+            Some(FormState::Prompt {
+                kind: PromptKind::Notes { .. },
+                ..
+            }) => false,
+            Some(FormState::Prompt { .. }) => true,
+            _ => false,
+        }
     }
 
     /// Tab/Shift+Tab while a form is open: swaps focus between a
@@ -550,6 +1083,9 @@ impl EditorApp {
                     TextArtFocus::Art => TextArtFocus::Alt,
                     TextArtFocus::Alt => TextArtFocus::Art,
                 };
+            }
+            FormState::Prompt { fields, focus, .. } if fields.len() > 1 => {
+                *focus = (*focus + 1) % fields.len();
             }
             _ => {}
         }
@@ -743,9 +1279,75 @@ impl EditorApp {
             KeyCode::Enter => self.open_form_for_selection(),
             KeyCode::Tab => self.select_adjacent_block(false),
             KeyCode::BackTab => self.select_adjacent_block(true),
+            KeyCode::Char(']') => self.select_adjacent_slide(false),
+            KeyCode::Char('[') => self.select_adjacent_slide(true),
+            KeyCode::Char('n') => self.open_new_slide_prompt(),
+            KeyCode::Char('r') => self.on_reveal_key(),
+            KeyCode::Char('c') => self.on_choice_key(),
+            KeyCode::Char('a') => self.on_add_answer_key(),
+            KeyCode::Char('g') => self.on_goes_to_key(),
             KeyCode::Up => self.scroll = self.scroll.saturating_sub(1),
             KeyCode::Down => self.scroll = self.scroll.saturating_add(1),
             _ => {}
+        }
+    }
+
+    /// `r`: the selected block's keyboard equivalent of the `[ Reveal ]`
+    /// chip (spec 013 US3, ADR-017's keyboard-complete posture) — a no-op
+    /// unless a block is selected.
+    fn on_reveal_key(&mut self) {
+        if let Selection::Block(node, path) = self.selection.clone() {
+            self.cycle_reveal_step(node, path);
+        }
+    }
+
+    /// `c`: the selected slide's keyboard equivalent of
+    /// `[ Turn into a choice ]`/`[ Turn back into a normal slide ]` — a
+    /// no-op unless a slide (not a block) is selected.
+    fn on_choice_key(&mut self) {
+        let Selection::Slide(id) = self.selection.clone() else {
+            return;
+        };
+        let Some(node) = self.working_graph.node(&id) else {
+            return;
+        };
+        if node.branch_point().is_some() {
+            self.on_slide_chip(id, SlideAction::TurnBackIntoSlide);
+        } else {
+            self.open_choice_prompt(id);
+        }
+    }
+
+    /// `a`: the selected branch-point slide's keyboard equivalent of
+    /// `[ + Add answer ]` — a no-op unless the selected slide is already a
+    /// branch point.
+    fn on_add_answer_key(&mut self) {
+        let Selection::Slide(id) = self.selection.clone() else {
+            return;
+        };
+        let Some(node) = self.working_graph.node(&id) else {
+            return;
+        };
+        if node.branch_point().is_some() {
+            self.open_new_answer_prompt(id);
+        }
+    }
+
+    /// `g`: the selected non-branch slide's keyboard equivalent of the
+    /// "Goes to" strip's `[ change ]` chip.
+    fn on_goes_to_key(&mut self) {
+        let Selection::Slide(id) = self.selection.clone() else {
+            return;
+        };
+        let Some(node) = self.working_graph.node(&id) else {
+            return;
+        };
+        if node.branch_point().is_none() {
+            let rows = self.picker_rows();
+            self.open_form = Some(FormState::SlidePicker {
+                target: PickerTarget::Next { node: id },
+                rows,
+            });
         }
     }
 
@@ -758,11 +1360,24 @@ impl EditorApp {
             return;
         }
         if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('s') {
-            self.commit_form();
+            // `ChoicePrompt`/`NewAnswer` have no direct-commit `[ Done ]`
+            // — their keyboard equivalent of clicking `[ Choose target →
+            // ]` is Ctrl+S too, once the required field(s) are filled in.
+            let routes_to_picker = matches!(&self.open_form, Some(form) if matches!(form, FormState::Prompt { .. }) && !form.prompt_commits_directly());
+            if routes_to_picker {
+                self.begin_picker();
+            } else {
+                self.commit_form();
+            }
             return;
         }
         if matches!(key.code, KeyCode::Tab | KeyCode::BackTab) {
             self.form_cycle_field();
+            return;
+        }
+        if let Some(FormState::SlidePicker { target, rows }) = self.open_form.clone()
+            && self.on_picker_key(&target, &rows, key.code)
+        {
             return;
         }
         let single_line = self.focused_field_is_single_line();
@@ -810,21 +1425,39 @@ impl EditorApp {
     /// canvas edges", design brief). A no-op unless a block drag is
     /// actually in progress.
     fn on_drag_move(&mut self, col: u16, row: u16) {
-        let (node, path) = match &self.drag {
-            DragState::Lifting { node, path } | DragState::Over { node, path, .. } => {
-                (node.clone(), path.clone())
+        match &self.drag {
+            DragState::Lifting { .. } | DragState::Over { .. } => {
+                let (node, path) = match &self.drag {
+                    DragState::Lifting { node, path } | DragState::Over { node, path, .. } => {
+                        (node.clone(), path.clone())
+                    }
+                    _ => unreachable!(),
+                };
+                let (w, h) = self.terminal_size;
+                let areas = hit::editor_areas(Rect::new(0, 0, w, h));
+                if row <= areas.canvas.y {
+                    self.scroll = self.scroll.saturating_sub(1);
+                } else if row.saturating_add(1) >= areas.canvas.bottom() {
+                    self.scroll = self.scroll.saturating_add(1);
+                }
+                if let Some(to) = hit::resolve_drop_slot(self, &node, areas.canvas, col, row) {
+                    self.drag = DragState::Over { node, path, to };
+                }
             }
-            DragState::Idle => return,
-        };
-        let (w, h) = self.terminal_size;
-        let areas = hit::editor_areas(Rect::new(0, 0, w, h));
-        if row <= areas.canvas.y {
-            self.scroll = self.scroll.saturating_sub(1);
-        } else if row.saturating_add(1) >= areas.canvas.bottom() {
-            self.scroll = self.scroll.saturating_add(1);
-        }
-        if let Some(to) = hit::resolve_drop_slot(self, &node, areas.canvas, col, row) {
-            self.drag = DragState::Over { node, path, to };
+            DragState::OutlineLifting { .. } | DragState::OutlineOver { .. } => {
+                let id = match &self.drag {
+                    DragState::OutlineLifting { id } | DragState::OutlineOver { id, .. } => {
+                        id.clone()
+                    }
+                    _ => unreachable!(),
+                };
+                let (w, h) = self.terminal_size;
+                let areas = hit::editor_areas(Rect::new(0, 0, w, h));
+                if let Some(before) = hit::resolve_outline_drop(self, areas.outline, col, row) {
+                    self.drag = DragState::OutlineOver { id, before };
+                }
+            }
+            DragState::Idle => {}
         }
     }
 
@@ -837,19 +1470,26 @@ impl EditorApp {
     /// a plain click.
     fn on_release(&mut self) {
         let drag = std::mem::replace(&mut self.drag, DragState::Idle);
-        let DragState::Over { node, path, to } = drag else {
-            return;
-        };
-        let Some(&origin) = path.last() else { return };
-        let move_to = if to <= origin { to } else { to - 1 };
-        if move_to != origin
-            && self.apply_op(Op::MoveBlock {
-                node: node.clone(),
-                path: path.clone(),
-                to: move_to,
-            })
-        {
-            self.selection = Selection::Block(node, vec![move_to]);
+        match drag {
+            DragState::Over { node, path, to } => {
+                let Some(&origin) = path.last() else { return };
+                let move_to = if to <= origin { to } else { to - 1 };
+                if move_to != origin
+                    && self.apply_op(Op::MoveBlock {
+                        node: node.clone(),
+                        path: path.clone(),
+                        to: move_to,
+                    })
+                {
+                    self.selection = Selection::Block(node, vec![move_to]);
+                }
+            }
+            DragState::OutlineOver { id, before } => {
+                if before.as_deref() != Some(id.as_str()) {
+                    self.attempt_reorder(id, before);
+                }
+            }
+            DragState::Lifting { .. } | DragState::OutlineLifting { .. } | DragState::Idle => {}
         }
     }
 
@@ -857,8 +1497,9 @@ impl EditorApp {
         let (w, h) = self.terminal_size;
         match hit::hit(self, Rect::new(0, 0, w, h), col, row) {
             Some(hit::Target::OutlineRow(id)) => {
-                self.selection = Selection::Slide(id);
+                self.selection = Selection::Slide(id.clone());
                 self.scroll = 0;
+                self.drag = DragState::OutlineLifting { id };
             }
             Some(hit::Target::Block(node_id, path)) => {
                 self.selection = Selection::Block(node_id.clone(), path.clone());
@@ -881,6 +1522,9 @@ impl EditorApp {
             Some(hit::Target::BlockChip(node, path, hit::BlockAction::Delete)) => {
                 self.delete_block(node, path);
             }
+            Some(hit::Target::BlockChip(node, path, hit::BlockAction::Reveal)) => {
+                self.cycle_reveal_step(node, path);
+            }
             Some(hit::Target::ToolbarChip(hit::ToolbarAction::Present)) => {
                 self.present_requested = true;
             }
@@ -893,21 +1537,38 @@ impl EditorApp {
             Some(hit::Target::ToolbarChip(hit::ToolbarAction::Undo)) => {
                 self.undo();
             }
+            Some(hit::Target::ToolbarChip(hit::ToolbarAction::AddSlide))
+            | Some(hit::Target::OutlineNewSlide) => {
+                self.open_new_slide_prompt();
+            }
+            Some(hit::Target::ToolbarTitle) => self.open_rename_deck_prompt(),
+            Some(hit::Target::GoesToChip(node)) => {
+                let rows = self.picker_rows();
+                self.open_form = Some(FormState::SlidePicker {
+                    target: PickerTarget::Next { node },
+                    rows,
+                });
+            }
+            Some(hit::Target::SlideChip(node, action)) => self.on_slide_chip(node, action),
+            Some(hit::Target::AnswerChip(node, index)) => {
+                let rows = self.picker_rows();
+                self.open_form = Some(FormState::SlidePicker {
+                    target: PickerTarget::RetargetAnswer { node, index },
+                    rows,
+                });
+            }
+            Some(hit::Target::FlashAction(hit::FlashAction::SelectSlide(id))) => {
+                self.selection = Selection::Slide(id);
+                self.flash = None;
+            }
             Some(hit::Target::FormChip(hit::FormChipKind::PaletteCard(kind))) => {
                 self.add_block_from_palette(kind);
             }
             Some(hit::Target::FormChip(kind)) => self.on_form_chip(kind),
             Some(hit::Target::FormField(slot)) => self.focus_form_field(slot),
-            // Add-slide/move-up/move-down/reveal aren't wired until US3 —
-            // the chip resolves but is a no-op for now (design brief: "no
-            // mutations" beyond a wave's own scope).
-            Some(
-                hit::Target::BlockChip(..)
-                | hit::Target::ToolbarChip(hit::ToolbarAction::AddSlide)
-                | hit::Target::OutlineNewSlide
-                | hit::Target::GoesToChip(_)
-                | hit::Target::StatusBanner,
-            ) => {}
+            // `MoveUp`/`MoveDown` chips aren't wired — block drag (US2)
+            // already covers reordering (see `hit::BlockAction`'s doc).
+            Some(hit::Target::BlockChip(..) | hit::Target::StatusBanner) => {}
             None => {
                 // A form, while open, occupies the whole hit-testing
                 // surface (`hit::form_hit`) — a click outside it is
@@ -1070,8 +1731,44 @@ mod tests {
         app
     }
 
+    /// A 3-slide linear deck (spec 013 US3 fixtures): a → b → c.
+    const LINEAR3: &str = r#"{"nodes":[
+        {"id":"a","title":"Intro","traversal":"b","content":[{"kind":"text","body":"one"}]},
+        {"id":"b","title":"Middle","traversal":"c","content":[{"kind":"text","body":"two"}]},
+        {"id":"c","title":"End","content":[{"kind":"text","body":"three"}]}
+    ]}"#;
+
+    /// A slide with a branch point to two others (spec 013 US3 fixtures).
+    const BRANCH: &str = r#"{"nodes":[
+        {"id":"a","title":"Start","content":[{"kind":"text","body":"pick"}],
+         "traversal":{"branch-point":{"options":[
+            {"label":"To B","target":"b"},
+            {"label":"To C","target":"c"}
+         ]}}},
+        {"id":"b","title":"B slide","content":[{"kind":"text","body":"b"}]},
+        {"id":"c","title":"C slide","content":[{"kind":"text","body":"c"}]}
+    ]}"#;
+
+    fn linear3_app() -> EditorApp {
+        let mut app = EditorApp::new(Graph::from_json(LINEAR3).expect("fixture parses"));
+        app.set_terminal_size(100, 30);
+        app
+    }
+
+    fn branch_app() -> EditorApp {
+        let mut app = EditorApp::new(Graph::from_json(BRANCH).expect("fixture parses"));
+        app.set_terminal_size(100, 30);
+        app
+    }
+
     fn press(app: &mut EditorApp, code: KeyCode) {
         app.update(Msg::Terminal(Event::Key(KeyEvent::from(code))));
+    }
+
+    fn type_text(app: &mut EditorApp, text: &str) {
+        for c in text.chars() {
+            press(app, KeyCode::Char(c));
+        }
     }
 
     fn press_with(app: &mut EditorApp, code: KeyCode, modifiers: KeyModifiers) {
@@ -1647,7 +2344,7 @@ mod tests {
         let area = Rect::new(0, 0, 100, 30);
         let areas = hit::editor_areas(area);
         let chips = hit::selected_block_chips(&app);
-        let (_, add_below_rect) = hit::block_chip_rects(areas.hint, &chips)
+        let (_, add_below_rect) = hit::chip_rects(areas.hint, &chips)
             .into_iter()
             .find(|(a, _)| *a == hit::BlockAction::AddBelow)
             .expect("an Add below chip exists");
@@ -1721,7 +2418,7 @@ mod tests {
             let mut app = app();
             select_block(&mut app, "a", 0);
             let chips = hit::selected_block_chips(&app);
-            let (_, add_below_rect) = hit::block_chip_rects(areas.hint, &chips)
+            let (_, add_below_rect) = hit::chip_rects(areas.hint, &chips)
                 .into_iter()
                 .find(|(a, _)| *a == hit::BlockAction::AddBelow)
                 .expect("an Add below chip exists");
@@ -1757,7 +2454,7 @@ mod tests {
         let area = Rect::new(0, 0, 100, 30);
         let areas = hit::editor_areas(area);
         let chips = hit::selected_block_chips(&app);
-        let (_, add_below_rect) = hit::block_chip_rects(areas.hint, &chips)
+        let (_, add_below_rect) = hit::chip_rects(areas.hint, &chips)
             .into_iter()
             .find(|(a, _)| *a == hit::BlockAction::AddBelow)
             .expect("an Add below chip exists");
@@ -1781,7 +2478,7 @@ mod tests {
         let area = Rect::new(0, 0, 100, 30);
         let areas = hit::editor_areas(area);
         let chips = hit::selected_block_chips(&app);
-        let (_, delete_rect) = hit::block_chip_rects(areas.hint, &chips)
+        let (_, delete_rect) = hit::chip_rects(areas.hint, &chips)
             .into_iter()
             .find(|(a, _)| *a == hit::BlockAction::Delete)
             .expect("a Delete chip exists");
@@ -1933,5 +2630,436 @@ mod tests {
             app.open_form(),
             Some(FormState::AddPalette { .. })
         ));
+    }
+
+    // ─── US3: restructure the deck (spec 013, T056) ──────────────────────
+
+    fn click_form_chip(app: &mut EditorApp, kind: hit::FormChipKind) {
+        let form = app.open_form().expect("a form is open").clone();
+        let layout = hit::form_layout(&form, Rect::new(0, 0, 100, 30));
+        let (_, _, rect) = layout
+            .chips
+            .iter()
+            .find(|(k, _, _)| *k == kind)
+            .unwrap_or_else(|| panic!("chip {kind:?} exists"));
+        click(app, rect.x, rect.y);
+    }
+
+    fn click_picker_row(app: &mut EditorApp, title: &str) {
+        let Some(FormState::SlidePicker { rows, .. }) = app.open_form() else {
+            panic!("a slide picker is open");
+        };
+        let idx = rows
+            .iter()
+            .position(|r| r.title == title)
+            .unwrap_or_else(|| panic!("a picker row titled {title:?} exists"));
+        click_form_chip(app, hit::FormChipKind::PickerRow(idx));
+    }
+
+    fn click_outline_row(app: &mut EditorApp, row: u16) {
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, 30));
+        click(app, areas.outline.x, areas.outline.y + row);
+    }
+
+    fn drag_outline_row(app: &mut EditorApp, from_row: u16, to_row: u16) {
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, 30));
+        click(app, areas.outline.x, areas.outline.y + from_row);
+        drag_to(app, areas.outline.x, areas.outline.y + to_row);
+        release(app, areas.outline.x, areas.outline.y + to_row);
+    }
+
+    fn click_slide_chip(app: &mut EditorApp, action: hit::SlideAction) {
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, 30));
+        let chips = hit::selected_slide_chips(app);
+        let (_, rect) = hit::chip_rects(areas.hint, &chips)
+            .into_iter()
+            .find(|(a, _)| *a == action)
+            .unwrap_or_else(|| panic!("slide chip {action:?} exists"));
+        click(app, rect.x, rect.y);
+    }
+
+    fn click_block_reveal_chip(app: &mut EditorApp) {
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, 40));
+        let chips = hit::selected_block_chips(app);
+        let (_, rect) = hit::chip_rects(areas.hint, &chips)
+            .into_iter()
+            .find(|(a, _)| *a == hit::BlockAction::Reveal)
+            .expect("a Reveal chip exists");
+        click(app, rect.x, rect.y);
+    }
+
+    /// `[`/`]` select the previous/next outline slide, wrapping — the
+    /// keyboard-only counterpart to clicking an outline row (spec 013
+    /// US3, ADR-017's keyboard-complete posture).
+    #[test]
+    fn bracket_keys_select_the_adjacent_slide_and_wrap() {
+        let mut app = linear3_app();
+        press(&mut app, KeyCode::Char(']'));
+        assert_eq!(app.selection(), &Selection::Slide("a".to_owned()));
+        press(&mut app, KeyCode::Char(']'));
+        assert_eq!(app.selection(), &Selection::Slide("b".to_owned()));
+        press(&mut app, KeyCode::Char('['));
+        assert_eq!(app.selection(), &Selection::Slide("a".to_owned()));
+        press(&mut app, KeyCode::Char('['));
+        assert_eq!(
+            app.selection(),
+            &Selection::Slide("c".to_owned()),
+            "wraps backward past the first slide to the last"
+        );
+    }
+
+    #[test]
+    fn outline_new_slide_row_prompts_a_title_and_wires_it_after_the_last_slide() {
+        let mut app = linear3_app();
+        click_outline_row(&mut app, 3); // the permanent "+ new slide" row
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::Prompt {
+                kind: PromptKind::NewSlide { .. },
+                ..
+            })
+        ));
+        type_text(&mut app, "Bonus");
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        assert!(app.open_form().is_none());
+        assert_eq!(app.working_graph().nodes.len(), 4);
+        assert_eq!(
+            app.working_graph().node("c").unwrap().next_target(),
+            Some("bonus"),
+            "the new slide is wired after the deck's last slide, which had no next"
+        );
+        assert_eq!(app.selection(), &Selection::Slide("bonus".to_owned()));
+    }
+
+    #[test]
+    fn slide_duplicate_and_delete_round_trip() {
+        let mut app = linear3_app();
+        app.selection = Selection::Slide("b".to_owned());
+        click_slide_chip(&mut app, hit::SlideAction::Duplicate);
+        assert_eq!(app.working_graph().nodes.len(), 4);
+        assert_eq!(app.selection(), &Selection::Slide("middle".to_owned()));
+
+        click_slide_chip(&mut app, hit::SlideAction::Delete);
+        assert_eq!(app.working_graph().nodes.len(), 3);
+        assert_eq!(app.selection(), &Selection::None);
+        assert!(app.working_graph().node("middle").is_none());
+    }
+
+    /// Acceptance scenario 2: turn a slide into a branch point with two
+    /// named answers, chosen by title from a picker — never a typed id.
+    #[test]
+    fn turn_into_a_choice_and_add_a_second_answer_via_the_picker() {
+        let mut app = linear3_app();
+        app.selection = Selection::Slide("a".to_owned());
+        click_slide_chip(&mut app, hit::SlideAction::TurnIntoChoice);
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::Prompt {
+                kind: PromptKind::ChoicePrompt { .. },
+                ..
+            })
+        ));
+        type_text(&mut app, "Go to the end");
+        click_form_chip(&mut app, hit::FormChipKind::ChooseTarget);
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::SlidePicker { .. })
+        ));
+        click_picker_row(&mut app, "End");
+        assert!(app.open_form().is_none());
+        let bp = app
+            .working_graph()
+            .node("a")
+            .unwrap()
+            .branch_point()
+            .expect("a is now a branch point");
+        assert_eq!(bp.options.len(), 1);
+        assert_eq!(bp.options[0].label, "Go to the end");
+        assert_eq!(bp.options[0].target, "c");
+        assert_eq!(app.selection(), &Selection::Slide("a".to_owned()));
+
+        click_slide_chip(&mut app, hit::SlideAction::AddAnswer);
+        type_text(&mut app, "Stay in the middle");
+        click_form_chip(&mut app, hit::FormChipKind::ChooseTarget);
+        click_picker_row(&mut app, "Middle");
+        let bp = app
+            .working_graph()
+            .node("a")
+            .unwrap()
+            .branch_point()
+            .unwrap();
+        assert_eq!(bp.options.len(), 2);
+        assert_eq!(bp.options[1].label, "Stay in the middle");
+        assert_eq!(bp.options[1].target, "b");
+
+        click_slide_chip(&mut app, hit::SlideAction::RemoveAnswer);
+        let bp = app
+            .working_graph()
+            .node("a")
+            .unwrap()
+            .branch_point()
+            .unwrap();
+        assert_eq!(bp.options.len(), 1, "removes the last answer");
+        assert_eq!(bp.options[0].label, "Go to the end");
+        assert!(
+            !hit::selected_slide_chips(&app)
+                .iter()
+                .any(|(a, _)| *a == hit::SlideAction::RemoveAnswer),
+            "the chip disappears once only one answer remains"
+        );
+
+        click_slide_chip(&mut app, hit::SlideAction::TurnBackIntoSlide);
+        assert_eq!(
+            app.working_graph().node("a").unwrap().next_target(),
+            Some("c"),
+            "turning back keeps the first answer's target"
+        );
+    }
+
+    /// The same build as the mouse-driven test above, but entirely via
+    /// the keyboard — `n`/`c`/`a`/`g`/`r` plus a picker's digit-row
+    /// shortcuts (spec 013 US3, ADR-017's keyboard-complete posture).
+    #[test]
+    fn keyboard_only_new_slide_choice_and_reveal_match_the_mouse_path() {
+        let mut app = linear3_app();
+        press(&mut app, KeyCode::Char(']')); // selects "a"
+        press(&mut app, KeyCode::Char('n')); // new-slide prompt, after "a"
+        type_text(&mut app, "Bonus");
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        assert_eq!(app.selection(), &Selection::Slide("bonus".to_owned()));
+        assert_eq!(app.working_graph().nodes.len(), 4);
+
+        app.selection = Selection::Slide("a".to_owned());
+        press(&mut app, KeyCode::Char('c')); // turn into a choice
+        type_text(&mut app, "Go to the end");
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL); // -> Choose target picker
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::SlidePicker { .. })
+        ));
+        let end_row = {
+            let Some(FormState::SlidePicker { rows, .. }) = app.open_form() else {
+                panic!("picker open");
+            };
+            rows.iter().position(|r| r.title == "End").unwrap() + 1 // 1-based digit
+        };
+        press(
+            &mut app,
+            KeyCode::Char(char::from_digit(end_row as u32, 10).unwrap()),
+        );
+        assert!(app.open_form().is_none());
+        let bp = app
+            .working_graph()
+            .node("a")
+            .unwrap()
+            .branch_point()
+            .unwrap();
+        assert_eq!(bp.options[0].target, "c");
+
+        app.selection = Selection::Slide("a".to_owned());
+        press(&mut app, KeyCode::Char('a')); // add another answer
+        type_text(&mut app, "Bonus round");
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        let bonus_row = {
+            let Some(FormState::SlidePicker { rows, .. }) = app.open_form() else {
+                panic!("picker open");
+            };
+            rows.iter().position(|r| r.title == "Bonus").unwrap() + 1
+        };
+        press(
+            &mut app,
+            KeyCode::Char(char::from_digit(bonus_row as u32, 10).unwrap()),
+        );
+        let bp = app
+            .working_graph()
+            .node("a")
+            .unwrap()
+            .branch_point()
+            .unwrap();
+        assert_eq!(bp.options.len(), 2);
+        assert_eq!(bp.options[1].target, "bonus");
+
+        // `g` on a non-branch slide rewires "goes to" via the keyboard too.
+        app.selection = Selection::Slide("b".to_owned());
+        press(&mut app, KeyCode::Char('g'));
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::SlidePicker { .. })
+        ));
+        press(&mut app, KeyCode::Char('n')); // "a new slide…" row
+        assert_eq!(
+            app.working_graph().node("b").unwrap().next_target(),
+            Some("new-slide")
+        );
+
+        select_block(&mut app, "a", 0); // "a"'s original content block, untouched by turning it into a choice
+        press(&mut app, KeyCode::Char('r'));
+        assert_eq!(
+            app.working_graph().node("a").unwrap().content[0].reveal(),
+            Some(1)
+        );
+    }
+
+    /// Acceptance scenario 3 (happy path): dragging a slide within a
+    /// straight run reorders it and the wiring follows.
+    #[test]
+    fn outline_drag_reorders_a_linear_run() {
+        let mut app = linear3_app();
+        drag_outline_row(&mut app, 2, 1); // drag "c" (row 2) to before "b" (row 1)
+        assert_eq!(
+            app.working_graph().node("a").unwrap().next_target(),
+            Some("c")
+        );
+        assert_eq!(
+            app.working_graph().node("c").unwrap().next_target(),
+            Some("b")
+        );
+        assert!(app.working_graph().node("b").unwrap().is_terminal());
+        assert_eq!(app.selection(), &Selection::Slide("c".to_owned()));
+    }
+
+    /// Acceptance scenario 3 (refusal): dragging a branch-answer's target
+    /// across the branch boundary is refused with an explanation and a
+    /// clickable way to go fix it at the source instead.
+    #[test]
+    fn outline_drag_across_a_branch_boundary_refuses_with_a_jump_link() {
+        let mut app = branch_app();
+        drag_outline_row(&mut app, 1, 2); // drag "b" (row 1) to before "c" (row 2)
+        assert_eq!(
+            app.working_graph(),
+            &Graph::from_json(BRANCH).unwrap(),
+            "a refused reorder changes nothing"
+        );
+        let flash = app.flash().expect("a refusal flash is shown");
+        assert!(flash.text.contains("reached only through a branch answer"));
+        assert_eq!(
+            flash.action,
+            Some(hit::FlashAction::SelectSlide("a".to_owned()))
+        );
+
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, 30));
+        click(&mut app, areas.hint.x, areas.hint.y);
+        assert_eq!(app.selection(), &Selection::Slide("a".to_owned()));
+        assert!(app.flash().is_none());
+    }
+
+    /// Acceptance scenario 4: reveal steps stay consecutive from one
+    /// regardless of the order they were assigned in.
+    #[test]
+    fn reveal_chip_cycles_through_consecutive_steps() {
+        let mut app = all_kinds_app();
+        select_block(&mut app, "a", 0);
+        click_block_reveal_chip(&mut app);
+        assert_eq!(
+            app.working_graph().node("a").unwrap().content[0].reveal(),
+            Some(1)
+        );
+
+        select_block(&mut app, "a", 1);
+        click_block_reveal_chip(&mut app);
+        assert_eq!(
+            app.working_graph().node("a").unwrap().content[1].reveal(),
+            Some(1),
+            "a block with no prior step joins the first existing one"
+        );
+        click_block_reveal_chip(&mut app);
+        assert_eq!(
+            app.working_graph().node("a").unwrap().content[1].reveal(),
+            Some(2),
+            "cycling again starts a new, later step"
+        );
+        click_block_reveal_chip(&mut app);
+        assert_eq!(
+            app.working_graph().node("a").unwrap().content[1].reveal(),
+            None,
+            "cycling past the last step returns to none"
+        );
+        assert_eq!(
+            app.working_graph().node("a").unwrap().reveal_levels(),
+            vec![1]
+        );
+    }
+
+    /// Acceptance scenario 1: choosing the next slide by name from a
+    /// picker, including switching to "nothing — an ending."
+    #[test]
+    fn goes_to_picker_rewires_next_and_can_clear_it_to_an_ending() {
+        let mut app = linear3_app();
+        app.selection = Selection::Slide("a".to_owned());
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, 30));
+        let node = app.working_graph().node("a").unwrap();
+        let text = hit::wiring_summary(app.working_graph(), node);
+        let rect = hit::wiring_change_rect(areas.wiring, text.chars().count() as u16);
+        click(&mut app, rect.x, rect.y);
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::SlidePicker { .. })
+        ));
+        click_picker_row(&mut app, "End");
+        assert_eq!(
+            app.working_graph().node("a").unwrap().next_target(),
+            Some("c")
+        );
+
+        app.selection = Selection::Slide("a".to_owned());
+        let node = app.working_graph().node("a").unwrap();
+        let text = hit::wiring_summary(app.working_graph(), node);
+        let rect = hit::wiring_change_rect(areas.wiring, text.chars().count() as u16);
+        click(&mut app, rect.x, rect.y);
+        click_form_chip(&mut app, hit::FormChipKind::PickerEnding);
+        assert!(app.working_graph().node("a").unwrap().is_terminal());
+    }
+
+    #[test]
+    fn answer_chip_retargets_an_existing_branch_answer() {
+        let mut app = branch_app();
+        app.selection = Selection::Slide("a".to_owned());
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, 30));
+        let spans =
+            hit::wiring_answer_spans(app.working_graph(), app.working_graph().node("a").unwrap());
+        let first = &spans[0];
+        click(&mut app, areas.wiring.x + first.start, areas.wiring.y);
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::SlidePicker { .. })
+        ));
+        click_picker_row(&mut app, "C slide");
+        let bp = app
+            .working_graph()
+            .node("a")
+            .unwrap()
+            .branch_point()
+            .unwrap();
+        assert_eq!(bp.options[0].target, "c");
+    }
+
+    #[test]
+    fn toolbar_title_rename_and_slide_notes_round_trip() {
+        let mut app = linear3_app();
+        let areas = hit::editor_areas(Rect::new(0, 0, 100, 30));
+        click(&mut app, areas.toolbar.x, areas.toolbar.y);
+        assert!(matches!(
+            app.open_form(),
+            Some(FormState::Prompt {
+                kind: PromptKind::DeckTitle,
+                ..
+            })
+        ));
+        type_text(&mut app, "My Great Talk");
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        assert_eq!(app.working_graph().title.as_deref(), Some("My Great Talk"));
+
+        app.selection = Selection::Slide("a".to_owned());
+        click_slide_chip(&mut app, hit::SlideAction::Notes);
+        type_text(&mut app, "Smile and slow down");
+        press_with(&mut app, KeyCode::Char('s'), KeyModifiers::CONTROL);
+        assert_eq!(
+            app.working_graph()
+                .node("a")
+                .unwrap()
+                .speaker_notes
+                .as_deref(),
+            Some("Smile and slow down")
+        );
     }
 }

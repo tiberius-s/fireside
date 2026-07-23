@@ -8,6 +8,7 @@
 mod canvas;
 mod forms;
 mod outline;
+mod wiring;
 
 use ratatui::Frame;
 use ratatui::layout::Alignment;
@@ -33,6 +34,7 @@ pub(crate) fn draw(frame: &mut Frame, app: &EditorApp) {
     draw_toolbar(frame, areas.toolbar, app, &tokens);
     outline::draw(frame, areas.outline, app, &tokens);
     canvas::draw(frame, areas.canvas, app, &tokens);
+    wiring::draw(frame, areas.wiring, app, &tokens);
     draw_status(frame, areas.status, app, &tokens);
     draw_hint(frame, areas.hint, app, &tokens);
     if let Some(form) = app.open_form() {
@@ -75,22 +77,24 @@ fn draw_toolbar(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens)
         .unwrap_or_else(|| "Untitled deck".to_owned());
     let dot = if app.dirty() { " \u{25cf}" } else { "" };
     let label = format!(" {title}{dot}");
-    frame.render_widget(Paragraph::new(Span::styled(label, tokens.accent)), area);
+    let title_hovered = app.hover() == Some(&hit::Target::ToolbarTitle);
+    let title_style = if title_hovered {
+        tokens.selection
+    } else {
+        tokens.accent
+    };
+    frame.render_widget(Paragraph::new(Span::styled(label, title_style)), area);
 
     for (action, chip_area) in hit::toolbar_chip_rects(area) {
         let label = TOOLBAR_CHIPS
             .iter()
             .find(|(a, _)| *a == action)
             .map_or("", |(_, label)| label);
-        // Add-slide isn't wired until US3 — muted here says "not yet
-        // actionable" without hiding the chip (principle 2: the five chips
-        // are always the whole top-level surface).
-        let actionable = !matches!(action, hit::ToolbarAction::AddSlide);
         let hovered = app.hover() == Some(&hit::Target::ToolbarChip(action));
-        let style = match (actionable, hovered) {
-            (true, true) => tokens.selection,
-            (true, false) => tokens.affordance,
-            (false, _) => tokens.muted,
+        let style = if hovered {
+            tokens.selection
+        } else {
+            tokens.affordance
         };
         frame.render_widget(Paragraph::new(Span::styled(label, style)), chip_area);
     }
@@ -129,10 +133,13 @@ fn draw_status(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) 
 /// rest).
 fn draw_hint(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) {
     if let Some(flash) = app.flash() {
-        let style = match flash.kind {
+        let mut style = match flash.kind {
             FlashKind::Info => tokens.muted,
             FlashKind::Error => tokens.error,
         };
+        if flash.action.is_some() {
+            style = style.add_modifier(Modifier::UNDERLINED);
+        }
         frame.render_widget(
             Paragraph::new(Span::styled(format!(" {}", flash.text), style)),
             area,
@@ -149,10 +156,10 @@ fn draw_hint(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) {
         );
         return;
     }
-    let chips = hit::selected_block_chips(app);
-    if !chips.is_empty() {
-        let mut spans = Vec::with_capacity(chips.len());
-        for (action, label) in &chips {
+    let block_chips = hit::selected_block_chips(app);
+    if !block_chips.is_empty() {
+        let mut spans = Vec::with_capacity(block_chips.len());
+        for (action, label) in &block_chips {
             let hovered = matches!(
                 app.hover(),
                 Some(hit::Target::BlockChip(_, _, a)) if a == action
@@ -162,14 +169,32 @@ fn draw_hint(frame: &mut Frame, area: Rect, app: &EditorApp, tokens: &Tokens) {
             } else {
                 tokens.affordance
             };
-            spans.push(Span::styled(*label, style));
+            spans.push(Span::styled(label.clone(), style));
+        }
+        frame.render_widget(Paragraph::new(Line::from(spans)), area);
+        return;
+    }
+    let slide_chips = hit::selected_slide_chips(app);
+    if !slide_chips.is_empty() {
+        let mut spans = Vec::with_capacity(slide_chips.len());
+        for (action, label) in &slide_chips {
+            let hovered = matches!(
+                app.hover(),
+                Some(hit::Target::SlideChip(_, a)) if a == action
+            );
+            let style = if hovered {
+                tokens.selection
+            } else {
+                tokens.affordance
+            };
+            spans.push(Span::styled(label.clone(), style));
         }
         frame.render_widget(Paragraph::new(Line::from(spans)), area);
         return;
     }
     frame.render_widget(
         Paragraph::new(Span::styled(
-            "Click a slide or block to select \u{b7} Tab selects a block \u{b7} ? shows every key",
+            "Click a slide or block to select \u{b7} Tab a block, [ ] a slide \u{b7} ? shows every key",
             tokens.muted,
         )),
         area,
@@ -184,7 +209,12 @@ fn draw_help(frame: &mut Frame, area: Rect, tokens: &Tokens) {
         )),
         Line::default(),
         Line::from("click / Tab       select a slide or block"),
+        Line::from("[ / ]             select the previous / next slide"),
         Line::from("Enter             edit the selected block"),
+        Line::from("n                 new slide \u{b7} c turn into/back a choice"),
+        Line::from("a                 add an answer \u{b7} g change where it goes"),
+        Line::from("r                 cycle the selected block's reveal step"),
+        Line::from("1-9, n, e         in a picker: pick a row, a new slide, or an ending"),
         Line::from("Ctrl+S            save \u{b7} u/U undo"),
         Line::from("p                 present from the selected slide"),
         Line::from("\u{2191}/\u{2193}, wheel       scroll the canvas"),

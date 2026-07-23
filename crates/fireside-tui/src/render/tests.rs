@@ -1704,7 +1704,7 @@ fn render_suite_vocabulary_gate() {
     let (start, _) = layout.block_extents[0];
     editor_click(&mut app, layout.inner.x, layout.inner.y + start as u16);
     let chips = crate::editor::hit::selected_block_chips(&app);
-    let (_, add_below_rect) = crate::editor::hit::block_chip_rects(areas.hint, &chips)
+    let (_, add_below_rect) = crate::editor::hit::chip_rects(areas.hint, &chips)
         .into_iter()
         .find(|(a, _)| *a == crate::editor::hit::BlockAction::AddBelow)
         .expect("an Add below chip exists");

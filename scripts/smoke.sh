@@ -332,10 +332,12 @@ JSON
 start "$BIN edit $US1DECK"
 assert_contains "studio opens on the fixture deck" "Smoke US1 Talk"
 
-# The text block ("Original wording") renders at row 15 of the fixed
-# 100x30 studio layout for this exact fixture; SGR coordinates are
-# 1-based. Clicking it selects it — the hint line's [ Edit ] chip follows.
-mouse_click 35 15
+# The text block ("Original wording") renders at row 14 of the fixed
+# 100x30 studio layout for this exact fixture (spec 013 US3's "Goes to"
+# wiring strip takes one row off the bottom of the canvas); SGR
+# coordinates are 1-based. Clicking it selects it — the hint line's
+# [ Edit ] chip follows.
+mouse_click 35 14
 assert_contains "clicking the text block selects it (mouse)" "Edit ]"
 
 # The hint-line [ Edit ] chip sits at the studio's fixed bottom row.
@@ -418,11 +420,11 @@ assert_contains "studio opens on the fixture deck" "Smoke US2 Talk"
 
 # Same fixture shape as scenario 7's US1DECK, so the same 100x30 layout
 # applies: the level-1 heading (2 rendered lines: text + rule) spans rows
-# 12-13, the text block sits at row 15 (scenario 7 already confirmed a
+# 11-12, the text block sits at row 14 (scenario 7 already confirmed a
 # click there selects it). Pressing anywhere on the heading and dragging
 # past the text block's row drops it after the text block (spec FR-009:
 # drag from anywhere on the block, not just a handle).
-mouse_drag 35 13 35 15
+mouse_drag 35 12 35 14
 sleep 0.3
 mouse_click 82 1
 assert_contains "[ Save ] writes the reordered deck" "Saved"
@@ -436,6 +438,188 @@ else
   printf '  \033[1;31m\xe2\x9c\x97\033[0m the saved file did not reflect the new block order\n'
   fail=$((fail + 1))
 fi
+
+keys "q"
+sleep 0.4
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m editor q quits and the terminal is restored\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m editor q did not end the session\n'
+  fail=$((fail + 1))
+fi
+
+# ─── Scenario 9: fireside edit — US3 flagship walkthrough, mouse-only (spec 013, T057) ──
+echo
+echo "=== fireside edit: build a slide, a choice, and a reveal step — mouse-only ==="
+US3DECK="$WORKDIR/smoke-us3-talk.fireside.json"
+cat >"$US3DECK" <<'JSON'
+{
+  "fireside-version": "0.1.0",
+  "title": "Smoke US3 Talk",
+  "nodes": [
+    {
+      "id": "intro",
+      "title": "Welcome",
+      "content": [
+        {"kind": "heading", "level": 1, "text": "Hello there"},
+        {"kind": "text", "body": "Original wording"}
+      ]
+    },
+    {"id": "middle", "title": "Middle", "content": [{"kind": "text", "body": "middle content"}]},
+    {"id": "end", "title": "End", "content": [{"kind": "text", "body": "end content"}]}
+  ]
+}
+JSON
+start "$BIN edit $US3DECK"
+assert_contains "studio opens on the fixture deck" "Smoke US3 Talk"
+
+# Select "Welcome" (outline row 1 — always the entry slide's row,
+# regardless of any later structural edits) and turn it into a choice
+# pointing at two of the deck's other slides, chosen by name from a
+# picker — never a typed id anywhere in this flow.
+mouse_click 5 2
+assert_contains "selecting a slide shows its structural chips" "Turn into a choice"
+mouse_click 30 30
+assert_contains "the choice prompt opens" "Turn into a choice"
+tmux send-keys -t "$SESSION" -l -- "To Middle"
+mouse_click 15 19
+assert_contains "the slide picker lists every slide by title" "Choose a slide"
+mouse_click 14 14
+assert_contains "the branch now names its first answer" "Branches to: Middle"
+
+mouse_click 30 30
+assert_contains "+ Add answer opens a second answer's prompt" "Add an answer"
+tmux send-keys -t "$SESSION" -l -- "To End"
+mouse_click 15 19
+mouse_click 14 15
+assert_contains "both named answers are wired" "Branches to: Middle, End"
+
+# The toolbar's [ + Slide ] chip sits at a fixed offset regardless of
+# outline state — add a slide via the toolbar rather than the outline's
+# own "+ new slide" row so this step never depends on whether a
+# "not linked yet" divider happens to be showing.
+mouse_click 52 1
+assert_contains "[ + Slide ] opens the title prompt" "New slide"
+tmux send-keys -t "$SESSION" -l -- "Recap"
+tmux send-keys -t "$SESSION" C-s
+assert_contains "the new slide is added and selected" "Recap"
+
+# Reselect "Welcome" (outline row 1, still deterministic) before touching
+# its blocks — adding "Recap" moved the studio's selection to it.
+mouse_click 5 2
+# The text block sits at row 13 of the canvas for this exact fixture,
+# stable regardless of the outline's own row count.
+mouse_click 35 13
+assert_contains "selecting the text block shows its Reveal chip" "Reveal: none"
+mouse_click 32 30
+assert_contains "the Reveal chip cycles to step 1" "Reveal: 1"
+
+mouse_click 80 1
+assert_contains "[ Save ] writes the deck" "Saved"
+if grep -qF '"reveal": 1' "$US3DECK" && grep -qF '"branch-point"' "$US3DECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the saved file has the branch and the reveal step\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the saved file is missing the branch or the reveal step\n'
+  fail=$((fail + 1))
+fi
+
+mouse_click 65 1
+assert_contains "presenting shows the reveal gate before the branch" "0/1 revealed"
+keys " "
+assert_contains "revealing shows the wording and both named answers" "Original wording"
+assert_contains "the branch's answers render by name" "To Middle"
+keys "q"
+assert_contains "q returns to the editor (the block stays selected across present-and-return)" "ready to present"
+
+keys "q"
+sleep 0.4
+if ! tmux list-panes -t "$SESSION" >/dev/null 2>&1; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m editor q quits and the terminal is restored\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m editor q did not end the session\n'
+  fail=$((fail + 1))
+fi
+
+# ─── Scenario 10: fireside edit — US3 flagship walkthrough, keyboard-only (spec 013, T057) ──
+echo
+echo "=== fireside edit: build a slide, a choice, and a reveal step — keyboard-only ==="
+US3KBDECK="$WORKDIR/smoke-us3-kb-talk.fireside.json"
+cat >"$US3KBDECK" <<'JSON'
+{
+  "fireside-version": "0.1.0",
+  "title": "Smoke US3 KB Talk",
+  "nodes": [
+    {
+      "id": "intro",
+      "title": "Welcome",
+      "content": [
+        {"kind": "heading", "level": 1, "text": "Hello there"},
+        {"kind": "text", "body": "Original wording"}
+      ]
+    },
+    {"id": "middle", "title": "Middle", "content": [{"kind": "text", "body": "middle content"}]},
+    {"id": "end", "title": "End", "content": [{"kind": "text", "body": "end content"}]}
+  ]
+}
+JSON
+start "$BIN edit $US3KBDECK"
+assert_contains "studio opens on the fixture deck" "Smoke US3 KB Talk"
+
+# `]` from no selection lands on the outline's first (entry) row,
+# deterministically, regardless of prior structural edits.
+keys "]"
+keys "c"
+assert_contains "c opens the choice prompt without the mouse" "Turn into a choice"
+tmux send-keys -t "$SESSION" -l -- "To Middle"
+tmux send-keys -t "$SESSION" C-s
+assert_contains "Ctrl+S on a choice prompt opens the slide picker" "Choose a slide"
+# Picker rows list every slide in the deck's declaration order — with
+# nothing else added yet, digit 2 is unambiguously "Middle".
+keys "2"
+assert_contains "digit 2 picks the second listed slide" "Branches to: Middle"
+
+keys "a"
+assert_contains "a opens the add-answer prompt without the mouse" "Add an answer"
+tmux send-keys -t "$SESSION" -l -- "To End"
+tmux send-keys -t "$SESSION" C-s
+keys "3"
+assert_contains "both named answers are wired, entirely via the keyboard" "Branches to: Middle, End"
+
+keys "n"
+assert_contains "n opens the new-slide prompt without the mouse" "New slide"
+tmux send-keys -t "$SESSION" -l -- "Recap"
+tmux send-keys -t "$SESSION" C-s
+assert_contains "the new slide is added and selected" "Recap"
+
+# Reselect "Welcome" — adding "Recap" moved the studio's selection to it,
+# and `]` from nothing is deterministically the entry slide again.
+keys "Escape"
+keys "]"
+keys "Tab"
+keys "Tab"
+keys "r"
+assert_contains "r cycles the selected block's reveal step" "Reveal: 1"
+
+tmux send-keys -t "$SESSION" C-s
+assert_contains "Ctrl+S saves" "Saved"
+if grep -qF '"reveal": 1' "$US3KBDECK" && grep -qF '"branch-point"' "$US3KBDECK"; then
+  printf '  \033[1;32m\xe2\x9c\x93\033[0m the saved file has the branch and the reveal step\n'
+  pass=$((pass + 1))
+else
+  printf '  \033[1;31m\xe2\x9c\x97\033[0m the saved file is missing the branch or the reveal step\n'
+  fail=$((fail + 1))
+fi
+
+keys "p"
+assert_contains "presenting shows the reveal gate before the branch" "0/1 revealed"
+keys " "
+assert_contains "revealing shows the wording and both named answers" "Original wording"
+assert_contains "the branch's answers render by name" "To Middle"
+keys "q"
+assert_contains "q returns to the editor (the block stays selected across present-and-return)" "ready to present"
 
 keys "q"
 sleep 0.4

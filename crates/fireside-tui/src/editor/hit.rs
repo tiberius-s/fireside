@@ -13,7 +13,7 @@
 
 use ratatui::layout::{Constraint, Layout, Rect};
 
-use fireside_core::{ContainerLayout, Graph, Node};
+use fireside_core::{BranchOption, ContainerLayout, Graph, Node};
 use fireside_engine::authoring::{BlockKind, BlockPath, OutlineRow, outline_order};
 
 use crate::render::content::{NodeLines, SlideView, content_inner, node_lines};
@@ -39,20 +39,100 @@ pub(crate) enum ToolbarAction {
     Help,
 }
 
-/// One of a selected block's contextual chips. `Edit`, `AddBelow`, and
-/// `Delete` are produced by `hit()` as of US1/US2 (T034, T042, T043) —
-/// `MoveUp`/`MoveDown`/`Reveal` wait for US3. `#[allow(dead_code)]`:
-/// forward-declared API surface per `contracts/hit-testing.md`, not dead
-/// code to clean up.
+/// One of a selected block's contextual chips. `Edit`, `AddBelow`,
+/// `Reveal`, and `Delete` are produced by `hit()` (T034, T042, T043,
+/// T053) — `MoveUp`/`MoveDown` stay forward-declared: block drag (US2)
+/// already covers reordering. `#[allow(dead_code)]` on those two only.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[allow(dead_code)]
 pub(crate) enum BlockAction {
     Edit,
     AddBelow,
+    #[allow(dead_code)]
     MoveUp,
+    #[allow(dead_code)]
     MoveDown,
     Reveal,
     Delete,
+}
+
+/// One of the selected slide's contextual chips (spec 013 US3, T049/T052/T054)
+/// — the hint line's equivalent of [`BlockAction`] when `Selection::Slide`
+/// (not `Block`) is active.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SlideAction {
+    Duplicate,
+    Delete,
+    TurnIntoChoice,
+    TurnBackIntoSlide,
+    AddAnswer,
+    /// Removes the branch's last answer (spec 013 US3, T052) — shown only
+    /// when ≥ 2 answers exist; `[ Turn back into a normal slide ]` is
+    /// the path to zero, per `AuthoringError::LastAnswer`.
+    RemoveAnswer,
+    Notes,
+}
+
+/// A click on the flash message's action link, if it has one (spec 013 US3
+/// T050's cross-branch-boundary refusal toast: "a way to perform the
+/// intended change correctly").
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum FlashAction {
+    SelectSlide(String),
+}
+
+/// One row of the generic "choose a slide" picker (spec 013 US3, T051):
+/// every existing slide, plus the special "a new slide…" and (for wiring a
+/// plain `next`, not a branch answer) "nothing — an ending" rows.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct PickerRow {
+    pub(crate) id: String,
+    pub(crate) title: String,
+}
+
+/// What a [`FormState::SlidePicker`](super::forms::FormState::SlidePicker)
+/// selection commits to, once a row is chosen (spec 013 US3, T051/T052).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum PickerTarget {
+    Next {
+        node: String,
+    },
+    FirstAnswer {
+        node: String,
+        prompt: Option<String>,
+        label: String,
+    },
+    NewAnswer {
+        node: String,
+        label: String,
+        key: Option<String>,
+    },
+    RetargetAnswer {
+        node: String,
+        index: usize,
+    },
+}
+
+impl PickerTarget {
+    pub(crate) fn origin(&self) -> &str {
+        match self {
+            Self::Next { node }
+            | Self::FirstAnswer { node, .. }
+            | Self::NewAnswer { node, .. }
+            | Self::RetargetAnswer { node, .. } => node,
+        }
+    }
+}
+
+/// Which text prompt is open (spec 013 US3): a single- or double-field
+/// form whose `[ Done ]`/`[ Choose target → ]` chip applies a direct
+/// effect or hands off to [`FormState::SlidePicker`](super::forms::FormState::SlidePicker).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum PromptKind {
+    NewSlide { after: String },
+    DeckTitle,
+    Notes { node: String },
+    ChoicePrompt { node: String },
+    NewAnswer { node: String },
 }
 
 /// One chip inside the currently open form (spec 013, US1-US2). `Done`
@@ -69,6 +149,17 @@ pub(crate) enum FormChipKind {
     GenerateFromPhrase,
     CycleLayout,
     PaletteCard(BlockKind),
+    /// The `[ Choose target → ]` chip on `PromptKind::ChoicePrompt`/
+    /// `NewAnswer` (spec 013 US3, T051/T052): hands off to
+    /// `FormState::SlidePicker`.
+    ChooseTarget,
+    /// One row of an open `FormState::SlidePicker`, by index into its
+    /// `rows` (T051).
+    PickerRow(usize),
+    /// The picker's "nothing — an ending" row (`PickerTarget::Next` only).
+    PickerEnding,
+    /// The picker's "a new slide…" row.
+    PickerNewSlide,
 }
 
 /// Which of an open form's text fields a click landed in — coarse-grained
@@ -85,6 +176,8 @@ pub(crate) enum FieldSlot {
     Src,
     Alt,
     Art,
+    /// One of a `FormState::Prompt`'s fields, by index (spec 013 US3).
+    Prompt(usize),
 }
 
 /// One interactive region of the editor screen —
@@ -97,16 +190,25 @@ pub(crate) enum FieldSlot {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum Target {
     ToolbarChip(ToolbarAction),
+    /// The toolbar's deck-title label (spec 013 US3, T054): click to
+    /// rename.
+    ToolbarTitle,
     OutlineRow(String),
     OutlineNewSlide,
     Block(String, BlockPath),
     BlockChip(String, BlockPath, BlockAction),
-    /// Forward-declared; T045 produces this.
-    #[allow(dead_code)]
     InsertionSlot(String, BlockPath, usize),
-    /// Forward-declared; T051 produces this.
-    #[allow(dead_code)]
+    /// The "Goes to" strip's `[ change ]` chip (non-branch slides only —
+    /// spec 013 US3, T051).
     GoesToChip(String),
+    /// A selected slide's hint-line chip (T049/T052/T054).
+    SlideChip(String, SlideAction),
+    /// One answer's title inside the "Branches to" strip — click to
+    /// retarget it (spec 013 US3, T051/T052).
+    AnswerChip(String, usize),
+    /// A click on the active flash message's action link, if it has one
+    /// (T050's cross-branch refusal toast).
+    FlashAction(FlashAction),
     FormChip(FormChipKind),
     /// A click inside one of the open form's text fields — focuses it
     /// (T034).
@@ -122,11 +224,15 @@ pub(crate) struct EditorAreas {
     pub(crate) toolbar: Rect,
     pub(crate) outline: Rect,
     pub(crate) canvas: Rect,
+    /// The "Goes to"/"Branches to" strip below the canvas card (spec 013
+    /// US3, T051) — one row, in the canvas column only (the outline pane
+    /// keeps its full height, so this never shifts outline row indices).
+    pub(crate) wiring: Rect,
     pub(crate) status: Rect,
     pub(crate) hint: Rect,
 }
 
-/// Splits `area` into the studio's five panes. Pure geometry, shared by
+/// Splits `area` into the studio's six panes. Pure geometry, shared by
 /// `render::editor` (drawing) and this module (hit-testing) — the same
 /// "one layout, two consumers" convention `render::areas`/`render::surface`
 /// already keep for the presenter.
@@ -139,12 +245,15 @@ pub(crate) fn editor_areas(area: Rect) -> EditorAreas {
     ])
     .areas(area);
     let outline_width = (area.width / 4).clamp(18, 28);
-    let [outline, canvas] =
+    let [outline, canvas_col] =
         Layout::horizontal([Constraint::Length(outline_width), Constraint::Fill(1)]).areas(body);
+    let [canvas, wiring] =
+        Layout::vertical([Constraint::Fill(1), Constraint::Length(1)]).areas(canvas_col);
     EditorAreas {
         toolbar,
         outline,
         canvas,
+        wiring,
         status,
         hint,
     }
@@ -261,14 +370,35 @@ fn rect_contains(rect: Rect, col: u16, row: u16) -> bool {
     col >= rect.x && col < rect.right() && row >= rect.y && row < rect.bottom()
 }
 
-fn toolbar_hit(toolbar: Rect, col: u16, row: u16) -> Option<Target> {
+/// The toolbar's deck-title label extent — shared by `render::editor`'s
+/// drawing and this module's hit-testing (spec 013 US3, T054).
+pub(crate) fn toolbar_title_rect(toolbar: Rect, app: &EditorApp) -> Rect {
+    let title = app
+        .working_graph()
+        .title
+        .clone()
+        .unwrap_or_else(|| "Untitled deck".to_owned());
+    let dot = if app.dirty() { " \u{25cf}" } else { "" };
+    let width = (title.chars().count() as u16 + dot.chars().count() as u16 + 1).min(toolbar.width);
+    Rect {
+        x: toolbar.x,
+        y: toolbar.y,
+        width,
+        height: 1,
+    }
+}
+
+fn toolbar_hit(app: &EditorApp, toolbar: Rect, col: u16, row: u16) -> Option<Target> {
     if !rect_contains(toolbar, col, row) {
         return None;
     }
-    toolbar_chip_rects(toolbar)
+    if let Some((action, _)) = toolbar_chip_rects(toolbar)
         .into_iter()
         .find(|(_, rect)| rect_contains(*rect, col, row))
-        .map(|(action, _)| Target::ToolbarChip(action))
+    {
+        return Some(Target::ToolbarChip(action));
+    }
+    rect_contains(toolbar_title_rect(toolbar, app), col, row).then_some(Target::ToolbarTitle)
 }
 
 fn outline_hit(app: &EditorApp, outline: Rect, col: u16, row: u16) -> Option<Target> {
@@ -416,6 +546,18 @@ pub(crate) const BLOCK_EDIT_CHIP: &str = " [ \u{270e} Edit ]";
 pub(crate) const BLOCK_ADD_BELOW_CHIP: &str = " [ + Add below ]";
 pub(crate) const BLOCK_DELETE_CHIP: &str = " [ Delete ]";
 
+/// The selected block's current reveal step, for the `[ Reveal: … ▾ ]`
+/// chip's label (spec 013 US3, T053) — "none" when unset or `0`.
+fn reveal_chip_label(node: &Node, path: &BlockPath) -> String {
+    let step = forms::block_at(&node.content, path)
+        .and_then(|b| b.reveal())
+        .filter(|&v| v > 0);
+    match step {
+        Some(n) => format!(" [ Reveal: {n} \u{25be} ]"),
+        None => " [ Reveal: none \u{25be} ]".to_owned(),
+    }
+}
+
 /// Whether `block` has an edit form at all — a `Divider` has nothing to
 /// edit, so a selected divider offers no `[ Edit ]` chip.
 fn has_form(node: &str, path: &BlockPath, node_ref: &Node) -> bool {
@@ -443,16 +585,66 @@ pub(crate) fn selection_has_form(app: &EditorApp) -> bool {
 /// `render::editor::mod::draw_hint` (drawing), so the two can never
 /// disagree. Empty when nothing is selected.
 #[must_use]
-pub(crate) fn selected_block_chips(app: &EditorApp) -> Vec<(BlockAction, &'static str)> {
-    if !matches!(app.selection(), Selection::Block(..)) {
+pub(crate) fn selected_block_chips(app: &EditorApp) -> Vec<(BlockAction, String)> {
+    let Selection::Block(_, path) = app.selection() else {
         return Vec::new();
-    }
+    };
+    let Some(node) = selected_node(app) else {
+        return Vec::new();
+    };
     let mut chips = Vec::new();
     if selection_has_form(app) {
-        chips.push((BlockAction::Edit, BLOCK_EDIT_CHIP));
+        chips.push((BlockAction::Edit, BLOCK_EDIT_CHIP.to_owned()));
     }
-    chips.push((BlockAction::AddBelow, BLOCK_ADD_BELOW_CHIP));
-    chips.push((BlockAction::Delete, BLOCK_DELETE_CHIP));
+    chips.push((BlockAction::AddBelow, BLOCK_ADD_BELOW_CHIP.to_owned()));
+    chips.push((BlockAction::Reveal, reveal_chip_label(node, path)));
+    chips.push((BlockAction::Delete, BLOCK_DELETE_CHIP.to_owned()));
+    chips
+}
+
+/// The selected slide's contextual chips (spec 013 US3, T049/T052/T054) —
+/// the hint line's equivalent of [`selected_block_chips`] when
+/// `Selection::Slide` (not `Block`) is active.
+#[must_use]
+pub(crate) fn selected_slide_chips(app: &EditorApp) -> Vec<(SlideAction, String)> {
+    let Selection::Slide(id) = app.selection() else {
+        return Vec::new();
+    };
+    let Some(node) = app.working_graph().node(id) else {
+        return Vec::new();
+    };
+    let mut chips = vec![
+        (SlideAction::Duplicate, " [ Duplicate ]".to_owned()),
+        (SlideAction::Delete, " [ Delete ]".to_owned()),
+    ];
+    if let Some(bp) = node.branch_point() {
+        chips.push((SlideAction::AddAnswer, " [ + Add answer ]".to_owned()));
+        if bp.options.len() > 1 {
+            chips.push((
+                SlideAction::RemoveAnswer,
+                " [ Remove last answer ]".to_owned(),
+            ));
+        }
+        chips.push((
+            SlideAction::TurnBackIntoSlide,
+            " [ Turn back into a normal slide ]".to_owned(),
+        ));
+    } else {
+        chips.push((
+            SlideAction::TurnIntoChoice,
+            " [ Turn into a choice ]".to_owned(),
+        ));
+    }
+    let notes_label = if node
+        .speaker_notes
+        .as_deref()
+        .is_some_and(|n| !n.trim().is_empty())
+    {
+        " [ Notes \u{270e} ]"
+    } else {
+        " [ Notes ]"
+    };
+    chips.push((SlideAction::Notes, notes_label.to_owned()));
     chips
 }
 
@@ -460,10 +652,7 @@ pub(crate) fn selected_block_chips(app: &EditorApp) -> Vec<(BlockAction, &'stati
 /// order given — the same "one pure layout, two consumers" convention
 /// `toolbar_chip_rects` already keeps for the toolbar.
 #[must_use]
-pub(crate) fn block_chip_rects(
-    hint: Rect,
-    chips: &[(BlockAction, &'static str)],
-) -> Vec<(BlockAction, Rect)> {
+pub(crate) fn chip_rects<A: Copy>(hint: Rect, chips: &[(A, String)]) -> Vec<(A, Rect)> {
     let mut x = hint.x;
     let mut out = Vec::with_capacity(chips.len());
     for (action, label) in chips {
@@ -483,14 +672,23 @@ pub(crate) fn block_chip_rects(
 }
 
 fn hint_hit(app: &EditorApp, hint: Rect, col: u16, row: u16) -> Option<Target> {
-    let Selection::Block(node, path) = app.selection() else {
-        return None;
-    };
-    let chips = selected_block_chips(app);
-    let (action, _) = block_chip_rects(hint, &chips)
-        .into_iter()
-        .find(|(_, r)| rect_contains(*r, col, row))?;
-    Some(Target::BlockChip(node.clone(), path.clone(), action))
+    match app.selection() {
+        Selection::Block(node, path) => {
+            let chips = selected_block_chips(app);
+            let (action, _) = chip_rects(hint, &chips)
+                .into_iter()
+                .find(|(_, r)| rect_contains(*r, col, row))?;
+            Some(Target::BlockChip(node.clone(), path.clone(), action))
+        }
+        Selection::Slide(id) => {
+            let chips = selected_slide_chips(app);
+            let (action, _) = chip_rects(hint, &chips)
+                .into_iter()
+                .find(|(_, r)| rect_contains(*r, col, row))?;
+            Some(Target::SlideChip(id.clone(), action))
+        }
+        Selection::None => None,
+    }
 }
 
 // ─── Open-form layout (spec 013, US1/T034) ─────────────────────────────────
@@ -517,7 +715,7 @@ pub(crate) struct FormLayout {
     pub(crate) hint_rect: Rect,
     pub(crate) children_lines: Vec<String>,
     pub(crate) children_rect: Rect,
-    pub(crate) chips: Vec<(FormChipKind, &'static str, Rect)>,
+    pub(crate) chips: Vec<(FormChipKind, String, Rect)>,
 }
 
 fn form_title(form: &FormState) -> &'static str {
@@ -526,10 +724,41 @@ fn form_title(form: &FormState) -> &'static str {
         FormState::Text { .. } => " Edit text ",
         FormState::Code { .. } => " Edit code ",
         FormState::List { .. } => " Edit list ",
+        FormState::Prompt {
+            kind: PromptKind::NewSlide { .. },
+            ..
+        } => " New slide ",
+        FormState::Prompt {
+            kind: PromptKind::DeckTitle,
+            ..
+        } => " Rename the deck ",
+        FormState::Prompt {
+            kind: PromptKind::Notes { .. },
+            ..
+        } => " Speaker notes ",
+        FormState::Prompt {
+            kind: PromptKind::ChoicePrompt { .. },
+            ..
+        } => " Turn into a choice ",
+        FormState::Prompt {
+            kind: PromptKind::NewAnswer { .. },
+            ..
+        } => " Add an answer ",
+        FormState::SlidePicker { .. } => " Choose a slide ",
         FormState::Picture { .. } => " Edit picture ",
         FormState::TextArt { .. } => " Edit text art ",
         FormState::Container { .. } => " Edit layout ",
         FormState::AddPalette { .. } => " Add a block ",
+    }
+}
+
+fn prompt_field_labels(kind: &PromptKind) -> Vec<&'static str> {
+    match kind {
+        PromptKind::NewSlide { .. } => vec!["Title"],
+        PromptKind::DeckTitle => vec!["Deck title"],
+        PromptKind::Notes { .. } => vec!["Speaker notes"],
+        PromptKind::ChoicePrompt { .. } => vec!["Prompt (optional)", "First answer's label"],
+        PromptKind::NewAnswer { .. } => vec!["Answer label", "Key (optional, one letter)"],
     }
 }
 
@@ -557,7 +786,15 @@ fn form_sections(form: &FormState) -> Vec<(FieldSlot, &'static str, u16)> {
             (FieldSlot::Art, "Art", n(art.buffer.len())),
             (FieldSlot::Alt, "Description", n(alt.buffer.len())),
         ],
-        FormState::Container { .. } | FormState::AddPalette { .. } => Vec::new(),
+        FormState::Prompt { kind, fields, .. } => prompt_field_labels(kind)
+            .into_iter()
+            .zip(fields)
+            .enumerate()
+            .map(|(i, (label, field))| (FieldSlot::Prompt(i), label, n(field.buffer.len())))
+            .collect(),
+        FormState::Container { .. }
+        | FormState::AddPalette { .. }
+        | FormState::SlidePicker { .. } => Vec::new(),
     }
 }
 
@@ -606,14 +843,18 @@ const PALETTE_CARDS: [(BlockKind, &str); 8] = [
     ),
 ];
 
-fn form_chip_defs(form: &FormState) -> Vec<(FormChipKind, &'static str)> {
-    if matches!(form, FormState::AddPalette { .. }) {
+fn form_chip_defs(form: &FormState) -> Vec<(FormChipKind, String)> {
+    if matches!(
+        form,
+        FormState::AddPalette { .. } | FormState::SlidePicker { .. }
+    ) {
         // Unreachable via `form_layout` (which early-returns to
-        // `add_palette_layout` for this variant) — kept only so this
-        // match stays exhaustive over every `FormState` variant.
+        // `add_palette_layout`/`picker_layout` for these variants) — kept
+        // only so this match stays exhaustive over every `FormState`
+        // variant.
         return Vec::new();
     }
-    let mut chips = match form {
+    let leading: Vec<(FormChipKind, &'static str)> = match form {
         FormState::Picture { .. } => {
             vec![(FormChipKind::ConvertToTextArt, "[ Convert to text art ]")]
         }
@@ -631,8 +872,19 @@ fn form_chip_defs(form: &FormState) -> Vec<(FormChipKind, &'static str)> {
         )],
         _ => Vec::new(),
     };
-    chips.push((FormChipKind::Done, "[ Done ]"));
-    chips.push((FormChipKind::Cancel, "[ Cancel ]"));
+    let mut chips: Vec<(FormChipKind, String)> = leading
+        .into_iter()
+        .map(|(k, l)| (k, l.to_owned()))
+        .collect();
+    if !matches!(form, FormState::Prompt { .. }) || form.prompt_commits_directly() {
+        chips.push((FormChipKind::Done, "[ Done ]".to_owned()));
+    } else {
+        chips.push((
+            FormChipKind::ChooseTarget,
+            "[ Choose target \u{2192} ]".to_owned(),
+        ));
+    }
+    chips.push((FormChipKind::Cancel, "[ Cancel ]".to_owned()));
     chips
 }
 
@@ -659,7 +911,7 @@ fn add_palette_layout(area: Rect) -> FormLayout {
             width: inner.width,
             height: 1,
         };
-        chips.push((FormChipKind::PaletteCard(kind), label, rect));
+        chips.push((FormChipKind::PaletteCard(kind), label.to_owned(), rect));
         y = y.saturating_add(1);
     }
     y = y.saturating_add(1);
@@ -669,10 +921,71 @@ fn add_palette_layout(area: Rect) -> FormLayout {
         width: inner.width,
         height: 1,
     };
-    chips.push((FormChipKind::Cancel, "[ Cancel ]", cancel_rect));
+    chips.push((FormChipKind::Cancel, "[ Cancel ]".to_owned(), cancel_rect));
     FormLayout {
         overlay,
         title: " Add a block ",
+        fields: Vec::new(),
+        hint_lines: Vec::new(),
+        hint_rect: Rect::new(inner.x, bottom, inner.width, 0),
+        children_lines: Vec::new(),
+        children_rect: Rect::new(inner.x, bottom, inner.width, 0),
+        chips,
+    }
+}
+
+/// The generic "choose a slide" picker's own layout (spec 013 US3, T051):
+/// a vertical list of every slide's title, plus the special rows
+/// `form_chip_defs` never produces (`PickerTarget`-dependent, so built
+/// here rather than there) — the same shape `add_palette_layout` gives the
+/// add-block palette.
+fn picker_layout(target: &PickerTarget, rows: &[PickerRow], area: Rect) -> FormLayout {
+    let special_count = 1 + usize::from(matches!(target, PickerTarget::Next { .. })); // "a new slide…" + optionally "an ending"
+    let content_lines: u16 = 1 + rows.len() as u16 + special_count as u16 + 1 + 1;
+    let overlay = form_overlay(area, content_lines);
+    let inner = Rect {
+        x: overlay.x + 1,
+        y: overlay.y + 1,
+        width: overlay.width.saturating_sub(2),
+        height: overlay.height.saturating_sub(2),
+    };
+    let bottom = inner.y.saturating_add(inner.height);
+    let mut y = inner.y.saturating_add(1);
+    let mut next_row = || {
+        let rect = Rect {
+            x: inner.x,
+            y: y.min(bottom.saturating_sub(1)),
+            width: inner.width,
+            height: 1,
+        };
+        y += 1;
+        rect
+    };
+    let mut chips = Vec::new();
+    for (i, row) in rows.iter().enumerate() {
+        let rect = next_row();
+        chips.push((FormChipKind::PickerRow(i), row.title.clone(), rect));
+    }
+    let rect = next_row();
+    chips.push((
+        FormChipKind::PickerNewSlide,
+        "\u{2192} a new slide\u{2026}".to_owned(),
+        rect,
+    ));
+    if matches!(target, PickerTarget::Next { .. }) {
+        let rect = next_row();
+        chips.push((
+            FormChipKind::PickerEnding,
+            "\u{2192} nothing \u{2014} this is an ending".to_owned(),
+            rect,
+        ));
+    }
+    let _ = next_row(); // one blank row before Cancel, matching `add_palette_layout`
+    let cancel_rect = next_row();
+    chips.push((FormChipKind::Cancel, "[ Cancel ]".to_owned(), cancel_rect));
+    FormLayout {
+        overlay,
+        title: " Choose a slide ",
         fields: Vec::new(),
         hint_lines: Vec::new(),
         hint_rect: Rect::new(inner.x, bottom, inner.width, 0),
@@ -703,6 +1016,9 @@ fn form_overlay(area: Rect, content_lines: u16) -> Rect {
 pub(crate) fn form_layout(form: &FormState, area: Rect) -> FormLayout {
     if matches!(form, FormState::AddPalette { .. }) {
         return add_palette_layout(area);
+    }
+    if let FormState::SlidePicker { target, rows } = form {
+        return picker_layout(target, rows, area);
     }
     let sections = form_sections(form);
     let hint_lines = form_hints(form);
@@ -831,6 +1147,130 @@ fn form_hit(app: &EditorApp, area: Rect, col: u16, row: u16) -> Option<Target> {
         .map(|f| Target::FormField(f.slot))
 }
 
+// ─── Wiring strip (spec 013 US3, T051) ─────────────────────────────────────
+
+/// The "Goes to"/"Branches to" strip's plain-language summary of `node`'s
+/// outgoing wiring — shared by `render::editor::wiring` (drawing) and
+/// [`wiring_hit`] (so the `[ change ]` chip's rect and the drawn text can
+/// never disagree).
+#[must_use]
+pub(crate) fn wiring_summary(graph: &Graph, node: &Node) -> String {
+    if let Some(bp) = node.branch_point() {
+        let titles: Vec<String> = bp.options.iter().map(|o| answer_title(graph, o)).collect();
+        format!(" Branches to: {}", titles.join(", "))
+    } else if let Some(target) = node.next_target() {
+        let title = graph
+            .node(target)
+            .and_then(|n| n.title.clone())
+            .unwrap_or_else(|| target.to_owned());
+        format!(" Goes to: \u{2192} {title}")
+    } else {
+        " Goes to: nothing \u{2014} this is an ending".to_owned()
+    }
+}
+
+fn answer_title(graph: &Graph, option: &BranchOption) -> String {
+    graph
+        .node(&option.target)
+        .and_then(|n| n.title.clone())
+        .unwrap_or_else(|| option.target.clone())
+}
+
+/// One branch answer's clickable extent within the "Branches to" strip's
+/// text (spec 013 US3, T051/T052) — shared by `render::editor::wiring`
+/// (drawing hover) and [`wiring_hit`].
+pub(crate) struct AnswerSpan {
+    pub(crate) index: usize,
+    pub(crate) start: u16,
+    pub(crate) len: u16,
+}
+
+#[must_use]
+pub(crate) fn wiring_answer_spans(graph: &Graph, node: &Node) -> Vec<AnswerSpan> {
+    let Some(bp) = node.branch_point() else {
+        return Vec::new();
+    };
+    let prefix = " Branches to: ".chars().count() as u16;
+    let mut col = prefix;
+    let mut spans = Vec::with_capacity(bp.options.len());
+    for (index, opt) in bp.options.iter().enumerate() {
+        let len = answer_title(graph, opt).chars().count() as u16;
+        spans.push(AnswerSpan {
+            index,
+            start: col,
+            len,
+        });
+        col += len + 2; // ", " separator
+    }
+    spans
+}
+
+const WIRING_CHANGE_CHIP: &str = "[ change ]";
+
+/// The `[ change ]` chip's rect within `wiring`, right after the summary
+/// text — non-branch slides only (spec 013 US3 scope: branch answers are
+/// managed from the hint line's `[ + Add answer ]` chip instead, T052).
+#[must_use]
+pub(crate) fn wiring_change_rect(wiring: Rect, text_len: u16) -> Rect {
+    let w = WIRING_CHANGE_CHIP.chars().count() as u16;
+    Rect {
+        x: (wiring.x + text_len + 1).min(wiring.right().saturating_sub(w)),
+        y: wiring.y,
+        width: w.min(wiring.width),
+        height: 1,
+    }
+}
+
+fn wiring_hit(app: &EditorApp, wiring: Rect, col: u16, row: u16) -> Option<Target> {
+    if !rect_contains(wiring, col, row) {
+        return None;
+    }
+    let node = selected_node(app)?;
+    if node.branch_point().is_some() {
+        let spans = wiring_answer_spans(app.working_graph(), node);
+        let span = spans.iter().find(|s| {
+            col >= wiring.x + s.start && col < wiring.x + s.start + s.len && row == wiring.y
+        })?;
+        return Some(Target::AnswerChip(node.id.clone(), span.index));
+    }
+    let text = wiring_summary(app.working_graph(), node);
+    let rect = wiring_change_rect(wiring, text.chars().count() as u16);
+    rect_contains(rect, col, row).then(|| Target::GoesToChip(node.id.clone()))
+}
+
+fn flash_hit(app: &EditorApp, hint: Rect, col: u16, row: u16) -> Option<Target> {
+    let flash = app.flash()?;
+    let action = flash.action.clone()?;
+    rect_contains(hint, col, row).then_some(Target::FlashAction(action))
+}
+
+// ─── Outline slide drag (spec 013 US3, T050) ───────────────────────────────
+
+/// Resolves where an outline slide drag currently hovering `(col, row)`
+/// would drop, as the `before` id [`fireside_engine::authoring::Op::ReorderSlide`]
+/// expects (`None` = end of the run) — `None` (outer) when the pointer
+/// isn't over the outline pane at all. A drop on the divider row (the
+/// boundary between reachable and not-yet-linked slides) or the
+/// `＋ new slide` row resolves to "end of run", exactly like dropping past
+/// the last row.
+#[must_use]
+pub(crate) fn resolve_outline_drop(
+    app: &EditorApp,
+    outline: Rect,
+    col: u16,
+    row: u16,
+) -> Option<Option<String>> {
+    if !rect_contains(outline, col, row) {
+        return None;
+    }
+    let idx = (row - outline.y) as usize;
+    let lines = outline_lines(app.working_graph());
+    match lines.get(idx) {
+        Some(OutlineLine::Row(r)) => Some(Some(r.node_id.clone())),
+        _ => Some(None),
+    }
+}
+
 fn status_hit(app: &EditorApp, status: Rect, col: u16, row: u16) -> Option<Target> {
     if !rect_contains(status, col, row) || app.status().is_empty() {
         return None;
@@ -852,9 +1292,11 @@ pub(crate) fn hit(app: &EditorApp, area: Rect, col: u16, row: u16) -> Option<Tar
         return form_hit(app, area, col, row);
     }
     let areas = editor_areas(area);
-    toolbar_hit(areas.toolbar, col, row)
+    toolbar_hit(app, areas.toolbar, col, row)
         .or_else(|| canvas_hit(app, areas.canvas, col, row))
+        .or_else(|| wiring_hit(app, areas.wiring, col, row))
         .or_else(|| outline_hit(app, areas.outline, col, row))
+        .or_else(|| flash_hit(app, areas.hint, col, row))
         .or_else(|| hint_hit(app, areas.hint, col, row))
         .or_else(|| status_hit(app, areas.status, col, row))
 }
